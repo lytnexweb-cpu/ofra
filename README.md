@@ -220,6 +220,7 @@ Use these credentials to log in to the application in development mode.
 - ✅ Loading states on all mutations
 - ✅ Error handling with user-friendly messages
 - ✅ Toast notifications on success/error
+- ✅ Professional footer with Lytnex Web branding and copyright information
 
 ## API Endpoints
 
@@ -458,6 +459,43 @@ node ace db:seed
 ```
 
 ## Changelog / Release Notes
+
+### MVP++ Part 5: Bilingual Emails & Professional Branding (December 26, 2025)
+
+**Enhanced Communication & Branding:**
+
+#### Bilingual Email Templates
+- **All 6 email templates updated** to include both French and English versions
+- **Single email format**: French content first, followed by English translation
+- **Visual language divider**: Clear separator between FR/EN sections
+- **Professional bilingual subjects**: e.g., "🎉 Félicitations ! / Congratulations!"
+- **Maintains same triggers**: Status changes to 'accepted', 'notary', 'completed'
+
+#### Lytnex Web Branding
+- **Email footer signature**: All automated emails include discrete Lytnex Web footer
+  - Text: "Lytnex Web - L'agence qui a développé ce MVP"
+  - Link: www.lytnexweb.ca
+  - Style: Small gray text (11px), professional appearance
+- **Application footer**: Added persistent footer to CRM interface
+  - Left side: `© 2025 Yanick.B - Tous droits réservés`
+  - Right side: `Conçu par Lytnex Web` (clickable link to www.lytnexweb.ca)
+  - Responsive design: Stacks vertically on mobile
+  - Sticky positioning: Always visible at bottom of page
+
+#### Technical Implementation
+- **Backend (1 file modified):**
+  - `backend/app/services/transaction_automation_service.ts` - Added helper methods for bilingual content and footer
+- **Frontend (1 file modified):**
+  - `frontend/src/components/Layout.tsx` - Added footer component with flexbox layout
+- **Accessibility**: Footer links open in new tab with proper `rel` attributes
+- **Professional styling**: Consistent with overall CRM design language
+
+**Build Status:**
+- ✅ Backend: 0 TypeScript errors
+- ✅ Frontend: 0 TypeScript errors
+- ✅ Deployed to production (Fly.io)
+
+---
 
 ### MVP++ Part 4: Automated Email Notifications (December 26, 2025)
 
