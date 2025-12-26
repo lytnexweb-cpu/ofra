@@ -18,10 +18,10 @@ import ConfirmDialog from '../components/ConfirmDialog'
 
 const statusLabels: Record<TransactionStatus, string> = {
   consultation: 'Consultation',
-  offer: 'Offer',
-  accepted: 'Accepted',
-  conditions: 'Conditions',
-  notary: 'Notary',
+  offer: 'Offer Submitted',
+  accepted: 'Offer Accepted',
+  conditions: 'Conditional Period',
+  notary: 'Firm',
   closing: 'Closing',
   completed: 'Completed',
   canceled: 'Canceled',
@@ -60,7 +60,7 @@ export default function TransactionDetailPage() {
     title: '',
     dueDate: '',
     description: '',
-    type: 'other',
+    type: 'financing',
     priority: 'medium',
   })
 
@@ -584,13 +584,16 @@ export default function TransactionDetailPage() {
                             }
                             className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                           >
-                            <option value="other">Other</option>
-                            <option value="inspection">Inspection</option>
                             <option value="financing">Financing</option>
+                            <option value="deposit">Deposit</option>
+                            <option value="inspection">Inspection</option>
+                            <option value="water_test">Water Test</option>
+                            <option value="rpds_review">RPDS Review</option>
                             <option value="appraisal">Appraisal</option>
                             <option value="legal">Legal</option>
                             <option value="documents">Documents</option>
                             <option value="repairs">Repairs</option>
+                            <option value="other">Other</option>
                           </select>
                           <select
                             value={editConditionData.priority}

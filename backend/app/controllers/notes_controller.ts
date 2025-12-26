@@ -92,12 +92,16 @@ export default class NotesController {
 
   async destroy({ params, response, auth }: HttpContext) {
     try {
-      const note = await Note.query()
-        .where('notes.id', params.id)
-        .join('transactions', 'notes.transaction_id', 'transactions.id')
-        .where('transactions.owner_user_id', auth.user!.id)
+      // Find the note
+      const note = await Note.findOrFail(params.id)
+
+      // Verify that the user owns the associated transaction
+      await Transaction.query()
+        .where('id', note.transactionId)
+        .where('owner_user_id', auth.user!.id)
         .firstOrFail()
 
+      // Delete the note
       await note.delete()
 
       return response.noContent()

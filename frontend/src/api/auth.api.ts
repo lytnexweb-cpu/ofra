@@ -4,6 +4,14 @@ export interface User {
   id: number
   email: string
   fullName: string | null
+  phone: string | null
+  agency: string | null
+  licenseNumber: string | null
+  profilePhoto: string | null
+  emailSignature: string | null
+  language: string
+  dateFormat: string
+  timezone: string
 }
 
 export interface LoginRequest {
