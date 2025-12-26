@@ -1,0 +1,34 @@
+import vine from '@vinejs/vine'
+import { DateTime } from 'luxon'
+
+export const createConditionValidator = vine.compile(
+  vine.object({
+    title: vine.string().trim().minLength(1),
+    description: vine.string().trim().optional(),
+    dueDate: vine
+      .string()
+      .trim()
+      .transform((value) => DateTime.fromISO(value)),
+    type: vine
+      .enum(['inspection', 'financing', 'appraisal', 'legal', 'documents', 'repairs', 'other'])
+      .optional(),
+    priority: vine.enum(['low', 'medium', 'high']).optional(),
+  })
+)
+
+export const updateConditionValidator = vine.compile(
+  vine.object({
+    title: vine.string().trim().minLength(1).optional(),
+    description: vine.string().trim().optional(),
+    dueDate: vine
+      .string()
+      .trim()
+      .optional()
+      .transform((value) => (value ? DateTime.fromISO(value) : undefined)),
+    status: vine.enum(['pending', 'completed']).optional(),
+    type: vine
+      .enum(['inspection', 'financing', 'appraisal', 'legal', 'documents', 'repairs', 'other'])
+      .optional(),
+    priority: vine.enum(['low', 'medium', 'high']).optional(),
+  })
+)
