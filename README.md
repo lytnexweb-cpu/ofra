@@ -460,6 +460,143 @@ node ace db:seed
 
 ## Changelog / Release Notes
 
+### MVP++ Part 7: Settings Enhancement & Custom Email Signatures (December 26, 2025)
+
+**Professional Profile Management & Personalized Communications:**
+
+#### Settings Page - 5 Comprehensive Tabs
+- **Complete redesign** of Settings page from 2 tabs to 5 tabs:
+  - 🔒 **Password** - Change password (existing, enhanced)
+  - ✉️ **Email** - Change email address (existing, enhanced)
+  - 👤 **Profile** - NEW: Professional information (name, phone, agency, license number)
+  - ✍️ **Email Signature** - NEW: Custom HTML signature for automated emails
+  - 🎨 **Display** - NEW: Language, date format, timezone preferences
+
+#### Profile Information Management
+- **New fields in user profile:**
+  - Full Name (display name for signatures)
+  - Phone Number (contact info)
+  - Agency Name (brokerage/company)
+  - License Number (real estate license)
+  - Profile Photo (base64 or URL - future use)
+- **API endpoint:** `PUT /api/me/profile` for updating profile info
+- **Validation:** All fields optional, flexible updates
+- **No password required** for profile updates (only for email changes)
+
+#### Custom Email Signatures
+- **Personalized email signatures** for all automated client communications
+- **HTML support:** Full HTML formatting in signature textarea
+- **Automatic integration:** Signature used in all 6 automated emails (3 buyer, 3 seller)
+- **Fallback behavior:** If no custom signature, uses default "Yanick - Real Estate Agent"
+- **Dynamic name:** Default signature uses user's full name if set
+- **Professional example provided** in placeholder text
+
+#### Display Preferences
+- **Language selection:** French (fr) / English (en) - ready for future i18n
+- **Date format options:** DD/MM/YYYY or MM/DD/YYYY
+- **Timezone support:** 6 Canadian zones (Toronto, Vancouver, Montreal, Calgary, Halifax, Regina)
+- **Stored preferences** ready for UI localization in future updates
+
+#### TransactionAutomationService - Signature Integration
+- **New method:** `getSignature(user, language)` generates personalized signatures
+- **Smart fallback:** Custom signature → user's name → default "Yanick"
+- **All 6 email templates updated** to use dynamic signatures
+- **Bilingual support:** Separate signatures for French and English sections
+- **Owner loading:** Transaction owner preloaded for signature access
+
+#### Technical Implementation
+- **Database Migration:** Added 8 fields to `users` table
+  - `phone`, `agency`, `license_number`, `profile_photo`
+  - `email_signature` (TEXT)
+  - `language` (default: 'fr'), `date_format` (default: 'DD/MM/YYYY'), `timezone` (default: 'America/Toronto')
+- **Backend (6 files modified):**
+  - `database/migrations/1766780093948_create_add_profile_and_preferences_to_users_table.ts` (NEW)
+  - `app/models/user.ts` - Added 8 new columns
+  - `app/validators/profile_validator.ts` - Added `updateProfileInfoValidator`
+  - `app/controllers/profile_controller.ts` - Added `updateProfileInfo()` method
+  - `start/routes.ts` - Added `PUT /api/me/profile` route
+  - `app/services/transaction_automation_service.ts` - Integrated custom signatures
+- **Frontend (3 files modified):**
+  - `api/auth.api.ts` - Updated User interface with 8 new fields
+  - `api/profile.api.ts` - Added UpdateProfileInfoRequest interface and API method
+  - `pages/SettingsPage.tsx` - Complete rewrite with 5 tabs (433 lines)
+
+#### User Experience
+- **Tab-based navigation:** Clean, organized interface for settings
+- **Responsive design:** Tabs scroll horizontally on mobile
+- **Form state management:** Separate state for each settings section
+- **Success messages:** Auto-clear after 3 seconds
+- **Query invalidation:** Automatic data refresh after updates
+- **Professional layout:** Consistent with CRM design language
+
+**Build Status:**
+- ✅ Backend: 0 TypeScript errors, migration successful
+- ✅ Frontend: 0 TypeScript errors, 113 modules transformed
+
+**Files Modified:**
+- Backend: 6 files (1 migration, 5 core files)
+- Frontend: 3 files
+
+**How It Works:**
+1. User updates email signature in Settings → Email Signature tab
+2. Custom signature saved to `users.email_signature` column
+3. When transaction status changes, TransactionAutomationService loads owner
+4. Email templates use `getSignature(owner, 'en')` or `getSignature(owner, 'fr')`
+5. If custom signature exists, it's used; otherwise, default with user's name
+6. All 6 automated emails now include personalized signatures
+
+---
+
+### MVP++ Part 6: Yanick Workflow Customization (December 26, 2025)
+
+**Workflow Alignment & Bug Fixes:**
+
+#### Condition Types - Yanick's Workflow
+- **Added 3 new condition types** to match real estate requirements:
+  - `deposit` - Buyer deposit tracking
+  - `water_test` - Water quality test for properties
+  - `rpds_review` - RPDS (Real Property Report) review
+- **Reordered condition types** by priority: financing, deposit, inspection, water_test, rpds_review, appraisal, legal, documents, repairs, other
+- **Default condition type changed** to `financing` (most common)
+- **Updated condition dropdowns** in CreateConditionModal and TransactionDetailPage
+
+#### Transaction Status Labels - Clearer Workflow
+- **Renamed status labels** for better clarity:
+  - `offer` → "Offer Submitted"
+  - `accepted` → "Offer Accepted"
+  - `conditions` → "Conditional Period"
+  - `notary` → "Firm" (matches real estate terminology)
+- **Workflow alignment**: Labels now match Yanick's email workflow requirements
+- **Email triggers verified**: 3 emails per transaction type (buyer/seller) at correct statuses
+
+#### Critical Bug Fixes
+- **Fixed condition creation (500 error)**:
+  - Problem: New condition types not in database enum
+  - Solution: Created migration to add deposit, water_test, rpds_review to database
+  - Migration executed successfully
+- **Fixed note deletion (not working)**:
+  - Problem: JOIN query returned composite object that couldn't be deleted
+  - Solution: Simplified to two separate queries (find note → verify ownership → delete)
+  - Backend controller refactored for reliability
+
+**Files Modified:**
+- **Backend (4 files):**
+  - `app/models/condition.ts` - Added 3 new condition types
+  - `app/validators/condition_validator.ts` - Updated type enum
+  - `app/controllers/notes_controller.ts` - Fixed destroy() method
+  - `database/migrations/1766776955384_create_add_condition_types_for_yanick_workflows_table.ts` (NEW)
+- **Frontend (4 files):**
+  - `api/conditions.api.ts` - Updated ConditionType enum
+  - `components/CreateConditionModal.tsx` - New types in dropdown + default to financing
+  - `pages/TransactionDetailPage.tsx` - Updated status labels + condition type dropdown
+  - `pages/TransactionsPage.tsx` - Updated status labels for consistency
+
+**Build Status:**
+- ✅ Backend: 0 TypeScript errors, migration successful
+- ✅ Frontend: 0 TypeScript errors, 113 modules transformed
+
+---
+
 ### MVP++ Part 5: Bilingual Emails & Professional Branding (December 26, 2025)
 
 **Enhanced Communication & Branding:**
@@ -775,3 +912,177 @@ Initial release with core functionality:
 - Session-based authentication
 - PostgreSQL database with Docker setup
 - Complete TypeScript type safety
+
+---
+
+## Phase 2 - Planned Features
+
+Based on Yanick's workflow requirements email (December 2, 2025), the following features are planned for future implementation:
+
+### 🔴 Critical Features (High Priority)
+
+#### 1. Internal Automations & Reminders System
+**Purpose:** Automated task reminders for Yanick to ensure no critical steps are missed.
+
+**Requirements:**
+- **Database:**
+  - New `reminders` table with: id, transaction_id, type, title, description, status, due_date, completed_at
+  - Types: 'fintrac', 'birthday', 'google_review', 'social_post', 'custom'
+  - Status: 'pending', 'completed'
+- **Automatic Triggers:**
+  - When transaction status → `firm` (notary): Create reminder "Complete FINTRAC"
+  - When FINTRAC completed: Create reminder "Record client birthday in Follow Up Boss"
+  - When transaction status → `completed`: Create reminder "Request Google review from client"
+  - When condition financing/inspection changes: Create follow-up reminder
+- **Dashboard Widget:**
+  - "My Reminders" section showing active reminders sorted by due date
+  - Mark as done functionality
+  - Badge in navigation showing number of pending reminders
+- **Social Media Reminders:**
+  - Auto-create reminder for social posts at milestones: Offer Accepted, Deal FIRM, Closing Day
+
+**Estimated Complexity:** Medium (3-4 hours)
+- Backend: Model + Service + Hooks
+- Frontend: Dashboard widget + API integration
+
+---
+
+#### 2. Client Onboarding Form
+**Purpose:** Professional form to collect client information including FINTRAC-required details.
+
+**Requirements:**
+- **Public Form Page** (unauthenticated route):
+  - `/onboarding/:token` - Secure tokenized link sent to clients
+  - Form fields:
+    - Full name(s) (both spouses if applicable)
+    - Email + Phone
+    - Property address (if known)
+    - **FINTRAC Information:**
+      - ID type (Driver's License, Passport, etc.)
+      - ID number
+      - Date of birth
+      - Occupation
+    - Basic property info (type, estimated price)
+    - Additional notes/questions
+- **Form Submission Flow:**
+  1. Client fills out form
+  2. Data sent to Yanick via email notification
+  3. Client profile auto-created in CRM (status: 'pending_review')
+  4. Yanick reviews data and manually adds to Follow Up Boss
+  5. Transaction can be started directly from the onboarded client
+- **Security:**
+  - Token-based access (expires after 7 days)
+  - Rate limiting to prevent spam
+  - Optional CAPTCHA for public form
+
+**Estimated Complexity:** Medium-High (4-5 hours)
+- Backend: Public routes, token generation, email notification
+- Frontend: Multi-step form component, validation, submission handling
+
+---
+
+### 🟡 Important Features (Medium Priority)
+
+#### 3. Condition Deadline Alerts
+**Purpose:** Visual alerts and notifications when condition deadlines approach.
+
+**Requirements:**
+- **Visual Indicators:**
+  - Dashboard: "Conditions at risk" section showing conditions due in next 2 days
+  - Transaction detail: Red pulsing border on conditions overdue > 2 days
+  - Automatic email to Yanick if condition overdue by 3+ days
+- **Notification System:**
+  - Daily digest email at 8 AM listing conditions due today
+  - Option to snooze reminders for specific conditions
+- **Dashboard Summary:**
+  - "Action Required" widget with conditions grouped by urgency
+
+**Estimated Complexity:** Low-Medium (2-3 hours)
+- Backend: Email service for daily digest
+- Frontend: Enhanced visual indicators, dashboard widget
+
+---
+
+#### 4. Social Media Reminder System
+**Purpose:** Suggest social media posts for key transaction milestones.
+
+**Requirements:**
+- **Auto-Generated Reminders:**
+  - Offer Accepted: "Great news! Just helped [Client] with their [purchase/sale]!"
+  - Deal FIRM: "Another successful transaction going FIRM! 🎉"
+  - Closing Day: "Congratulations to [Client] on their new home!"
+- **Dashboard Widget:**
+  - "Posts to Share" section with pre-written copy
+  - Copy-to-clipboard button
+  - Mark as posted
+  - Track which posts were shared
+- **Customization:**
+  - Edit suggested post copy
+  - Add photo placeholder reminder
+  - Link to Facebook/Instagram (opens pre-filled post if possible)
+
+**Estimated Complexity:** Low-Medium (2-3 hours)
+- Backend: Reminder creation logic
+- Frontend: Dashboard widget with copy-to-clipboard
+
+---
+
+### 🟢 Nice-to-Have Features (Low Priority)
+
+#### 5. Enhanced Transaction Workflow
+**Purpose:** More granular transaction status tracking.
+
+**Potential Additions:**
+- `pre_closing_tasks` status: Between `firm` and `closing`
+- `post_closing_followup` status: After `completed`
+- Checklist for pre-closing tasks (final walkthrough, insurance, utilities, etc.)
+- Post-closing checklist (review request sent, birthday recorded, referrals collected)
+
+**Estimated Complexity:** Low (1-2 hours)
+- Backend: Add statuses, migration
+- Frontend: Update status dropdowns, add checklists
+
+---
+
+#### 6. Client Portal (Optional)
+**Purpose:** Allow clients to view their transaction status.
+
+**Requirements:**
+- Public client view (token-based authentication)
+- Read-only transaction details
+- Condition checklist with completion status
+- Upcoming deadlines
+- Document sharing (optional)
+
+**Estimated Complexity:** High (6-8 hours)
+- Backend: Token generation, public API endpoints
+- Frontend: Separate client-facing UI
+
+---
+
+### Implementation Priority Order
+
+**Phase 2A (Next Sprint):**
+1. Internal Reminders System (Critical)
+2. Client Onboarding Form (Critical)
+
+**Phase 2B (Future Sprint):**
+3. Condition Deadline Alerts
+4. Social Media Reminders
+
+**Phase 2C (Nice-to-Have):**
+5. Enhanced Transaction Workflow
+6. Client Portal (if needed)
+
+**Total Estimated Time:** 15-20 hours of development for all Phase 2 features
+
+---
+
+### Notes on Implementation
+
+- **Phase 2A** addresses the most critical workflow gaps mentioned in Yanick's email
+- **Internal Reminders** are essential to prevent missed FINTRAC filings and follow-ups
+- **Onboarding Form** professionalizes client intake and ensures FINTRAC compliance
+- **Phase 2B/2C** features enhance UX but aren't blocking daily operations
+- All features will follow existing architecture patterns (AdonisJS + React + PostgreSQL)
+- Backward compatibility maintained - existing data unaffected

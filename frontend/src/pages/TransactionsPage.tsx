@@ -6,10 +6,10 @@ import CreateTransactionModal from '../components/CreateTransactionModal'
 
 const statusLabels: Record<TransactionStatus, string> = {
   consultation: 'Consultation',
-  offer: 'Offer',
-  accepted: 'Accepted',
-  conditions: 'Conditions',
-  notary: 'Notary',
+  offer: 'Offer Submitted',
+  accepted: 'Offer Accepted',
+  conditions: 'Conditional Period',
+  notary: 'Firm',
   closing: 'Closing',
   completed: 'Completed',
   canceled: 'Canceled',

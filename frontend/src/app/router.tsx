@@ -7,6 +7,7 @@ import ClientsPage from '../pages/ClientsPage'
 import ClientDetailsPage from '../pages/ClientDetailsPage'
 import TransactionsPage from '../pages/TransactionsPage'
 import TransactionDetailPage from '../pages/TransactionDetailPage'
+import SettingsPage from '../pages/SettingsPage'
 import Layout from '../components/Layout'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -60,6 +61,10 @@ export const router = createBrowserRouter([
       {
         path: 'transactions/:id',
         element: <TransactionDetailPage />,
+      },
+      {
+        path: 'settings',
+        element: <SettingsPage />,
       },
     ],
   },

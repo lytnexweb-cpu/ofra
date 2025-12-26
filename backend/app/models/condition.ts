@@ -5,8 +5,11 @@ import Transaction from './transaction.js'
 
 export type ConditionStatus = 'pending' | 'completed'
 export type ConditionType =
-  | 'inspection'
   | 'financing'
+  | 'deposit'
+  | 'inspection'
+  | 'water_test'
+  | 'rpds_review'
   | 'appraisal'
   | 'legal'
   | 'documents'

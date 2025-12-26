@@ -23,6 +23,12 @@ router.group(() => {
   router.post('/logout', '#controllers/auth_controller.logout')
   router.get('/me', '#controllers/auth_controller.me')
 
+  // Profile
+  router.put('/me/password', '#controllers/profile_controller.changePassword')
+  router.put('/me', '#controllers/profile_controller.updateProfile')
+  router.put('/me/profile', '#controllers/profile_controller.updateProfileInfo')
+  router.post('/me/logout-all', '#controllers/profile_controller.logoutAll')
+
   // Dashboard
   router.get('/dashboard/summary', '#controllers/dashboard_controller.summary')
 

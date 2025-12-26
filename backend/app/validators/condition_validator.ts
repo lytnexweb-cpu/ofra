@@ -10,7 +10,18 @@ export const createConditionValidator = vine.compile(
       .trim()
       .transform((value) => DateTime.fromISO(value)),
     type: vine
-      .enum(['inspection', 'financing', 'appraisal', 'legal', 'documents', 'repairs', 'other'])
+      .enum([
+        'financing',
+        'deposit',
+        'inspection',
+        'water_test',
+        'rpds_review',
+        'appraisal',
+        'legal',
+        'documents',
+        'repairs',
+        'other',
+      ])
       .optional(),
     priority: vine.enum(['low', 'medium', 'high']).optional(),
   })
@@ -27,7 +38,18 @@ export const updateConditionValidator = vine.compile(
       .transform((value) => (value ? DateTime.fromISO(value) : undefined)),
     status: vine.enum(['pending', 'completed']).optional(),
     type: vine
-      .enum(['inspection', 'financing', 'appraisal', 'legal', 'documents', 'repairs', 'other'])
+      .enum([
+        'financing',
+        'deposit',
+        'inspection',
+        'water_test',
+        'rpds_review',
+        'appraisal',
+        'legal',
+        'documents',
+        'repairs',
+        'other',
+      ])
       .optional(),
     priority: vine.enum(['low', 'medium', 'high']).optional(),
   })

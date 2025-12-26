@@ -22,7 +22,7 @@ export default function CreateConditionModal({
     title: '',
     dueDate: '',
     description: '',
-    type: 'other',
+    type: 'financing',
     priority: 'medium',
   })
   const [error, setError] = useState<ParsedError | null>(null)
@@ -63,7 +63,7 @@ export default function CreateConditionModal({
       title: '',
       dueDate: '',
       description: '',
-      type: 'other',
+      type: 'financing',
       priority: 'medium',
     })
     setError(null)
@@ -199,13 +199,16 @@ export default function CreateConditionModal({
                       }
                       className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                     >
-                      <option value="other">Other</option>
-                      <option value="inspection">Inspection</option>
                       <option value="financing">Financing</option>
+                      <option value="deposit">Deposit</option>
+                      <option value="inspection">Inspection</option>
+                      <option value="water_test">Water Test</option>
+                      <option value="rpds_review">RPDS Review</option>
                       <option value="appraisal">Appraisal</option>
                       <option value="legal">Legal</option>
                       <option value="documents">Documents</option>
                       <option value="repairs">Repairs</option>
+                      <option value="other">Other</option>
                     </select>
                   </div>
                   <div>
