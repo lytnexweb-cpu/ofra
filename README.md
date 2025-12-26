@@ -200,7 +200,7 @@ Use these credentials to log in to the application in development mode.
 
 ### Automated Emails
 - ✅ **Automatic client notifications** on transaction status changes
-- ✅ **6 professional email templates** (3 for buyers, 3 for sellers)
+- ✅ **6 professional bilingual email templates** (French + English, 3 for buyers, 3 for sellers)
 - ✅ **Purchase workflows**:
   - Offer accepted: Congratulations, condition reminders, next steps
   - Deal FIRM: Transaction confirmed, notary preparation, insurance reminders
@@ -209,8 +209,9 @@ Use these credentials to log in to the application in development mode.
   - Offer accepted: Good news, buyer conditions period, availability reminders
   - Deal FIRM: Sale confirmed, moving preparation, closing date reminder
   - Sale completed: Congratulations, thank you, review/referral request
-- ✅ **French language** with professional, reassuring tone
-- ✅ **HTML templates** with responsive design
+- ✅ **Bilingual content** (French primary, English secondary) with professional, reassuring tone
+- ✅ **Professional branding**: Lytnex Web agency footer on all emails
+- ✅ **HTML templates** with responsive design and visual language dividers
 - ✅ **Fail-safe design**: Transaction status updates succeed even if email fails
 - ✅ **Configurable SMTP** (Brevo/Sendinblue support)
 
@@ -464,7 +465,9 @@ node ace db:seed
 
 #### Automated Email System
 - **Smart email automation** triggered on transaction status changes
-- **6 professional email templates** in French (3 for buyers, 3 for sellers)
+- **6 professional bilingual email templates** (French + English) for buyers and sellers
+- **Bilingual support**: Each email includes both French and English versions in a single message
+- **Professional branding**: Lytnex Web footer signature on all emails
 - **TransactionAutomationService** handles email logic and delivery
 - **Fail-safe design**: Transaction updates succeed even if email fails
 

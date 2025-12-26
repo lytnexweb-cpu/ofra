@@ -1,0 +1,25 @@
+# fly.toml app configuration file generated for crm-yanick-backend on 2025-12-26T01:59:10-04:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'crm-yanick-backend'
+primary_region = 'ewr'
+
+[build]
+
+[deploy]
+  release_command = 'node build/bin/console.js migration:run --force && node build/bin/console.js db:seed'
+
+[http_service]
+  internal_port = 3333
+  force_https = true
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ['app']
+
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1

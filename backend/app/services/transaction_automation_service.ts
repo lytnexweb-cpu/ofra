@@ -21,6 +21,31 @@ import env from '#start/env'
  */
 export class TransactionAutomationService {
   /**
+   * Footer HTML commun à tous les emails avec signature Lytnex Web
+   */
+  private static getEmailFooter(): string {
+    return `
+      <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center;">
+        <p style="font-size: 11px; color: #9ca3af; margin: 0;">
+          <a href="https://www.lytnexweb.ca" style="color: #6b7280; text-decoration: none;">Lytnex Web</a> - L'agence qui a développé ce MVP
+        </p>
+      </div>
+    `
+  }
+
+  /**
+   * Séparateur entre les versions française et anglaise
+   */
+  private static getLanguageDivider(): string {
+    return `
+      <div style="margin: 30px 0; padding: 20px 0; border-top: 2px dashed #d1d5db; border-bottom: 2px dashed #d1d5db;">
+        <p style="text-align: center; color: #6b7280; font-style: italic; margin: 0;">
+          ✉️ English version below / Version anglaise ci-dessous
+        </p>
+      </div>
+    `
+  }
+  /**
    * Point d'entrée principal: gère l'envoi automatique d'email
    * en fonction du changement de statut et du type de transaction
    */
@@ -106,7 +131,7 @@ export class TransactionAutomationService {
       message
         .from(env.get('MAIL_FROM_ADDRESS')!, env.get('MAIL_FROM_NAME') || 'CRM Yanick')
         .to(client.email)
-        .subject('🎉 Félicitations ! Votre offre a été acceptée')
+        .subject('🎉 Félicitations ! Votre offre a été acceptée / Congratulations! Your offer has been accepted')
         .html(`
           <!DOCTYPE html>
           <html>
@@ -161,6 +186,47 @@ export class TransactionAutomationService {
                   <p>Cordialement,<br>
                   <strong>Yanick - Agent immobilier</strong></p>
                 </div>
+
+                ${this.getLanguageDivider()}
+
+                <div class="header">
+                  <h1>Congratulations ${clientName}!</h1>
+                </div>
+                <div class="section">
+                  <p>I am pleased to announce that <strong>your purchase offer has been accepted</strong> by the seller.</p>
+                  <p>This is excellent news and we now move on to the next step in the acquisition process of your future property.</p>
+                </div>
+
+                <div class="highlight">
+                  <h3>⚠️ Important conditions to fulfill</h3>
+                  <p>Your offer includes certain conditions that must be met within the specified deadlines:</p>
+                  <ul>
+                    <li><strong>Financing</strong>: Confirmation of your mortgage loan</li>
+                    <li><strong>Inspection</strong>: Property inspection by a professional</li>
+                    <li><strong>Other conditions</strong>: As specified in your offer</li>
+                  </ul>
+                </div>
+
+                <div class="section">
+                  <h3>📋 Next steps for you:</h3>
+                  <ol>
+                    <li>Finalize your financing request with your financial institution</li>
+                    <li>Schedule the property inspection within the agreed timeframe</li>
+                    <li>Keep me informed of the progress of your steps</li>
+                    <li>Remain available to respond to seller's questions or requests</li>
+                  </ol>
+                </div>
+
+                <div class="section">
+                  <p>I remain at your disposal to support you throughout this process. Please do not hesitate to contact me if you have any questions or concerns.</p>
+                </div>
+
+                <div class="footer">
+                  <p>Best regards,<br>
+                  <strong>Yanick - Real Estate Agent</strong></p>
+                </div>
+
+                ${this.getEmailFooter()}
               </div>
             </div>
           </body>
@@ -181,7 +247,7 @@ export class TransactionAutomationService {
       message
         .from(env.get('MAIL_FROM_ADDRESS')!, env.get('MAIL_FROM_NAME') || 'CRM Yanick')
         .to(client.email)
-        .subject('✅ Transaction FERME - Votre achat est maintenant confirmé')
+        .subject('✅ Transaction FERME - Votre achat est maintenant confirmé / FIRM Transaction - Your purchase is now confirmed')
         .html(`
           <!DOCTYPE html>
           <html>
@@ -233,6 +299,44 @@ export class TransactionAutomationService {
                   <p>Cordialement,<br>
                   <strong>Yanick - Agent immobilier</strong></p>
                 </div>
+
+                ${this.getLanguageDivider()}
+
+                <div class="header">
+                  <h1>FIRM Transaction!</h1>
+                </div>
+                <div class="section">
+                  <p>Hello ${clientName},</p>
+                  <p>Excellent news! <strong>Your transaction is now FIRM</strong>. All conditions have been successfully lifted.</p>
+                  <p>This means your purchase is now confirmed and we are heading towards the final conclusion of the transaction.</p>
+                </div>
+
+                <div class="highlight">
+                  <h3>📅 Next step: Signing at the notary</h3>
+                  <p>We are now in the finalization process with the notary to prepare the deed of sale and key handover.</p>
+                </div>
+
+                <div class="section">
+                  <h3>📋 Next steps for you:</h3>
+                  <ol>
+                    <li><strong>Notary</strong>: Schedule appointment for signing the deed of sale</li>
+                    <li><strong>Insurance</strong>: Finalize your home insurance</li>
+                    <li><strong>Final visit</strong>: Schedule a final visit of the property before closing</li>
+                    <li><strong>Preparation</strong>: Organize your move and key handover</li>
+                  </ol>
+                </div>
+
+                <div class="section">
+                  <p>We are approaching the finish line! I will keep you informed of the details regarding the final signing and key handover.</p>
+                  <p>Please don't hesitate to contact me with any questions.</p>
+                </div>
+
+                <div class="footer">
+                  <p>Best regards,<br>
+                  <strong>Yanick - Real Estate Agent</strong></p>
+                </div>
+
+                ${this.getEmailFooter()}
               </div>
             </div>
           </body>
@@ -253,7 +357,7 @@ export class TransactionAutomationService {
       message
         .from(env.get('MAIL_FROM_ADDRESS')!, env.get('MAIL_FROM_NAME') || 'CRM Yanick')
         .to(client.email)
-        .subject('🏡 Félicitations pour votre nouvelle propriété !')
+        .subject('🏡 Félicitations pour votre nouvelle propriété ! / Congratulations on your new property!')
         .html(`
           <!DOCTYPE html>
           <html>
@@ -299,6 +403,38 @@ export class TransactionAutomationService {
                   <p>Cordialement,<br>
                   <strong>Yanick - Agent immobilier</strong></p>
                 </div>
+
+                ${this.getLanguageDivider()}
+
+                <div class="header">
+                  <h1>🎉 Congratulations ${clientName}!</h1>
+                </div>
+                <div class="section">
+                  <p>It is with immense joy that I congratulate you on <strong>the acquisition of your new property</strong>!</p>
+                  <p>The transaction is now completed and the keys are yours. Welcome home!</p>
+                </div>
+
+                <div class="section">
+                  <p>It was a real pleasure to accompany you throughout this important process. Your trust and collaboration were essential to the success of this project.</p>
+                </div>
+
+                <div class="highlight">
+                  <h3>💬 Your opinion matters to me</h3>
+                  <p>If you appreciated my services, I would greatly appreciate if you could take a few moments to leave a review on Google. Your testimonial helps other people choose the right real estate agent.</p>
+                  <p>It only takes 2 minutes and makes a real difference for my business.</p>
+                </div>
+
+                <div class="section">
+                  <p>I remain available if you need recommendations (contractors, services, etc.) or simply to discuss your new property.</p>
+                  <p>I wish you much happiness in your new home!</p>
+                </div>
+
+                <div class="footer">
+                  <p>Best regards,<br>
+                  <strong>Yanick - Real Estate Agent</strong></p>
+                </div>
+
+                ${this.getEmailFooter()}
               </div>
             </div>
           </body>
@@ -325,7 +461,7 @@ export class TransactionAutomationService {
       message
         .from(env.get('MAIL_FROM_ADDRESS')!, env.get('MAIL_FROM_NAME') || 'CRM Yanick')
         .to(client.email)
-        .subject('🎉 Bonne nouvelle ! Une offre a été acceptée pour votre propriété')
+        .subject('🎉 Bonne nouvelle ! Une offre a été acceptée pour votre propriété / Good news! An offer has been accepted for your property')
         .html(`
           <!DOCTYPE html>
           <html>
@@ -382,6 +518,49 @@ export class TransactionAutomationService {
                   <p>Cordialement,<br>
                   <strong>Yanick - Agent immobilier</strong></p>
                 </div>
+
+                ${this.getLanguageDivider()}
+
+                <div class="header">
+                  <h1>Good news ${clientName}!</h1>
+                </div>
+                <div class="section">
+                  <p>I am pleased to announce that <strong>a purchase offer has been accepted for your property</strong>.</p>
+                  <p>This is an important milestone in the sales process and we are getting closer to the conclusion of the transaction.</p>
+                </div>
+
+                <div class="highlight">
+                  <h3>⏳ Conditional period in progress</h3>
+                  <p>The buyer must now fulfill certain conditions before the transaction becomes firm:</p>
+                  <ul>
+                    <li><strong>Financing</strong>: The buyer must obtain their mortgage loan</li>
+                    <li><strong>Inspection</strong>: A property inspection will be conducted</li>
+                    <li><strong>Other conditions</strong>: As specified in the purchase offer</li>
+                  </ul>
+                  <p>During this period, it is important to remain flexible and available.</p>
+                </div>
+
+                <div class="section">
+                  <h3>📋 Next steps for you:</h3>
+                  <ol>
+                    <li><strong>Be available</strong> for the property inspection</li>
+                    <li><strong>Maintain the property</strong> in the same condition as when the offer was made</li>
+                    <li><strong>Respond promptly</strong> to reasonable requests from the buyer</li>
+                    <li><strong>Keep me informed</strong> of any changes or concerns</li>
+                  </ol>
+                </div>
+
+                <div class="section">
+                  <p>I will keep you informed of the progress of the buyer's steps. If all goes well, the transaction should become firm soon.</p>
+                  <p>Please don't hesitate to contact me if you have any questions.</p>
+                </div>
+
+                <div class="footer">
+                  <p>Best regards,<br>
+                  <strong>Yanick - Real Estate Agent</strong></p>
+                </div>
+
+                ${this.getEmailFooter()}
               </div>
             </div>
           </body>
@@ -404,7 +583,7 @@ export class TransactionAutomationService {
       message
         .from(env.get('MAIL_FROM_ADDRESS')!, env.get('MAIL_FROM_NAME') || 'CRM Yanick')
         .to(client.email)
-        .subject('✅ Vente FERME - Votre transaction est maintenant confirmée')
+        .subject('✅ Vente FERME - Votre transaction est maintenant confirmée / FIRM Sale - Your transaction is now confirmed')
         .html(`
           <!DOCTYPE html>
           <html>
@@ -456,6 +635,44 @@ export class TransactionAutomationService {
                   <p>Cordialement,<br>
                   <strong>Yanick - Agent immobilier</strong></p>
                 </div>
+
+                ${this.getLanguageDivider()}
+
+                <div class="header">
+                  <h1>FIRM Sale!</h1>
+                </div>
+                <div class="section">
+                  <p>Hello ${clientName},</p>
+                  <p>Excellent news! <strong>Your sale is now FIRM</strong>. The buyer has successfully lifted all their conditions.</p>
+                  <p>This means the transaction is confirmed and we are heading towards the final conclusion of the sale.</p>
+                </div>
+
+                <div class="highlight">
+                  <h3>📅 Next step: Signing at the notary</h3>
+                  <p>We will now finalize the last details with the notary to prepare the sale and key handover.</p>
+                </div>
+
+                <div class="section">
+                  <h3>📋 Next steps for you:</h3>
+                  <ol>
+                    <li><strong>Plan your move</strong> according to the agreed closing date</li>
+                    <li><strong>Prepare the property</strong> for key handover (cleaning, agreed repairs)</li>
+                    <li><strong>Gather all documents</strong> related to the property (warranties, manuals, keys, etc.)</li>
+                    <li><strong>Notary appointment</strong>: I will confirm the date and time of signing</li>
+                  </ol>
+                </div>
+
+                <div class="section">
+                  <p>We are approaching the conclusion of your transaction! I will keep you informed of all details regarding the final signing.</p>
+                  <p>Please don't hesitate to contact me with any questions.</p>
+                </div>
+
+                <div class="footer">
+                  <p>Best regards,<br>
+                  <strong>Yanick - Real Estate Agent</strong></p>
+                </div>
+
+                ${this.getEmailFooter()}
               </div>
             </div>
           </body>
@@ -476,7 +693,7 @@ export class TransactionAutomationService {
       message
         .from(env.get('MAIL_FROM_ADDRESS')!, env.get('MAIL_FROM_NAME') || 'CRM Yanick')
         .to(client.email)
-        .subject('🏆 Félicitations ! Votre vente est complétée')
+        .subject('🏆 Félicitations ! Votre vente est complétée / Congratulations! Your sale is completed')
         .html(`
           <!DOCTYPE html>
           <html>
@@ -523,6 +740,39 @@ export class TransactionAutomationService {
                   <p>Cordialement,<br>
                   <strong>Yanick - Agent immobilier</strong></p>
                 </div>
+
+                ${this.getLanguageDivider()}
+
+                <div class="header">
+                  <h1>🎉 Congratulations ${clientName}!</h1>
+                </div>
+                <div class="section">
+                  <p>It is with pleasure that I confirm that <strong>the sale of your property is now completed</strong>!</p>
+                  <p>The transaction was successful and the buyer is now the owner of your former property.</p>
+                </div>
+
+                <div class="section">
+                  <p>It was an honor to accompany you in this important sale. Your trust and collaboration were essential to the success of this project.</p>
+                </div>
+
+                <div class="highlight">
+                  <h3>💬 Your opinion is valuable</h3>
+                  <p>If you appreciated my services, I would greatly appreciate if you could take a few moments to leave a review on Google.</p>
+                  <p>Your testimonial helps other sellers choose the right real estate agent and makes a real difference for my business.</p>
+                  <p>Also feel free to recommend me to your friends and family who might need real estate services!</p>
+                </div>
+
+                <div class="section">
+                  <p>I remain available if you need assistance for a future real estate project or simply for recommendations.</p>
+                  <p>I wish you much success in your future endeavors!</p>
+                </div>
+
+                <div class="footer">
+                  <p>Best regards,<br>
+                  <strong>Yanick - Real Estate Agent</strong></p>
+                </div>
+
+                ${this.getEmailFooter()}
               </div>
             </div>
           </body>
