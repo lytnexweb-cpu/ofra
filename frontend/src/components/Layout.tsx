@@ -33,7 +33,7 @@ export default function Layout() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
       <nav className="bg-white border-b border-gray-200 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -169,9 +169,31 @@ export default function Layout() {
       </nav>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+      <main className="flex-1 max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 w-full">
         <Outlet />
       </main>
+
+      {/* Footer */}
+      <footer className="bg-white border-t border-gray-200 mt-auto">
+        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col sm:flex-row items-center justify-between text-sm text-gray-500">
+            <div className="mb-2 sm:mb-0">
+              <span>© {new Date().getFullYear()} Yanick.B - Tous droits réservés</span>
+            </div>
+            <div>
+              <span>Conçu par </span>
+              <a
+                href="https://www.lytnexweb.ca"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:text-blue-800 hover:underline font-medium"
+              >
+                Lytnex Web
+              </a>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }
