@@ -10,6 +10,7 @@ import {
   type Condition,
   type ConditionType,
   type ConditionPriority,
+  type ConditionStage,
   type UpdateConditionRequest,
 } from '../api/conditions.api'
 import { notesApi, type Note } from '../api/notes.api'
@@ -27,6 +28,7 @@ const statusLabels: Record<TransactionStatus, string> = {
   canceled: 'Canceled',
 }
 
+
 const statusColors: Record<TransactionStatus, string> = {
   consultation: 'bg-gray-100 text-gray-800',
   offer: 'bg-blue-100 text-blue-800',
@@ -37,6 +39,17 @@ const statusColors: Record<TransactionStatus, string> = {
   completed: 'bg-green-200 text-green-900',
   canceled: 'bg-red-100 text-red-800',
 }
+
+// Workflow sequence (excludes 'canceled')
+const workflowSteps: TransactionStatus[] = [
+  'consultation',
+  'offer',
+  'accepted',
+  'conditions',
+  'notary',
+  'closing',
+  'completed',
+]
 
 export default function TransactionDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -56,12 +69,14 @@ export default function TransactionDetailPage() {
     description: string
     type?: ConditionType
     priority?: ConditionPriority
+    stage?: ConditionStage
   }>({
     title: '',
     dueDate: '',
     description: '',
     type: 'financing',
     priority: 'medium',
+    stage: undefined,
   })
 
   // Confirmation dialogs state
@@ -81,6 +96,17 @@ export default function TransactionDetailPage() {
   }>({ isOpen: false, newStatus: null })
 
   const [deleteTransactionConfirm, setDeleteTransactionConfirm] = useState(false)
+
+  // Offer Details editing state
+  const [editingOfferDetails, setEditingOfferDetails] = useState(false)
+  const [offerDetailsForm, setOfferDetailsForm] = useState({
+    listPrice: '',
+    offerPrice: '',
+    offerExpiryAt: '',
+    counterOfferEnabled: false,
+    counterOfferPrice: '',
+    commission: '',
+  })
 
   // Queries
   const { data: transactionData, isLoading } = useQuery({
@@ -112,6 +138,10 @@ export default function TransactionDetailPage() {
         queryClient.invalidateQueries({ queryKey: transactionKey }),
         queryClient.invalidateQueries({ queryKey: ['transactions'] }),
         queryClient.invalidateQueries({ queryKey: ['dashboard'] }),
+        transaction?.clientId &&
+          queryClient.invalidateQueries({
+            queryKey: ['client-transactions', transaction.clientId],
+          }),
       ])
       setStatusChangeConfirm({ isOpen: false, newStatus: null })
     },
@@ -127,6 +157,10 @@ export default function TransactionDetailPage() {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: transactionKey }),
         queryClient.invalidateQueries({ queryKey: ['dashboard'] }),
+        transaction?.clientId &&
+          queryClient.invalidateQueries({
+            queryKey: ['client-transactions', transaction.clientId],
+          }),
       ])
     },
     onError: (error) => {
@@ -143,7 +177,14 @@ export default function TransactionDetailPage() {
       data: UpdateConditionRequest
     }) => conditionsApi.update(id, data),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: transactionKey })
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: transactionKey }),
+        queryClient.invalidateQueries({ queryKey: ['dashboard'] }),
+        transaction?.clientId &&
+          queryClient.invalidateQueries({
+            queryKey: ['client-transactions', transaction.clientId],
+          }),
+      ])
       setEditingCondition(null)
     },
   })
@@ -158,6 +199,10 @@ export default function TransactionDetailPage() {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: transactionKey }),
         queryClient.invalidateQueries({ queryKey: ['dashboard'] }),
+        transaction?.clientId &&
+          queryClient.invalidateQueries({
+            queryKey: ['client-transactions', transaction.clientId],
+          }),
       ])
       setDeleteConditionConfirm({ isOpen: false, conditionId: null })
     },
@@ -191,9 +236,29 @@ export default function TransactionDetailPage() {
         queryClient.invalidateQueries({ queryKey: ['dashboard'] }),
         transaction?.clientId &&
           queryClient.invalidateQueries({ queryKey: ['client', transaction.clientId] }),
+        transaction?.clientId &&
+          queryClient.invalidateQueries({
+            queryKey: ['client-transactions', transaction.clientId],
+          }),
       ])
       setDeleteTransactionConfirm(false)
       navigate('/transactions')
+    },
+  })
+
+  const updateOfferDetailsMutation = useMutation({
+    mutationFn: (payload: any) => transactionsApi.update(transactionId, payload),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: transactionKey }),
+        queryClient.invalidateQueries({ queryKey: ['transactions'] }),
+        queryClient.invalidateQueries({ queryKey: ['dashboard'] }),
+        transaction?.clientId &&
+          queryClient.invalidateQueries({
+            queryKey: ['client-transactions', transaction.clientId],
+          }),
+      ])
+      setEditingOfferDetails(false)
     },
   })
 
@@ -236,6 +301,7 @@ export default function TransactionDetailPage() {
       description: condition.description || '',
       type: condition.type,
       priority: condition.priority,
+      stage: condition.stage,
     })
   }
 
@@ -271,6 +337,67 @@ export default function TransactionDetailPage() {
 
   const confirmDeleteTransaction = () => {
     deleteTransactionMutation.mutate()
+  }
+
+  // Helper: parse number or return undefined
+  const parseNumber = (value: any): number | undefined => {
+    if (value === null || value === undefined || value === '') return undefined
+    const num = typeof value === 'string' ? parseFloat(value) : value
+    return isNaN(num) || num < 0 ? undefined : num
+  }
+
+  const handleEditOfferDetails = () => {
+    if (!transaction) return
+
+    // Format datetime for datetime-local input (YYYY-MM-DDTHH:mm)
+    const formatDatetimeLocal = (dt: string | null) => {
+      if (!dt) return ''
+      const date = new Date(dt)
+      const year = date.getFullYear()
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const day = String(date.getDate()).padStart(2, '0')
+      const hours = String(date.getHours()).padStart(2, '0')
+      const minutes = String(date.getMinutes()).padStart(2, '0')
+      return `${year}-${month}-${day}T${hours}:${minutes}`
+    }
+
+    setOfferDetailsForm({
+      listPrice: transaction.listPrice?.toString() || '',
+      offerPrice: transaction.offerPrice?.toString() || '',
+      offerExpiryAt: formatDatetimeLocal(transaction.offerExpiryAt),
+      counterOfferEnabled: transaction.counterOfferEnabled || false,
+      counterOfferPrice: transaction.counterOfferPrice?.toString() || '',
+      commission: transaction.commission?.toString() || '',
+    })
+    setEditingOfferDetails(true)
+  }
+
+  const handleSaveOfferDetails = () => {
+    const listPriceNum = parseNumber(offerDetailsForm.listPrice)
+    const offerPriceNum = parseNumber(offerDetailsForm.offerPrice)
+    const counterOfferPriceNum = parseNumber(offerDetailsForm.counterOfferPrice)
+    const commissionNum = parseNumber(offerDetailsForm.commission)
+
+    const payload: any = {}
+
+    if (listPriceNum !== undefined) payload.listPrice = listPriceNum
+    if (offerPriceNum !== undefined) payload.offerPrice = offerPriceNum
+    if (offerDetailsForm.offerExpiryAt) payload.offerExpiryAt = offerDetailsForm.offerExpiryAt
+    if (commissionNum !== undefined) payload.commission = commissionNum
+
+    payload.counterOfferEnabled = offerDetailsForm.counterOfferEnabled
+    // If counterOfferEnabled is false, set counterOfferPrice to null explicitly
+    if (offerDetailsForm.counterOfferEnabled === false) {
+      payload.counterOfferPrice = null
+    } else if (counterOfferPriceNum !== undefined) {
+      payload.counterOfferPrice = counterOfferPriceNum
+    }
+
+    updateOfferDetailsMutation.mutate(payload)
+  }
+
+  const handleCancelOfferDetails = () => {
+    setEditingOfferDetails(false)
   }
 
   const isOverdue = (condition: Condition) => {
@@ -320,6 +447,31 @@ export default function TransactionDetailPage() {
       dueSoon,
       nextDueDate,
     }
+  }
+
+  // Get next workflow step
+  const getNextStep = (currentStatus: TransactionStatus): TransactionStatus | null => {
+    const currentIndex = workflowSteps.indexOf(currentStatus)
+    if (currentIndex === -1 || currentIndex === workflowSteps.length - 1) {
+      return null // No next step (completed or canceled)
+    }
+    return workflowSteps[currentIndex + 1]
+  }
+
+  // Filter conditions by current stage
+  const getConditionsForCurrentStage = () => {
+    if (!transaction?.conditions) return []
+
+    const filtered = transaction.conditions.filter(
+      (c) => c.stage === transaction.status
+    )
+
+    // Sort: pending first, then by dueDate ASC
+    return filtered.sort((a, b) => {
+      if (a.status === 'pending' && b.status !== 'pending') return -1
+      if (a.status !== 'pending' && b.status === 'pending') return 1
+      return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
+    })
   }
 
   // Loading state
@@ -412,6 +564,68 @@ export default function TransactionDetailPage() {
           </div>
         </div>
 
+        {/* Workflow Helper */}
+        {transaction.status !== 'canceled' && transaction.status !== 'completed' && (
+          <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg
+                  className="h-5 w-5 text-blue-400"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
+              <div className="ml-3 flex-1">
+                <h3 className="text-sm font-medium text-blue-800">
+                  Workflow Helper
+                </h3>
+                <div className="mt-2 text-sm text-blue-700">
+                  <p>
+                    <strong>Current Step:</strong>{' '}
+                    {statusLabels[transaction.status]}
+                  </p>
+                  {getNextStep(transaction.status) && (
+                    <>
+                      <p className="mt-1">
+                        <strong>Suggested Next Step:</strong>{' '}
+                        {statusLabels[getNextStep(transaction.status)!]}
+                      </p>
+                      <div className="mt-3">
+                        <button
+                          onClick={() => {
+                            const nextStep = getNextStep(transaction.status)
+                            if (nextStep) {
+                              setStatusChangeConfirm({
+                                isOpen: true,
+                                newStatus: nextStep,
+                              })
+                            }
+                          }}
+                          className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        >
+                          Advance to Next Step →
+                        </button>
+                      </div>
+                    </>
+                  )}
+                  {getConditionsForCurrentStage().length > 0 && (
+                    <p className="mt-3 text-xs">
+                      💡 <em>Tip: Conditions for this step are marked 📍 in the list below.</em>
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Transaction Details */}
         <div className="bg-white shadow sm:rounded-lg mb-6">
           <div className="px-4 py-5 sm:p-6">
@@ -469,6 +683,257 @@ export default function TransactionDetailPage() {
             </dl>
           </div>
         </div>
+
+        {/* Offer Details */}
+        {(transaction.listPrice ||
+          transaction.offerPrice ||
+          transaction.counterOfferEnabled ||
+          transaction.offerExpiryAt ||
+          transaction.commission ||
+          editingOfferDetails) && (
+          <div className="bg-white shadow sm:rounded-lg mb-6">
+            <div className="px-4 py-5 sm:p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-medium leading-6 text-gray-900">
+                  Offer Details
+                </h3>
+                {!editingOfferDetails && (
+                  <button
+                    onClick={handleEditOfferDetails}
+                    className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                  >
+                    Edit
+                  </button>
+                )}
+              </div>
+
+              {editingOfferDetails ? (
+                /* Edit Form */
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">
+                        List Price
+                      </label>
+                      <input
+                        type="number"
+                        value={offerDetailsForm.listPrice}
+                        onChange={(e) =>
+                          setOfferDetailsForm({
+                            ...offerDetailsForm,
+                            listPrice: e.target.value,
+                          })
+                        }
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                        placeholder="450000"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">
+                        Offer Price
+                      </label>
+                      <input
+                        type="number"
+                        value={offerDetailsForm.offerPrice}
+                        onChange={(e) =>
+                          setOfferDetailsForm({
+                            ...offerDetailsForm,
+                            offerPrice: e.target.value,
+                          })
+                        }
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                        placeholder="445000"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">
+                        Offer Expiry
+                      </label>
+                      <input
+                        type="datetime-local"
+                        value={offerDetailsForm.offerExpiryAt}
+                        onChange={(e) =>
+                          setOfferDetailsForm({
+                            ...offerDetailsForm,
+                            offerExpiryAt: e.target.value,
+                          })
+                        }
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">
+                        Commission (Internal)
+                      </label>
+                      <input
+                        type="number"
+                        value={offerDetailsForm.commission}
+                        onChange={(e) =>
+                          setOfferDetailsForm({
+                            ...offerDetailsForm,
+                            commission: e.target.value,
+                          })
+                        }
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                        placeholder="15000"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="counterOfferEnabled"
+                      checked={offerDetailsForm.counterOfferEnabled}
+                      onChange={(e) =>
+                        setOfferDetailsForm({
+                          ...offerDetailsForm,
+                          counterOfferEnabled: e.target.checked,
+                        })
+                      }
+                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <label
+                      htmlFor="counterOfferEnabled"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Counter Offer Enabled
+                    </label>
+                  </div>
+
+                  {offerDetailsForm.counterOfferEnabled && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">
+                        Counter Offer Price
+                      </label>
+                      <input
+                        type="number"
+                        value={offerDetailsForm.counterOfferPrice}
+                        onChange={(e) =>
+                          setOfferDetailsForm({
+                            ...offerDetailsForm,
+                            counterOfferPrice: e.target.value,
+                          })
+                        }
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                        placeholder="447500"
+                      />
+                    </div>
+                  )}
+
+                  <div className="flex justify-end space-x-3 pt-4">
+                    <button
+                      type="button"
+                      onClick={handleCancelOfferDetails}
+                      className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSaveOfferDetails}
+                      className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                    >
+                      Save
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* Read-only Display */
+                <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+                  {transaction.listPrice && (
+                    <div>
+                      <dt className="text-sm font-medium text-gray-500">
+                        List Price
+                      </dt>
+                      <dd className="mt-1 text-sm text-gray-900">
+                        $
+                        {transaction.listPrice.toLocaleString('en-US', {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </dd>
+                    </div>
+                  )}
+                  {transaction.offerPrice && (
+                    <div>
+                      <dt className="text-sm font-medium text-gray-500">
+                        Offer Price
+                      </dt>
+                      <dd className="mt-1 text-sm text-gray-900">
+                        $
+                        {transaction.offerPrice.toLocaleString('en-US', {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </dd>
+                    </div>
+                  )}
+                  {transaction.offerExpiryAt && (
+                    <div>
+                      <dt className="text-sm font-medium text-gray-500">
+                        Offer Expiry
+                      </dt>
+                      <dd className="mt-1 text-sm text-gray-900">
+                        {new Date(transaction.offerExpiryAt).toLocaleString(
+                          'en-US',
+                          {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          }
+                        )}
+                      </dd>
+                    </div>
+                  )}
+                  {transaction.counterOfferEnabled && (
+                    <div>
+                      <dt className="text-sm font-medium text-gray-500">
+                        Counter Offer
+                      </dt>
+                      <dd className="mt-1 text-sm text-gray-900">
+                        {transaction.counterOfferPrice ? (
+                          <span>
+                            $
+                            {transaction.counterOfferPrice.toLocaleString(
+                              'en-US',
+                              {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                              }
+                            )}
+                          </span>
+                        ) : (
+                          <span className="text-gray-500 italic">Pending</span>
+                        )}
+                      </dd>
+                    </div>
+                  )}
+                  {transaction.commission && (
+                    <div>
+                      <dt className="text-sm font-medium text-gray-400">
+                        Commission{' '}
+                        <span className="text-xs font-normal">(Internal)</span>
+                      </dt>
+                      <dd className="mt-1 text-sm text-gray-600">
+                        $
+                        {transaction.commission.toLocaleString('en-US', {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </dd>
+                    </div>
+                  )}
+                </dl>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Conditions Summary */}
         {(() => {
@@ -539,7 +1004,31 @@ export default function TransactionDetailPage() {
 
             {transaction.conditions && transaction.conditions.length > 0 ? (
               <div className="space-y-3">
-                {transaction.conditions.map((condition: Condition) => (
+                {[...transaction.conditions]
+                  .sort((a, b) => {
+                    // Current stage first
+                    if (
+                      a.stage === transaction.status &&
+                      b.stage !== transaction.status
+                    )
+                      return -1
+                    if (
+                      a.stage !== transaction.status &&
+                      b.stage === transaction.status
+                    )
+                      return 1
+                    // Then by status (pending first)
+                    if (a.status === 'pending' && b.status !== 'pending')
+                      return -1
+                    if (a.status !== 'pending' && b.status === 'pending')
+                      return 1
+                    // Then by dueDate
+                    return (
+                      new Date(a.dueDate).getTime() -
+                      new Date(b.dueDate).getTime()
+                    )
+                  })
+                  .map((condition: Condition) => (
                   <div
                     key={condition.id}
                     className={`border rounded-lg p-4 ${isOverdue(condition)
@@ -610,6 +1099,25 @@ export default function TransactionDetailPage() {
                             <option value="high">High</option>
                           </select>
                         </div>
+                        <select
+                          value={editConditionData.stage || ''}
+                          onChange={(e) =>
+                            setEditConditionData({
+                              ...editConditionData,
+                              stage: e.target.value as ConditionStage,
+                            })
+                          }
+                          className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        >
+                          <option value="consultation">Consultation</option>
+                          <option value="offer">Offer Submitted</option>
+                          <option value="accepted">Offer Accepted</option>
+                          <option value="conditions">Conditional Period</option>
+                          <option value="notary">Firm</option>
+                          <option value="closing">Closing</option>
+                          <option value="completed">Completed</option>
+                          <option value="canceled">Canceled</option>
+                        </select>
                         <textarea
                           value={editConditionData.description}
                           onChange={(e) =>
@@ -656,6 +1164,11 @@ export default function TransactionDetailPage() {
                                 >
                                   {condition.title}
                                 </p>
+                                {condition.stage === transaction.status && (
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-300">
+                                    📍 Current Step
+                                  </span>
+                                )}
                                 {condition.type && (
                                   <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
                                     {condition.type}

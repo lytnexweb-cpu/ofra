@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import {
   conditionsApi,
   type CreateConditionRequest,
+  type ConditionStage,
 } from '../api/conditions.api'
 import { parseApiError, isSessionExpired, type ParsedError } from '../utils/apiError'
 
@@ -24,6 +25,7 @@ export default function CreateConditionModal({
     description: '',
     type: 'financing',
     priority: 'medium',
+    stage: undefined, // Will be auto-set by backend to current transaction status
   })
   const [error, setError] = useState<ParsedError | null>(null)
   const queryClient = useQueryClient()
@@ -41,7 +43,7 @@ export default function CreateConditionModal({
         resetForm()
       } else {
         setError({
-          title: 'Erreur',
+          title: 'Error',
           message: response.error?.message || 'Failed to create condition',
         })
       }
@@ -65,6 +67,7 @@ export default function CreateConditionModal({
       description: '',
       type: 'financing',
       priority: 'medium',
+      stage: undefined,
     })
     setError(null)
   }
@@ -75,8 +78,8 @@ export default function CreateConditionModal({
 
     if (!formData.title.trim() || !formData.dueDate) {
       setError({
-        title: 'Champs requis',
-        message: 'Le titre et la date limite sont obligatoires.',
+        title: 'Required Fields',
+        message: 'Title and due date are required.',
       })
       return
     }
@@ -88,6 +91,7 @@ export default function CreateConditionModal({
       description: formData.description?.trim() || undefined,
       type: formData.type,
       priority: formData.priority,
+      stage: formData.stage,
     })
   }
 
@@ -234,6 +238,39 @@ export default function CreateConditionModal({
                       <option value="high">High</option>
                     </select>
                   </div>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="stage"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    Stage
+                  </label>
+                  <select
+                    id="stage"
+                    value={formData.stage || ''}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        stage: e.target.value ? (e.target.value as ConditionStage) : undefined,
+                      })
+                    }
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  >
+                    <option value="">Auto (Current transaction status)</option>
+                    <option value="consultation">Consultation</option>
+                    <option value="offer">Offer Submitted</option>
+                    <option value="accepted">Offer Accepted</option>
+                    <option value="conditions">Conditional Period</option>
+                    <option value="notary">Firm</option>
+                    <option value="closing">Closing</option>
+                    <option value="completed">Completed</option>
+                    <option value="canceled">Canceled</option>
+                  </select>
+                  <p className="mt-1 text-xs text-gray-500">
+                    Leave "Auto" to use current transaction status
+                  </p>
                 </div>
 
                 <div>

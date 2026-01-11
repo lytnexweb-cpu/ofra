@@ -7,6 +7,8 @@ export default class DashboardController {
   async summary({ response, auth }: HttpContext) {
     try {
       const userId = auth.user!.id
+      const today = DateTime.now().toSQLDate()!
+      const sevenDaysLater = DateTime.now().plus({ days: 7 }).toSQLDate()!
 
       const [
         totalTransactions,
@@ -28,16 +30,14 @@ export default class DashboardController {
           .join('transactions', 'conditions.transaction_id', 'transactions.id')
           .where('transactions.owner_user_id', userId)
           .where('conditions.status', 'pending')
-          .where('conditions.due_date', '<', DateTime.now().toSQLDate()!)
+          .where('conditions.due_date', '<=', today) // Include today as overdue
           .count('* as total'),
         Condition.query()
           .join('transactions', 'conditions.transaction_id', 'transactions.id')
           .where('transactions.owner_user_id', userId)
           .where('conditions.status', 'pending')
-          .whereBetween('conditions.due_date', [
-            DateTime.now().toSQLDate()!,
-            DateTime.now().plus({ days: 7 }).toSQLDate()!,
-          ])
+          .where('conditions.due_date', '>', today) // Start from tomorrow
+          .where('conditions.due_date', '<=', sevenDaysLater)
           .count('* as total'),
       ])
 

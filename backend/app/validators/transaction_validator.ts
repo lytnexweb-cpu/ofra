@@ -19,6 +19,13 @@ export const createTransactionValidator = vine.compile(
     status: vine.enum(transactionStatuses).optional(),
     salePrice: vine.number().positive().optional(),
     notesText: vine.string().trim().optional(),
+    // Offer Details fields
+    listPrice: vine.number().min(0).optional(),
+    offerPrice: vine.number().min(0).optional(),
+    counterOfferEnabled: vine.boolean().optional(),
+    counterOfferPrice: vine.number().min(0).optional(),
+    offerExpiryAt: vine.string().optional(), // Accept datetime-local string format "YYYY-MM-DDTHH:mm"
+    commission: vine.number().min(0).optional(),
   })
 )
 
@@ -30,6 +37,13 @@ export const updateTransactionValidator = vine.compile(
     status: vine.enum(transactionStatuses).optional(),
     salePrice: vine.number().positive().optional(),
     notesText: vine.string().trim().optional(),
+    // Offer Details fields
+    listPrice: vine.number().min(0).optional(),
+    offerPrice: vine.number().min(0).optional(),
+    counterOfferEnabled: vine.boolean().optional(),
+    counterOfferPrice: vine.number().min(0).optional(),
+    offerExpiryAt: vine.string().optional(), // Accept datetime-local string format "YYYY-MM-DDTHH:mm"
+    commission: vine.number().min(0).optional(),
   })
 )
 

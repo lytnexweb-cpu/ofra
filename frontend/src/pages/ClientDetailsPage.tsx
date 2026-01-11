@@ -1,9 +1,9 @@
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { clientsApi } from '../api/clients.api'
-import { transactionsApi } from '../api/transactions.api'
 import { useState } from 'react'
 import ConfirmDialog from '../components/ConfirmDialog'
+import TransactionTimeline from '../components/TransactionTimeline'
 
 export default function ClientDetailsPage() {
   const { id } = useParams<{ id: string }>()
@@ -18,19 +18,14 @@ export default function ClientDetailsPage() {
     enabled: !!id,
   })
 
-  const { data: transactionsData, isLoading: isLoadingTransactions } = useQuery(
-    {
-      queryKey: ['transactions', 'by-client', clientId],
-      queryFn: () => transactionsApi.list({}),
-      enabled: !!id,
-      select: (data) => {
-        // Filter transactions by clientId on the client side
-        // Ideally this would be a backend query parameter
-        const allTransactions = data?.data?.transactions || []
-        return allTransactions.filter((t) => t.clientId === clientId)
-      },
-    }
-  )
+  const { data: transactionsData, isLoading: isLoadingTransactions } = useQuery({
+    queryKey: ['client-transactions', clientId],
+    queryFn: () => clientsApi.getTransactions(clientId),
+    enabled: !!id,
+    staleTime: 0, // Always consider data stale
+    refetchOnMount: 'always', // Always refetch when component mounts
+    refetchOnWindowFocus: true, // Refetch when window regains focus
+  })
 
   const deleteClientMutation = useMutation({
     mutationFn: clientsApi.delete,
@@ -49,7 +44,7 @@ export default function ClientDetailsPage() {
   }
 
   const client = clientData?.data?.client
-  const transactions = transactionsData || []
+  const transactions = transactionsData?.data?.transactions || []
 
   if (isLoadingClient) {
     return (
@@ -220,11 +215,11 @@ export default function ClientDetailsPage() {
           </div>
         </div>
 
-        {/* Transactions */}
+        {/* Transactions Timeline */}
         <div className="bg-white shadow sm:rounded-lg">
           <div className="px-4 py-5 sm:p-6">
             <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">
-              Transactions
+              Transactions et Historique
             </h3>
 
             {isLoadingTransactions ? (
@@ -251,57 +246,30 @@ export default function ClientDetailsPage() {
                 </svg>
               </div>
             ) : transactions.length > 0 ? (
-              <div className="space-y-3">
+              <div className="space-y-8">
                 {transactions.map((transaction) => (
-                  <Link
+                  <div
                     key={transaction.id}
-                    to={`/transactions/${transaction.id}`}
-                    className="block border border-gray-200 rounded-lg p-4 hover:border-blue-300 hover:bg-blue-50 transition-colors"
+                    className="border border-gray-200 rounded-lg p-6"
                   >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">
-                          Transaction #{transaction.id}
-                        </p>
-                        <div className="mt-1 flex items-center gap-2">
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
-                            {transaction.status}
-                          </span>
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                            {transaction.type === 'purchase'
-                              ? 'Purchase'
-                              : 'Sale'}
-                          </span>
-                          {transaction.salePrice && (
-                            <span className="text-xs text-gray-500">
-                              $
-                              {transaction.salePrice.toLocaleString('en-US', {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2,
-                              })}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <svg
-                        className="h-5 w-5 text-gray-400"
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="text-md font-semibold text-gray-900">
+                        Transaction #{transaction.id}
+                      </h4>
+                      <Link
+                        to={`/transactions/${transaction.id}`}
+                        className="text-sm text-blue-600 hover:text-blue-800 font-medium"
                       >
-                        <path
-                          fillRule="evenodd"
-                          d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
+                        Voir les détails →
+                      </Link>
                     </div>
-                  </Link>
+                    <TransactionTimeline transaction={transaction} />
+                  </div>
                 ))}
               </div>
             ) : (
               <p className="text-sm text-gray-500">
-                No transactions for this client yet.
+                Aucune transaction pour ce client.
               </p>
             )}
           </div>

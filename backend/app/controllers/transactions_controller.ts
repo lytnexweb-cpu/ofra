@@ -1,4 +1,5 @@
 import type { HttpContext } from '@adonisjs/core/http'
+import { DateTime } from 'luxon'
 import Transaction from '#models/transaction'
 import TransactionStatusHistory from '#models/transaction_status_history'
 import {
@@ -51,11 +52,29 @@ export default class TransactionsController {
   async store({ request, response, auth }: HttpContext) {
     try {
       const payload = await request.validateUsing(createTransactionValidator)
-      const transaction = await Transaction.create({
+
+      // Validate counterOffer logic
+      if (payload.counterOfferEnabled && !payload.counterOfferPrice) {
+        return response.unprocessableEntity({
+          success: false,
+          error: {
+            message: 'Counter offer price is required when counter offer is enabled',
+            code: 'E_VALIDATION_FAILED',
+          },
+        })
+      }
+
+      // If counterOfferEnabled is false, set counterOfferPrice to null
+      const transactionData: any = {
         ...payload,
         ownerUserId: auth.user!.id,
         status: payload.status || 'consultation',
-      })
+        counterOfferEnabled: payload.counterOfferEnabled ?? false,
+        counterOfferPrice: payload.counterOfferEnabled ? payload.counterOfferPrice : null,
+        offerExpiryAt: payload.offerExpiryAt ? DateTime.fromISO(payload.offerExpiryAt) : undefined,
+      }
+
+      const transaction = await Transaction.create(transactionData)
 
       await transaction.load('client')
       if (transaction.propertyId) {
@@ -123,7 +142,26 @@ export default class TransactionsController {
         .firstOrFail()
 
       const payload = await request.validateUsing(updateTransactionValidator)
-      transaction.merge(payload)
+
+      // Validate counterOffer logic
+      if (payload.counterOfferEnabled && !payload.counterOfferPrice) {
+        return response.unprocessableEntity({
+          success: false,
+          error: {
+            message: 'Counter offer price is required when counter offer is enabled',
+            code: 'E_VALIDATION_FAILED',
+          },
+        })
+      }
+
+      // Prepare update data (set counterOfferPrice to null if disabled)
+      const updateData: any = {
+        ...payload,
+        counterOfferPrice: payload.counterOfferEnabled === false ? null : payload.counterOfferPrice,
+        offerExpiryAt: payload.offerExpiryAt ? DateTime.fromISO(payload.offerExpiryAt) : undefined,
+      }
+
+      transaction.merge(updateData)
       await transaction.save()
 
       await transaction.load('client')

@@ -41,7 +41,7 @@ export default function CreateClientModal({ isOpen, onClose }: CreateClientModal
         resetForm()
       } else {
         setError({
-          title: 'Erreur',
+          title: 'Error',
           message: response.error?.message || 'Failed to create client',
         })
       }
@@ -85,8 +85,8 @@ export default function CreateClientModal({ isOpen, onClose }: CreateClientModal
 
     if (!formData.firstName.trim() || !formData.lastName.trim()) {
       setError({
-        title: 'Champs requis',
-        message: 'Le prénom et le nom de famille sont obligatoires.',
+        title: 'Required Fields',
+        message: 'First name and last name are required.',
       })
       return
     }

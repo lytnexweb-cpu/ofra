@@ -36,6 +36,7 @@ router.group(() => {
   router.get('/clients', '#controllers/clients_controller.index')
   router.post('/clients', '#controllers/clients_controller.store')
   router.get('/clients/:id', '#controllers/clients_controller.show')
+  router.get('/clients/:id/transactions', '#controllers/clients_controller.transactions')
   router.put('/clients/:id', '#controllers/clients_controller.update')
   router.delete('/clients/:id', '#controllers/clients_controller.destroy')
 

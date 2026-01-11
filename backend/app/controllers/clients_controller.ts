@@ -172,4 +172,48 @@ export default class ClientsController {
       })
     }
   }
+
+  async transactions({ params, response, auth }: HttpContext) {
+    try {
+      // Verify client belongs to user
+      const client = await Client.query()
+        .where('id', params.id)
+        .where('owner_user_id', auth.user!.id)
+        .firstOrFail()
+
+      // Get all transactions for this client with related data
+      const transactions = await Transaction.query()
+        .where('client_id', client.id)
+        .where('owner_user_id', auth.user!.id)
+        .preload('statusHistories', (query) => {
+          query.orderBy('created_at', 'asc')
+        })
+        .preload('conditions', (query) => {
+          query.orderBy('due_date', 'asc')
+        })
+        .orderBy('created_at', 'desc')
+
+      return response.ok({
+        success: true,
+        data: { transactions },
+      })
+    } catch (error) {
+      if (error.code === 'E_ROW_NOT_FOUND') {
+        return response.notFound({
+          success: false,
+          error: {
+            message: 'Client not found',
+            code: 'E_NOT_FOUND',
+          },
+        })
+      }
+      return response.internalServerError({
+        success: false,
+        error: {
+          message: 'Failed to retrieve client transactions',
+          code: 'E_INTERNAL_ERROR',
+        },
+      })
+    }
+  }
 }
