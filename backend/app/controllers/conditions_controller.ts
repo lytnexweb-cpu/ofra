@@ -20,6 +20,7 @@ export default class ConditionsController {
         ...payload,
         transactionId: transaction.id,
         status: 'pending',
+        stage: payload.stage || transaction.status, // Auto-set stage to current transaction status if not provided
       })
 
       return response.created({

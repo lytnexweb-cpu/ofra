@@ -22,6 +22,13 @@ export interface Transaction {
   status: TransactionStatus
   salePrice: number | null
   notesText: string | null
+  // Offer Details fields
+  listPrice: number | null
+  offerPrice: number | null
+  counterOfferEnabled: boolean
+  counterOfferPrice: number | null
+  offerExpiryAt: string | null
+  commission: number | null
   createdAt: string
   updatedAt: string
   client?: Client
@@ -37,6 +44,29 @@ export interface CreateTransactionRequest {
   status?: TransactionStatus
   salePrice?: number
   notesText?: string
+  // Offer Details fields
+  listPrice?: number
+  offerPrice?: number
+  counterOfferEnabled?: boolean
+  counterOfferPrice?: number
+  offerExpiryAt?: string
+  commission?: number
+}
+
+export interface UpdateTransactionRequest {
+  clientId?: number
+  propertyId?: number
+  type?: TransactionType
+  status?: TransactionStatus
+  salePrice?: number
+  notesText?: string
+  // Offer Details fields
+  listPrice?: number
+  offerPrice?: number
+  counterOfferEnabled?: boolean
+  counterOfferPrice?: number
+  offerExpiryAt?: string
+  commission?: number
 }
 
 export const transactionsApi = {
@@ -55,6 +85,9 @@ export const transactionsApi = {
 
   get: (id: number) =>
     http.get<{ transaction: Transaction }>(`/api/transactions/${id}`),
+
+  update: (id: number, data: UpdateTransactionRequest) =>
+    http.put<{ transaction: Transaction }>(`/api/transactions/${id}`, data),
 
   updateStatus: (id: number, status: TransactionStatus, note?: string) =>
     http.patch<{ transaction: Transaction }>(`/api/transactions/${id}/status`, {

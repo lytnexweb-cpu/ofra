@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon'
 import { BaseModel, column, belongsTo } from '@adonisjs/lucid/orm'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
-import Transaction from './transaction.js'
+import Transaction, { type TransactionStatus } from './transaction.js'
 
 export type ConditionStatus = 'pending' | 'completed'
 export type ConditionType =
@@ -16,6 +16,7 @@ export type ConditionType =
   | 'repairs'
   | 'other'
 export type ConditionPriority = 'low' | 'medium' | 'high'
+export type ConditionStage = TransactionStatus
 
 export default class Condition extends BaseModel {
   @column({ isPrimary: true })
@@ -38,6 +39,9 @@ export default class Condition extends BaseModel {
 
   @column()
   declare priority: ConditionPriority
+
+  @column()
+  declare stage: ConditionStage
 
   @column.date()
   declare dueDate: DateTime | null

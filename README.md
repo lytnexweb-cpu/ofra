@@ -169,19 +169,37 @@ Use these credentials to log in to the application in development mode.
 - ✅ **Delete client** with transaction protection (blocked if client has transactions)
 - ✅ View client's transaction history
 
+### Client Transaction Timeline
+- ✅ **Visual transaction history**: Timeline view showing all status changes for each transaction
+- ✅ **Status history tracking**: Complete audit trail with timestamps and previous status
+- ✅ **Condition integration by stage**: Conditions grouped by transaction stage (workflow step)
+- ✅ **Story view**: "Conditions de cette étape" + "Conditions complétées pendant cette étape"
+- ✅ **Current status banner**: Display of status, type, price, offer price, and expiry date
+- ✅ **Multi-transaction support**: View all transactions for a single client in one page
+- ✅ **Timeline visualization**: Vertical timeline with color-coded indicators (blue for current status)
+- ✅ **Condition details**: Shows condition type, priority, stage, due date, and completion status
+- ✅ **Real-time updates**: Cache invalidation ensures fresh data without manual refresh
+
 ### Transaction Management
 - ✅ Create and list transactions (purchase or sale)
+- ✅ **Offer Details**: List price, offer price, counter offer (enabled/price), expiry date, commission
+- ✅ **Edit Offer Details**: Inline form to modify offer information on Transaction Detail Page
 - ✅ Track sale price, offer date, and transaction type
 - ✅ Change transaction status with confirmation dialog
+- ✅ **Workflow Helper**: Visual guide showing current step, suggested next step, and quick action button
 - ✅ Status history tracking (audit trail)
 - ✅ View detailed transaction page with conditions and notes
 
 ### Condition Management
 - ✅ Add conditions to transactions with due dates
-- ✅ **Condition types**: inspection, financing, appraisal, legal, documents, repairs, other
+- ✅ **Condition types**: financing, deposit, inspection, water_test, rpds_review, appraisal, legal, documents, repairs, other
 - ✅ **Priority levels**: low, medium, high (with color-coded badges)
+- ✅ **Stage system**: Assign conditions to workflow stages (offer, accepted, conditions, notary, etc.)
+- ✅ **Auto-stage**: Conditions automatically assigned to current transaction status if no stage specified
+- ✅ **Current Step Badge**: Conditions matching current transaction status display "📍 Current Step" badge
+- ✅ **Smart Sorting**: Conditions auto-sorted with current step first, then pending, then by due date
 - ✅ Mark conditions as completed
-- ✅ Edit and delete conditions
+- ✅ Edit and delete conditions (including inline stage editing)
 - ✅ **Visual indicators**: Overdue (red), due soon within 7 days (yellow)
 
 ### Notes
@@ -194,8 +212,8 @@ Use these credentials to log in to the application in development mode.
 - ✅ Total transactions count
 - ✅ Active transactions count
 - ✅ Completed transactions count
-- ✅ Overdue conditions count
-- ✅ Due soon conditions count (next 7 days)
+- ✅ **Overdue conditions count** (includes conditions due today)
+- ✅ Due soon conditions count (next 7 days, starting tomorrow)
 - ✅ **"How it works" guide** with 5-step workflow explanation
 
 ### Automated Emails
@@ -221,6 +239,7 @@ Use these credentials to log in to the application in development mode.
 - ✅ Error handling with user-friendly messages
 - ✅ Toast notifications on success/error
 - ✅ Professional footer with Lytnex Web branding and copyright information
+- ✅ **Complete English interface** - Standardized language throughout application (no French/English mixing)
 
 ## API Endpoints
 
@@ -238,20 +257,74 @@ All endpoints require authentication except `/api/health` and `/api/login`.
 - `GET /api/clients` - List all clients
 - `POST /api/clients` - Create client
 - `GET /api/clients/:id` - Get client details
+- `GET /api/clients/:id/transactions` - Get client's transactions with timeline data (includes statusHistories and conditions)
 - `PUT /api/clients/:id` - Update client
 - `DELETE /api/clients/:id` - Delete client (blocked if has transactions)
 
+**Response Format for `/api/clients/:id/transactions`:**
+```json
+{
+  "success": true,
+  "data": {
+    "transactions": [
+      {
+        "id": 1,
+        "clientId": 5,
+        "ownerUserId": 1,
+        "type": "purchase",
+        "status": "notary",
+        "salePrice": 450000,
+        "createdAt": "2025-12-24T10:00:00Z",
+        "updatedAt": "2025-12-25T14:30:00Z",
+        "statusHistories": [
+          {
+            "id": 1,
+            "transactionId": 1,
+            "changedByUserId": 1,
+            "fromStatus": null,
+            "toStatus": "offer",
+            "note": "Initial offer submitted",
+            "createdAt": "2025-12-24T10:00:00Z"
+          },
+          {
+            "id": 2,
+            "transactionId": 1,
+            "changedByUserId": 1,
+            "fromStatus": "offer",
+            "toStatus": "accepted",
+            "note": "Offer accepted by seller",
+            "createdAt": "2025-12-24T15:30:00Z"
+          }
+        ],
+        "conditions": [
+          {
+            "id": 1,
+            "transactionId": 1,
+            "title": "Financing approval",
+            "type": "financing",
+            "priority": "high",
+            "status": "completed",
+            "dueDate": "2025-12-30",
+            "completedAt": "2025-12-28T09:00:00Z"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
 ### Transactions
 - `GET /api/transactions` - List all transactions
-- `POST /api/transactions` - Create transaction
+- `POST /api/transactions` - Create transaction (with optional offer details: listPrice, offerPrice, counterOfferEnabled, counterOfferPrice, offerExpiryAt, commission)
 - `GET /api/transactions/:id` - Get transaction details
-- `PUT /api/transactions/:id` - Update transaction
+- `PUT /api/transactions/:id` - Update transaction (including offer details)
 - `PATCH /api/transactions/:id/status` - Change transaction status (triggers automated email to client)
 - `DELETE /api/transactions/:id` - Delete transaction (cascades: conditions, notes, status_histories)
 
 ### Conditions
-- `POST /api/transactions/:id/conditions` - Add condition to transaction
-- `PUT /api/conditions/:id` - Update condition
+- `POST /api/transactions/:id/conditions` - Add condition to transaction (with optional stage field)
+- `PUT /api/conditions/:id` - Update condition (including type, priority, stage)
 - `PATCH /api/conditions/:id/complete` - Mark condition as completed
 - `DELETE /api/conditions/:id` - Delete condition
 
@@ -354,6 +427,35 @@ Follow these steps to verify the complete application workflow:
 - ✅ Check client's email inbox for received emails
 - ✅ Verify email content is in French with proper formatting
 - **Note**: If SMTP not configured, status change still works (fail-safe)
+
+### 9b. Test Client Transaction Timeline (Local/Dev)
+- **Purpose**: Verify the timeline feature displays transaction history with conditions
+- **Prerequisites**: Client with at least one transaction that has status changes and conditions
+- **Steps**:
+  1. Navigate to "Clients" page
+  2. Click on a client with existing transactions
+  3. Scroll to "Transactions et Historique" section
+  4. ✅ Verify timeline appears with vertical line and dots
+  5. ✅ Check current status banner shows: Status, Type, and Price (if applicable)
+  6. ✅ Verify each status change card displays:
+     - Status label (e.g., "Offre acceptée")
+     - Previous status (e.g., "Depuis: Offre soumise")
+     - Timestamp in French format
+     - Note (if exists)
+  7. ✅ Check conditions section under each status:
+     - Condition title with completion icon (green checkmark or gray circle)
+     - Type badge (blue) and priority badge (red/yellow/gray)
+     - Due date and completion date (if completed)
+  8. Click "Voir les détails →" link
+  9. ✅ Verify navigation to transaction detail page works
+- **Testing with multiple transactions**:
+  - Create a second transaction for the same client
+  - Both timelines should appear on the client details page
+  - Each timeline should be independent with its own status history
+- **Edge cases**:
+  - Client with 0 transactions: Should show "Aucune transaction pour ce client."
+  - Transaction with 0 status history: Should show "Aucun historique de statut disponible"
+  - Transaction with 0 conditions: "Conditions associées" section should not appear
 
 ### 10. Test Client Delete Protection
 - Navigate back to Clients
@@ -459,6 +561,353 @@ node ace db:seed
 ```
 
 ## Changelog / Release Notes
+
+### MVP++ Part 11: UX Enhancements & Language Standardization (January 10, 2026) - ✅ COMPLETED
+
+**Professional Workflow Improvements & English Standardization:**
+
+#### ✅ Dashboard Overdue Fix
+**Problem:** Conditions due today were not appearing as overdue on dashboard
+**Root Cause:** Query used `<` (strictly less than) instead of `<=`, excluding today's date
+**Fix Applied:**
+- Backend: Modified `dashboard_controller.ts` line 47
+- Changed overdue logic: `due_date <= today` (includes today)
+- Adjusted "due soon": `due_date > today AND due_date <= +7 days` (tomorrow to next week)
+- **Result:** Conditions due today now correctly appear in "Overdue Conditions" counter
+
+#### ✅ Edit Offer Details
+**New Feature:** Edit functionality for Offer Details on Transaction Detail Page
+**Implementation:**
+- Added "Edit" button to Offer Details block header
+- Inline form with pre-filled values (listPrice, offerPrice, offerExpiryAt, counterOfferEnabled, counterOfferPrice, commission)
+- Save/Cancel buttons with proper validation
+- **Validation:**
+  - No empty strings sent to backend
+  - Numbers properly parsed from string inputs
+  - `counterOfferEnabled=false` explicitly sets `counterOfferPrice=null`
+  - datetime-local format handled correctly (YYYY-MM-DDTHH:mm)
+- **Mutation:** Calls `transactionsApi.update()` with proper payload
+- **Cache Invalidation:** Refreshes transaction, transactions list, dashboard, and client-transactions
+- **Files Modified:** `frontend/src/pages/TransactionDetailPage.tsx`
+
+#### ✅ Workflow Helper
+**New Feature:** Visual workflow guide on Transaction Detail Page
+**Implementation:**
+- Blue info box displayed for non-canceled, non-completed transactions
+- Shows "Current Step" with English label
+- Displays "Suggested Next Step" with actionable button
+- Button triggers existing status change confirmation dialog
+- **Workflow Sequence:** consultation → offer → accepted → conditions → notary → closing → completed
+- **Guidance Text:** "Tip: Conditions for this step are marked 📍 in the list below."
+- **Integration:** Seamlessly uses existing `updateStatusMutation`
+- **Files Modified:** `frontend/src/pages/TransactionDetailPage.tsx`
+
+#### ✅ Current Step Badge & Smart Sorting
+**New Feature:** Visual indicator for conditions matching current transaction status
+**Implementation:**
+- Badge "📍 Current Step" displayed next to condition title
+- **Smart Sorting:** Conditions list auto-sorted to show current step first
+  - Sort priority: Current step → Pending → Due date ASC
+  - Conditions for active step always appear at top
+- **Removed Duplication:** Eliminated separate "Conditions for Current Stage" section
+- **Single Unified List:** All conditions in one place with full management (add/edit/delete)
+- **Files Modified:** `frontend/src/pages/TransactionDetailPage.tsx`
+
+#### ✅ Complete English Standardization
+**Major UX Improvement:** Removed all French/English mixing throughout application
+**Scope:** Converted entire frontend interface to English
+**Files Affected:**
+1. **TransactionDetailPage.tsx:**
+   - Workflow Helper: "Aide au processus" → "Workflow Helper"
+   - "Étape actuelle" → "Current Step"
+   - "Prochaine étape suggérée" → "Suggested Next Step"
+   - "Avancer à l'étape suivante" → "Advance to Next Step"
+   - Status labels: "Offre soumise" → "Offer Submitted", etc.
+   - Badge: "📍 Étape actuelle" → "📍 Current Step"
+
+2. **TransactionTimeline.tsx:**
+   - Status labels: All converted to English
+   - Condition types: "Financement" → "Financing", "Inspection" → "Inspection", etc.
+   - "Statut actuel" → "Current Status"
+   - "Achat/Vente" → "Purchase/Sale"
+   - "Conditions de cette étape" → "Conditions for this step"
+   - Dates: Changed locale from 'fr-CA' to 'en-US'
+   - Currency: Changed from CAD to USD formatting
+
+3. **CreateConditionModal.tsx:**
+   - "Étape (Stage)" → "Stage"
+   - "Auto (Statut actuel...)" → "Auto (Current transaction status)"
+   - Status options: All English
+   - "Laissez Auto pour..." → "Leave Auto to use..."
+
+4. **CreateTransactionModal.tsx:**
+   - Error messages: "Erreur" → "Error"
+   - "Champ requis" → "Required Field"
+   - "Veuillez sélectionner..." → "Please select..."
+
+5. **CreateClientModal.tsx:**
+   - "Champs requis" → "Required Fields"
+   - "Le prénom et le nom..." → "First name and last name are required."
+
+**Build Status:**
+- ✅ Frontend: 0 TypeScript errors (427.45 KB bundle)
+- ✅ Backend: 0 TypeScript errors (no changes required)
+
+**Technical Details:**
+- Removed redundant `statusLabelsFrench` constant (duplicate of `statusLabels`)
+- Updated all UI text strings to English
+- Maintained all existing functionality
+- No breaking changes to API or data structure
+
+**User Experience Benefits:**
+- Consistent language throughout application
+- Professional English interface
+- Clearer workflow guidance with Workflow Helper
+- Easier condition management with smart sorting
+- Editable Offer Details without page navigation
+- Accurate dashboard metrics for overdue conditions
+
+**Files Modified:**
+- Backend: 1 file (`app/controllers/dashboard_controller.ts`)
+- Frontend: 5 files
+  - `pages/TransactionDetailPage.tsx`
+  - `components/TransactionTimeline.tsx`
+  - `components/CreateConditionModal.tsx`
+  - `components/CreateTransactionModal.tsx`
+  - `components/CreateClientModal.tsx`
+
+---
+
+### MVP++ Part 10: Offer Details Fields (January 10, 2026) - ✅ COMPLÉTÉ
+
+**Ajout de champs détaillés pour les offres immobilières:**
+
+#### ✅ Ce qui a été fait (100% implémenté)
+
+**Backend:**
+- ✅ Migration ajoutée : 6 nouveaux champs sur table `transactions`
+  - `list_price` (NUMERIC nullable) - Prix affiché
+  - `offer_price` (NUMERIC nullable) - Prix offert
+  - `counter_offer_enabled` (BOOLEAN default false) - Contre-offre activée
+  - `counter_offer_price` (NUMERIC nullable) - Prix de contre-offre
+  - `offer_expiry_at` (TIMESTAMPTZ nullable) - Date d'expiration de l'offre
+  - `commission` (NUMERIC nullable) - Commission (interne, sensible)
+- ✅ Model Transaction : 6 nouveaux champs ajoutés avec mapping camelCase
+- ✅ Validators : validation des champs (min 0, logic conditional pour counter offer)
+- ✅ Controller : logique de validation (counterOfferEnabled = true → counterOfferPrice requis)
+- ✅ Build backend : 0 erreurs TypeScript
+
+**Frontend:**
+- ✅ Types : `Transaction` interface mise à jour avec les 6 nouveaux champs
+- ✅ Types : `CreateTransactionRequest` et `UpdateTransactionRequest` mis à jour
+- ✅ API : méthode `transactionsApi.update()` ajoutée
+- ✅ CreateTransactionModal : section collapsible "Offer Details" (optionnelle)
+  - List Price, Offer Price, Offer Expiry (datetime picker)
+  - Toggle "Counter offer?" avec champ Counter Offer Price conditionnel
+  - Commission (label "Internal / optional", affichage discret)
+- ✅ TransactionDetailPage : bloc "Offer Details" en lecture seule
+  - Affichage formaté des montants ($) et dates lisibles
+  - Commission en couleur discrète (gris)
+- ✅ TransactionTimeline : banner enrichi
+  - Affiche Offer Price si présent
+  - Affiche Expiration si présente (format date+heure)
+- ✅ Validation frontend : counterOffer logic (prix requis si activé)
+- ✅ Build frontend : 0 erreurs TypeScript
+
+**Tests effectués:**
+- ✅ Migration exécutée sans erreur
+- ✅ Backend build : 0 TS errors
+- ✅ Frontend build : 0 TS errors
+- ✅ Compatibilité : anciennes transactions (NULL values) ne cassent rien
+
+**Impact:**
+- Aucun breaking change (tous les champs nullable)
+- Emails automatiques : aucun impact (commission non incluse)
+- Dashboard/Timeline : toujours OK
+
+---
+
+### MVP++ Part 9: Stage System & Cache Fix (January 4, 2026) - ✅ COMPLÉTÉ
+
+**Amélioration Timeline - Conditions par Étape:**
+
+#### ✅ Ce qui a été fait (100% implémenté)
+
+**Backend:**
+- ✅ Migration ajoutée : colonne `stage` sur table `conditions` (enum 8 valeurs)
+- ✅ Model Condition : champ `stage: ConditionStage` ajouté
+- ✅ Validator : validation du stage (optional)
+- ✅ Controller : auto-set `stage` au statut actuel de la transaction si non fourni
+- ✅ Build backend : 0 erreurs TypeScript
+
+**Frontend:**
+- ✅ Types : `ConditionStage` ajouté (= TransactionStatus)
+- ✅ CreateConditionModal : dropdown "Étape (Stage)" avec option "Auto"
+- ✅ TransactionDetailPage : édition inline du stage
+- ✅ **TransactionTimeline : filtrage des conditions par `stage === history.toStatus`**
+- ✅ ClientDetailsPage : fix cache (`staleTime: 0`, `refetchOnMount: 'always'`)
+- ✅ Invalidations : toutes les mutations invalident `client-transactions`
+- ✅ Build frontend : 0 erreurs TypeScript
+
+#### ⚠️ PROBLÈME À RÉGLER - Prochaine session
+
+**Problème :**
+La migration a mis `defaultTo('conditions')` sur la colonne `stage`. Résultat : **toutes les conditions existantes ont `stage = 'conditions'`**, donc elles apparaissent toutes ensemble sous l'étape "Période conditionnelle" dans la timeline.
+
+**Fichier concerné :**
+- `backend/database/migrations/1767568576379_create_add_stage_to_conditions_table.ts` (ligne 19)
+
+**Solutions possibles (à choisir) :**
+
+1. **Option A - Édition manuelle** (si peu de données) :
+   - Éditer chaque condition existante via l'UI
+   - Changer le `stage` pour les répartir correctement
+
+2. **Option B - Migration intelligente** (si beaucoup de données) :
+   - Créer une migration de backfill
+   - Répartir automatiquement par logique :
+     - Type "financing" → stage "offer"
+     - Type "inspection" → stage "accepted"
+     - Type "deposit" → stage "accepted"
+     - Etc.
+
+3. **Option C - Stage nullable + affichage flexible** :
+   - Rollback migration actuelle
+   - Recréer avec `stage` nullable (pas de default)
+   - Frontend : conditions sans stage s'affichent sous toutes les étapes (ou message "Non assignée")
+   - Utilisateur assigne manuellement quand il veut
+
+**Recommandation :**
+Option B (migration intelligente) si > 10 conditions existantes, sinon Option A.
+
+**Fichiers modifiés (Part 9) :**
+- Backend : 4 fichiers
+- Frontend : 5 fichiers
+- Migration exécutée avec succès
+
+**Status actuel :**
+- ✅ Code fonctionnel (0 erreurs)
+- ⚠️ Données à réorganiser (stage par défaut)
+- 🔄 Prochaine étape : choisir solution + l'implémenter
+
+---
+
+### MVP++ Part 8: Client Transaction Timeline Feature (January 4, 2026)
+
+**Visual Transaction History & Timeline View:**
+
+#### Client Transaction Timeline
+- **Complete transaction history view** on client details page
+- **Timeline visualization**: Vertical timeline with color-coded status indicators
+- **Status history tracking**: Full audit trail showing all status changes with timestamps
+- **Condition integration**: All transaction conditions displayed within timeline context
+- **Current status banner**: Prominent display showing current status, transaction type, and price
+- **Multi-transaction support**: View multiple transactions for a single client with separate timelines
+
+#### Features
+- **Visual Timeline**:
+  - Vertical timeline with left-aligned dots
+  - Blue dot indicates current/latest status
+  - Gray dots for historical statuses
+  - Status change cards with timestamps
+  - "From" and "To" status labels
+- **Status History Cards**:
+  - French-labeled status names (e.g., "Offre acceptée", "Ferme")
+  - Timestamp in French-Canadian format (DD MMM YYYY, HH:MM)
+  - Optional note field for status change context
+- **Condition Display**:
+  - Conditions grouped under each status change
+  - Type badges (blue): Financement, Inspection, etc.
+  - Priority badges (red/yellow/gray): Haute, Moyenne, Basse
+  - Completion status with checkmark icons
+  - Due dates and completion timestamps
+- **Current Status Banner**:
+  - Displays current status, transaction type (Achat/Vente), and sale price
+  - Formatted price in CAD currency
+
+#### Technical Implementation
+
+**Backend (3 files modified):**
+- `backend/app/models/transaction.ts` - Added `statusHistories` relation (hasMany TransactionStatusHistory)
+- `backend/app/controllers/clients_controller.ts` - New `transactions()` method with preloaded relations
+- `backend/start/routes.ts` - Added route: `GET /api/clients/:id/transactions`
+
+**Endpoint Details:**
+```
+GET /api/clients/:id/transactions
+```
+- **Multi-tenant security**: Verifies client belongs to authenticated user
+- **Preloaded relations**:
+  - `statusHistories` (ordered by createdAt ASC)
+  - `conditions` (ordered by dueDate ASC)
+- **Returns**: Array of transactions with nested statusHistories and conditions
+
+**Frontend (3 files created/modified):**
+- `frontend/src/api/clients.api.ts` - Added types `TransactionStatusHistory`, `TransactionWithTimeline`, and `getTransactions()` method
+- `frontend/src/components/TransactionTimeline.tsx` (NEW) - Timeline component with status history and conditions display
+- `frontend/src/pages/ClientDetailsPage.tsx` - Integrated timeline view in "Transactions et Historique" section
+
+**Component Architecture:**
+- `TransactionTimeline.tsx`: Self-contained timeline component
+  - Accepts `TransactionWithTimeline` prop
+  - Renders current status banner
+  - Displays vertical timeline with status history cards
+  - Shows conditions inline with each status
+  - Handles edge cases (no history, no conditions)
+- `ClientDetailsPage.tsx`: Parent page
+  - Fetches client + transactions via two separate queries
+  - Maps transactions to individual `TransactionTimeline` components
+  - Provides "Voir les détails" link to transaction detail page
+
+#### User Experience
+- **Centralized view**: See all client transactions and their history on one page
+- **Visual clarity**: Timeline makes status progression easy to follow
+- **Condition context**: Conditions displayed alongside relevant status changes
+- **Responsive design**: Clean, mobile-friendly layout with proper spacing
+- **Loading states**: Spinner shown while fetching transaction data
+- **Empty states**: Friendly messages when no transactions or history exists
+
+#### Multi-Tenant Security
+- ✅ Client ownership verified (`owner_user_id` check)
+- ✅ Transaction ownership verified (double-check on transactions query)
+- ✅ No cross-user data leakage possible
+
+#### Known Limitations (To Be Addressed)
+- **Cache refresh required**: If data doesn't appear updated, user needs to manually refresh page
+  - Fix: Improve TanStack Query cache invalidation (planned for next update)
+- **No stage tracking**: Timeline shows status changes but not workflow stages
+  - Future: Add stage concept for better workflow visibility
+- **No workflow gating**: Users can skip statuses freely
+  - Future: Add validation rules to enforce workflow progression
+
+**Files Modified:**
+- Backend: 3 files
+  - `backend/app/models/transaction.ts`
+  - `backend/app/controllers/clients_controller.ts`
+  - `backend/start/routes.ts`
+- Frontend: 3 files
+  - `frontend/src/api/clients.api.ts`
+  - `frontend/src/components/TransactionTimeline.tsx` (NEW)
+  - `frontend/src/pages/ClientDetailsPage.tsx`
+
+**Build Status:**
+- ✅ Backend: 0 TypeScript errors
+- ✅ Frontend: 0 TypeScript errors
+- ✅ All relations properly configured
+- ✅ Multi-tenant security enforced
+
+**How to Test:**
+1. Log in with dev credentials
+2. Create a client with transactions
+3. Change transaction status multiple times
+4. Add conditions to the transaction
+5. Navigate to Clients → Click on client name
+6. Scroll to "Transactions et Historique" section
+7. ✅ Timeline should show all status changes with timestamps
+8. ✅ Conditions should appear under each status
+9. ✅ Current status banner should show at top of each transaction
+
+---
 
 ### MVP++ Part 7: Settings Enhancement & Custom Email Signatures (December 26, 2025)
 

@@ -24,6 +24,18 @@ export const createConditionValidator = vine.compile(
       ])
       .optional(),
     priority: vine.enum(['low', 'medium', 'high']).optional(),
+    stage: vine
+      .enum([
+        'consultation',
+        'offer',
+        'accepted',
+        'conditions',
+        'notary',
+        'closing',
+        'completed',
+        'canceled',
+      ])
+      .optional(),
   })
 )
 
@@ -52,5 +64,17 @@ export const updateConditionValidator = vine.compile(
       ])
       .optional(),
     priority: vine.enum(['low', 'medium', 'high']).optional(),
+    stage: vine
+      .enum([
+        'consultation',
+        'offer',
+        'accepted',
+        'conditions',
+        'notary',
+        'closing',
+        'completed',
+        'canceled',
+      ])
+      .optional(),
   })
 )
