@@ -13,6 +13,16 @@ export type ConditionType =
   | 'repairs'
   | 'other'
 export type ConditionPriority = 'low' | 'medium' | 'high'
+export type TransactionStatus =
+  | 'consultation'
+  | 'offer'
+  | 'accepted'
+  | 'conditions'
+  | 'notary'
+  | 'closing'
+  | 'completed'
+  | 'canceled'
+export type ConditionStage = TransactionStatus
 
 export interface Condition {
   id: number
@@ -22,6 +32,7 @@ export interface Condition {
   status: ConditionStatus
   type: ConditionType
   priority: ConditionPriority
+  stage: ConditionStage
   dueDate: string
   completedAt: string | null
   createdAt: string
@@ -35,6 +46,7 @@ export interface CreateConditionRequest {
   dueDate: string
   type?: ConditionType
   priority?: ConditionPriority
+  stage?: ConditionStage
 }
 
 export interface UpdateConditionRequest {
@@ -44,6 +56,7 @@ export interface UpdateConditionRequest {
   status?: ConditionStatus
   type?: ConditionType
   priority?: ConditionPriority
+  stage?: ConditionStage
 }
 
 export const conditionsApi = {

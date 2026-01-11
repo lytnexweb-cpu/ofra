@@ -6,6 +6,7 @@ import Client from './client.js'
 import Property from './property.js'
 import Condition from './condition.js'
 import Note from './note.js'
+import TransactionStatusHistory from './transaction_status_history.js'
 
 export type TransactionStatus =
   | 'consultation'
@@ -44,6 +45,25 @@ export default class Transaction extends BaseModel {
   @column()
   declare notesText: string | null
 
+  // Offer Details fields
+  @column({ columnName: 'list_price' })
+  declare listPrice: number | null
+
+  @column({ columnName: 'offer_price' })
+  declare offerPrice: number | null
+
+  @column({ columnName: 'counter_offer_enabled' })
+  declare counterOfferEnabled: boolean
+
+  @column({ columnName: 'counter_offer_price' })
+  declare counterOfferPrice: number | null
+
+  @column.dateTime({ columnName: 'offer_expiry_at' })
+  declare offerExpiryAt: DateTime | null
+
+  @column()
+  declare commission: number | null
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 
@@ -64,4 +84,7 @@ export default class Transaction extends BaseModel {
 
   @hasMany(() => Note, { foreignKey: 'transactionId' })
   declare notes: HasMany<typeof Note>
+
+  @hasMany(() => TransactionStatusHistory, { foreignKey: 'transactionId' })
+  declare statusHistories: HasMany<typeof TransactionStatusHistory>
 }

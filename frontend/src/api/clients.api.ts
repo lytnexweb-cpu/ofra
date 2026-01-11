@@ -1,4 +1,21 @@
 import { http } from './http'
+import type { Transaction, TransactionStatus } from './transactions.api'
+import type { Condition } from './conditions.api'
+
+export interface TransactionStatusHistory {
+  id: number
+  transactionId: number
+  changedByUserId: number
+  fromStatus: TransactionStatus | null
+  toStatus: TransactionStatus
+  note: string | null
+  createdAt: string
+}
+
+export interface TransactionWithTimeline extends Transaction {
+  statusHistories: TransactionStatusHistory[]
+  conditions: Condition[]
+}
 
 export interface Client {
   id: number
@@ -59,6 +76,11 @@ export const clientsApi = {
     http.post<{ client: Client }>('/api/clients', data),
 
   get: (id: number) => http.get<{ client: Client }>(`/api/clients/${id}`),
+
+  getTransactions: (id: number) =>
+    http.get<{ transactions: TransactionWithTimeline[] }>(
+      `/api/clients/${id}/transactions`
+    ),
 
   update: (id: number, data: UpdateClientRequest) =>
     http.put<{ client: Client }>(`/api/clients/${id}`, data),
