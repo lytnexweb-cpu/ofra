@@ -53,6 +53,44 @@ export default function TransactionTimeline({ transaction }: TransactionTimeline
     })
   }
 
+  // Build complete history including initial status if missing
+  const buildCompleteHistory = () => {
+    const histories = [...transaction.statusHistories]
+
+    // Check if we have any history at all
+    if (histories.length === 0) {
+      // No history yet - synthesize initial entry based on current status
+      return [{
+        id: -1, // synthetic ID
+        transactionId: transaction.id,
+        changedByUserId: 0,
+        fromStatus: null,
+        toStatus: transaction.status,
+        note: null,
+        createdAt: transaction.createdAt,
+      }]
+    }
+
+    // Check if the earliest history entry has a fromStatus
+    const earliestHistory = histories[histories.length - 1]
+    if (earliestHistory.fromStatus) {
+      // There was an initial status before the first change - add it
+      histories.push({
+        id: -1, // synthetic ID
+        transactionId: transaction.id,
+        changedByUserId: 0,
+        fromStatus: null,
+        toStatus: earliestHistory.fromStatus,
+        note: null,
+        createdAt: transaction.createdAt,
+      })
+    }
+
+    return histories
+  }
+
+  const completeHistory = buildCompleteHistory()
+
   return (
     <div className="space-y-6">
       {/* Current Status Banner */}
@@ -112,9 +150,9 @@ export default function TransactionTimeline({ transaction }: TransactionTimeline
         <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200"></div>
 
         <div className="space-y-6">
-          {transaction.statusHistories.length > 0 ? (
-            transaction.statusHistories.map((history, index) => {
-              const isLast = index === transaction.statusHistories.length - 1
+          {completeHistory.length > 0 ? (
+            completeHistory.map((history, index) => {
+              const isLast = index === completeHistory.length - 1
 
               return (
                 <div key={history.id} className="relative pl-10">
@@ -157,7 +195,7 @@ export default function TransactionTimeline({ transaction }: TransactionTimeline
                     {(() => {
                       // Calculate time period for this history item
                       const start = history.createdAt
-                      const end = transaction.statusHistories[index + 1]?.createdAt || new Date().toISOString()
+                      const end = completeHistory[index + 1]?.createdAt || new Date().toISOString()
 
                       // A) Conditions de cette étape (stage match)
                       const stageConditions = transaction.conditions
