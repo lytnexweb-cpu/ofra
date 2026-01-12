@@ -685,255 +685,283 @@ export default function TransactionDetailPage() {
         </div>
 
         {/* Offer Details */}
-        {(transaction.listPrice ||
-          transaction.offerPrice ||
-          transaction.counterOfferEnabled ||
-          transaction.offerExpiryAt ||
-          transaction.commission ||
-          editingOfferDetails) && (
-          <div className="bg-white shadow sm:rounded-lg mb-6">
-            <div className="px-4 py-5 sm:p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-medium leading-6 text-gray-900">
-                  Offer Details
-                </h3>
-                {!editingOfferDetails && (
-                  <button
-                    onClick={handleEditOfferDetails}
-                    className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+        <div className="bg-white shadow sm:rounded-lg mb-6">
+          <div className="px-4 py-5 sm:p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-medium leading-6 text-gray-900">
+                Offer Details
+              </h3>
+              {!editingOfferDetails && (
+                <button
+                  onClick={handleEditOfferDetails}
+                  className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  <svg
+                    className="h-4 w-4 mr-1.5"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
                   >
-                    Edit
-                  </button>
-                )}
-              </div>
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
+                  </svg>
+                  {(transaction.listPrice ||
+                    transaction.offerPrice ||
+                    transaction.counterOfferEnabled ||
+                    transaction.offerExpiryAt ||
+                    transaction.commission) ? 'Edit' : 'Add Details'}
+                </button>
+              )}
+            </div>
 
-              {editingOfferDetails ? (
-                /* Edit Form */
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">
-                        List Price
-                      </label>
-                      <input
-                        type="number"
-                        value={offerDetailsForm.listPrice}
-                        onChange={(e) =>
-                          setOfferDetailsForm({
-                            ...offerDetailsForm,
-                            listPrice: e.target.value,
-                          })
-                        }
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                        placeholder="450000"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">
-                        Offer Price
-                      </label>
-                      <input
-                        type="number"
-                        value={offerDetailsForm.offerPrice}
-                        onChange={(e) =>
-                          setOfferDetailsForm({
-                            ...offerDetailsForm,
-                            offerPrice: e.target.value,
-                          })
-                        }
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                        placeholder="445000"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">
-                        Offer Expiry
-                      </label>
-                      <input
-                        type="datetime-local"
-                        value={offerDetailsForm.offerExpiryAt}
-                        onChange={(e) =>
-                          setOfferDetailsForm({
-                            ...offerDetailsForm,
-                            offerExpiryAt: e.target.value,
-                          })
-                        }
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">
-                        Commission (Internal)
-                      </label>
-                      <input
-                        type="number"
-                        value={offerDetailsForm.commission}
-                        onChange={(e) =>
-                          setOfferDetailsForm({
-                            ...offerDetailsForm,
-                            commission: e.target.value,
-                          })
-                        }
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                        placeholder="15000"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center space-x-2">
+            {editingOfferDetails ? (
+              /* Edit Form */
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      List Price
+                    </label>
                     <input
-                      type="checkbox"
-                      id="counterOfferEnabled"
-                      checked={offerDetailsForm.counterOfferEnabled}
+                      type="number"
+                      value={offerDetailsForm.listPrice}
                       onChange={(e) =>
                         setOfferDetailsForm({
                           ...offerDetailsForm,
-                          counterOfferEnabled: e.target.checked,
+                          listPrice: e.target.value,
                         })
                       }
-                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                      placeholder="450000"
                     />
-                    <label
-                      htmlFor="counterOfferEnabled"
-                      className="text-sm font-medium text-gray-700"
-                    >
-                      Counter Offer Enabled
-                    </label>
                   </div>
 
-                  {offerDetailsForm.counterOfferEnabled && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">
-                        Counter Offer Price
-                      </label>
-                      <input
-                        type="number"
-                        value={offerDetailsForm.counterOfferPrice}
-                        onChange={(e) =>
-                          setOfferDetailsForm({
-                            ...offerDetailsForm,
-                            counterOfferPrice: e.target.value,
-                          })
-                        }
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                        placeholder="447500"
-                      />
-                    </div>
-                  )}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Offer Price
+                    </label>
+                    <input
+                      type="number"
+                      value={offerDetailsForm.offerPrice}
+                      onChange={(e) =>
+                        setOfferDetailsForm({
+                          ...offerDetailsForm,
+                          offerPrice: e.target.value,
+                        })
+                      }
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                      placeholder="445000"
+                    />
+                  </div>
 
-                  <div className="flex justify-end space-x-3 pt-4">
-                    <button
-                      type="button"
-                      onClick={handleCancelOfferDetails}
-                      className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleSaveOfferDetails}
-                      className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
-                    >
-                      Save
-                    </button>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Offer Expiry
+                    </label>
+                    <input
+                      type="datetime-local"
+                      value={offerDetailsForm.offerExpiryAt}
+                      onChange={(e) =>
+                        setOfferDetailsForm({
+                          ...offerDetailsForm,
+                          offerExpiryAt: e.target.value,
+                        })
+                      }
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Commission (Internal)
+                    </label>
+                    <input
+                      type="number"
+                      value={offerDetailsForm.commission}
+                      onChange={(e) =>
+                        setOfferDetailsForm({
+                          ...offerDetailsForm,
+                          commission: e.target.value,
+                        })
+                      }
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                      placeholder="15000"
+                    />
                   </div>
                 </div>
-              ) : (
-                /* Read-only Display */
-                <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
-                  {transaction.listPrice && (
-                    <div>
-                      <dt className="text-sm font-medium text-gray-500">
-                        List Price
-                      </dt>
-                      <dd className="mt-1 text-sm text-gray-900">
-                        $
-                        {transaction.listPrice.toLocaleString('en-US', {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
-                      </dd>
-                    </div>
-                  )}
-                  {transaction.offerPrice && (
-                    <div>
-                      <dt className="text-sm font-medium text-gray-500">
-                        Offer Price
-                      </dt>
-                      <dd className="mt-1 text-sm text-gray-900">
-                        $
-                        {transaction.offerPrice.toLocaleString('en-US', {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
-                      </dd>
-                    </div>
-                  )}
-                  {transaction.offerExpiryAt && (
-                    <div>
-                      <dt className="text-sm font-medium text-gray-500">
-                        Offer Expiry
-                      </dt>
-                      <dd className="mt-1 text-sm text-gray-900">
-                        {new Date(transaction.offerExpiryAt).toLocaleString(
-                          'en-US',
-                          {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          }
-                        )}
-                      </dd>
-                    </div>
-                  )}
-                  {transaction.counterOfferEnabled && (
-                    <div>
-                      <dt className="text-sm font-medium text-gray-500">
-                        Counter Offer
-                      </dt>
-                      <dd className="mt-1 text-sm text-gray-900">
-                        {transaction.counterOfferPrice ? (
-                          <span>
-                            $
-                            {transaction.counterOfferPrice.toLocaleString(
-                              'en-US',
-                              {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2,
-                              }
-                            )}
-                          </span>
-                        ) : (
-                          <span className="text-gray-500 italic">Pending</span>
-                        )}
-                      </dd>
-                    </div>
-                  )}
-                  {transaction.commission && (
-                    <div>
-                      <dt className="text-sm font-medium text-gray-400">
-                        Commission{' '}
-                        <span className="text-xs font-normal">(Internal)</span>
-                      </dt>
-                      <dd className="mt-1 text-sm text-gray-600">
-                        $
-                        {transaction.commission.toLocaleString('en-US', {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
-                      </dd>
-                    </div>
-                  )}
-                </dl>
-              )}
-            </div>
+
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="counterOfferEnabled"
+                    checked={offerDetailsForm.counterOfferEnabled}
+                    onChange={(e) =>
+                      setOfferDetailsForm({
+                        ...offerDetailsForm,
+                        counterOfferEnabled: e.target.checked,
+                      })
+                    }
+                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <label
+                    htmlFor="counterOfferEnabled"
+                    className="text-sm font-medium text-gray-700"
+                  >
+                    Counter Offer Enabled
+                  </label>
+                </div>
+
+                {offerDetailsForm.counterOfferEnabled && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Counter Offer Price
+                    </label>
+                    <input
+                      type="number"
+                      value={offerDetailsForm.counterOfferPrice}
+                      onChange={(e) =>
+                        setOfferDetailsForm({
+                          ...offerDetailsForm,
+                          counterOfferPrice: e.target.value,
+                        })
+                      }
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                      placeholder="447500"
+                    />
+                  </div>
+                )}
+
+                <div className="flex justify-end space-x-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={handleCancelOfferDetails}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSaveOfferDetails}
+                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                  >
+                    Save
+                  </button>
+                </div>
+              </div>
+            ) : (
+              /* Read-only Display */
+              <>
+                {!transaction.listPrice &&
+                  !transaction.offerPrice &&
+                  !transaction.counterOfferEnabled &&
+                  !transaction.offerExpiryAt &&
+                  !transaction.commission ? (
+                  <div className="text-center py-8">
+                    <p className="text-sm text-gray-500 mb-3">
+                      No offer details yet.
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      Click "Add Details" above to add offer information.
+                    </p>
+                  </div>
+                ) : (
+                  <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+                    {transaction.listPrice && (
+                      <div>
+                        <dt className="text-sm font-medium text-gray-500">
+                          List Price
+                        </dt>
+                        <dd className="mt-1 text-sm text-gray-900">
+                          $
+                          {transaction.listPrice.toLocaleString('en-US', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
+                        </dd>
+                      </div>
+                    )}
+                    {transaction.offerPrice && (
+                      <div>
+                        <dt className="text-sm font-medium text-gray-500">
+                          Offer Price
+                        </dt>
+                        <dd className="mt-1 text-sm text-gray-900">
+                          $
+                          {transaction.offerPrice.toLocaleString('en-US', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
+                        </dd>
+                      </div>
+                    )}
+                    {transaction.offerExpiryAt && (
+                      <div>
+                        <dt className="text-sm font-medium text-gray-500">
+                          Offer Expiry
+                        </dt>
+                        <dd className="mt-1 text-sm text-gray-900">
+                          {new Date(transaction.offerExpiryAt).toLocaleString(
+                            'en-US',
+                            {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            }
+                          )}
+                        </dd>
+                      </div>
+                    )}
+                    {transaction.counterOfferEnabled && (
+                      <div>
+                        <dt className="text-sm font-medium text-gray-500">
+                          Counter Offer
+                        </dt>
+                        <dd className="mt-1 text-sm text-gray-900">
+                          {transaction.counterOfferPrice ? (
+                            <span>
+                              $
+                              {transaction.counterOfferPrice.toLocaleString(
+                                'en-US',
+                                {
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2,
+                                }
+                              )}
+                            </span>
+                          ) : (
+                            <span className="text-gray-500 italic">Pending</span>
+                          )}
+                        </dd>
+                      </div>
+                    )}
+                    {transaction.commission && (
+                      <div>
+                        <dt className="text-sm font-medium text-gray-400">
+                          Commission{' '}
+                          <span className="text-xs font-normal">(Internal)</span>
+                        </dt>
+                        <dd className="mt-1 text-sm text-gray-600">
+                          $
+                          {transaction.commission.toLocaleString('en-US', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
+                        </dd>
+                      </div>
+                    )}
+                  </dl>
+                )}
+              </>
+            )}
           </div>
-        )}
+        </div>
 
         {/* Conditions Summary */}
         {(() => {
