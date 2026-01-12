@@ -11,6 +11,22 @@ export default function ClientDetailsPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [deleteConfirm, setDeleteConfirm] = useState(false)
+  const [editingClient, setEditingClient] = useState(false)
+  const [editForm, setEditForm] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    cellPhone: '',
+    homePhone: '',
+    workPhone: '',
+    addressLine1: '',
+    addressLine2: '',
+    city: '',
+    provinceState: '',
+    postalCode: '',
+    notes: '',
+  })
 
   const { data: clientData, isLoading: isLoadingClient } = useQuery({
     queryKey: ['client', clientId],
@@ -35,12 +51,68 @@ export default function ClientDetailsPage() {
     },
   })
 
+  const updateClientMutation = useMutation({
+    mutationFn: (data: any) => clientsApi.update(clientId, data),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['client', clientId] }),
+        queryClient.invalidateQueries({ queryKey: ['clients'] }),
+        queryClient.invalidateQueries({ queryKey: ['client-transactions', clientId] }),
+      ])
+      setEditingClient(false)
+    },
+  })
+
   const handleDeleteClient = () => {
     setDeleteConfirm(true)
   }
 
   const confirmDeleteClient = () => {
     deleteClientMutation.mutate(clientId)
+  }
+
+  const handleEditClient = () => {
+    if (!client) return
+    setEditForm({
+      firstName: client.firstName || '',
+      lastName: client.lastName || '',
+      email: client.email || '',
+      phone: client.phone || '',
+      cellPhone: client.cellPhone || '',
+      homePhone: client.homePhone || '',
+      workPhone: client.workPhone || '',
+      addressLine1: client.addressLine1 || '',
+      addressLine2: client.addressLine2 || '',
+      city: client.city || '',
+      provinceState: client.provinceState || '',
+      postalCode: client.postalCode || '',
+      notes: client.notes || '',
+    })
+    setEditingClient(true)
+  }
+
+  const handleSaveClient = () => {
+    const payload: any = {}
+
+    if (editForm.firstName.trim()) payload.firstName = editForm.firstName.trim()
+    if (editForm.lastName.trim()) payload.lastName = editForm.lastName.trim()
+    if (editForm.email?.trim()) payload.email = editForm.email.trim()
+    if (editForm.phone?.trim()) payload.phone = editForm.phone.trim()
+    if (editForm.cellPhone?.trim()) payload.cellPhone = editForm.cellPhone.trim()
+    if (editForm.homePhone?.trim()) payload.homePhone = editForm.homePhone.trim()
+    if (editForm.workPhone?.trim()) payload.workPhone = editForm.workPhone.trim()
+    if (editForm.addressLine1?.trim()) payload.addressLine1 = editForm.addressLine1.trim()
+    if (editForm.addressLine2?.trim()) payload.addressLine2 = editForm.addressLine2.trim()
+    if (editForm.city?.trim()) payload.city = editForm.city.trim()
+    if (editForm.provinceState?.trim()) payload.provinceState = editForm.provinceState.trim()
+    if (editForm.postalCode?.trim()) payload.postalCode = editForm.postalCode.trim()
+    if (editForm.notes?.trim()) payload.notes = editForm.notes.trim()
+
+    updateClientMutation.mutate(payload)
+  }
+
+  const handleCancelEditClient = () => {
+    setEditingClient(false)
   }
 
   const client = clientData?.data?.client
@@ -120,10 +192,230 @@ export default function ClientDetailsPage() {
         {/* Client Details */}
         <div className="bg-white shadow sm:rounded-lg mb-6">
           <div className="px-4 py-5 sm:p-6">
-            <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">
-              Contact Information
-            </h3>
-            <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-medium leading-6 text-gray-900">
+                Contact Information
+              </h3>
+              {!editingClient && (
+                <button
+                  onClick={handleEditClient}
+                  className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  <svg
+                    className="h-4 w-4 mr-1.5"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
+                  </svg>
+                  Edit
+                </button>
+              )}
+            </div>
+
+            {editingClient ? (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div>
+                    <label htmlFor="edit-firstName" className="block text-sm font-medium text-gray-700">
+                      First Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="edit-firstName"
+                      required
+                      value={editForm.firstName}
+                      onChange={(e) => setEditForm({ ...editForm, firstName: e.target.value })}
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="edit-lastName" className="block text-sm font-medium text-gray-700">
+                      Last Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="edit-lastName"
+                      required
+                      value={editForm.lastName}
+                      onChange={(e) => setEditForm({ ...editForm, lastName: e.target.value })}
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div>
+                    <label htmlFor="edit-email" className="block text-sm font-medium text-gray-700">
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      id="edit-email"
+                      value={editForm.email}
+                      onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="edit-phone" className="block text-sm font-medium text-gray-700">
+                      Phone
+                    </label>
+                    <input
+                      type="tel"
+                      id="edit-phone"
+                      value={editForm.phone}
+                      onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                  <div>
+                    <label htmlFor="edit-cellPhone" className="block text-sm font-medium text-gray-700">
+                      Cell Phone
+                    </label>
+                    <input
+                      type="tel"
+                      id="edit-cellPhone"
+                      value={editForm.cellPhone}
+                      onChange={(e) => setEditForm({ ...editForm, cellPhone: e.target.value })}
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="edit-homePhone" className="block text-sm font-medium text-gray-700">
+                      Home Phone
+                    </label>
+                    <input
+                      type="tel"
+                      id="edit-homePhone"
+                      value={editForm.homePhone}
+                      onChange={(e) => setEditForm({ ...editForm, homePhone: e.target.value })}
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="edit-workPhone" className="block text-sm font-medium text-gray-700">
+                      Work Phone
+                    </label>
+                    <input
+                      type="tel"
+                      id="edit-workPhone"
+                      value={editForm.workPhone}
+                      onChange={(e) => setEditForm({ ...editForm, workPhone: e.target.value })}
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label htmlFor="edit-addressLine1" className="block text-sm font-medium text-gray-700">
+                    Address Line 1
+                  </label>
+                  <input
+                    type="text"
+                    id="edit-addressLine1"
+                    value={editForm.addressLine1}
+                    onChange={(e) => setEditForm({ ...editForm, addressLine1: e.target.value })}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="edit-addressLine2" className="block text-sm font-medium text-gray-700">
+                    Address Line 2
+                  </label>
+                  <input
+                    type="text"
+                    id="edit-addressLine2"
+                    value={editForm.addressLine2}
+                    onChange={(e) => setEditForm({ ...editForm, addressLine2: e.target.value })}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                  <div>
+                    <label htmlFor="edit-city" className="block text-sm font-medium text-gray-700">
+                      City
+                    </label>
+                    <input
+                      type="text"
+                      id="edit-city"
+                      value={editForm.city}
+                      onChange={(e) => setEditForm({ ...editForm, city: e.target.value })}
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="edit-provinceState" className="block text-sm font-medium text-gray-700">
+                      Province/State
+                    </label>
+                    <input
+                      type="text"
+                      id="edit-provinceState"
+                      value={editForm.provinceState}
+                      onChange={(e) => setEditForm({ ...editForm, provinceState: e.target.value })}
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="edit-postalCode" className="block text-sm font-medium text-gray-700">
+                      Postal Code
+                    </label>
+                    <input
+                      type="text"
+                      id="edit-postalCode"
+                      value={editForm.postalCode}
+                      onChange={(e) => setEditForm({ ...editForm, postalCode: e.target.value })}
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label htmlFor="edit-notes" className="block text-sm font-medium text-gray-700">
+                    Notes
+                  </label>
+                  <textarea
+                    id="edit-notes"
+                    rows={3}
+                    value={editForm.notes}
+                    onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  />
+                </div>
+
+                <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+                  <button
+                    type="button"
+                    onClick={handleCancelEditClient}
+                    disabled={updateClientMutation.isPending}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSaveClient}
+                    disabled={updateClientMutation.isPending}
+                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                  >
+                    {updateClientMutation.isPending ? 'Saving...' : 'Save Changes'}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
               {client.email && (
                 <div>
                   <dt className="text-sm font-medium text-gray-500">Email</dt>
@@ -212,6 +504,7 @@ export default function ClientDetailsPage() {
                 </div>
               )}
             </dl>
+            )}
           </div>
         </div>
 
