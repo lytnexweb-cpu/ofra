@@ -6,7 +6,7 @@ import { profileApi, type UpdateProfileInfoRequest } from '../api/profile.api'
 import ChangePasswordForm from '../components/ChangePasswordForm'
 import ChangeEmailForm from '../components/ChangeEmailForm'
 
-type TabType = 'password' | 'email' | 'profile' | 'signature' | 'display'
+type TabType = 'password' | 'email' | 'profile' | 'signature'
 
 export default function SettingsPage() {
   const navigate = useNavigate()
@@ -28,18 +28,13 @@ export default function SettingsPage() {
     phone: user?.phone || '',
     agency: user?.agency || '',
     licenseNumber: user?.licenseNumber || '',
+    dateFormat: (user?.dateFormat as 'DD/MM/YYYY' | 'MM/DD/YYYY') || 'DD/MM/YYYY',
+    timezone: user?.timezone || 'America/Toronto',
   })
 
   // Signature form state
   const [signatureForm, setSignatureForm] = useState({
     emailSignature: user?.emailSignature || '',
-  })
-
-  // Display form state
-  const [displayForm, setDisplayForm] = useState({
-    language: (user?.language as 'fr' | 'en') || 'fr',
-    dateFormat: (user?.dateFormat as 'DD/MM/YYYY' | 'MM/DD/YYYY') || 'DD/MM/YYYY',
-    timezone: user?.timezone || 'America/Toronto',
   })
 
   const [successMessage, setSuccessMessage] = useState('')
@@ -88,6 +83,8 @@ export default function SettingsPage() {
       phone: profileForm.phone || undefined,
       agency: profileForm.agency || undefined,
       licenseNumber: profileForm.licenseNumber || undefined,
+      dateFormat: profileForm.dateFormat,
+      timezone: profileForm.timezone,
     }
     updateProfileMutation.mutate(data)
   }
@@ -100,16 +97,6 @@ export default function SettingsPage() {
     updateProfileMutation.mutate(data)
   }
 
-  const handleDisplaySubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    const data: UpdateProfileInfoRequest = {
-      language: displayForm.language,
-      dateFormat: displayForm.dateFormat,
-      timezone: displayForm.timezone,
-    }
-    updateProfileMutation.mutate(data)
-  }
-
   // Update form state when user data loads
   useState(() => {
     if (user) {
@@ -118,14 +105,11 @@ export default function SettingsPage() {
         phone: user.phone || '',
         agency: user.agency || '',
         licenseNumber: user.licenseNumber || '',
+        dateFormat: (user.dateFormat as 'DD/MM/YYYY' | 'MM/DD/YYYY') || 'DD/MM/YYYY',
+        timezone: user.timezone || 'America/Toronto',
       })
       setSignatureForm({
         emailSignature: user.emailSignature || '',
-      })
-      setDisplayForm({
-        language: (user.language as 'fr' | 'en') || 'fr',
-        dateFormat: (user.dateFormat as 'DD/MM/YYYY' | 'MM/DD/YYYY') || 'DD/MM/YYYY',
-        timezone: user.timezone || 'America/Toronto',
       })
     }
   })
@@ -180,16 +164,6 @@ export default function SettingsPage() {
             }`}
           >
             ✍️ Email Signature
-          </button>
-          <button
-            onClick={() => setActiveTab('display')}
-            className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
-              activeTab === 'display'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            🎨 Display
           </button>
         </nav>
       </div>
@@ -284,6 +258,53 @@ export default function SettingsPage() {
                 />
               </div>
 
+              <div className="pt-4 border-t border-gray-200">
+                <h3 className="text-base font-medium text-gray-900 mb-4">
+                  Regional Settings
+                </h3>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Date Format
+                    </label>
+                    <select
+                      value={profileForm.dateFormat}
+                      onChange={(e) =>
+                        setProfileForm({
+                          ...profileForm,
+                          dateFormat: e.target.value as 'DD/MM/YYYY' | 'MM/DD/YYYY',
+                        })
+                      }
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    >
+                      <option value="DD/MM/YYYY">DD/MM/YYYY (25/12/2025)</option>
+                      <option value="MM/DD/YYYY">MM/DD/YYYY (12/25/2025)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Timezone
+                    </label>
+                    <select
+                      value={profileForm.timezone}
+                      onChange={(e) =>
+                        setProfileForm({ ...profileForm, timezone: e.target.value })
+                      }
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    >
+                      <option value="America/Toronto">America/Toronto (EST/EDT)</option>
+                      <option value="America/Montreal">America/Montreal (EST/EDT)</option>
+                      <option value="America/Vancouver">America/Vancouver (PST/PDT)</option>
+                      <option value="America/Edmonton">America/Edmonton (MST/MDT)</option>
+                      <option value="America/Winnipeg">America/Winnipeg (CST/CDT)</option>
+                      <option value="America/Halifax">America/Halifax (AST/ADT)</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
               <button
                 type="submit"
                 disabled={updateProfileMutation.isPending}
@@ -341,88 +362,6 @@ export default function SettingsPage() {
                 className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {updateProfileMutation.isPending ? 'Updating...' : 'Update Signature'}
-              </button>
-            </form>
-          </div>
-        )}
-
-        {activeTab === 'display' && (
-          <div className="bg-white shadow rounded-lg p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              Display Preferences
-            </h2>
-
-            {successMessage && (
-              <div className="mb-4 rounded-md bg-green-50 border border-green-200 p-4">
-                <p className="text-sm text-green-800">{successMessage}</p>
-              </div>
-            )}
-
-            {errorMessage && (
-              <div className="mb-4 rounded-md bg-red-50 border border-red-200 p-4">
-                <p className="text-sm text-red-800">{errorMessage}</p>
-              </div>
-            )}
-
-            <form onSubmit={handleDisplaySubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Language</label>
-                <select
-                  value={displayForm.language}
-                  onChange={(e) =>
-                    setDisplayForm({
-                      ...displayForm,
-                      language: e.target.value as 'fr' | 'en',
-                    })
-                  }
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                >
-                  <option value="fr">Français</option>
-                  <option value="en">English</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Date Format</label>
-                <select
-                  value={displayForm.dateFormat}
-                  onChange={(e) =>
-                    setDisplayForm({
-                      ...displayForm,
-                      dateFormat: e.target.value as 'DD/MM/YYYY' | 'MM/DD/YYYY',
-                    })
-                  }
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                >
-                  <option value="DD/MM/YYYY">DD/MM/YYYY (25/12/2025)</option>
-                  <option value="MM/DD/YYYY">MM/DD/YYYY (12/25/2025)</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Timezone</label>
-                <select
-                  value={displayForm.timezone}
-                  onChange={(e) =>
-                    setDisplayForm({ ...displayForm, timezone: e.target.value })
-                  }
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                >
-                  <option value="America/Toronto">America/Toronto (EST/EDT)</option>
-                  <option value="America/Montreal">America/Montreal (EST/EDT)</option>
-                  <option value="America/Vancouver">America/Vancouver (PST/PDT)</option>
-                  <option value="America/Edmonton">America/Edmonton (MST/MDT)</option>
-                  <option value="America/Winnipeg">America/Winnipeg (CST/CDT)</option>
-                  <option value="America/Halifax">America/Halifax (AST/ADT)</option>
-                </select>
-              </div>
-
-              <button
-                type="submit"
-                disabled={updateProfileMutation.isPending}
-                className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {updateProfileMutation.isPending ? 'Updating...' : 'Update Preferences'}
               </button>
             </form>
           </div>

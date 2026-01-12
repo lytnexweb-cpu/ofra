@@ -18,7 +18,6 @@ export interface UpdateProfileInfoRequest {
   licenseNumber?: string
   profilePhoto?: string
   emailSignature?: string
-  language?: 'fr' | 'en'
   dateFormat?: 'DD/MM/YYYY' | 'MM/DD/YYYY'
   timezone?: string
 }
