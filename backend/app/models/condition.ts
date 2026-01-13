@@ -43,6 +43,9 @@ export default class Condition extends BaseModel {
   @column()
   declare stage: ConditionStage
 
+  @column({ columnName: 'is_blocking' })
+  declare isBlocking: boolean
+
   @column.date()
   declare dueDate: DateTime | null
 
