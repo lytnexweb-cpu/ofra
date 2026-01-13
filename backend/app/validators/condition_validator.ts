@@ -36,6 +36,7 @@ export const createConditionValidator = vine.compile(
         'canceled',
       ])
       .optional(),
+    isBlocking: vine.boolean().optional(),
   })
 )
 
@@ -76,5 +77,6 @@ export const updateConditionValidator = vine.compile(
         'canceled',
       ])
       .optional(),
+    isBlocking: vine.boolean().optional(),
   })
 )
