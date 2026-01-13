@@ -8,6 +8,7 @@ import {
   updateStatusValidator,
 } from '#validators/transaction_validator'
 import { TransactionAutomationService } from '#services/transaction_automation_service'
+import env from '#start/env'
 
 export default class TransactionsController {
   async index({ request, response, auth }: HttpContext) {
@@ -212,6 +213,35 @@ export default class TransactionsController {
 
       const payload = await request.validateUsing(updateStatusValidator)
       const oldStatus = transaction.status
+
+      // Enforce blocking conditions if feature flag is enabled
+      if (env.get('ENFORCE_BLOCKING_CONDITIONS') === true) {
+        // Load blocking conditions for the current status
+        await transaction.load('conditions', (query) => {
+          query
+            .where('stage', oldStatus)
+            .where('is_blocking', true)
+            .where('status', 'pending')
+        })
+
+        const blockingConditions = transaction.conditions
+
+        if (blockingConditions.length > 0) {
+          const conditionTitles = blockingConditions.map((c) => c.title).join(', ')
+          return response.badRequest({
+            success: false,
+            error: {
+              message: `Cannot change status: ${blockingConditions.length} blocking condition(s) must be completed first: ${conditionTitles}`,
+              code: 'E_BLOCKING_CONDITIONS',
+              blockingConditions: blockingConditions.map((c) => ({
+                id: c.id,
+                title: c.title,
+                dueDate: c.dueDate,
+              })),
+            },
+          })
+        }
+      }
 
       transaction.status = payload.status
       await transaction.save()
