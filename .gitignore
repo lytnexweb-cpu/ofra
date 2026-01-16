@@ -70,3 +70,17 @@ coverage/
 # Windows null device file
 nul
 */nul
+
+# Local reports / scripts (debug artifacts)
+*_REPORT.md
+PROJECT_STATUS_*.md
+
+check_db_state.sh
+
+test_*.ps1
+test_*.js
+test_*.sql
+
+validate_*.sql
+validate_*.js
+verify_*.sql
