@@ -228,6 +228,10 @@ export default class TransactionsController {
 
         if (blockingConditions.length > 0) {
           const conditionTitles = blockingConditions.map((c) => c.title).join(', ')
+
+          // Log blocked status change attempt
+          console.log(`[BLOCKING] Transaction ${transaction.id}: Status change ${oldStatus} -> ${payload.status} BLOCKED by ${blockingConditions.length} condition(s): ${conditionTitles}`)
+
           return response.badRequest({
             success: false,
             error: {
@@ -254,8 +258,11 @@ export default class TransactionsController {
         note: payload.note,
       })
 
-      // Envoi automatique d'email au client si applicable
-      // (l'envoi d'email ne doit pas bloquer la réponse)
+      // Log successful status change
+      console.log(`[STATUS_CHANGE] Transaction ${transaction.id}: ${oldStatus} -> ${payload.status} by user ${auth.user!.id}`)
+
+      // Automatic email sending to client if applicable
+      // (email sending should not block the response)
       try {
         await TransactionAutomationService.handleStatusChange(
           transaction,
@@ -263,8 +270,8 @@ export default class TransactionsController {
           payload.status
         )
       } catch (emailError) {
-        // Log l'erreur mais ne fait pas échouer la requête
-        console.error('[TransactionController] Erreur envoi email automation:', emailError)
+        // Log the error but don't fail the request
+        console.error('[TransactionController] Email automation sending error:', emailError)
       }
 
       return response.ok({

@@ -26,6 +26,7 @@ export default function CreateConditionModal({
     type: 'financing',
     priority: 'medium',
     stage: undefined, // Will be auto-set by backend to current transaction status
+    isBlocking: true, // Default to blocking
   })
   const [error, setError] = useState<ParsedError | null>(null)
   const queryClient = useQueryClient()
@@ -68,6 +69,7 @@ export default function CreateConditionModal({
       type: 'financing',
       priority: 'medium',
       stage: undefined,
+      isBlocking: true,
     })
     setError(null)
   }
@@ -92,6 +94,7 @@ export default function CreateConditionModal({
       type: formData.type,
       priority: formData.priority,
       stage: formData.stage,
+      isBlocking: formData.isBlocking,
     })
   }
 
@@ -139,7 +142,7 @@ export default function CreateConditionModal({
                       onClick={() => navigate('/login')}
                       className="mt-2 text-sm font-medium text-red-800 underline hover:text-red-900"
                     >
-                      Aller à la page de connexion →
+                      Go to login page →
                     </button>
                   )}
                 </div>
@@ -271,6 +274,28 @@ export default function CreateConditionModal({
                   <p className="mt-1 text-xs text-gray-500">
                     Leave "Auto" to use current transaction status
                   </p>
+                </div>
+
+                <div className="flex items-start">
+                  <div className="flex items-center h-5">
+                    <input
+                      id="isBlocking"
+                      type="checkbox"
+                      checked={formData.isBlocking}
+                      onChange={(e) =>
+                        setFormData({ ...formData, isBlocking: e.target.checked })
+                      }
+                      className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                  </div>
+                  <div className="ml-3">
+                    <label htmlFor="isBlocking" className="font-medium text-gray-700 text-sm">
+                      Blocking condition
+                    </label>
+                    <p className="text-xs text-gray-500">
+                      Prevents status change until this condition is completed
+                    </p>
+                  </div>
                 </div>
 
                 <div>

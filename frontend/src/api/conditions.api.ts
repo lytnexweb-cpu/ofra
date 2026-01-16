@@ -33,6 +33,7 @@ export interface Condition {
   type: ConditionType
   priority: ConditionPriority
   stage: ConditionStage
+  isBlocking: boolean
   dueDate: string
   completedAt: string | null
   createdAt: string
@@ -47,6 +48,7 @@ export interface CreateConditionRequest {
   type?: ConditionType
   priority?: ConditionPriority
   stage?: ConditionStage
+  isBlocking?: boolean
 }
 
 export interface UpdateConditionRequest {
@@ -57,6 +59,7 @@ export interface UpdateConditionRequest {
   type?: ConditionType
   priority?: ConditionPriority
   stage?: ConditionStage
+  isBlocking?: boolean
 }
 
 export const conditionsApi = {

@@ -160,7 +160,7 @@ export default function CreateClientModal({ isOpen, onClose }: CreateClientModal
                       onClick={() => navigate('/login')}
                       className="mt-2 text-sm font-medium text-red-800 underline hover:text-red-900"
                     >
-                      Aller à la page de connexion →
+                      Go to login page →
                     </button>
                   )}
                 </div>
