@@ -70,6 +70,7 @@ export default function TransactionDetailPage() {
     type?: ConditionType
     priority?: ConditionPriority
     stage?: ConditionStage
+    isBlocking?: boolean
   }>({
     title: '',
     dueDate: '',
@@ -77,6 +78,7 @@ export default function TransactionDetailPage() {
     type: 'financing',
     priority: 'medium',
     stage: undefined,
+    isBlocking: true,
   })
 
   // Confirmation dialogs state
@@ -95,7 +97,12 @@ export default function TransactionDetailPage() {
     newStatus: TransactionStatus | null
   }>({ isOpen: false, newStatus: null })
 
+  const [statusChangeError, setStatusChangeError] = useState<string | null>(null)
+
   const [deleteTransactionConfirm, setDeleteTransactionConfirm] = useState(false)
+
+  // Show/hide completed conditions
+  const [showCompletedConditions, setShowCompletedConditions] = useState(false)
 
   // Offer Details editing state
   const [editingOfferDetails, setEditingOfferDetails] = useState(false)
@@ -133,7 +140,28 @@ export default function TransactionDetailPage() {
       status: TransactionStatus
       note?: string
     }) => transactionsApi.updateStatus(transactionId, status, note),
-    onSuccess: async () => {
+    onSuccess: async (response) => {
+      // Check if response indicates an error (400 errors come through onSuccess)
+      if (!response.success && response.error) {
+        // Check for blocking conditions error
+        if (response.error.code === 'E_BLOCKING_CONDITIONS') {
+          const blockingConditions = (response.error as any).blockingConditions || []
+          const conditionTitles = blockingConditions.length > 0
+            ? blockingConditions.map((c: any) => c.title || 'Untitled').join(', ')
+            : 'Unknown conditions'
+          setStatusChangeError(
+            `Cannot change status: ${blockingConditions.length} blocking condition(s) must be completed first: ${conditionTitles}`
+          )
+        } else {
+          // Generic error
+          setStatusChangeError(
+            response.error.message || 'Failed to change status. Please try again.'
+          )
+        }
+        return // Don't close dialog or invalidate queries
+      }
+
+      // Success - proceed normally
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: transactionKey }),
         queryClient.invalidateQueries({ queryKey: ['transactions'] }),
@@ -144,16 +172,32 @@ export default function TransactionDetailPage() {
           }),
       ])
       setStatusChangeConfirm({ isOpen: false, newStatus: null })
+      setStatusChangeError(null)
+    },
+    onError: (error: any) => {
+      // Handle network errors, 500 errors, or other exceptions
+      if (error?.response?.data?.error?.code === 'E_BLOCKING_CONDITIONS') {
+        const errorData = error.response.data.error
+        const blockingConditions = errorData.blockingConditions || []
+        const conditionTitles = blockingConditions.length > 0
+          ? blockingConditions.map((c: any) => c.title || 'Untitled').join(', ')
+          : 'Unknown conditions'
+        setStatusChangeError(
+          `Cannot change status: ${blockingConditions.length} blocking condition(s) must be completed first: ${conditionTitles}`
+        )
+      } else {
+        // Generic error
+        setStatusChangeError(
+          error?.response?.data?.error?.message || 'Failed to change status. Please try again.'
+        )
+      }
     },
   })
 
   const toggleConditionMutation = useMutation({
-    mutationFn: ({ id, status }: { id: number; status: 'pending' | 'completed' }) => {
-      console.log('TOGGLE MUTATION CALLED with:', { id, status })
-      return conditionsApi.update(id, { status })
-    },
-    onSuccess: async (response) => {
-      console.log('TOGGLE SUCCESS:', response)
+    mutationFn: ({ id, status }: { id: number; status: 'pending' | 'completed' }) =>
+      conditionsApi.update(id, { status }),
+    onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: transactionKey }),
         queryClient.invalidateQueries({ queryKey: ['dashboard'] }),
@@ -162,9 +206,6 @@ export default function TransactionDetailPage() {
             queryKey: ['client-transactions', transaction.clientId],
           }),
       ])
-    },
-    onError: (error) => {
-      console.error('TOGGLE ERROR:', error)
     },
   })
 
@@ -190,12 +231,8 @@ export default function TransactionDetailPage() {
   })
 
   const deleteConditionMutation = useMutation({
-    mutationFn: (conditionId: number) => {
-      console.log('DELETE MUTATION CALLED with ID:', conditionId)
-      return conditionsApi.delete(conditionId)
-    },
-    onSuccess: async (response) => {
-      console.log('DELETE SUCCESS:', response)
+    mutationFn: (conditionId: number) => conditionsApi.delete(conditionId),
+    onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: transactionKey }),
         queryClient.invalidateQueries({ queryKey: ['dashboard'] }),
@@ -265,29 +302,55 @@ export default function TransactionDetailPage() {
   // Handlers
   const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newStatus = e.target.value as TransactionStatus
+
+    // Check for blocking conditions before opening the dialog
+    if (transaction?.conditions) {
+      const blockingConditions = transaction.conditions.filter(
+        (condition) =>
+          condition.status === 'pending' &&
+          condition.isBlocking === true &&
+          condition.stage === transaction.status // Current status, not new status
+      )
+
+      if (blockingConditions.length > 0) {
+        // Set error and open dialog directly with error message
+        const conditionTitles = blockingConditions.map((c) => c.title).join(', ')
+        setStatusChangeError(
+          `Cannot change status: ${blockingConditions.length} blocking condition(s) must be completed first: ${conditionTitles}`
+        )
+        setStatusChangeConfirm({ isOpen: true, newStatus })
+        return
+      }
+    }
+
+    // No blocking conditions, open normal confirmation dialog
     setStatusChangeConfirm({ isOpen: true, newStatus })
   }
 
   const confirmStatusChange = () => {
+    // If there's an error, just close the dialog
+    if (statusChangeError) {
+      setStatusChangeConfirm({ isOpen: false, newStatus: null })
+      setStatusChangeError(null)
+      return
+    }
+
+    // Otherwise, proceed with status change
     if (statusChangeConfirm.newStatus) {
       updateStatusMutation.mutate({ status: statusChangeConfirm.newStatus })
     }
   }
 
   const handleToggleCondition = (condition: Condition) => {
-    console.log('TOGGLE CLICKED:', condition.id, 'current status:', condition.status)
     const newStatus = condition.status === 'completed' ? 'pending' : 'completed'
-    console.log('New status will be:', newStatus)
     toggleConditionMutation.mutate({ id: condition.id, status: newStatus })
   }
 
   const handleDeleteCondition = (conditionId: number) => {
-    console.log('DELETE CLICKED:', conditionId)
     setDeleteConditionConfirm({ isOpen: true, conditionId })
   }
 
   const confirmDeleteCondition = () => {
-    console.log('DELETE CONFIRMED:', deleteConditionConfirm.conditionId)
     if (deleteConditionConfirm.conditionId) {
       deleteConditionMutation.mutate(deleteConditionConfirm.conditionId)
     }
@@ -302,6 +365,7 @@ export default function TransactionDetailPage() {
       type: condition.type,
       priority: condition.priority,
       stage: condition.stage,
+      isBlocking: condition.isBlocking,
     })
   }
 
@@ -602,6 +666,29 @@ export default function TransactionDetailPage() {
                           onClick={() => {
                             const nextStep = getNextStep(transaction.status)
                             if (nextStep) {
+                              // Check for blocking conditions before opening the dialog
+                              if (transaction?.conditions) {
+                                const blockingConditions = transaction.conditions.filter(
+                                  (condition) =>
+                                    condition.status === 'pending' &&
+                                    condition.isBlocking === true &&
+                                    condition.stage === transaction.status // Current status
+                                )
+
+                                if (blockingConditions.length > 0) {
+                                  // Set error and open dialog directly with error message
+                                  const conditionTitles = blockingConditions
+                                    .map((c) => c.title)
+                                    .join(', ')
+                                  setStatusChangeError(
+                                    `Cannot change status: ${blockingConditions.length} blocking condition(s) must be completed first: ${conditionTitles}`
+                                  )
+                                  setStatusChangeConfirm({ isOpen: true, newStatus: nextStep })
+                                  return
+                                }
+                              }
+
+                              // No blocking conditions, open normal confirmation dialog
                               setStatusChangeConfirm({
                                 isOpen: true,
                                 newStatus: nextStep,
@@ -615,11 +702,43 @@ export default function TransactionDetailPage() {
                       </div>
                     </>
                   )}
-                  {getConditionsForCurrentStage().length > 0 && (
-                    <p className="mt-3 text-xs">
-                      💡 <em>Tip: Conditions for this step are marked 📍 in the list below.</em>
-                    </p>
-                  )}
+                  {(() => {
+                    const currentStageConditions = getConditionsForCurrentStage()
+                    const blockingConditions = currentStageConditions.filter(
+                      (c) => c.status === 'pending' && c.isBlocking === true
+                    )
+                    const nonBlockingConditions = currentStageConditions.filter(
+                      (c) => c.status === 'pending' && c.isBlocking === false
+                    )
+
+                    if (blockingConditions.length > 0) {
+                      return (
+                        <div className="mt-3 p-3 bg-orange-50 border border-orange-200 rounded-md">
+                          <p className="text-xs font-semibold text-orange-800 mb-2">
+                            🔒 Blocking Conditions for this step:
+                          </p>
+                          <ul className="text-xs text-orange-700 space-y-1 list-disc list-inside">
+                            {blockingConditions.map((c) => (
+                              <li key={c.id}>{c.title}</li>
+                            ))}
+                          </ul>
+                          <p className="text-xs text-orange-600 mt-2 italic">
+                            Complete these conditions to advance to the next step.
+                          </p>
+                        </div>
+                      )
+                    }
+
+                    if (nonBlockingConditions.length > 0) {
+                      return (
+                        <p className="mt-3 text-xs">
+                          💡 <em>Tip: Conditions for this step are marked 📍 in the list below.</em>
+                        </p>
+                      )
+                    }
+
+                    return null
+                  })()}
                 </div>
               </div>
             </div>
@@ -1019,9 +1138,17 @@ export default function TransactionDetailPage() {
         <div className="bg-white shadow sm:rounded-lg mb-6">
           <div className="px-4 py-5 sm:p-6">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-medium leading-6 text-gray-900">
-                Conditions
-              </h3>
+              <div className="flex items-center gap-4">
+                <h3 className="text-lg font-medium leading-6 text-gray-900">
+                  Conditions
+                </h3>
+                <button
+                  onClick={() => setShowCompletedConditions(!showCompletedConditions)}
+                  className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  {showCompletedConditions ? 'Hide' : 'Show'} Completed
+                </button>
+              </div>
               <button
                 onClick={() => setIsConditionModalOpen(true)}
                 className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -1030,33 +1157,79 @@ export default function TransactionDetailPage() {
               </button>
             </div>
 
-            {transaction.conditions && transaction.conditions.length > 0 ? (
-              <div className="space-y-3">
-                {[...transaction.conditions]
-                  .sort((a, b) => {
-                    // Current stage first
-                    if (
-                      a.stage === transaction.status &&
-                      b.stage !== transaction.status
-                    )
-                      return -1
-                    if (
-                      a.stage !== transaction.status &&
-                      b.stage === transaction.status
-                    )
-                      return 1
-                    // Then by status (pending first)
-                    if (a.status === 'pending' && b.status !== 'pending')
-                      return -1
-                    if (a.status !== 'pending' && b.status === 'pending')
-                      return 1
-                    // Then by dueDate
-                    return (
-                      new Date(a.dueDate).getTime() -
-                      new Date(b.dueDate).getTime()
-                    )
-                  })
-                  .map((condition: Condition) => (
+            {(() => {
+              if (!transaction.conditions || transaction.conditions.length === 0) {
+                return <p className="text-sm text-gray-500">No conditions yet.</p>
+              }
+
+              const pendingConditions = [...transaction.conditions]
+                .filter((condition) => condition.status === 'pending')
+                .sort((a, b) => {
+                  // Current stage first
+                  if (
+                    a.stage === transaction.status &&
+                    b.stage !== transaction.status
+                  )
+                    return -1
+                  if (
+                    a.stage !== transaction.status &&
+                    b.stage === transaction.status
+                  )
+                    return 1
+                  // Then by dueDate
+                  return (
+                    new Date(a.dueDate).getTime() -
+                    new Date(b.dueDate).getTime()
+                  )
+                })
+
+              const completedConditions = [...transaction.conditions]
+                .filter((condition) => condition.status === 'completed')
+                .sort((a, b) => {
+                  // Sort by completedAt descending (most recent first)
+                  if (!a.completedAt) return 1
+                  if (!b.completedAt) return -1
+                  return new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime()
+                })
+
+              // Group completed conditions by stage
+              const completedByStage = completedConditions.reduce((acc, condition) => {
+                const stage = condition.stage
+                if (!acc[stage]) {
+                  acc[stage] = []
+                }
+                acc[stage].push(condition)
+                return acc
+              }, {} as Record<string, Condition[]>)
+
+              // Order stages chronologically (reverse - most recent first)
+              const stageOrder: TransactionStatus[] = [
+                'completed',
+                'closing',
+                'notary',
+                'conditions',
+                'accepted',
+                'offer',
+                'consultation',
+                'canceled',
+              ]
+
+              const orderedCompletedStages = stageOrder.filter((stage) => completedByStage[stage])
+
+              if (pendingConditions.length === 0 && !showCompletedConditions) {
+                return (
+                  <p className="text-sm text-gray-500">
+                    All conditions are completed. Click "Show Completed" to view them.
+                  </p>
+                )
+              }
+
+              return (
+                <div className="space-y-6">
+                  {/* Pending Conditions */}
+                  {pendingConditions.length > 0 && (
+                    <div className="space-y-3">
+                      {pendingConditions.map((condition: Condition) => (
                   <div
                     key={condition.id}
                     className={`border rounded-lg p-4 ${isOverdue(condition)
@@ -1157,6 +1330,30 @@ export default function TransactionDetailPage() {
                           rows={2}
                           className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                         />
+                        <div className="flex items-start">
+                          <div className="flex items-center h-5">
+                            <input
+                              id="edit-isBlocking"
+                              type="checkbox"
+                              checked={editConditionData.isBlocking}
+                              onChange={(e) =>
+                                setEditConditionData({
+                                  ...editConditionData,
+                                  isBlocking: e.target.checked,
+                                })
+                              }
+                              className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            />
+                          </div>
+                          <div className="ml-3">
+                            <label htmlFor="edit-isBlocking" className="font-medium text-gray-700 text-sm">
+                              Blocking condition
+                            </label>
+                            <p className="text-xs text-gray-500">
+                              Prevents status change until completed
+                            </p>
+                          </div>
+                        </div>
                         <div className="flex gap-2">
                           <button
                             onClick={handleSaveCondition}
@@ -1214,6 +1411,11 @@ export default function TransactionDetailPage() {
                                     {condition.priority}
                                   </span>
                                 )}
+                                {condition.isBlocking && condition.status === 'pending' && (
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800 border border-orange-300">
+                                    🔒 Blocking
+                                  </span>
+                                )}
                               </div>
                               {condition.description && (
                                 <p className="mt-1 text-sm text-gray-500">
@@ -1269,11 +1471,67 @@ export default function TransactionDetailPage() {
                       </>
                     )}
                   </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-gray-500">No conditions yet.</p>
-            )}
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Completed Conditions Timeline */}
+                  {showCompletedConditions && orderedCompletedStages.length > 0 && (
+                    <div className="mt-6 border-t pt-6">
+                      <h4 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Completed Conditions History
+                      </h4>
+                      <div className="space-y-4">
+                        {orderedCompletedStages.map((stage) => (
+                          <div key={stage} className="relative pl-6 pb-4 border-l-2 border-green-200">
+                            {/* Stage marker */}
+                            <div className="absolute -left-2 top-0 w-4 h-4 rounded-full bg-green-500 border-2 border-white"></div>
+
+                            {/* Stage header */}
+                            <div className="mb-2">
+                              <h5 className="text-sm font-medium text-gray-900">
+                                {statusLabels[stage as TransactionStatus]}
+                              </h5>
+                            </div>
+
+                            {/* Conditions for this stage */}
+                            <div className="space-y-2">
+                              {completedByStage[stage].map((condition: Condition) => (
+                                <div
+                                  key={condition.id}
+                                  className="bg-gray-50 border border-gray-200 rounded-md p-3 text-sm"
+                                >
+                                  <div className="flex items-start justify-between">
+                                    <div className="flex-1">
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-gray-400 line-through">
+                                          {condition.title}
+                                        </span>
+                                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                          ✓ Completed
+                                        </span>
+                                      </div>
+                                      {condition.completedAt && (
+                                        <p className="text-xs text-gray-500 mt-1">
+                                          Completed on {new Date(condition.completedAt).toLocaleDateString()}
+                                        </p>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )
+            })()}
           </div>
         </div>
 
@@ -1369,21 +1627,25 @@ export default function TransactionDetailPage() {
 
       <ConfirmDialog
         isOpen={statusChangeConfirm.isOpen}
-        onClose={() =>
+        onClose={() => {
           setStatusChangeConfirm({ isOpen: false, newStatus: null })
-        }
+          setStatusChangeError(null)
+        }}
         onConfirm={confirmStatusChange}
         title="Change Status"
         message={
-          statusChangeConfirm.newStatus
-            ? `Change status to ${
-                statusLabels[statusChangeConfirm.newStatus]
-              }? This will be recorded in the status history.`
-            : ''
+          statusChangeError
+            ? statusChangeError
+            : statusChangeConfirm.newStatus
+              ? `Change status to ${
+                  statusLabels[statusChangeConfirm.newStatus]
+                }? This will be recorded in the status history.`
+              : ''
         }
-        confirmLabel="Change Status"
-        variant="warning"
+        confirmLabel={statusChangeError ? 'Close' : 'Change Status'}
+        variant={statusChangeError ? 'danger' : 'warning'}
         isLoading={updateStatusMutation.isPending}
+        hideCancelButton={!!statusChangeError}
       />
 
       <ConfirmDialog
