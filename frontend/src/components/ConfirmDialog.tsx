@@ -8,6 +8,7 @@ interface ConfirmDialogProps {
   cancelLabel?: string
   variant?: 'danger' | 'warning' | 'info'
   isLoading?: boolean
+  hideCancelButton?: boolean
 }
 
 export default function ConfirmDialog({
@@ -20,6 +21,7 @@ export default function ConfirmDialog({
   cancelLabel = 'Cancel',
   variant = 'info',
   isLoading = false,
+  hideCancelButton = false,
 }: ConfirmDialogProps) {
   if (!isOpen) return null
 
@@ -50,14 +52,16 @@ export default function ConfirmDialog({
 
           {/* Footer */}
           <div className="bg-gray-50 px-6 py-4 flex justify-end gap-3 rounded-b-xl">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={isLoading}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-            >
-              {cancelLabel}
-            </button>
+            {!hideCancelButton && (
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={isLoading}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+              >
+                {cancelLabel}
+              </button>
+            )}
             <button
               type="button"
               onClick={onConfirm}
