@@ -2,6 +2,7 @@ import type Transaction from '#models/transaction'
 import type User from '#models/user'
 import mail from '@adonisjs/mail/services/main'
 import env from '#start/env'
+import brand from '#config/brand'
 
 /**
  * TransactionAutomationService
@@ -37,7 +38,7 @@ export class TransactionAutomationService {
     }
 
     // Sinon, utiliser la signature par défaut
-    const defaultName = user.fullName || 'Yanick'
+    const defaultName = user.fullName || brand.name
     if (language === 'en') {
       return `
         <div class="footer">
@@ -180,7 +181,7 @@ export class TransactionAutomationService {
 
     await mail.send((message) => {
       message
-        .from(env.get('MAIL_FROM_ADDRESS')!, env.get('MAIL_FROM_NAME') || 'CRM Yanick')
+        .from(env.get('MAIL_FROM_ADDRESS')!, env.get('MAIL_FROM_NAME') || brand.email.fromName)
         .to(client.email)
         .subject('🎉 Congratulations! Your offer has been accepted / Félicitations ! Votre offre a été acceptée')
         .html(`
@@ -290,7 +291,7 @@ export class TransactionAutomationService {
 
     await mail.send((message) => {
       message
-        .from(env.get('MAIL_FROM_ADDRESS')!, env.get('MAIL_FROM_NAME') || 'CRM Yanick')
+        .from(env.get('MAIL_FROM_ADDRESS')!, env.get('MAIL_FROM_NAME') || brand.email.fromName)
         .to(client.email)
         .subject('✅ FIRM Transaction - Your purchase is now confirmed / Transaction FERME - Votre achat est maintenant confirmé')
         .html(`
@@ -398,7 +399,7 @@ export class TransactionAutomationService {
 
     await mail.send((message) => {
       message
-        .from(env.get('MAIL_FROM_ADDRESS')!, env.get('MAIL_FROM_NAME') || 'CRM Yanick')
+        .from(env.get('MAIL_FROM_ADDRESS')!, env.get('MAIL_FROM_NAME') || brand.email.fromName)
         .to(client.email)
         .subject('🏡 Congratulations on your new property! / Félicitations pour votre nouvelle propriété !')
         .html(`
@@ -500,7 +501,7 @@ export class TransactionAutomationService {
 
     await mail.send((message) => {
       message
-        .from(env.get('MAIL_FROM_ADDRESS')!, env.get('MAIL_FROM_NAME') || 'CRM Yanick')
+        .from(env.get('MAIL_FROM_ADDRESS')!, env.get('MAIL_FROM_NAME') || brand.email.fromName)
         .to(client.email)
         .subject('🎉 Good news! An offer has been accepted for your property / Bonne nouvelle ! Une offre a été acceptée pour votre propriété')
         .html(`
@@ -616,7 +617,7 @@ export class TransactionAutomationService {
 
     await mail.send((message) => {
       message
-        .from(env.get('MAIL_FROM_ADDRESS')!, env.get('MAIL_FROM_NAME') || 'CRM Yanick')
+        .from(env.get('MAIL_FROM_ADDRESS')!, env.get('MAIL_FROM_NAME') || brand.email.fromName)
         .to(client.email)
         .subject('✅ FIRM Sale - Your transaction is now confirmed / Vente FERME - Votre transaction est maintenant confirmée')
         .html(`
@@ -724,7 +725,7 @@ export class TransactionAutomationService {
 
     await mail.send((message) => {
       message
-        .from(env.get('MAIL_FROM_ADDRESS')!, env.get('MAIL_FROM_NAME') || 'CRM Yanick')
+        .from(env.get('MAIL_FROM_ADDRESS')!, env.get('MAIL_FROM_NAME') || brand.email.fromName)
         .to(client.email)
         .subject('🏆 Congratulations! Your sale is completed / Félicitations ! Votre vente est complétée')
         .html(`
