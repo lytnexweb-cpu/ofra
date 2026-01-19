@@ -217,7 +217,7 @@ export default function SettingsPage() {
                   value={profileForm.fullName}
                   onChange={(e) => setProfileForm({ ...profileForm, fullName: e.target.value })}
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  placeholder="Yanick Boudreau"
+                  placeholder="John Doe"
                 />
               </div>
 
@@ -349,10 +349,10 @@ export default function SettingsPage() {
                     setSignatureForm({ ...signatureForm, emailSignature: e.target.value })
                   }
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  placeholder="Best regards,&#10;Yanick Boudreau&#10;Real Estate Broker&#10;Phone: 555-1234&#10;www.yanickbroker.com"
+                  placeholder="Best regards,&#10;John Doe&#10;Real Estate Broker&#10;Phone: 555-1234&#10;www.mybroker.com"
                 />
                 <p className="mt-2 text-xs text-gray-500">
-                  If empty, default signature will be used: "Yanick - Real Estate Agent"
+                  If empty, a default signature with your name will be used.
                 </p>
               </div>
 

@@ -3,6 +3,7 @@ import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { authApi } from '../api/auth.api'
 import Breadcrumb from './Breadcrumb'
+import { BRAND } from '../config/brand'
 
 export default function Layout() {
   const navigate = useNavigate()
@@ -45,7 +46,7 @@ export default function Layout() {
               {/* Logo/Brand */}
               <div className="flex-shrink-0">
                 <Link to="/" className="text-xl font-bold text-blue-600">
-                  CRM Yanick
+                  {BRAND.name}
                 </Link>
               </div>
 
@@ -185,7 +186,7 @@ export default function Layout() {
         <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row items-center justify-between text-sm text-gray-500">
             <div className="mb-2 sm:mb-0">
-              <span>© {new Date().getFullYear()} Yanick.B - Tous droits réservés</span>
+              <span>{BRAND.copyright}</span>
             </div>
             <div>
               <span>Conçu par </span>

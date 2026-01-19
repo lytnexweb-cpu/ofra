@@ -1,10 +1,16 @@
-# CRM Yanick - MVP++
+# Ofra
+
+> De l'offre aux cles | From offer to keys
+
+Real Estate Transaction Management Platform
+
+---
 
 Real estate CRM system for managing clients, transactions, conditions, and notes. Built for real estate agents to track transaction workflows, manage client relationships, and monitor condition fulfillment.
 
 ## Project Overview
 
-**CRM Yanick** is a real estate transaction management system designed for independent agents. It provides comprehensive tools to:
+**Ofra** is a real estate transaction management system designed for independent agents. It provides comprehensive tools to:
 
 - **Client Management**: Store client information with detailed contact data (address, multiple phone numbers)
 - **Transaction Tracking**: Monitor real estate transactions (purchase/sale) with status history and workflow management
@@ -17,7 +23,7 @@ This is the **MVP++ release** with enhanced client fields, condition categorizat
 
 ## Project Direction (Jan 2026)
 
-> **Strategic Pivot:** This repository is evolving into a **white-label SaaS core** for real estate agents and agencies. The original "CRM Yanick" becomes a pilot client instance, while the core codebase is being refactored to be fully generic and tenant-ready (owner_user_id already in place).
+> **Strategic Pivot:** This repository is evolving into a **white-label SaaS core** for real estate agents and agencies. The core codebase is being refactored to be fully generic and tenant-ready (owner_user_id already in place).
 
 **Goals:**
 - Generic branding (no hardcoded client names)
@@ -64,8 +70,8 @@ SMTP_PASSWORD=your-brevo-api-key
 BREVO_API_KEY=your-brevo-api-key
 
 # Email sender information
-MAIL_FROM_ADDRESS=notifications@crm-yanick.local
-MAIL_FROM_NAME="CRM Yanick"
+MAIL_FROM_ADDRESS=notifications@ofra.local
+MAIL_FROM_NAME="Ofra"
 ```
 
 **To set up Brevo (free tier):**
@@ -167,7 +173,7 @@ Creates development user account (see credentials below).
 
 ## Development Credentials
 
-**Email:** `yanick@crm.local`
+**Email:** `demo@ofra.local`
 **Password:** `password123`
 
 Use these credentials to log in to the application in development mode.
@@ -388,7 +394,7 @@ Follow these steps to verify the complete application workflow:
 
 ### 1. Login
 - Navigate to `http://localhost:5173`
-- Enter credentials: `yanick@crm.local` / `password123`
+- Enter credentials: `demo@ofra.local` / `password123`
 - Click "Sign in"
 - ✅ Should redirect to dashboard
 
@@ -543,7 +549,7 @@ Follow these steps to verify the complete application workflow:
   cd backend
   node ace db:seed
   ```
-  Then log in again with `yanick@crm.local` / `password123`
+  Then log in again with `demo@ofra.local` / `password123`
 
 ### "Database Connection Refused" Error
 - **Cause**: PostgreSQL not running
@@ -1021,7 +1027,7 @@ GET /api/clients/:id/transactions
 - **Personalized email signatures** for all automated client communications
 - **HTML support:** Full HTML formatting in signature textarea
 - **Automatic integration:** Signature used in all 6 automated emails (3 buyer, 3 seller)
-- **Fallback behavior:** If no custom signature, uses default "Yanick - Real Estate Agent"
+- **Fallback behavior:** If no custom signature, uses agent's name or default signature
 - **Dynamic name:** Default signature uses user's full name if set
 - **Professional example provided** in placeholder text
 
@@ -1033,7 +1039,7 @@ GET /api/clients/:id/transactions
 
 #### TransactionAutomationService - Signature Integration
 - **New method:** `getSignature(user, language)` generates personalized signatures
-- **Smart fallback:** Custom signature → user's name → default "Yanick"
+- **Smart fallback:** Custom signature → user's name → default agent name
 - **All 6 email templates updated** to use dynamic signatures
 - **Bilingual support:** Separate signatures for French and English sections
 - **Owner loading:** Transaction owner preloaded for signature access
@@ -1227,8 +1233,8 @@ SMTP_HOST=smtp-relay.brevo.com
 SMTP_PORT=587
 SMTP_USERNAME=your-login@smtp-brevo.com
 SMTP_PASSWORD=your-api-key
-MAIL_FROM_ADDRESS=notifications@crm-yanick.local
-MAIL_FROM_NAME="CRM Yanick"
+MAIL_FROM_ADDRESS=notifications@ofra.local
+MAIL_FROM_NAME="Ofra"
 ```
 
 **Build Status:**
