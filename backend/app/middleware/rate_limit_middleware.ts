@@ -9,14 +9,17 @@ interface RateLimitEntry {
 const attempts = new Map<string, RateLimitEntry>()
 
 // Clean up old entries every 5 minutes
-setInterval(() => {
-  const now = Date.now()
-  for (const [key, entry] of attempts.entries()) {
-    if (entry.resetAt < now) {
-      attempts.delete(key)
+setInterval(
+  () => {
+    const now = Date.now()
+    for (const [key, entry] of attempts.entries()) {
+      if (entry.resetAt < now) {
+        attempts.delete(key)
+      }
     }
-  }
-}, 5 * 60 * 1000)
+  },
+  5 * 60 * 1000
+)
 
 /**
  * Rate limit middleware for login protection
