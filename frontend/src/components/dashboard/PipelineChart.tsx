@@ -22,14 +22,24 @@ const STATUS_CONFIG = [
   { key: 'closing', label: 'Closing', color: '#F43F5E' },
 ]
 
+const DEFAULT_PIPELINE: PipelineData = {
+  consultation: 0,
+  offer: 0,
+  accepted: 0,
+  conditions: 0,
+  notary: 0,
+  closing: 0,
+}
+
 export default function PipelineChart({ data }: PipelineChartProps) {
+  const safeData = data ?? DEFAULT_PIPELINE
   const chartData = STATUS_CONFIG.map((status) => ({
     name: status.label,
-    value: data[status.key as keyof PipelineData],
+    value: safeData[status.key as keyof PipelineData] ?? 0,
     color: status.color,
   }))
 
-  const total = Object.values(data).reduce((sum, val) => sum + val, 0)
+  const total = Object.values(safeData).reduce((sum, val) => sum + (val ?? 0), 0)
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">

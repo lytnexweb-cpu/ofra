@@ -46,7 +46,7 @@ function getActivityIcon(type: Activity['type']) {
   }
 }
 
-export default function RecentActivity({ activities }: RecentActivityProps) {
+export default function RecentActivity({ activities = [] }: RecentActivityProps) {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
