@@ -15,6 +15,18 @@ Real estate CRM system for managing clients, transactions, conditions, and notes
 
 This is the **MVP++ release** with enhanced client fields, condition categorization, improved UX, and automated client communications.
 
+## Project Direction (Jan 2026)
+
+> **Strategic Pivot:** This repository is evolving into a **white-label SaaS core** for real estate agents and agencies. The original "CRM Yanick" becomes a pilot client instance, while the core codebase is being refactored to be fully generic and tenant-ready (owner_user_id already in place).
+
+**Goals:**
+- Generic branding (no hardcoded client names)
+- Per-deployment configuration (agency name, logo, email signatures)
+- Multi-tenant architecture (already in place via `owner_user_id`)
+- Pluggable theming and localization
+
+See **[Rebranding Checklist](#rebranding-checklist)** below for migration steps.
+
 ## Tech Stack
 
 ### Frontend
@@ -240,6 +252,36 @@ Use these credentials to log in to the application in development mode.
 - ✅ Toast notifications on success/error
 - ✅ Professional footer with Lytnex Web branding and copyright information
 - ✅ **Complete English interface** - Standardized language throughout application (no French/English mixing)
+
+## Blocking Conditions (Phase 1) ✅
+
+### What it does
+Prevents status changes when there are **pending blocking conditions** for the **current transaction stage**.
+
+### Backend behavior
+- Feature flag: `ENFORCE_BLOCKING_CONDITIONS`
+- Blocks status change when:
+  - `condition.is_blocking = true`
+  - `condition.status = pending`
+  - `condition.stage === current transaction status`
+- API:
+  - `PATCH /api/transactions/:id/status`
+- Error response:
+  - `400` with code `E_BLOCKING_CONDITIONS`
+  - Includes `blockingConditions[]` for UI display
+- Server logs:
+  - `[BLOCKING] Transaction X: Status change A -> B BLOCKED by ...`
+  - `[STATUS_CHANGE] Transaction X: A -> B by user ...`
+
+### Frontend UX
+- Condition form:
+  - Checkbox: **Blocking condition** (default: enabled)
+  - Works for create + edit
+- Conditions list:
+  - Badge: `🔒 Blocking` for pending blocking conditions
+- Status change:
+  - Friendly message when blocked: lists condition titles
+  - Confirm dialog shows "Close" and hides cancel button on error
 
 ## API Endpoints
 
@@ -559,6 +601,49 @@ cd backend
 node ace migration:run
 node ace db:seed
 ```
+
+## Development Notes
+
+### Dev Notes: Windows Encoding / UTF-8 ✅
+
+To avoid `??` characters in `git diff` on Windows:
+- `.gitattributes` enforces LF line endings for text files
+- Git config uses UTF-8 output (see `FIX_ENCODING.md` / `ENCODING_FIX_SUMMARY.md`)
+
+### Local Debug Artifacts
+Local reports and test scripts are ignored via `.gitignore` (e.g. `*_REPORT.md`, `PROJECT_STATUS_*.md`, `test_*`, `validate_*`).
+
+### Recent Changes (Jan 2026)
+
+**Summary of latest commits:**
+
+| Commit | Description |
+|--------|-------------|
+| `569b09c` | **chore:** Ignore local test scripts and reports in `.gitignore` (debug artifacts) |
+| `c0fcf05` | **feat:** Blocking conditions UI + improved status change handling (see below) |
+| `136514e` | **chore:** Enforce UTF-8 encoding and LF line endings (`.gitattributes`, `FIX_ENCODING.md`) |
+
+**Blocking Conditions Feature (`c0fcf05`):**
+
+- **Backend changes:**
+  - `TransactionsController.updateStatus()` now validates blocking conditions before status change
+  - Logs `[BLOCKING] Transaction X: A -> B BLOCKED by ...` for blocked attempts
+  - Logs `[STATUS_CHANGE] Transaction X: A -> B by user ...` for successful changes (ASCII-safe)
+  - Returns `400` with code `E_BLOCKING_CONDITIONS` + `blockingConditions[]` array
+
+- **Frontend changes:**
+  - `Condition` model now supports `isBlocking` boolean field
+  - `CreateConditionModal` has "Blocking condition" checkbox (default: true)
+  - `ConfirmDialog` supports `hideCancelButton` prop for error-only dialogs
+  - `TransactionDetailPage` handles `E_BLOCKING_CONDITIONS` gracefully with clear error + Close button
+
+- **UX Flow:**
+  1. User tries to change transaction status
+  2. Backend checks for pending blocking conditions at current stage
+  3. If blocked: error dialog lists the blocking condition titles
+  4. If allowed: status changes normally
+
+See **[Blocking Conditions (Phase 1)](#blocking-conditions-phase-1-)** section for full documentation.
 
 ## Changelog / Release Notes
 
@@ -1535,3 +1620,86 @@ Based on Yanick's workflow requirements email (December 2, 2025), the following 
 - **Phase 2B/2C** features enhance UX but aren't blocking daily operations
 - All features will follow existing architecture patterns (AdonisJS + React + PostgreSQL)
 - Backward compatibility maintained - existing data unaffected
+
+---
+
+## Rebranding Checklist
+
+> **Status:** Documentation only. Do NOT implement yet - this is a reference for the white-label pivot.
+
+### Phase R1: Code References (Search & Replace)
+
+- [ ] **Grep for "Yanick" references** in codebase:
+  ```bash
+  rg -i "yanick" --type ts --type tsx --type json --type md
+  ```
+- [ ] **Files to update:**
+  - `README.md` - Title, project name, email examples
+  - `backend/.env.example` - `MAIL_FROM_NAME`, `MAIL_FROM_ADDRESS`
+  - `backend/database/seeders/user_seeder.ts` - Dev user email (`yanick@crm.local`)
+  - `frontend/src/components/Layout.tsx` - Footer copyright text
+  - `backend/app/services/transaction_automation_service.ts` - Default signature fallback
+  - Email templates - Any hardcoded "Yanick" in subject/body
+
+### Phase R2: Configuration Externalization
+
+- [ ] **Create config schema** for per-instance settings:
+  ```typescript
+  interface InstanceConfig {
+    brandName: string;           // "ABC Realty"
+    agentName: string;           // "John Smith"
+    logoUrl: string;             // "/assets/logo.png"
+    primaryColor: string;        // "#1e40af"
+    supportEmail: string;        // "support@abcrealty.com"
+    defaultLanguage: 'en' | 'fr';
+  }
+  ```
+- [ ] **Move hardcoded values to ENV or DB:**
+  - `BRAND_NAME` - App title, emails, footer
+  - `AGENT_DEFAULT_NAME` - Fallback for signatures
+  - `BRAND_LOGO_URL` - Header logo
+  - `BRAND_PRIMARY_COLOR` - Tailwind theme override
+
+### Phase R3: Database & Seeds
+
+- [ ] **Update seed data:**
+  - Replace `yanick@crm.local` with generic `admin@crm.local` or parameterized
+  - Remove any Yanick-specific test data
+- [ ] **Consider tenant table** (future multi-tenant):
+  - `tenants` table with branding config per deployment
+  - `users.tenant_id` foreign key
+
+### Phase R4: Asset Cleanup
+
+- [ ] **Rename repository** (optional):
+  - `crm-yanick` → `realestate-crm-core` or similar
+  - Update all git remotes, CI/CD pipelines
+- [ ] **Remove client-specific files:**
+  - Any Yanick-specific documentation
+  - Client logos, assets
+
+### Phase R5: Deployment Separation
+
+- [ ] **Environment-based branding:**
+  - Production (Yanick): Uses existing config
+  - Demo/Staging: Uses generic "Real Estate CRM" branding
+- [ ] **Docker/Fly.io config:**
+  - ENV variables for brand customization
+  - Per-deployment secrets
+
+### Files with Known "Yanick" References
+
+| File | Reference Type |
+|------|---------------|
+| `README.md` | Title, project name, dev credentials |
+| `backend/.env` / `.env.example` | `MAIL_FROM_*` values |
+| `backend/database/seeders/user_seeder.ts` | `yanick@crm.local` |
+| `frontend/src/components/Layout.tsx` | Footer: "Yanick.B" |
+| `backend/app/services/transaction_automation_service.ts` | Default signature fallback |
+| `docker-compose.yml` | Container names (if any) |
+
+### Notes
+
+- **Do not break existing deployment:** Yanick's instance should continue working
+- **Feature flags:** Consider `ENABLE_BRANDING_CONFIG=true` to toggle new system
+- **Test thoroughly:** Email templates, footer, login page, dashboard title
