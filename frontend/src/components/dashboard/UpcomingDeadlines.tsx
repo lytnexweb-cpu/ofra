@@ -46,7 +46,7 @@ function getDaysUntilDue(dueDate: string): { text: string; urgent: boolean } {
   return { text: `${days} days`, urgent: false }
 }
 
-export default function UpcomingDeadlines({ deadlines }: UpcomingDeadlinesProps) {
+export default function UpcomingDeadlines({ deadlines = [] }: UpcomingDeadlinesProps) {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
       <div className="flex items-center justify-between mb-4">
