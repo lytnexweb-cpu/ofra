@@ -70,9 +70,12 @@ See **[Rebranding Checklist](#rebranding-checklist)** below for migration steps.
 - **Vite** - Build tool and dev server
 - **React 19** - UI framework
 - **TypeScript** - Type safety
-- **Tailwind CSS** - Styling
+- **Tailwind CSS** - Styling with dark mode support
 - **TanStack Query** - Data fetching and caching
 - **React Router** - Client-side routing
+- **Framer Motion** - Animations and transitions
+- **Recharts** - Data visualization (charts)
+- **date-fns** - Date formatting and manipulation
 
 ### Backend
 - **AdonisJS v6** - TypeScript Node.js framework
@@ -264,6 +267,18 @@ Use these credentials to log in to the application in development mode.
 - ✅ **Overdue conditions count** (includes conditions due today)
 - ✅ Due soon conditions count (next 7 days, starting tomorrow)
 - ✅ **"How it works" guide** with 5-step workflow explanation
+- ✅ **KPI Cards** with animated numbers and trend indicators
+- ✅ **Pipeline Chart** showing transactions by status
+- ✅ **Revenue Chart** showing commissions over time
+- ✅ **Recent Activity** feed (status changes, notes, conditions)
+- ✅ **Upcoming Deadlines** widget with priority indicators
+
+### UX & Design
+- ✅ **Dark Mode** with system preference detection (light/dark/system)
+- ✅ **Framer Motion** animations on buttons, cards, and page transitions
+- ✅ **Skeleton loading states** for better perceived performance
+- ✅ **Responsive design** with mobile-first approach
+- ✅ **Theme persistence** in localStorage
 
 ### Automated Emails
 - ✅ **Automatic client notifications** on transaction status changes
@@ -652,10 +667,95 @@ Local reports and test scripts are ignored via `.gitignore` (e.g. `*_REPORT.md`,
 
 ### Recent Changes (Jan 2026)
 
+### Session - January 19, 2026: TMS High-Level Features
+
+**Objective:** Transform Ofra into a high-level TMS for real estate agents (New Brunswick first, then Quebec).
+
+#### Completed Features
+
+**Phase A: Dashboard Pro** ✅
+- **KPI Cards** with animated numbers (total transactions, active, completed, overdue conditions, due soon, conversion rate)
+- **Pipeline Chart** (horizontal bar chart) showing transactions by status
+- **Revenue Chart** (area chart) showing commissions over last 6 months
+- **Recent Activity** feed (status changes, notes, completed conditions)
+- **Upcoming Deadlines** widget
+- **New packages:** Recharts, date-fns
+- **Files created:**
+  - `frontend/src/components/dashboard/KPICard.tsx`
+  - `frontend/src/components/dashboard/PipelineChart.tsx`
+  - `frontend/src/components/dashboard/RevenueChart.tsx`
+  - `frontend/src/components/dashboard/RecentActivity.tsx`
+  - `frontend/src/components/dashboard/UpcomingDeadlines.tsx`
+- **Backend enhanced:** `backend/app/controllers/dashboard_controller.ts` - enriched API with pipeline, revenue, activity data
+
+**Phase B: UX Premium** ✅
+- **Framer Motion** animations throughout the app
+- **Page transitions** (fade/slide animations)
+- **Skeleton loading states** (cards, charts, lists, tables)
+- **UI Components:**
+  - `frontend/src/components/ui/PageTransition.tsx`
+  - `frontend/src/components/ui/Skeleton.tsx`
+  - `frontend/src/components/ui/Button.tsx`
+  - `frontend/src/components/ui/Card.tsx`
+
+**Phase B.2: Dark Mode** ✅
+- **Theme system:** light / dark / system (auto-detect)
+- **Persisted** in localStorage (`ofra-theme`)
+- **ThemeContext** with useTheme hook
+- **ThemeToggle** button (cycles light → dark → system)
+- **Tailwind** `darkMode: 'class'` enabled
+- **All components updated** with dark mode classes:
+  - Layout (header, nav, footer, mobile menu)
+  - Dashboard components (KPI, charts, activity, deadlines)
+  - Pages (Login, Clients, Settings)
+  - Forms (ChangePasswordForm, ChangeEmailForm, CreateClientModal)
+  - UI (Skeleton, Card)
+- **Files created:**
+  - `frontend/src/contexts/ThemeContext.tsx`
+  - `frontend/src/components/ui/ThemeToggle.tsx`
+
+#### Remaining Features (Next Session)
+
+**Phase C: Architecture**
+- [ ] API versioning (`/api/v1/`)
+- [ ] Webhooks system for integrations
+- [ ] Rate limiting
+- [ ] API documentation (OpenAPI/Swagger)
+- [ ] Multi-tenant improvements
+
+**Phase D: Advanced Features**
+- [ ] Notification system (in-app notifications)
+- [ ] Reminders/alerts for deadlines
+- [ ] Email scheduling
+- [ ] Calendar integration
+- [ ] Document management
+- [ ] Reporting/export (PDF, CSV)
+
+**Phase 2 (Existing Roadmap)**
+- Internal reminders system (FINTRAC, birthdays, reviews)
+- Client onboarding form
+- Condition deadline alerts
+- Social media reminders
+
+#### Technical Notes
+
+- **Build:** `npm run build` passes (0 TypeScript errors)
+- **Bundle warning:** Main chunk ~965KB (consider code splitting)
+- **Test credentials:** `demo@ofra.local` / `password123`
+- **Production URLs:**
+  - Frontend: https://ofra.pages.dev
+  - Backend: https://crm-yanick-backend.fly.dev
+
+---
+
 **Summary of latest commits:**
 
 | Commit | Description |
 |--------|-------------|
+| `b3debff` | **chore:** add .env.test.example and update gitignore |
+| `39c26be` | **chore(brand):** rebrand backend and email templates to Ofra |
+| `ad157c3` | **chore(brand):** rebrand UI and docs to Ofra |
+| `2a60e36` | **docs:** update README with white-label direction and Jan 2026 notes |
 | `569b09c` | **chore:** Ignore local test scripts and reports in `.gitignore` (debug artifacts) |
 | `c0fcf05` | **feat:** Blocking conditions UI + improved status change handling (see below) |
 | `136514e` | **chore:** Enforce UTF-8 encoding and LF line endings (`.gitattributes`, `FIX_ENCODING.md`) |
