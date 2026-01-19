@@ -7,6 +7,7 @@ import {
   RecentActivity,
   UpcomingDeadlines,
 } from '../components/dashboard'
+import { PageTransition, DashboardSkeleton } from '../components/ui'
 
 export default function DashboardPage() {
   const { data, isLoading, error } = useQuery({
@@ -15,14 +16,7 @@ export default function DashboardPage() {
   })
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-500">Loading dashboard...</p>
-        </div>
-      </div>
-    )
+    return <DashboardSkeleton />
   }
 
   if (error || !data?.data) {
@@ -57,12 +51,13 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-500 mt-1">Welcome back! Here's what's happening with your transactions.</p>
-      </div>
+    <PageTransition>
+      <div className="space-y-6">
+        {/* Header */}
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+          <p className="text-gray-500 mt-1">Welcome back! Here's what's happening with your transactions.</p>
+        </div>
 
       {/* KPIs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -150,6 +145,7 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </PageTransition>
   )
 }
