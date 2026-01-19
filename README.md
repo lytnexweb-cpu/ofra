@@ -6,41 +6,34 @@ Real Estate Transaction Management Platform
 
 ---
 
-## 🚧 Deployment Status (Jan 19, 2026)
+## ✅ Deployment Status (Jan 19, 2026)
 
-### Current Infrastructure
+### Production Infrastructure
 
 | Component | Platform | URL | Status |
 |-----------|----------|-----|--------|
-| **Backend** | Fly.io | `https://crm-yanick-backend.fly.dev` | ✅ Deployed |
-| **Frontend** | Cloudflare Pages | `https://ofra.pages.dev` | 🔄 In Progress |
+| **Frontend** | Cloudflare Pages | https://ofra.pages.dev | ✅ Live |
+| **Backend** | Fly.io | https://crm-yanick-backend.fly.dev | ✅ Live |
 | **Database** | Fly.io (Postgres) | Internal | ✅ Running |
 
 ### GitHub Repository
 
-- **Repo**: `github.com/lytnexweb-cpu/ofra`
+- **Repo**: [github.com/lytnexweb-cpu/ofra](https://github.com/lytnexweb-cpu/ofra)
 - **Branch**: `main`
 - **Git user**: `lytnexweb@gmail.com` / `Lytnex`
 
-### Next Steps (Resume Here)
+### Cloudflare Pages Build Settings
 
-**Cloudflare Pages deployment needs to be completed:**
+| Setting | Value |
+|---------|-------|
+| **Build command** | `cd frontend && npm ci && npm run build` |
+| **Build output directory** | `frontend/dist` |
+| **Environment variable** | `VITE_API_URL` = `https://crm-yanick-backend.fly.dev` |
 
-1. Go to [Cloudflare Dashboard](https://dash.cloudflare.com) → Workers & Pages
-2. Create new Pages project connected to `lytnexweb-cpu/ofra`
-3. Configure build settings:
-   | Setting | Value |
-   |---------|-------|
-   | **Root directory** | `frontend` |
-   | **Build command** | `npm ci && npm run build` |
-   | **Build output directory** | `dist` |
-4. Add environment variable:
-   | Variable | Value |
-   |----------|-------|
-   | `VITE_API_URL` | `https://crm-yanick-backend.fly.dev` |
-5. Save and Deploy
+### Login Credentials (Demo)
 
-**CORS is already configured** on the backend to accept `https://ofra.pages.dev`
+- **Email**: `demo@ofra.local`
+- **Password**: `password123`
 
 ---
 
