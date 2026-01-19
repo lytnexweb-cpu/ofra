@@ -1,4 +1,5 @@
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
+import { useTheme } from '../../contexts/ThemeContext'
 
 interface PipelineData {
   consultation: number
@@ -32,6 +33,9 @@ const DEFAULT_PIPELINE: PipelineData = {
 }
 
 export default function PipelineChart({ data }: PipelineChartProps) {
+  const { resolvedTheme } = useTheme()
+  const isDark = resolvedTheme === 'dark'
+
   const safeData = data ?? DEFAULT_PIPELINE
   const chartData = STATUS_CONFIG.map((status) => ({
     name: status.label,
@@ -40,6 +44,11 @@ export default function PipelineChart({ data }: PipelineChartProps) {
   }))
 
   const total = Object.values(safeData).reduce((sum, val) => sum + (val ?? 0), 0)
+
+  // Theme-aware colors
+  const axisTickColor = isDark ? '#9CA3AF' : '#6B7280'
+  const tooltipBg = isDark ? '#1F2937' : '#fff'
+  const tooltipBorder = isDark ? '#374151' : '#E5E7EB'
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
@@ -70,15 +79,16 @@ export default function PipelineChart({ data }: PipelineChartProps) {
                   dataKey="name"
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fontSize: 12, fill: '#6B7280' }}
+                  tick={{ fontSize: 12, fill: axisTickColor }}
                   width={80}
                 />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: '#fff',
-                    border: '1px solid #E5E7EB',
+                    backgroundColor: tooltipBg,
+                    border: `1px solid ${tooltipBorder}`,
                     borderRadius: '8px',
                     boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                    color: isDark ? '#F3F4F6' : '#111827',
                   }}
                   formatter={(value) => [`${value} transaction${value !== 1 ? 's' : ''}`, 'Count']}
                 />
