@@ -46,6 +46,7 @@ router.group(() => {
   router.get('/transactions/:id', '#controllers/transactions_controller.show')
   router.put('/transactions/:id', '#controllers/transactions_controller.update')
   router.patch('/transactions/:id/status', '#controllers/transactions_controller.updateStatus')
+  router.get('/transactions/:id/allowed-transitions', '#controllers/transactions_controller.allowedTransitions')
   router.delete('/transactions/:id', '#controllers/transactions_controller.destroy')
 
   // Conditions

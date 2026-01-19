@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { authApi } from '../api/auth.api'
@@ -98,7 +98,7 @@ export default function SettingsPage() {
   }
 
   // Update form state when user data loads
-  useState(() => {
+  useEffect(() => {
     if (user) {
       setProfileForm({
         fullName: user.fullName || '',
@@ -112,7 +112,7 @@ export default function SettingsPage() {
         emailSignature: user.emailSignature || '',
       })
     }
-  })
+  }, [user])
 
   return (
     <div>
