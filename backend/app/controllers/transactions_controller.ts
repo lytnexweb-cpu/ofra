@@ -8,6 +8,12 @@ import {
   updateStatusValidator,
 } from '#validators/transaction_validator'
 import { TransactionAutomationService } from '#services/transaction_automation_service'
+import {
+  isValidTransition,
+  getTransitionError,
+  getAllowedTransitions,
+  STATUS_LABELS,
+} from '#services/transaction_state_machine'
 import env from '#start/env'
 
 /**
@@ -250,14 +256,43 @@ export default class TransactionsController {
       const payload = await request.validateUsing(updateStatusValidator)
       const oldStatus = transaction.status
 
+      // Validate status transition
+      if (!isValidTransition(oldStatus, payload.status)) {
+        const errorMessage = getTransitionError(oldStatus, payload.status)
+        console.log(`[INVALID_TRANSITION] Transaction ${transaction.id}: ${errorMessage}`)
+        return response.badRequest({
+          success: false,
+          error: {
+            message: errorMessage,
+            code: 'E_INVALID_TRANSITION',
+            currentStatus: oldStatus,
+            requestedStatus: payload.status,
+          },
+        })
+      }
+
+      // Check offer expiry when accepting an offer
+      if (oldStatus === 'offer' && payload.status === 'accepted') {
+        if (transaction.offerExpiryAt && transaction.offerExpiryAt < DateTime.now()) {
+          console.log(
+            `[OFFER_EXPIRED] Transaction ${transaction.id}: Offer expired at ${transaction.offerExpiryAt.toISO()}`
+          )
+          return response.badRequest({
+            success: false,
+            error: {
+              message: 'Cannot accept offer: the offer has expired',
+              code: 'E_OFFER_EXPIRED',
+              expiredAt: transaction.offerExpiryAt.toISO(),
+            },
+          })
+        }
+      }
+
       // Enforce blocking conditions if feature flag is enabled
       if (env.get('ENFORCE_BLOCKING_CONDITIONS') === true) {
         // Load blocking conditions for the current status
         await transaction.load('conditions', (query) => {
-          query
-            .where('stage', oldStatus)
-            .where('is_blocking', true)
-            .where('status', 'pending')
+          query.where('stage', oldStatus).where('is_blocking', true).where('status', 'pending')
         })
 
         const blockingConditions = transaction.conditions
@@ -266,7 +301,9 @@ export default class TransactionsController {
           const conditionTitles = blockingConditions.map((c) => c.title).join(', ')
 
           // Log blocked status change attempt
-          console.log(`[BLOCKING] Transaction ${transaction.id}: Status change ${oldStatus} -> ${payload.status} BLOCKED by ${blockingConditions.length} condition(s): ${conditionTitles}`)
+          console.log(
+            `[BLOCKING] Transaction ${transaction.id}: Status change ${oldStatus} -> ${payload.status} BLOCKED by ${blockingConditions.length} condition(s): ${conditionTitles}`
+          )
 
           return response.badRequest({
             success: false,
@@ -295,7 +332,9 @@ export default class TransactionsController {
       })
 
       // Log successful status change
-      console.log(`[STATUS_CHANGE] Transaction ${transaction.id}: ${oldStatus} -> ${payload.status} by user ${auth.user!.id}`)
+      console.log(
+        `[STATUS_CHANGE] Transaction ${transaction.id}: ${oldStatus} -> ${payload.status} by user ${auth.user!.id}`
+      )
 
       // Automatic email sending to client if applicable
       // (email sending should not block the response)
@@ -377,6 +416,47 @@ export default class TransactionsController {
         success: false,
         error: {
           message: 'Failed to delete transaction',
+          code: 'E_INTERNAL_ERROR',
+        },
+      })
+    }
+  }
+
+  async allowedTransitions({ params, response, auth }: HttpContext) {
+    try {
+      const transaction = await Transaction.query()
+        .where('id', params.id)
+        .where('owner_user_id', auth.user!.id)
+        .firstOrFail()
+
+      const allowedStatuses = getAllowedTransitions(transaction.status)
+      const transitions = allowedStatuses.map((status) => ({
+        status,
+        label: STATUS_LABELS[status],
+      }))
+
+      return response.ok({
+        success: true,
+        data: {
+          currentStatus: transaction.status,
+          currentStatusLabel: STATUS_LABELS[transaction.status],
+          allowedTransitions: transitions,
+        },
+      })
+    } catch (error) {
+      if (error.code === 'E_ROW_NOT_FOUND') {
+        return response.notFound({
+          success: false,
+          error: {
+            message: 'Transaction not found',
+            code: 'E_NOT_FOUND',
+          },
+        })
+      }
+      return response.internalServerError({
+        success: false,
+        error: {
+          message: 'Failed to get allowed transitions',
           code: 'E_INTERNAL_ERROR',
         },
       })
