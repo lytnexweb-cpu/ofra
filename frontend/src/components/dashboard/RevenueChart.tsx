@@ -7,6 +7,7 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from 'recharts'
+import { useTheme } from '../../contexts/ThemeContext'
 
 interface RevenueData {
   month: string
@@ -31,6 +32,15 @@ function formatCurrency(value: number | undefined | null): string {
 }
 
 export default function RevenueChart({ data = [], totalRevenue = 0, monthRevenue = 0 }: RevenueChartProps) {
+  const { resolvedTheme } = useTheme()
+  const isDark = resolvedTheme === 'dark'
+
+  // Theme-aware colors
+  const axisTickColor = isDark ? '#9CA3AF' : '#6B7280'
+  const gridColor = isDark ? '#374151' : '#E5E7EB'
+  const tooltipBg = isDark ? '#1F2937' : '#fff'
+  const tooltipBorder = isDark ? '#374151' : '#E5E7EB'
+
   const hasData = data.length > 0 && data.some((d) => d.total > 0)
 
   return (
@@ -66,26 +76,27 @@ export default function RevenueChart({ data = [], totalRevenue = 0, monthRevenue
                     <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={false} />
                 <XAxis
                   dataKey="month"
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fontSize: 12, fill: '#6B7280' }}
+                  tick={{ fontSize: 12, fill: axisTickColor }}
                 />
                 <YAxis
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fontSize: 12, fill: '#6B7280' }}
+                  tick={{ fontSize: 12, fill: axisTickColor }}
                   tickFormatter={formatCurrency}
                   width={60}
                 />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: '#fff',
-                    border: '1px solid #E5E7EB',
+                    backgroundColor: tooltipBg,
+                    border: `1px solid ${tooltipBorder}`,
                     borderRadius: '8px',
                     boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                    color: isDark ? '#F3F4F6' : '#111827',
                   }}
                   formatter={(value) => [`$${Number(value).toLocaleString()}`, 'Commission']}
                 />
