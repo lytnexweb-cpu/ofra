@@ -3,10 +3,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { authApi } from '../api/auth.api'
 import { profileApi, type UpdateProfileInfoRequest } from '../api/profile.api'
+import { useTheme } from '../contexts/ThemeContext'
 import ChangePasswordForm from '../components/ChangePasswordForm'
 import ChangeEmailForm from '../components/ChangeEmailForm'
 
-type TabType = 'password' | 'email' | 'profile' | 'signature'
+type TabType = 'password' | 'email' | 'profile' | 'signature' | 'appearance'
 
 export default function SettingsPage() {
   const navigate = useNavigate()
@@ -164,6 +165,16 @@ export default function SettingsPage() {
             }`}
           >
             ✍️ Email Signature
+          </button>
+          <button
+            onClick={() => setActiveTab('appearance')}
+            className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
+              activeTab === 'appearance'
+                ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-600'
+            }`}
+          >
+            🎨 Appearance
           </button>
         </nav>
       </div>
@@ -366,6 +377,107 @@ export default function SettingsPage() {
             </form>
           </div>
         )}
+
+        {activeTab === 'appearance' && <AppearanceTab />}
+      </div>
+    </div>
+  )
+}
+
+function AppearanceTab() {
+  const { theme, setTheme } = useTheme()
+
+  const themeOptions = [
+    {
+      value: 'light' as const,
+      label: 'Light',
+      description: 'Always use light mode',
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+        </svg>
+      ),
+    },
+    {
+      value: 'dark' as const,
+      label: 'Dark',
+      description: 'Always use dark mode',
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+        </svg>
+      ),
+    },
+    {
+      value: 'system' as const,
+      label: 'System',
+      description: 'Follow your system settings',
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+        </svg>
+      ),
+    },
+  ]
+
+  return (
+    <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+      <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+        Appearance
+      </h2>
+      <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+        Choose how Ofra looks on your device.
+      </p>
+
+      <div className="space-y-3">
+        {themeOptions.map((option) => (
+          <button
+            key={option.value}
+            onClick={() => setTheme(option.value)}
+            className={`w-full flex items-center gap-4 p-4 rounded-lg border-2 transition-all ${
+              theme === option.value
+                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+            }`}
+          >
+            <div
+              className={`p-2 rounded-lg ${
+                theme === option.value
+                  ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400'
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
+              }`}
+            >
+              {option.icon}
+            </div>
+            <div className="flex-1 text-left">
+              <p
+                className={`font-medium ${
+                  theme === option.value
+                    ? 'text-blue-900 dark:text-blue-100'
+                    : 'text-gray-900 dark:text-white'
+                }`}
+              >
+                {option.label}
+              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {option.description}
+              </p>
+            </div>
+            {theme === option.value && (
+              <svg
+                className="w-5 h-5 text-blue-500"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            )}
+          </button>
+        ))}
       </div>
     </div>
   )
