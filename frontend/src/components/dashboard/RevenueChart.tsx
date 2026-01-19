@@ -19,18 +19,19 @@ interface RevenueChartProps {
   monthRevenue: number
 }
 
-function formatCurrency(value: number): string {
-  if (value >= 1000000) {
-    return `$${(value / 1000000).toFixed(1)}M`
+function formatCurrency(value: number | undefined | null): string {
+  const safeValue = value ?? 0
+  if (safeValue >= 1000000) {
+    return `$${(safeValue / 1000000).toFixed(1)}M`
   }
-  if (value >= 1000) {
-    return `$${(value / 1000).toFixed(0)}K`
+  if (safeValue >= 1000) {
+    return `$${(safeValue / 1000).toFixed(0)}K`
   }
-  return `$${value.toLocaleString()}`
+  return `$${safeValue.toLocaleString()}`
 }
 
-export default function RevenueChart({ data, totalRevenue, monthRevenue }: RevenueChartProps) {
-  const hasData = data.some((d) => d.total > 0)
+export default function RevenueChart({ data = [], totalRevenue = 0, monthRevenue = 0 }: RevenueChartProps) {
+  const hasData = data.length > 0 && data.some((d) => d.total > 0)
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">

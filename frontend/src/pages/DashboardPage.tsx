@@ -40,7 +40,21 @@ export default function DashboardPage() {
     )
   }
 
-  const summary = data.data
+  // Safe defaults for all properties
+  const summary = {
+    totalTransactions: data.data.totalTransactions ?? 0,
+    activeTransactions: data.data.activeTransactions ?? 0,
+    completedTransactions: data.data.completedTransactions ?? 0,
+    overdueConditions: data.data.overdueConditions ?? 0,
+    dueSoonConditions: data.data.dueSoonConditions ?? 0,
+    conversionRate: data.data.conversionRate ?? 0,
+    pipeline: data.data.pipeline ?? { consultation: 0, offer: 0, accepted: 0, conditions: 0, notary: 0, closing: 0 },
+    revenue: data.data.revenue ?? [],
+    totalRevenue: data.data.totalRevenue ?? 0,
+    monthRevenue: data.data.monthRevenue ?? 0,
+    recentActivity: data.data.recentActivity ?? [],
+    upcomingDeadlines: data.data.upcomingDeadlines ?? [],
+  }
 
   return (
     <div className="space-y-6">
@@ -125,13 +139,13 @@ export default function DashboardPage() {
           <div>
             <p className="text-blue-100 text-sm">This Month Revenue</p>
             <p className="text-3xl font-bold">
-              ${summary.monthRevenue.toLocaleString()}
+              ${(summary.monthRevenue ?? 0).toLocaleString()}
             </p>
           </div>
           <div>
             <p className="text-blue-100 text-sm">Total Revenue</p>
             <p className="text-3xl font-bold">
-              ${summary.totalRevenue.toLocaleString()}
+              ${(summary.totalRevenue ?? 0).toLocaleString()}
             </p>
           </div>
         </div>
