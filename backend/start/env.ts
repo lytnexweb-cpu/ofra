@@ -49,5 +49,12 @@ export default await Env.create(new URL('../', import.meta.url), {
   | Feature flags
   |----------------------------------------------------------
   */
-  ENFORCE_BLOCKING_CONDITIONS: Env.schema.boolean.optional()
+  ENFORCE_BLOCKING_CONDITIONS: Env.schema.boolean.optional(),
+
+  /*
+  |----------------------------------------------------------
+  | CORS configuration
+  |----------------------------------------------------------
+  */
+  CORS_ORIGINS: Env.schema.string.optional(),
 })

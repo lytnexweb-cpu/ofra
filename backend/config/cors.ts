@@ -1,4 +1,20 @@
+import env from '#start/env'
 import { defineConfig } from '@adonisjs/cors'
+
+/**
+ * Parse CORS origins from environment variable
+ * Supports comma-separated list: "http://localhost:5173,https://ofra.pages.dev"
+ */
+function parseOrigins(): string[] {
+  const envOrigins = env.get('CORS_ORIGINS', '')
+  const defaultOrigins = ['http://localhost:5173']
+
+  if (!envOrigins) {
+    return defaultOrigins
+  }
+
+  return envOrigins.split(',').map((origin) => origin.trim())
+}
 
 /**
  * Configuration options to tweak the CORS policy. The following
@@ -8,7 +24,7 @@ import { defineConfig } from '@adonisjs/cors'
  */
 const corsConfig = defineConfig({
   enabled: true,
-  origin: ['http://localhost:5173', 'https://crm-yanick-frontend.fly.dev'],
+  origin: parseOrigins(),
   methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE'],
   headers: true,
   exposeHeaders: [],
