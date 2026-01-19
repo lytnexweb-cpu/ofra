@@ -11,7 +11,7 @@ interface CardProps {
 export default function Card({ children, className = '', hover = true, onClick }: CardProps) {
   return (
     <motion.div
-      className={`bg-white rounded-xl shadow-sm border border-gray-100 ${hover ? 'cursor-pointer' : ''} ${className}`}
+      className={`bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 ${hover ? 'cursor-pointer' : ''} ${className}`}
       whileHover={hover ? { y: -2, boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)' } : undefined}
       transition={{ duration: 0.2 }}
       onClick={onClick}
@@ -28,7 +28,7 @@ interface CardHeaderProps {
 
 export function CardHeader({ children, className = '' }: CardHeaderProps) {
   return (
-    <div className={`p-6 border-b border-gray-100 ${className}`}>
+    <div className={`p-6 border-b border-gray-100 dark:border-gray-700 ${className}`}>
       {children}
     </div>
   )
@@ -54,7 +54,7 @@ interface CardFooterProps {
 
 export function CardFooter({ children, className = '' }: CardFooterProps) {
   return (
-    <div className={`p-6 border-t border-gray-100 ${className}`}>
+    <div className={`p-6 border-t border-gray-100 dark:border-gray-700 ${className}`}>
       {children}
     </div>
   )

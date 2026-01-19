@@ -131,22 +131,22 @@ export default function CreateClientModal({ isOpen, onClose }: CreateClientModal
       {/* Modal content */}
       <div className="relative z-10 flex min-h-full items-center justify-center p-4">
         <div
-          className="w-full max-w-lg rounded-xl bg-white shadow-xl"
+          className="w-full max-w-lg rounded-xl bg-white dark:bg-gray-800 shadow-xl"
           onClick={(e) => e.stopPropagation()}
         >
           <form onSubmit={handleSubmit}>
             <div className="p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">New Client</h3>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">New Client</h3>
 
               {/* Error Display */}
               {error && (
-                <div className="mb-4 rounded-md bg-red-50 border border-red-200 p-4">
-                  <h4 className="text-sm font-semibold text-red-800 mb-1">
+                <div className="mb-4 rounded-md bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 p-4">
+                  <h4 className="text-sm font-semibold text-red-800 dark:text-red-300 mb-1">
                     {error.title}
                   </h4>
-                  <p className="text-sm text-red-700">{error.message}</p>
+                  <p className="text-sm text-red-700 dark:text-red-400">{error.message}</p>
                   {error.fieldErrors && (
-                    <ul className="mt-2 text-xs text-red-600 list-disc list-inside">
+                    <ul className="mt-2 text-xs text-red-600 dark:text-red-400 list-disc list-inside">
                       {Object.entries(error.fieldErrors).map(([field, messages]) => (
                         <li key={field}>
                           <strong>{field}:</strong> {messages.join(', ')}
@@ -158,7 +158,7 @@ export default function CreateClientModal({ isOpen, onClose }: CreateClientModal
                     <button
                       type="button"
                       onClick={() => navigate('/login')}
-                      className="mt-2 text-sm font-medium text-red-800 underline hover:text-red-900"
+                      className="mt-2 text-sm font-medium text-red-800 dark:text-red-300 underline hover:text-red-900 dark:hover:text-red-200"
                     >
                       Go to login page →
                     </button>
@@ -167,7 +167,7 @@ export default function CreateClientModal({ isOpen, onClose }: CreateClientModal
               )}
 
               {/* Tabs */}
-              <div className="border-b border-gray-200 mb-4">
+              <div className="border-b border-gray-200 dark:border-gray-700 mb-4">
                 <nav className="-mb-px flex space-x-4">
                   {tabs.map((tab) => (
                     <button
@@ -176,8 +176,8 @@ export default function CreateClientModal({ isOpen, onClose }: CreateClientModal
                       onClick={() => setActiveTab(tab.id)}
                       className={`py-2 px-1 text-sm font-medium border-b-2 ${
                         activeTab === tab.id
-                          ? 'border-blue-500 text-blue-600'
-                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                          ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                          : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-600'
                       }`}
                     >
                       {tab.label}
@@ -195,7 +195,7 @@ export default function CreateClientModal({ isOpen, onClose }: CreateClientModal
                       <div>
                         <label
                           htmlFor="firstName"
-                          className="block text-sm font-medium text-gray-700"
+                          className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                         >
                           First Name <span className="text-red-500">*</span>
                         </label>
@@ -207,13 +207,13 @@ export default function CreateClientModal({ isOpen, onClose }: CreateClientModal
                           onChange={(e) =>
                             setFormData({ ...formData, firstName: e.target.value })
                           }
-                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                          className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                         />
                       </div>
                       <div>
                         <label
                           htmlFor="lastName"
-                          className="block text-sm font-medium text-gray-700"
+                          className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                         >
                           Last Name <span className="text-red-500">*</span>
                         </label>
@@ -225,7 +225,7 @@ export default function CreateClientModal({ isOpen, onClose }: CreateClientModal
                           onChange={(e) =>
                             setFormData({ ...formData, lastName: e.target.value })
                           }
-                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                          className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                         />
                       </div>
                     </div>
@@ -233,7 +233,7 @@ export default function CreateClientModal({ isOpen, onClose }: CreateClientModal
                     <div>
                       <label
                         htmlFor="email"
-                        className="block text-sm font-medium text-gray-700"
+                        className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                       >
                         Email
                       </label>
@@ -244,14 +244,14 @@ export default function CreateClientModal({ isOpen, onClose }: CreateClientModal
                         onChange={(e) =>
                           setFormData({ ...formData, email: e.target.value })
                         }
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                       />
                     </div>
 
                     <div>
                       <label
                         htmlFor="phone"
-                        className="block text-sm font-medium text-gray-700"
+                        className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                       >
                         Phone
                       </label>
@@ -262,14 +262,14 @@ export default function CreateClientModal({ isOpen, onClose }: CreateClientModal
                         onChange={(e) =>
                           setFormData({ ...formData, phone: e.target.value })
                         }
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                       />
                     </div>
 
                     <div>
                       <label
                         htmlFor="notes"
-                        className="block text-sm font-medium text-gray-700"
+                        className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                       >
                         Notes
                       </label>
@@ -280,7 +280,7 @@ export default function CreateClientModal({ isOpen, onClose }: CreateClientModal
                         onChange={(e) =>
                           setFormData({ ...formData, notes: e.target.value })
                         }
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                       />
                     </div>
                   </>
@@ -292,7 +292,7 @@ export default function CreateClientModal({ isOpen, onClose }: CreateClientModal
                     <div>
                       <label
                         htmlFor="addressLine1"
-                        className="block text-sm font-medium text-gray-700"
+                        className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                       >
                         Address Line 1
                       </label>
@@ -304,13 +304,13 @@ export default function CreateClientModal({ isOpen, onClose }: CreateClientModal
                         onChange={(e) =>
                           setFormData({ ...formData, addressLine1: e.target.value })
                         }
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                       />
                     </div>
                     <div>
                       <label
                         htmlFor="addressLine2"
-                        className="block text-sm font-medium text-gray-700"
+                        className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                       >
                         Address Line 2
                       </label>
@@ -322,14 +322,14 @@ export default function CreateClientModal({ isOpen, onClose }: CreateClientModal
                         onChange={(e) =>
                           setFormData({ ...formData, addressLine2: e.target.value })
                         }
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label
                           htmlFor="city"
-                          className="block text-sm font-medium text-gray-700"
+                          className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                         >
                           City
                         </label>
@@ -340,13 +340,13 @@ export default function CreateClientModal({ isOpen, onClose }: CreateClientModal
                           onChange={(e) =>
                             setFormData({ ...formData, city: e.target.value })
                           }
-                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                          className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                         />
                       </div>
                       <div>
                         <label
                           htmlFor="provinceState"
-                          className="block text-sm font-medium text-gray-700"
+                          className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                         >
                           Province/State
                         </label>
@@ -358,14 +358,14 @@ export default function CreateClientModal({ isOpen, onClose }: CreateClientModal
                           onChange={(e) =>
                             setFormData({ ...formData, provinceState: e.target.value })
                           }
-                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                          className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                         />
                       </div>
                     </div>
                     <div>
                       <label
                         htmlFor="postalCode"
-                        className="block text-sm font-medium text-gray-700"
+                        className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                       >
                         Postal Code
                       </label>
@@ -377,7 +377,7 @@ export default function CreateClientModal({ isOpen, onClose }: CreateClientModal
                         onChange={(e) =>
                           setFormData({ ...formData, postalCode: e.target.value })
                         }
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                       />
                     </div>
                   </>
@@ -389,7 +389,7 @@ export default function CreateClientModal({ isOpen, onClose }: CreateClientModal
                     <div>
                       <label
                         htmlFor="cellPhone"
-                        className="block text-sm font-medium text-gray-700"
+                        className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                       >
                         Cell Phone
                       </label>
@@ -401,13 +401,13 @@ export default function CreateClientModal({ isOpen, onClose }: CreateClientModal
                         onChange={(e) =>
                           setFormData({ ...formData, cellPhone: e.target.value })
                         }
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                       />
                     </div>
                     <div>
                       <label
                         htmlFor="homePhone"
-                        className="block text-sm font-medium text-gray-700"
+                        className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                       >
                         Home Phone
                       </label>
@@ -419,13 +419,13 @@ export default function CreateClientModal({ isOpen, onClose }: CreateClientModal
                         onChange={(e) =>
                           setFormData({ ...formData, homePhone: e.target.value })
                         }
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                       />
                     </div>
                     <div>
                       <label
                         htmlFor="workPhone"
-                        className="block text-sm font-medium text-gray-700"
+                        className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                       >
                         Work Phone
                       </label>
@@ -437,7 +437,7 @@ export default function CreateClientModal({ isOpen, onClose }: CreateClientModal
                         onChange={(e) =>
                           setFormData({ ...formData, workPhone: e.target.value })
                         }
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                       />
                     </div>
                   </>
@@ -445,12 +445,12 @@ export default function CreateClientModal({ isOpen, onClose }: CreateClientModal
               </div>
             </div>
 
-            <div className="bg-gray-50 px-6 py-4 flex justify-end gap-3 rounded-b-xl">
+            <div className="bg-gray-50 dark:bg-gray-900 px-6 py-4 flex justify-end gap-3 rounded-b-xl">
               <button
                 type="button"
                 onClick={handleClose}
                 disabled={createMutation.isPending}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
               >
                 Cancel
               </button>

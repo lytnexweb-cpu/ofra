@@ -118,19 +118,19 @@ export default function SettingsPage() {
     <div>
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
-        <p className="mt-2 text-gray-600">Manage your account settings and preferences</p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Settings</h1>
+        <p className="mt-2 text-gray-600 dark:text-gray-400">Manage your account settings and preferences</p>
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-gray-200 mb-6">
+      <div className="border-b border-gray-200 dark:border-gray-700 mb-6">
         <nav className="-mb-px flex space-x-8 overflow-x-auto">
           <button
             onClick={() => setActiveTab('password')}
             className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
               activeTab === 'password'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-600'
             }`}
           >
             🔒 Password
@@ -139,8 +139,8 @@ export default function SettingsPage() {
             onClick={() => setActiveTab('email')}
             className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
               activeTab === 'email'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-600'
             }`}
           >
             ✉️ Email
@@ -149,8 +149,8 @@ export default function SettingsPage() {
             onClick={() => setActiveTab('profile')}
             className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
               activeTab === 'profile'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-600'
             }`}
           >
             👤 Profile
@@ -159,8 +159,8 @@ export default function SettingsPage() {
             onClick={() => setActiveTab('signature')}
             className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
               activeTab === 'signature'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-600'
             }`}
           >
             ✍️ Email Signature
@@ -175,9 +175,9 @@ export default function SettingsPage() {
             <ChangePasswordForm />
 
             {/* Logout All Section */}
-            <div className="bg-white shadow rounded-lg p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">Sign Out Everywhere</h2>
-              <p className="text-gray-600 mb-4">
+            <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Sign Out Everywhere</h2>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
                 Sign out from all devices and sessions. You will be redirected to the login page.
               </p>
               <button
@@ -194,57 +194,57 @@ export default function SettingsPage() {
         {activeTab === 'email' && <ChangeEmailForm currentEmail={currentEmail} />}
 
         {activeTab === 'profile' && (
-          <div className="bg-white shadow rounded-lg p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Profile Information</h2>
+          <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Profile Information</h2>
 
             {successMessage && (
-              <div className="mb-4 rounded-md bg-green-50 border border-green-200 p-4">
-                <p className="text-sm text-green-800">{successMessage}</p>
+              <div className="mb-4 rounded-md bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 p-4">
+                <p className="text-sm text-green-800 dark:text-green-300">{successMessage}</p>
               </div>
             )}
 
             {errorMessage && (
-              <div className="mb-4 rounded-md bg-red-50 border border-red-200 p-4">
-                <p className="text-sm text-red-800">{errorMessage}</p>
+              <div className="mb-4 rounded-md bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 p-4">
+                <p className="text-sm text-red-800 dark:text-red-300">{errorMessage}</p>
               </div>
             )}
 
             <form onSubmit={handleProfileSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">Full Name</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Full Name</label>
                 <input
                   type="text"
                   value={profileForm.fullName}
                   onChange={(e) => setProfileForm({ ...profileForm, fullName: e.target.value })}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   placeholder="John Doe"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">Phone</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Phone</label>
                 <input
                   type="tel"
                   value={profileForm.phone}
                   onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   placeholder="555-1234"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">Agency</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Agency</label>
                 <input
                   type="text"
                   value={profileForm.agency}
                   onChange={(e) => setProfileForm({ ...profileForm, agency: e.target.value })}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   placeholder="Your Real Estate Agency"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   License Number
                 </label>
                 <input
@@ -253,19 +253,19 @@ export default function SettingsPage() {
                   onChange={(e) =>
                     setProfileForm({ ...profileForm, licenseNumber: e.target.value })
                   }
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   placeholder="ABC-12345"
                 />
               </div>
 
-              <div className="pt-4 border-t border-gray-200">
-                <h3 className="text-base font-medium text-gray-900 mb-4">
+              <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                <h3 className="text-base font-medium text-gray-900 dark:text-white mb-4">
                   Regional Settings
                 </h3>
 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                       Date Format
                     </label>
                     <select
@@ -276,7 +276,7 @@ export default function SettingsPage() {
                           dateFormat: e.target.value as 'DD/MM/YYYY' | 'MM/DD/YYYY',
                         })
                       }
-                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                      className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                     >
                       <option value="DD/MM/YYYY">DD/MM/YYYY (25/12/2025)</option>
                       <option value="MM/DD/YYYY">MM/DD/YYYY (12/25/2025)</option>
@@ -284,7 +284,7 @@ export default function SettingsPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                       Timezone
                     </label>
                     <select
@@ -292,7 +292,7 @@ export default function SettingsPage() {
                       onChange={(e) =>
                         setProfileForm({ ...profileForm, timezone: e.target.value })
                       }
-                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                      className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                     >
                       <option value="America/Toronto">America/Toronto (EST/EDT)</option>
                       <option value="America/Montreal">America/Montreal (EST/EDT)</option>
@@ -317,29 +317,29 @@ export default function SettingsPage() {
         )}
 
         {activeTab === 'signature' && (
-          <div className="bg-white shadow rounded-lg p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">
+          <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
               Email Signature
             </h2>
-            <p className="text-sm text-gray-600 mb-4">
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
               Customize the signature that appears in automated emails sent to clients.
             </p>
 
             {successMessage && (
-              <div className="mb-4 rounded-md bg-green-50 border border-green-200 p-4">
-                <p className="text-sm text-green-800">{successMessage}</p>
+              <div className="mb-4 rounded-md bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 p-4">
+                <p className="text-sm text-green-800 dark:text-green-300">{successMessage}</p>
               </div>
             )}
 
             {errorMessage && (
-              <div className="mb-4 rounded-md bg-red-50 border border-red-200 p-4">
-                <p className="text-sm text-red-800">{errorMessage}</p>
+              <div className="mb-4 rounded-md bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 p-4">
+                <p className="text-sm text-red-800 dark:text-red-300">{errorMessage}</p>
               </div>
             )}
 
             <form onSubmit={handleSignatureSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Custom Signature
                 </label>
                 <textarea
@@ -348,10 +348,10 @@ export default function SettingsPage() {
                   onChange={(e) =>
                     setSignatureForm({ ...signatureForm, emailSignature: e.target.value })
                   }
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   placeholder="Best regards,&#10;John Doe&#10;Real Estate Broker&#10;Phone: 555-1234&#10;www.mybroker.com"
                 />
-                <p className="mt-2 text-xs text-gray-500">
+                <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
                   If empty, a default signature with your name will be used.
                 </p>
               </div>

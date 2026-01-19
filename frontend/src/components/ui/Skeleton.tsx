@@ -5,14 +5,14 @@ interface SkeletonProps {
 export function Skeleton({ className = '' }: SkeletonProps) {
   return (
     <div
-      className={`animate-pulse bg-gray-200 rounded ${className}`}
+      className={`animate-pulse bg-gray-200 dark:bg-gray-700 rounded ${className}`}
     />
   )
 }
 
 export function SkeletonCard() {
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
       <div className="flex items-center justify-between">
         <Skeleton className="h-12 w-12 rounded-lg" />
         <Skeleton className="h-4 w-16" />
@@ -27,7 +27,7 @@ export function SkeletonCard() {
 
 export function SkeletonChart() {
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="space-y-2">
           <Skeleton className="h-5 w-32" />
@@ -49,7 +49,7 @@ export function SkeletonChart() {
 
 export function SkeletonList({ count = 5 }: { count?: number }) {
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
       <Skeleton className="h-5 w-40 mb-4" />
       <div className="space-y-4">
         {Array.from({ length: count }).map((_, i) => (
@@ -68,11 +68,11 @@ export function SkeletonList({ count = 5 }: { count?: number }) {
 
 export function SkeletonTable({ rows = 5 }: { rows?: number }) {
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-      <div className="p-4 border-b border-gray-100">
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+      <div className="p-4 border-b border-gray-100 dark:border-gray-700">
         <Skeleton className="h-6 w-48" />
       </div>
-      <div className="divide-y divide-gray-100">
+      <div className="divide-y divide-gray-100 dark:divide-gray-700">
         {Array.from({ length: rows }).map((_, i) => (
           <div key={i} className="p-4 flex items-center gap-4">
             <Skeleton className="h-10 w-10 rounded-full" />
