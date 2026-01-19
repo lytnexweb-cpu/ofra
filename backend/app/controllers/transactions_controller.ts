@@ -1,6 +1,6 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import { DateTime } from 'luxon'
-import Transaction from '#models/transaction'
+import Transaction, { TransactionStatus, TransactionType } from '#models/transaction'
 import TransactionStatusHistory from '#models/transaction_status_history'
 import {
   createTransactionValidator,
@@ -9,6 +9,42 @@ import {
 } from '#validators/transaction_validator'
 import { TransactionAutomationService } from '#services/transaction_automation_service'
 import env from '#start/env'
+
+/**
+ * Type for transaction creation data
+ */
+interface CreateTransactionData {
+  clientId: number
+  propertyId?: number | null
+  type: TransactionType
+  status: TransactionStatus
+  salePrice?: number | null
+  notesText?: string | null
+  listPrice?: number | null
+  offerPrice?: number | null
+  counterOfferEnabled: boolean
+  counterOfferPrice?: number | null
+  offerExpiryAt?: DateTime
+  commission?: number | null
+  ownerUserId: number
+}
+
+/**
+ * Type for transaction update data
+ */
+interface UpdateTransactionData {
+  clientId?: number
+  propertyId?: number | null
+  type?: TransactionType
+  salePrice?: number | null
+  notesText?: string | null
+  listPrice?: number | null
+  offerPrice?: number | null
+  counterOfferEnabled?: boolean
+  counterOfferPrice?: number | null
+  offerExpiryAt?: DateTime
+  commission?: number | null
+}
 
 export default class TransactionsController {
   async index({ request, response, auth }: HttpContext) {
@@ -66,7 +102,7 @@ export default class TransactionsController {
       }
 
       // If counterOfferEnabled is false, set counterOfferPrice to null
-      const transactionData: any = {
+      const transactionData: CreateTransactionData = {
         ...payload,
         ownerUserId: auth.user!.id,
         status: payload.status || 'consultation',
@@ -156,7 +192,7 @@ export default class TransactionsController {
       }
 
       // Prepare update data (set counterOfferPrice to null if disabled)
-      const updateData: any = {
+      const updateData: UpdateTransactionData = {
         ...payload,
         counterOfferPrice: payload.counterOfferEnabled === false ? null : payload.counterOfferPrice,
         offerExpiryAt: payload.offerExpiryAt ? DateTime.fromISO(payload.offerExpiryAt) : undefined,
