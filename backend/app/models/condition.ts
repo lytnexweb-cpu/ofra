@@ -46,6 +46,12 @@ export default class Condition extends BaseModel {
   @column({ columnName: 'is_blocking' })
   declare isBlocking: boolean
 
+  @column({ columnName: 'document_url' })
+  declare documentUrl: string | null
+
+  @column({ columnName: 'document_label' })
+  declare documentLabel: string | null
+
   @column.date()
   declare dueDate: DateTime | null
 

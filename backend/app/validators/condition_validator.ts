@@ -37,6 +37,8 @@ export const createConditionValidator = vine.compile(
       ])
       .optional(),
     isBlocking: vine.boolean().optional(),
+    documentUrl: vine.string().trim().maxLength(2048).optional(),
+    documentLabel: vine.string().trim().maxLength(255).optional(),
   })
 )
 
@@ -78,5 +80,7 @@ export const updateConditionValidator = vine.compile(
       ])
       .optional(),
     isBlocking: vine.boolean().optional(),
+    documentUrl: vine.string().trim().maxLength(2048).optional(),
+    documentLabel: vine.string().trim().maxLength(255).optional(),
   })
 )

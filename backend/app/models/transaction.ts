@@ -64,6 +64,9 @@ export default class Transaction extends BaseModel {
   @column()
   declare commission: number | null
 
+  @column({ columnName: 'folder_url' })
+  declare folderUrl: string | null
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 

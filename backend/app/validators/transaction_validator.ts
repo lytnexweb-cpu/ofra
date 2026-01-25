@@ -26,6 +26,7 @@ export const createTransactionValidator = vine.compile(
     counterOfferPrice: vine.number().min(0).optional(),
     offerExpiryAt: vine.string().optional(), // Accept datetime-local string format "YYYY-MM-DDTHH:mm"
     commission: vine.number().min(0).optional(),
+    folderUrl: vine.string().trim().maxLength(2048).optional(),
   })
 )
 
@@ -44,6 +45,7 @@ export const updateTransactionValidator = vine.compile(
     counterOfferPrice: vine.number().min(0).optional(),
     offerExpiryAt: vine.string().optional(), // Accept datetime-local string format "YYYY-MM-DDTHH:mm"
     commission: vine.number().min(0).optional(),
+    folderUrl: vine.string().trim().maxLength(2048).optional(),
   })
 )
 
