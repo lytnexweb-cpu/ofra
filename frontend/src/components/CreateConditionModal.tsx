@@ -27,6 +27,8 @@ export default function CreateConditionModal({
     priority: 'medium',
     stage: undefined, // Will be auto-set by backend to current transaction status
     isBlocking: true, // Default to blocking
+    documentUrl: '',
+    documentLabel: '',
   })
   const [error, setError] = useState<ParsedError | null>(null)
   const queryClient = useQueryClient()
@@ -70,6 +72,8 @@ export default function CreateConditionModal({
       priority: 'medium',
       stage: undefined,
       isBlocking: true,
+      documentUrl: '',
+      documentLabel: '',
     })
     setError(null)
   }
@@ -95,6 +99,8 @@ export default function CreateConditionModal({
       priority: formData.priority,
       stage: formData.stage,
       isBlocking: formData.isBlocking,
+      documentUrl: formData.documentUrl?.trim() || undefined,
+      documentLabel: formData.documentLabel?.trim() || undefined,
     })
   }
 
@@ -314,6 +320,51 @@ export default function CreateConditionModal({
                     }
                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   />
+                </div>
+
+                {/* Document Link Section */}
+                <div className="border-t pt-4 mt-4">
+                  <p className="text-sm font-medium text-gray-700 mb-3">
+                    Document Link (Optional)
+                  </p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label
+                        htmlFor="documentLabel"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Label
+                      </label>
+                      <input
+                        type="text"
+                        id="documentLabel"
+                        placeholder="e.g. Financing Letter"
+                        value={formData.documentLabel}
+                        onChange={(e) =>
+                          setFormData({ ...formData, documentLabel: e.target.value })
+                        }
+                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="documentUrl"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        URL
+                      </label>
+                      <input
+                        type="url"
+                        id="documentUrl"
+                        placeholder="https://..."
+                        value={formData.documentUrl}
+                        onChange={(e) =>
+                          setFormData({ ...formData, documentUrl: e.target.value })
+                        }
+                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

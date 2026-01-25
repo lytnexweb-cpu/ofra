@@ -71,6 +71,8 @@ export default function TransactionDetailPage() {
     priority?: ConditionPriority
     stage?: ConditionStage
     isBlocking?: boolean
+    documentUrl?: string
+    documentLabel?: string
   }>({
     title: '',
     dueDate: '',
@@ -79,6 +81,8 @@ export default function TransactionDetailPage() {
     priority: 'medium',
     stage: undefined,
     isBlocking: true,
+    documentUrl: '',
+    documentLabel: '',
   })
 
   // Confirmation dialogs state
@@ -113,6 +117,7 @@ export default function TransactionDetailPage() {
     counterOfferEnabled: false,
     counterOfferPrice: '',
     commission: '',
+    folderUrl: '',
   })
 
   // Queries
@@ -366,6 +371,8 @@ export default function TransactionDetailPage() {
       priority: condition.priority,
       stage: condition.stage,
       isBlocking: condition.isBlocking,
+      documentUrl: condition.documentUrl || '',
+      documentLabel: condition.documentLabel || '',
     })
   }
 
@@ -432,6 +439,7 @@ export default function TransactionDetailPage() {
       counterOfferEnabled: transaction.counterOfferEnabled || false,
       counterOfferPrice: transaction.counterOfferPrice?.toString() || '',
       commission: transaction.commission?.toString() || '',
+      folderUrl: transaction.folderUrl || '',
     })
     setEditingOfferDetails(true)
   }
@@ -455,6 +463,11 @@ export default function TransactionDetailPage() {
       payload.counterOfferPrice = null
     } else if (counterOfferPriceNum !== undefined) {
       payload.counterOfferPrice = counterOfferPriceNum
+    }
+
+    // Folder URL
+    if (offerDetailsForm.folderUrl.trim()) {
+      payload.folderUrl = offerDetailsForm.folderUrl.trim()
     }
 
     updateOfferDetailsMutation.mutate(payload)
@@ -955,6 +968,25 @@ export default function TransactionDetailPage() {
                   </div>
                 )}
 
+                {/* Folder URL */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Folder URL (Google Drive, Dropbox, etc.)
+                  </label>
+                  <input
+                    type="url"
+                    value={offerDetailsForm.folderUrl}
+                    onChange={(e) =>
+                      setOfferDetailsForm({
+                        ...offerDetailsForm,
+                        folderUrl: e.target.value,
+                      })
+                    }
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                    placeholder="https://drive.google.com/..."
+                  />
+                </div>
+
                 <div className="flex justify-end space-x-3 pt-4">
                   <button
                     type="button"
@@ -1072,6 +1104,26 @@ export default function TransactionDetailPage() {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
                           })}
+                        </dd>
+                      </div>
+                    )}
+                    {transaction.folderUrl && (
+                      <div className="col-span-2">
+                        <dt className="text-sm font-medium text-gray-500">
+                          Transaction Folder
+                        </dt>
+                        <dd className="mt-1">
+                          <a
+                            href={transaction.folderUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                            </svg>
+                            Open Folder
+                          </a>
                         </dd>
                       </div>
                     )}
@@ -1354,6 +1406,33 @@ export default function TransactionDetailPage() {
                             </p>
                           </div>
                         </div>
+                        {/* Document Link Fields */}
+                        <div className="grid grid-cols-2 gap-3 border-t pt-3">
+                          <input
+                            type="text"
+                            placeholder="Document label"
+                            value={editConditionData.documentLabel || ''}
+                            onChange={(e) =>
+                              setEditConditionData({
+                                ...editConditionData,
+                                documentLabel: e.target.value,
+                              })
+                            }
+                            className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                          />
+                          <input
+                            type="url"
+                            placeholder="https://..."
+                            value={editConditionData.documentUrl || ''}
+                            onChange={(e) =>
+                              setEditConditionData({
+                                ...editConditionData,
+                                documentUrl: e.target.value,
+                              })
+                            }
+                            className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                          />
+                        </div>
                         <div className="flex gap-2">
                           <button
                             onClick={handleSaveCondition}
@@ -1421,6 +1500,19 @@ export default function TransactionDetailPage() {
                                 <p className="mt-1 text-sm text-gray-500">
                                   {condition.description}
                                 </p>
+                              )}
+                              {condition.documentUrl && (
+                                <a
+                                  href={condition.documentUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="mt-1 inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                  </svg>
+                                  {condition.documentLabel || 'View Document'}
+                                </a>
                               )}
                               <div className="mt-2 flex items-center gap-4 text-xs text-gray-500">
                                 <span>
