@@ -1,3 +1,4 @@
+import { DateTime } from 'luxon'
 import Condition from '#models/condition'
 import type { TransactionStatus } from './transaction.js'
 
@@ -27,6 +28,10 @@ export async function createCondition(
     priority: ConditionPriority
     stage: TransactionStatus
     isBlocking: boolean
+    dueDate: string
+    completedAt: string
+    documentUrl: string
+    documentLabel: string
   }> = {}
 ): Promise<Condition> {
   conditionCounter++
@@ -39,5 +44,9 @@ export async function createCondition(
     priority: overrides.priority ?? 'medium',  // OBLIGATOIRE
     stage: overrides.stage ?? 'conditions',    // OBLIGATOIRE
     isBlocking: overrides.isBlocking ?? true,
+    dueDate: overrides.dueDate ? DateTime.fromISO(overrides.dueDate) : null,
+    completedAt: overrides.completedAt ? DateTime.fromISO(overrides.completedAt) : null,
+    documentUrl: overrides.documentUrl ?? null,
+    documentLabel: overrides.documentLabel ?? null,
   })
 }
