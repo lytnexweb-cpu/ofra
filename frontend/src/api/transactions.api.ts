@@ -29,6 +29,7 @@ export interface Transaction {
   counterOfferPrice: number | null
   offerExpiryAt: string | null
   commission: number | null
+  folderUrl: string | null
   createdAt: string
   updatedAt: string
   client?: Client
@@ -51,6 +52,7 @@ export interface CreateTransactionRequest {
   counterOfferPrice?: number
   offerExpiryAt?: string
   commission?: number
+  folderUrl?: string
 }
 
 export interface UpdateTransactionRequest {
@@ -67,6 +69,7 @@ export interface UpdateTransactionRequest {
   counterOfferPrice?: number
   offerExpiryAt?: string
   commission?: number
+  folderUrl?: string
 }
 
 export const transactionsApi = {
