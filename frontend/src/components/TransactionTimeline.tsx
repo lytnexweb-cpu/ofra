@@ -5,14 +5,13 @@ interface TransactionTimelineProps {
 }
 
 const statusLabels: Record<string, string> = {
-  consultation: 'Consultation',
-  offer: 'Offer Submitted',
-  accepted: 'Offer Accepted',
-  conditions: 'Conditional Period',
-  notary: 'Firm',
+  active: 'Active',
+  offer: 'Offer',
+  conditional: 'Conditional',
+  firm: 'Firm',
   closing: 'Closing',
   completed: 'Completed',
-  canceled: 'Canceled',
+  cancelled: 'Cancelled',
 }
 
 const conditionTypeLabels: Record<string, string> = {
@@ -109,38 +108,17 @@ export default function TransactionTimeline({ transaction }: TransactionTimeline
             </p>
           </div>
         </div>
-        {(transaction.salePrice || transaction.offerPrice || transaction.offerExpiryAt) && (
+        {transaction.salePrice && (
           <div className="mt-2 pt-2 border-t border-blue-200 space-y-2">
-            {transaction.salePrice && (
-              <div>
-                <p className="text-sm text-blue-600">Price</p>
-                <p className="text-xl font-bold text-blue-900">
-                  {transaction.salePrice.toLocaleString('en-US', {
-                    style: 'currency',
-                    currency: 'USD',
-                  })}
-                </p>
-              </div>
-            )}
-            {transaction.offerPrice && (
-              <div>
-                <p className="text-sm text-blue-600">Offer</p>
-                <p className="text-lg font-semibold text-blue-900">
-                  {transaction.offerPrice.toLocaleString('en-US', {
-                    style: 'currency',
-                    currency: 'USD',
-                  })}
-                </p>
-              </div>
-            )}
-            {transaction.offerExpiryAt && (
-              <div>
-                <p className="text-sm text-blue-600">Expiration</p>
-                <p className="text-sm font-medium text-blue-900">
-                  {formatDateTime(transaction.offerExpiryAt)}
-                </p>
-              </div>
-            )}
+            <div>
+              <p className="text-sm text-blue-600">Price</p>
+              <p className="text-xl font-bold text-blue-900">
+                {transaction.salePrice.toLocaleString('en-US', {
+                  style: 'currency',
+                  currency: 'USD',
+                })}
+              </p>
+            </div>
           </div>
         )}
       </div>

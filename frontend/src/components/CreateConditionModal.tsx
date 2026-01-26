@@ -268,14 +268,13 @@ export default function CreateConditionModal({
                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   >
                     <option value="">Auto (Current transaction status)</option>
-                    <option value="consultation">Consultation</option>
-                    <option value="offer">Offer Submitted</option>
-                    <option value="accepted">Offer Accepted</option>
-                    <option value="conditions">Conditional Period</option>
-                    <option value="notary">Firm</option>
+                    <option value="active">Active</option>
+                    <option value="offer">Offer</option>
+                    <option value="conditional">Conditional</option>
+                    <option value="firm">Firm</option>
                     <option value="closing">Closing</option>
                     <option value="completed">Completed</option>
-                    <option value="canceled">Canceled</option>
+                    <option value="cancelled">Cancelled</option>
                   </select>
                   <p className="mt-1 text-xs text-gray-500">
                     Leave "Auto" to use current transaction status

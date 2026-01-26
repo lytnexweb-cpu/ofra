@@ -21,14 +21,14 @@ test.group('Reminders - Idempotence (No Duplicates)', (group) => {
     // Setup: Create user with overdue condition
     const user = await createUser({ email: 'reminder-test@example.com' })
     const client = await createClient(user.id)
-    const transaction = await createTransaction(user.id, client.id, { status: 'conditions' })
+    const transaction = await createTransaction(user.id, client.id, { status: 'conditional' })
 
     // Create overdue condition (due yesterday)
     await createCondition(transaction.id, {
       title: 'Financing Approval',
       status: 'pending',
       dueDate: DateTime.now().minus({ days: 1 }).toISO(),
-      stage: 'conditions',
+      stage: 'conditional',
     })
 
     // First run
@@ -62,7 +62,7 @@ test.group('Reminders - Condition Selection', (group) => {
   test('selects only overdue and due-soon pending conditions', async ({ assert }) => {
     const user = await createUser({ email: 'selection-test@example.com' })
     const client = await createClient(user.id)
-    const transaction = await createTransaction(user.id, client.id, { status: 'conditions' })
+    const transaction = await createTransaction(user.id, client.id, { status: 'conditional' })
 
     const today = DateTime.now()
 
@@ -71,7 +71,7 @@ test.group('Reminders - Condition Selection', (group) => {
       title: 'Overdue Condition',
       status: 'pending',
       dueDate: today.minus({ days: 3 }).toISO(),
-      stage: 'conditions',
+      stage: 'conditional',
     })
 
     // Condition 2: Due in 5 days (should be selected - within 7 days)
@@ -79,7 +79,7 @@ test.group('Reminders - Condition Selection', (group) => {
       title: 'Due Soon Condition',
       status: 'pending',
       dueDate: today.plus({ days: 5 }).toISO(),
-      stage: 'conditions',
+      stage: 'conditional',
     })
 
     // Condition 3: Due in 10 days (should NOT be selected)
@@ -87,7 +87,7 @@ test.group('Reminders - Condition Selection', (group) => {
       title: 'Far Future Condition',
       status: 'pending',
       dueDate: today.plus({ days: 10 }).toISO(),
-      stage: 'conditions',
+      stage: 'conditional',
     })
 
     // Run reminders
@@ -103,7 +103,7 @@ test.group('Reminders - Condition Selection', (group) => {
   test('completed conditions are ignored', async ({ assert }) => {
     const user = await createUser({ email: 'completed-test@example.com' })
     const client = await createClient(user.id)
-    const transaction = await createTransaction(user.id, client.id, { status: 'conditions' })
+    const transaction = await createTransaction(user.id, client.id, { status: 'conditional' })
 
     const today = DateTime.now()
 
@@ -113,7 +113,7 @@ test.group('Reminders - Condition Selection', (group) => {
       status: 'completed',
       dueDate: today.minus({ days: 3 }).toISO(),
       completedAt: today.minus({ days: 1 }).toISO(),
-      stage: 'conditions',
+      stage: 'conditional',
     })
 
     // Create COMPLETED due-soon condition (should be ignored)
@@ -122,7 +122,7 @@ test.group('Reminders - Condition Selection', (group) => {
       status: 'completed',
       dueDate: today.plus({ days: 2 }).toISO(),
       completedAt: today.toISO(),
-      stage: 'conditions',
+      stage: 'conditional',
     })
 
     // Run reminders
@@ -150,23 +150,23 @@ test.group('Reminders - Multi-tenant Isolation', (group) => {
     // Create User A with overdue condition
     const userA = await createUser({ email: 'usera@example.com' })
     const clientA = await createClient(userA.id)
-    const transactionA = await createTransaction(userA.id, clientA.id, { status: 'conditions' })
+    const transactionA = await createTransaction(userA.id, clientA.id, { status: 'conditional' })
     await createCondition(transactionA.id, {
       title: 'User A Overdue',
       status: 'pending',
       dueDate: today.minus({ days: 2 }).toISO(),
-      stage: 'conditions',
+      stage: 'conditional',
     })
 
     // Create User B with overdue condition
     const userB = await createUser({ email: 'userb@example.com' })
     const clientB = await createClient(userB.id)
-    const transactionB = await createTransaction(userB.id, clientB.id, { status: 'conditions' })
+    const transactionB = await createTransaction(userB.id, clientB.id, { status: 'conditional' })
     await createCondition(transactionB.id, {
       title: 'User B Overdue',
       status: 'pending',
       dueDate: today.minus({ days: 2 }).toISO(),
-      stage: 'conditions',
+      stage: 'conditional',
     })
 
     // Run reminders
@@ -204,7 +204,7 @@ test.group('Reminders - 48h Reminder', (group) => {
   test('sends 48h reminder for conditions due within 48 hours', async ({ assert }) => {
     const user = await createUser({ email: '48h-test@example.com' })
     const client = await createClient(user.id)
-    const transaction = await createTransaction(user.id, client.id, { status: 'conditions' })
+    const transaction = await createTransaction(user.id, client.id, { status: 'conditional' })
 
     const today = DateTime.now()
 
@@ -213,7 +213,7 @@ test.group('Reminders - 48h Reminder', (group) => {
       title: 'Due Tomorrow',
       status: 'pending',
       dueDate: today.plus({ days: 1 }).toISO(),
-      stage: 'conditions',
+      stage: 'conditional',
     })
 
     // Condition due in 3 days (NOT within 48h)
@@ -221,7 +221,7 @@ test.group('Reminders - 48h Reminder', (group) => {
       title: 'Due in 3 Days',
       status: 'pending',
       dueDate: today.plus({ days: 3 }).toISO(),
-      stage: 'conditions',
+      stage: 'conditional',
     })
 
     // Run reminders

@@ -14,14 +14,13 @@ export type ConditionType =
   | 'other'
 export type ConditionPriority = 'low' | 'medium' | 'high'
 export type TransactionStatus =
-  | 'consultation'
+  | 'active'
   | 'offer'
-  | 'accepted'
-  | 'conditions'
-  | 'notary'
+  | 'conditional'
+  | 'firm'
   | 'closing'
   | 'completed'
-  | 'canceled'
+  | 'cancelled'
 export type ConditionStage = TransactionStatus
 
 export interface Condition {

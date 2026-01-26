@@ -2,16 +2,41 @@ import { http } from './http'
 import type { Client } from './clients.api'
 
 export type TransactionStatus =
-  | 'consultation'
+  | 'active'
   | 'offer'
-  | 'accepted'
-  | 'conditions'
-  | 'notary'
+  | 'conditional'
+  | 'firm'
   | 'closing'
   | 'completed'
-  | 'canceled'
+  | 'cancelled'
 
 export type TransactionType = 'purchase' | 'sale'
+
+export interface OfferRevision {
+  id: number
+  offerId: number
+  revisionNumber: number
+  price: number
+  deposit: number | null
+  financingAmount: number | null
+  expiryAt: string | null
+  notes: string | null
+  direction: 'buyer_to_seller' | 'seller_to_buyer'
+  createdByUserId: number | null
+  createdAt: string
+}
+
+export type OfferStatus = 'received' | 'countered' | 'accepted' | 'rejected' | 'expired' | 'withdrawn'
+
+export interface Offer {
+  id: number
+  transactionId: number
+  status: OfferStatus
+  acceptedAt: string | null
+  createdAt: string
+  updatedAt: string
+  revisions?: OfferRevision[]
+}
 
 export interface Transaction {
   id: number
@@ -22,12 +47,7 @@ export interface Transaction {
   status: TransactionStatus
   salePrice: number | null
   notesText: string | null
-  // Offer Details fields
   listPrice: number | null
-  offerPrice: number | null
-  counterOfferEnabled: boolean
-  counterOfferPrice: number | null
-  offerExpiryAt: string | null
   commission: number | null
   folderUrl: string | null
   createdAt: string
@@ -35,6 +55,7 @@ export interface Transaction {
   client?: Client
   property?: any
   conditions?: any[]
+  offers?: Offer[]
   notes?: any[]
 }
 
@@ -45,14 +66,10 @@ export interface CreateTransactionRequest {
   status?: TransactionStatus
   salePrice?: number
   notesText?: string
-  // Offer Details fields
   listPrice?: number
-  offerPrice?: number
-  counterOfferEnabled?: boolean
-  counterOfferPrice?: number
-  offerExpiryAt?: string
   commission?: number
   folderUrl?: string
+  templateId?: number
 }
 
 export interface UpdateTransactionRequest {
@@ -62,12 +79,7 @@ export interface UpdateTransactionRequest {
   status?: TransactionStatus
   salePrice?: number
   notesText?: string
-  // Offer Details fields
   listPrice?: number
-  offerPrice?: number
-  counterOfferEnabled?: boolean
-  counterOfferPrice?: number
-  offerExpiryAt?: string
   commission?: number
   folderUrl?: string
 }

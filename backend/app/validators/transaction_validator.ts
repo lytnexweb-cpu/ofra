@@ -1,14 +1,13 @@
 import vine from '@vinejs/vine'
 
 const transactionStatuses = [
-  'consultation',
+  'active',
   'offer',
-  'accepted',
-  'conditions',
-  'notary',
+  'conditional',
+  'firm',
   'closing',
   'completed',
-  'canceled',
+  'cancelled',
 ] as const
 
 export const createTransactionValidator = vine.compile(
@@ -19,14 +18,11 @@ export const createTransactionValidator = vine.compile(
     status: vine.enum(transactionStatuses).optional(),
     salePrice: vine.number().positive().optional(),
     notesText: vine.string().trim().optional(),
-    // Offer Details fields
     listPrice: vine.number().min(0).optional(),
-    offerPrice: vine.number().min(0).optional(),
-    counterOfferEnabled: vine.boolean().optional(),
-    counterOfferPrice: vine.number().min(0).optional(),
-    offerExpiryAt: vine.string().optional(), // Accept datetime-local string format "YYYY-MM-DDTHH:mm"
     commission: vine.number().min(0).optional(),
     folderUrl: vine.string().trim().maxLength(2048).optional(),
+    // Template support
+    templateId: vine.number().positive().optional(),
   })
 )
 
@@ -38,12 +34,7 @@ export const updateTransactionValidator = vine.compile(
     status: vine.enum(transactionStatuses).optional(),
     salePrice: vine.number().positive().optional(),
     notesText: vine.string().trim().optional(),
-    // Offer Details fields
     listPrice: vine.number().min(0).optional(),
-    offerPrice: vine.number().min(0).optional(),
-    counterOfferEnabled: vine.boolean().optional(),
-    counterOfferPrice: vine.number().min(0).optional(),
-    offerExpiryAt: vine.string().optional(), // Accept datetime-local string format "YYYY-MM-DDTHH:mm"
     commission: vine.number().min(0).optional(),
     folderUrl: vine.string().trim().maxLength(2048).optional(),
   })

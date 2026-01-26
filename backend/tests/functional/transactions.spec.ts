@@ -30,7 +30,7 @@ test.group('Transactions - CRUD', (group) => {
     const response = await withAuth(client.post('/api/transactions'), user.id).json({
       clientId: testClient.id,
       type: 'purchase',
-      status: 'consultation',
+      status: 'active',
       salePrice: 500000,
     })
 
@@ -40,7 +40,7 @@ test.group('Transactions - CRUD', (group) => {
       data: {
         transaction: {
           type: 'purchase',
-          status: 'consultation',
+          status: 'active',
         },
       },
     })
@@ -49,7 +49,7 @@ test.group('Transactions - CRUD', (group) => {
   test('PATCH /api/transactions/:id/status changes status', async ({ client }) => {
     const user = await createUser({ email: 'tx@test.com' })
     const testClient = await createClient(user.id)
-    const transaction = await createTransaction(user.id, testClient.id, { status: 'consultation' })
+    const transaction = await createTransaction(user.id, testClient.id, { status: 'active' })
 
     const response = await withAuth(
       client.patch(`/api/transactions/${transaction.id}/status`),
@@ -94,18 +94,21 @@ test.group('Transactions - Blocking Conditions', (group) => {
     await truncateAll()
   })
 
+  // Use firm → closing transitions to test blocking conditions
+  // (conditional → firm requires an accepted offer which is a separate concern)
+
   test('status change BLOCKED when pending blocking condition at current stage', async ({
     client,
   }) => {
     const user = await createUser({ email: 'blocking@test.com' })
     const testClient = await createClient(user.id)
-    const transaction = await createTransaction(user.id, testClient.id, { status: 'conditions' })
+    const transaction = await createTransaction(user.id, testClient.id, { status: 'firm' })
 
     // Add blocking condition at SAME stage as transaction
     await createCondition(transaction.id, {
-      title: 'Financing Approval',
+      title: 'Final Documents',
       status: 'pending',
-      stage: 'conditions', // Same as transaction.status
+      stage: 'firm', // Same as transaction.status
       isBlocking: true,
     })
 
@@ -113,7 +116,7 @@ test.group('Transactions - Blocking Conditions', (group) => {
     const response = await withAuth(
       client.patch(`/api/transactions/${transaction.id}/status`),
       user.id
-    ).json({ status: 'notary' })
+    ).json({ status: 'closing' })
 
     response.assertStatus(400)
     response.assertBodyContains({
@@ -127,13 +130,13 @@ test.group('Transactions - Blocking Conditions', (group) => {
   test('status change ALLOWED when blocking condition is completed', async ({ client }) => {
     const user = await createUser({ email: 'blocking@test.com' })
     const testClient = await createClient(user.id)
-    const transaction = await createTransaction(user.id, testClient.id, { status: 'conditions' })
+    const transaction = await createTransaction(user.id, testClient.id, { status: 'firm' })
 
     // Add blocking condition but mark it COMPLETED
     await createCondition(transaction.id, {
-      title: 'Financing Approval',
+      title: 'Final Documents',
       status: 'completed', // Already done
-      stage: 'conditions',
+      stage: 'firm',
       isBlocking: true,
     })
 
@@ -141,7 +144,7 @@ test.group('Transactions - Blocking Conditions', (group) => {
     const response = await withAuth(
       client.patch(`/api/transactions/${transaction.id}/status`),
       user.id
-    ).json({ status: 'notary' })
+    ).json({ status: 'closing' })
 
     response.assertStatus(200)
   }).timeout(60000) // Extended timeout for email automation
@@ -149,13 +152,13 @@ test.group('Transactions - Blocking Conditions', (group) => {
   test('status change ALLOWED when condition is NOT blocking', async ({ client }) => {
     const user = await createUser({ email: 'blocking@test.com' })
     const testClient = await createClient(user.id)
-    const transaction = await createTransaction(user.id, testClient.id, { status: 'conditions' })
+    const transaction = await createTransaction(user.id, testClient.id, { status: 'firm' })
 
     // Add non-blocking condition (isBlocking = false)
     await createCondition(transaction.id, {
       title: 'Optional Inspection',
       status: 'pending',
-      stage: 'conditions',
+      stage: 'firm',
       isBlocking: false, // Not blocking!
     })
 
@@ -163,7 +166,7 @@ test.group('Transactions - Blocking Conditions', (group) => {
     const response = await withAuth(
       client.patch(`/api/transactions/${transaction.id}/status`),
       user.id
-    ).json({ status: 'notary' })
+    ).json({ status: 'closing' })
 
     response.assertStatus(200)
   }).timeout(60000) // Extended timeout for email automation
@@ -173,13 +176,13 @@ test.group('Transactions - Blocking Conditions', (group) => {
   }) => {
     const user = await createUser({ email: 'blocking@test.com' })
     const testClient = await createClient(user.id)
-    const transaction = await createTransaction(user.id, testClient.id, { status: 'conditions' })
+    const transaction = await createTransaction(user.id, testClient.id, { status: 'firm' })
 
     // Add blocking condition at DIFFERENT stage
     await createCondition(transaction.id, {
       title: 'Final Walkthrough',
       status: 'pending',
-      stage: 'closing', // Different from transaction.status (conditions)
+      stage: 'closing', // Different from transaction.status (firm)
       isBlocking: true,
     })
 
@@ -187,7 +190,7 @@ test.group('Transactions - Blocking Conditions', (group) => {
     const response = await withAuth(
       client.patch(`/api/transactions/${transaction.id}/status`),
       user.id
-    ).json({ status: 'notary' })
+    ).json({ status: 'closing' })
 
     response.assertStatus(200)
   }).timeout(60000) // Extended timeout for email automation
