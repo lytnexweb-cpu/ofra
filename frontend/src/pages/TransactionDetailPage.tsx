@@ -18,35 +18,32 @@ import CreateConditionModal from '../components/CreateConditionModal'
 import ConfirmDialog from '../components/ConfirmDialog'
 
 const statusLabels: Record<TransactionStatus, string> = {
-  consultation: 'Consultation',
-  offer: 'Offer Submitted',
-  accepted: 'Offer Accepted',
-  conditions: 'Conditional Period',
-  notary: 'Firm',
+  active: 'Active',
+  offer: 'Offer',
+  conditional: 'Conditional',
+  firm: 'Firm',
   closing: 'Closing',
   completed: 'Completed',
-  canceled: 'Canceled',
+  cancelled: 'Cancelled',
 }
 
 
 const statusColors: Record<TransactionStatus, string> = {
-  consultation: 'bg-gray-100 text-gray-800',
+  active: 'bg-gray-100 text-gray-800',
   offer: 'bg-blue-100 text-blue-800',
-  accepted: 'bg-green-100 text-green-800',
-  conditions: 'bg-yellow-100 text-yellow-800',
-  notary: 'bg-purple-100 text-purple-800',
+  conditional: 'bg-yellow-100 text-yellow-800',
+  firm: 'bg-purple-100 text-purple-800',
   closing: 'bg-indigo-100 text-indigo-800',
   completed: 'bg-green-200 text-green-900',
-  canceled: 'bg-red-100 text-red-800',
+  cancelled: 'bg-red-100 text-red-800',
 }
 
-// Workflow sequence (excludes 'canceled')
+// Workflow sequence (excludes 'cancelled')
 const workflowSteps: TransactionStatus[] = [
-  'consultation',
+  'active',
   'offer',
-  'accepted',
-  'conditions',
-  'notary',
+  'conditional',
+  'firm',
   'closing',
   'completed',
 ]
@@ -108,14 +105,10 @@ export default function TransactionDetailPage() {
   // Show/hide completed conditions
   const [showCompletedConditions, setShowCompletedConditions] = useState(false)
 
-  // Offer Details editing state
+  // Transaction Details editing state
   const [editingOfferDetails, setEditingOfferDetails] = useState(false)
   const [offerDetailsForm, setOfferDetailsForm] = useState({
     listPrice: '',
-    offerPrice: '',
-    offerExpiryAt: '',
-    counterOfferEnabled: false,
-    counterOfferPrice: '',
     commission: '',
     folderUrl: '',
   })
@@ -420,24 +413,8 @@ export default function TransactionDetailPage() {
   const handleEditOfferDetails = () => {
     if (!transaction) return
 
-    // Format datetime for datetime-local input (YYYY-MM-DDTHH:mm)
-    const formatDatetimeLocal = (dt: string | null) => {
-      if (!dt) return ''
-      const date = new Date(dt)
-      const year = date.getFullYear()
-      const month = String(date.getMonth() + 1).padStart(2, '0')
-      const day = String(date.getDate()).padStart(2, '0')
-      const hours = String(date.getHours()).padStart(2, '0')
-      const minutes = String(date.getMinutes()).padStart(2, '0')
-      return `${year}-${month}-${day}T${hours}:${minutes}`
-    }
-
     setOfferDetailsForm({
       listPrice: transaction.listPrice?.toString() || '',
-      offerPrice: transaction.offerPrice?.toString() || '',
-      offerExpiryAt: formatDatetimeLocal(transaction.offerExpiryAt),
-      counterOfferEnabled: transaction.counterOfferEnabled || false,
-      counterOfferPrice: transaction.counterOfferPrice?.toString() || '',
       commission: transaction.commission?.toString() || '',
       folderUrl: transaction.folderUrl || '',
     })
@@ -446,26 +423,12 @@ export default function TransactionDetailPage() {
 
   const handleSaveOfferDetails = () => {
     const listPriceNum = parseNumber(offerDetailsForm.listPrice)
-    const offerPriceNum = parseNumber(offerDetailsForm.offerPrice)
-    const counterOfferPriceNum = parseNumber(offerDetailsForm.counterOfferPrice)
     const commissionNum = parseNumber(offerDetailsForm.commission)
 
     const payload: any = {}
 
     if (listPriceNum !== undefined) payload.listPrice = listPriceNum
-    if (offerPriceNum !== undefined) payload.offerPrice = offerPriceNum
-    if (offerDetailsForm.offerExpiryAt) payload.offerExpiryAt = offerDetailsForm.offerExpiryAt
     if (commissionNum !== undefined) payload.commission = commissionNum
-
-    payload.counterOfferEnabled = offerDetailsForm.counterOfferEnabled
-    // If counterOfferEnabled is false, set counterOfferPrice to null explicitly
-    if (offerDetailsForm.counterOfferEnabled === false) {
-      payload.counterOfferPrice = null
-    } else if (counterOfferPriceNum !== undefined) {
-      payload.counterOfferPrice = counterOfferPriceNum
-    }
-
-    // Folder URL
     if (offerDetailsForm.folderUrl.trim()) {
       payload.folderUrl = offerDetailsForm.folderUrl.trim()
     }
@@ -642,7 +605,7 @@ export default function TransactionDetailPage() {
         </div>
 
         {/* Workflow Helper */}
-        {transaction.status !== 'canceled' && transaction.status !== 'completed' && (
+        {transaction.status !== 'cancelled' && transaction.status !== 'completed' && (
           <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
             <div className="flex">
               <div className="flex-shrink-0">
@@ -816,12 +779,12 @@ export default function TransactionDetailPage() {
           </div>
         </div>
 
-        {/* Offer Details */}
+        {/* Transaction Details */}
         <div className="bg-white shadow sm:rounded-lg mb-6">
           <div className="px-4 py-5 sm:p-6">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-medium leading-6 text-gray-900">
-                Offer Details
+                Transaction Details
               </h3>
               {!editingOfferDetails && (
                 <button
@@ -843,10 +806,8 @@ export default function TransactionDetailPage() {
                     />
                   </svg>
                   {(transaction.listPrice ||
-                    transaction.offerPrice ||
-                    transaction.counterOfferEnabled ||
-                    transaction.offerExpiryAt ||
-                    transaction.commission) ? 'Edit' : 'Add Details'}
+                    transaction.commission ||
+                    transaction.folderUrl) ? 'Edit' : 'Add Details'}
                 </button>
               )}
             </div>
@@ -875,41 +836,6 @@ export default function TransactionDetailPage() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700">
-                      Offer Price
-                    </label>
-                    <input
-                      type="number"
-                      value={offerDetailsForm.offerPrice}
-                      onChange={(e) =>
-                        setOfferDetailsForm({
-                          ...offerDetailsForm,
-                          offerPrice: e.target.value,
-                        })
-                      }
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                      placeholder="445000"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      Offer Expiry
-                    </label>
-                    <input
-                      type="datetime-local"
-                      value={offerDetailsForm.offerExpiryAt}
-                      onChange={(e) =>
-                        setOfferDetailsForm({
-                          ...offerDetailsForm,
-                          offerExpiryAt: e.target.value,
-                        })
-                      }
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">
                       Commission (Internal)
                     </label>
                     <input
@@ -926,47 +852,6 @@ export default function TransactionDetailPage() {
                     />
                   </div>
                 </div>
-
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="counterOfferEnabled"
-                    checked={offerDetailsForm.counterOfferEnabled}
-                    onChange={(e) =>
-                      setOfferDetailsForm({
-                        ...offerDetailsForm,
-                        counterOfferEnabled: e.target.checked,
-                      })
-                    }
-                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <label
-                    htmlFor="counterOfferEnabled"
-                    className="text-sm font-medium text-gray-700"
-                  >
-                    Counter Offer Enabled
-                  </label>
-                </div>
-
-                {offerDetailsForm.counterOfferEnabled && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      Counter Offer Price
-                    </label>
-                    <input
-                      type="number"
-                      value={offerDetailsForm.counterOfferPrice}
-                      onChange={(e) =>
-                        setOfferDetailsForm({
-                          ...offerDetailsForm,
-                          counterOfferPrice: e.target.value,
-                        })
-                      }
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                      placeholder="447500"
-                    />
-                  </div>
-                )}
 
                 {/* Folder URL */}
                 <div>
@@ -1008,16 +893,14 @@ export default function TransactionDetailPage() {
               /* Read-only Display */
               <>
                 {!transaction.listPrice &&
-                  !transaction.offerPrice &&
-                  !transaction.counterOfferEnabled &&
-                  !transaction.offerExpiryAt &&
-                  !transaction.commission ? (
+                  !transaction.commission &&
+                  !transaction.folderUrl ? (
                   <div className="text-center py-8">
                     <p className="text-sm text-gray-500 mb-3">
-                      No offer details yet.
+                      No details yet.
                     </p>
                     <p className="text-xs text-gray-400">
-                      Click "Add Details" above to add offer information.
+                      Click "Add Details" above to add transaction information.
                     </p>
                   </div>
                 ) : (
@@ -1033,62 +916,6 @@ export default function TransactionDetailPage() {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
                           })}
-                        </dd>
-                      </div>
-                    )}
-                    {transaction.offerPrice && (
-                      <div>
-                        <dt className="text-sm font-medium text-gray-500">
-                          Offer Price
-                        </dt>
-                        <dd className="mt-1 text-sm text-gray-900">
-                          $
-                          {transaction.offerPrice.toLocaleString('en-US', {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                          })}
-                        </dd>
-                      </div>
-                    )}
-                    {transaction.offerExpiryAt && (
-                      <div>
-                        <dt className="text-sm font-medium text-gray-500">
-                          Offer Expiry
-                        </dt>
-                        <dd className="mt-1 text-sm text-gray-900">
-                          {new Date(transaction.offerExpiryAt).toLocaleString(
-                            'en-US',
-                            {
-                              year: 'numeric',
-                              month: 'short',
-                              day: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            }
-                          )}
-                        </dd>
-                      </div>
-                    )}
-                    {transaction.counterOfferEnabled && (
-                      <div>
-                        <dt className="text-sm font-medium text-gray-500">
-                          Counter Offer
-                        </dt>
-                        <dd className="mt-1 text-sm text-gray-900">
-                          {transaction.counterOfferPrice ? (
-                            <span>
-                              $
-                              {transaction.counterOfferPrice.toLocaleString(
-                                'en-US',
-                                {
-                                  minimumFractionDigits: 2,
-                                  maximumFractionDigits: 2,
-                                }
-                              )}
-                            </span>
-                          ) : (
-                            <span className="text-gray-500 italic">Pending</span>
-                          )}
                         </dd>
                       </div>
                     )}
@@ -1258,12 +1085,11 @@ export default function TransactionDetailPage() {
               const stageOrder: TransactionStatus[] = [
                 'completed',
                 'closing',
-                'notary',
-                'conditions',
-                'accepted',
+                'firm',
+                'conditional',
                 'offer',
-                'consultation',
-                'canceled',
+                'active',
+                'cancelled',
               ]
 
               const orderedCompletedStages = stageOrder.filter((stage) => completedByStage[stage])
@@ -1362,14 +1188,13 @@ export default function TransactionDetailPage() {
                           }
                           className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                         >
-                          <option value="consultation">Consultation</option>
-                          <option value="offer">Offer Submitted</option>
-                          <option value="accepted">Offer Accepted</option>
-                          <option value="conditions">Conditional Period</option>
-                          <option value="notary">Firm</option>
+                          <option value="active">Active</option>
+                          <option value="offer">Offer</option>
+                          <option value="conditional">Conditional</option>
+                          <option value="firm">Firm</option>
                           <option value="closing">Closing</option>
                           <option value="completed">Completed</option>
-                          <option value="canceled">Canceled</option>
+                          <option value="cancelled">Cancelled</option>
                         </select>
                         <textarea
                           value={editConditionData.description}

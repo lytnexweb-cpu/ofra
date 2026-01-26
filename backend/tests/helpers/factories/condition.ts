@@ -42,7 +42,7 @@ export async function createCondition(
     status: overrides.status ?? 'pending',
     type: overrides.type ?? 'other',           // OBLIGATOIRE
     priority: overrides.priority ?? 'medium',  // OBLIGATOIRE
-    stage: overrides.stage ?? 'conditions',    // OBLIGATOIRE
+    stage: overrides.stage ?? 'conditional',    // OBLIGATOIRE
     isBlocking: overrides.isBlocking ?? true,
     dueDate: overrides.dueDate ? DateTime.fromISO(overrides.dueDate) : null,
     completedAt: overrides.completedAt ? DateTime.fromISO(overrides.completedAt) : null,

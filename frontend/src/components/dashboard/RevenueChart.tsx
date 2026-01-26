@@ -7,7 +7,6 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from 'recharts'
-import { useTheme } from '../../contexts/ThemeContext'
 
 interface RevenueData {
   month: string
@@ -32,8 +31,7 @@ function formatCurrency(value: number | undefined | null): string {
 }
 
 export default function RevenueChart({ data = [], totalRevenue = 0, monthRevenue = 0 }: RevenueChartProps) {
-  const { resolvedTheme } = useTheme()
-  const isDark = resolvedTheme === 'dark'
+  const isDark = false
 
   // Theme-aware colors
   const axisTickColor = isDark ? '#9CA3AF' : '#6B7280'

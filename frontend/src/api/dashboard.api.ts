@@ -1,11 +1,10 @@
 import { http } from './http'
 
 export interface PipelineData {
-  consultation: number
+  active: number
   offer: number
-  accepted: number
-  conditions: number
-  notary: number
+  conditional: number
+  firm: number
   closing: number
 }
 

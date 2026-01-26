@@ -2,6 +2,7 @@ import { DateTime } from 'luxon'
 import { BaseModel, column, belongsTo } from '@adonisjs/lucid/orm'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import Transaction, { type TransactionStatus } from './transaction.js'
+import Offer from './offer.js'
 
 export type ConditionStatus = 'pending' | 'completed'
 export type ConditionType =
@@ -24,6 +25,9 @@ export default class Condition extends BaseModel {
 
   @column()
   declare transactionId: number
+
+  @column()
+  declare offerId: number | null
 
   @column()
   declare title: string
@@ -66,4 +70,7 @@ export default class Condition extends BaseModel {
 
   @belongsTo(() => Transaction, { foreignKey: 'transactionId' })
   declare transaction: BelongsTo<typeof Transaction>
+
+  @belongsTo(() => Offer, { foreignKey: 'offerId' })
+  declare offer: BelongsTo<typeof Offer>
 }

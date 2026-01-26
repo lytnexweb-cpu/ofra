@@ -5,25 +5,23 @@ import { transactionsApi, type TransactionStatus } from '../api/transactions.api
 import CreateTransactionModal from '../components/CreateTransactionModal'
 
 const statusLabels: Record<TransactionStatus, string> = {
-  consultation: 'Consultation',
-  offer: 'Offer Submitted',
-  accepted: 'Offer Accepted',
-  conditions: 'Conditional Period',
-  notary: 'Firm',
+  active: 'Active',
+  offer: 'Offer',
+  conditional: 'Conditional',
+  firm: 'Firm',
   closing: 'Closing',
   completed: 'Completed',
-  canceled: 'Canceled',
+  cancelled: 'Cancelled',
 }
 
 const statusColors: Record<TransactionStatus, string> = {
-  consultation: 'bg-gray-100 text-gray-800',
+  active: 'bg-gray-100 text-gray-800',
   offer: 'bg-blue-100 text-blue-800',
-  accepted: 'bg-green-100 text-green-800',
-  conditions: 'bg-yellow-100 text-yellow-800',
-  notary: 'bg-purple-100 text-purple-800',
+  conditional: 'bg-yellow-100 text-yellow-800',
+  firm: 'bg-purple-100 text-purple-800',
   closing: 'bg-indigo-100 text-indigo-800',
   completed: 'bg-green-200 text-green-900',
-  canceled: 'bg-red-100 text-red-800',
+  cancelled: 'bg-red-100 text-red-800',
 }
 
 export default function TransactionsPage() {

@@ -1,6 +1,5 @@
 import type { HttpContext } from '@adonisjs/core/http'
-import { DateTime } from 'luxon'
-import Transaction, { TransactionStatus, TransactionType } from '#models/transaction'
+import Transaction, { TransactionType, TransactionStatus } from '#models/transaction'
 import TransactionStatusHistory from '#models/transaction_status_history'
 import {
   createTransactionValidator,
@@ -8,6 +7,8 @@ import {
   updateStatusValidator,
 } from '#validators/transaction_validator'
 import { TransactionAutomationService } from '#services/transaction_automation_service'
+import { TemplateService } from '#services/template_service'
+import { OfferService } from '#services/offer_service'
 import {
   isValidTransition,
   getTransitionError,
@@ -16,9 +17,6 @@ import {
 } from '#services/transaction_state_machine'
 import env from '#start/env'
 
-/**
- * Type for transaction creation data
- */
 interface CreateTransactionData {
   clientId: number
   propertyId?: number | null
@@ -27,17 +25,10 @@ interface CreateTransactionData {
   salePrice?: number | null
   notesText?: string | null
   listPrice?: number | null
-  offerPrice?: number | null
-  counterOfferEnabled: boolean
-  counterOfferPrice?: number | null
-  offerExpiryAt?: DateTime
   commission?: number | null
   ownerUserId: number
 }
 
-/**
- * Type for transaction update data
- */
 interface UpdateTransactionData {
   clientId?: number
   propertyId?: number | null
@@ -45,10 +36,6 @@ interface UpdateTransactionData {
   salePrice?: number | null
   notesText?: string | null
   listPrice?: number | null
-  offerPrice?: number | null
-  counterOfferEnabled?: boolean
-  counterOfferPrice?: number | null
-  offerExpiryAt?: DateTime
   commission?: number | null
 }
 
@@ -61,6 +48,9 @@ export default class TransactionsController {
         .preload('client')
         .preload('property')
         .preload('conditions')
+        .preload('offers', (offerQuery) => {
+          offerQuery.preload('revisions', (revQuery) => revQuery.orderBy('revision_number', 'desc').limit(1))
+        })
 
       if (status) {
         query.where('status', status)
@@ -96,30 +86,29 @@ export default class TransactionsController {
     try {
       const payload = await request.validateUsing(createTransactionValidator)
 
-      // Validate counterOffer logic
-      if (payload.counterOfferEnabled && !payload.counterOfferPrice) {
-        return response.unprocessableEntity({
-          success: false,
-          error: {
-            message: 'Counter offer price is required when counter offer is enabled',
-            code: 'E_VALIDATION_FAILED',
-          },
-        })
-      }
+      // Extract templateId from payload (not part of transaction data)
+      const { templateId, ...transactionPayload } = payload
 
-      // If counterOfferEnabled is false, set counterOfferPrice to null
       const transactionData: CreateTransactionData = {
-        ...payload,
+        ...transactionPayload,
         ownerUserId: auth.user!.id,
-        status: payload.status || 'consultation',
-        counterOfferEnabled: payload.counterOfferEnabled ?? false,
-        counterOfferPrice: payload.counterOfferEnabled ? payload.counterOfferPrice : null,
-        offerExpiryAt: payload.offerExpiryAt ? DateTime.fromISO(payload.offerExpiryAt) : undefined,
+        status: transactionPayload.status || 'active',
       }
 
       const transaction = await Transaction.create(transactionData)
 
+      // Apply template if provided
+      if (templateId) {
+        try {
+          await TemplateService.applyTemplate(transaction, templateId)
+        } catch (templateError) {
+          console.error('[TransactionsController] Template application error:', templateError)
+        }
+      }
+
       await transaction.load('client')
+      await transaction.load('conditions')
+      await transaction.load('offers')
       if (transaction.propertyId) {
         await transaction.load('property')
       }
@@ -157,6 +146,11 @@ export default class TransactionsController {
         .preload('client')
         .preload('property')
         .preload('conditions')
+        .preload('offers', (offerQuery) => {
+          offerQuery
+            .preload('revisions', (revQuery) => revQuery.orderBy('revision_number', 'asc'))
+            .orderBy('created_at', 'desc')
+        })
         .preload('notes', (query) => {
           query.preload('author').orderBy('created_at', 'desc')
         })
@@ -186,22 +180,8 @@ export default class TransactionsController {
 
       const payload = await request.validateUsing(updateTransactionValidator)
 
-      // Validate counterOffer logic
-      if (payload.counterOfferEnabled && !payload.counterOfferPrice) {
-        return response.unprocessableEntity({
-          success: false,
-          error: {
-            message: 'Counter offer price is required when counter offer is enabled',
-            code: 'E_VALIDATION_FAILED',
-          },
-        })
-      }
-
-      // Prepare update data (set counterOfferPrice to null if disabled)
       const updateData: UpdateTransactionData = {
         ...payload,
-        counterOfferPrice: payload.counterOfferEnabled === false ? null : payload.counterOfferPrice,
-        offerExpiryAt: payload.offerExpiryAt ? DateTime.fromISO(payload.offerExpiryAt) : undefined,
       }
 
       transaction.merge(updateData)
@@ -271,18 +251,18 @@ export default class TransactionsController {
         })
       }
 
-      // Check offer expiry when accepting an offer
-      if (oldStatus === 'offer' && payload.status === 'accepted') {
-        if (transaction.offerExpiryAt && transaction.offerExpiryAt < DateTime.now()) {
+      // Business rule: require accepted offer before moving to conditional or firm
+      if (['conditional', 'firm'].includes(payload.status)) {
+        const hasAccepted = await OfferService.hasAcceptedOffer(transaction.id)
+        if (!hasAccepted) {
           console.log(
-            `[OFFER_EXPIRED] Transaction ${transaction.id}: Offer expired at ${transaction.offerExpiryAt.toISO()}`
+            `[OFFER_REQUIRED] Transaction ${transaction.id}: Cannot move to ${payload.status} without accepted offer`
           )
           return response.badRequest({
             success: false,
             error: {
-              message: 'Cannot accept offer: the offer has expired',
-              code: 'E_OFFER_EXPIRED',
-              expiredAt: transaction.offerExpiryAt.toISO(),
+              message: `Cannot change status to "${STATUS_LABELS[payload.status]}": an accepted offer is required`,
+              code: 'E_NO_ACCEPTED_OFFER',
             },
           })
         }
@@ -290,7 +270,6 @@ export default class TransactionsController {
 
       // Enforce blocking conditions if feature flag is enabled
       if (env.get('ENFORCE_BLOCKING_CONDITIONS') === true) {
-        // Load blocking conditions for the current status
         await transaction.load('conditions', (query) => {
           query.where('stage', oldStatus).where('is_blocking', true).where('status', 'pending')
         })
@@ -300,7 +279,6 @@ export default class TransactionsController {
         if (blockingConditions.length > 0) {
           const conditionTitles = blockingConditions.map((c) => c.title).join(', ')
 
-          // Log blocked status change attempt
           console.log(
             `[BLOCKING] Transaction ${transaction.id}: Status change ${oldStatus} -> ${payload.status} BLOCKED by ${blockingConditions.length} condition(s): ${conditionTitles}`
           )
@@ -331,13 +309,11 @@ export default class TransactionsController {
         note: payload.note,
       })
 
-      // Log successful status change
       console.log(
         `[STATUS_CHANGE] Transaction ${transaction.id}: ${oldStatus} -> ${payload.status} by user ${auth.user!.id}`
       )
 
-      // Automatic email sending to client if applicable
-      // (email sending should not block the response)
+      // Automatic email sending
       try {
         await TransactionAutomationService.handleStatusChange(
           transaction,
@@ -345,7 +321,6 @@ export default class TransactionsController {
           payload.status
         )
       } catch (emailError) {
-        // Log the error but don't fail the request
         console.error('[TransactionController] Email automation sending error:', emailError)
       }
 
@@ -387,7 +362,6 @@ export default class TransactionsController {
     try {
       const transaction = await Transaction.findOrFail(params.id)
 
-      // Verify ownership (multi-tenancy)
       if (transaction.ownerUserId !== auth.user!.id) {
         return response.notFound({
           success: false,
@@ -398,7 +372,6 @@ export default class TransactionsController {
         })
       }
 
-      // Delete transaction (cascades will handle conditions, notes, status_histories)
       await transaction.delete()
 
       return response.noContent()

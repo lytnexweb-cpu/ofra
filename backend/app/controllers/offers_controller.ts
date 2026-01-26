@@ -1,0 +1,346 @@
+import type { HttpContext } from '@adonisjs/core/http'
+import { DateTime } from 'luxon'
+import Transaction from '#models/transaction'
+import Offer from '#models/offer'
+import { OfferService } from '#services/offer_service'
+import {
+  createOfferValidator,
+  addRevisionValidator,
+} from '#validators/offer_validator'
+
+export default class OffersController {
+  /**
+   * List all offers for a transaction
+   */
+  async index({ params, response, auth }: HttpContext) {
+    try {
+      const transaction = await Transaction.query()
+        .where('id', params.id)
+        .where('owner_user_id', auth.user!.id)
+        .firstOrFail()
+
+      const offers = await OfferService.getOffers(transaction.id)
+
+      return response.ok({
+        success: true,
+        data: { offers },
+      })
+    } catch (error) {
+      if (error.code === 'E_ROW_NOT_FOUND') {
+        return response.notFound({
+          success: false,
+          error: { message: 'Transaction not found', code: 'E_NOT_FOUND' },
+        })
+      }
+      return response.internalServerError({
+        success: false,
+        error: { message: 'Failed to retrieve offers', code: 'E_INTERNAL_ERROR' },
+      })
+    }
+  }
+
+  /**
+   * Create a new offer for a transaction
+   */
+  async store({ params, request, response, auth }: HttpContext) {
+    try {
+      const transaction = await Transaction.query()
+        .where('id', params.id)
+        .where('owner_user_id', auth.user!.id)
+        .firstOrFail()
+
+      const payload = await request.validateUsing(createOfferValidator)
+
+      const offer = await OfferService.createOffer({
+        transactionId: transaction.id,
+        price: payload.price,
+        deposit: payload.deposit,
+        financingAmount: payload.financingAmount,
+        expiryAt: payload.expiryAt ? DateTime.fromISO(payload.expiryAt) : undefined,
+        notes: payload.notes,
+        direction: payload.direction || 'buyer_to_seller',
+        createdByUserId: auth.user!.id,
+      })
+
+      // Auto-advance transaction to 'offer' status if still 'active'
+      if (transaction.status === 'active') {
+        transaction.status = 'offer'
+        await transaction.save()
+      }
+
+      return response.created({
+        success: true,
+        data: { offer },
+      })
+    } catch (error) {
+      if (error.messages) {
+        return response.unprocessableEntity({
+          success: false,
+          error: {
+            message: 'Validation failed',
+            code: 'E_VALIDATION_FAILED',
+            details: error.messages,
+          },
+        })
+      }
+      if (error.code === 'E_ROW_NOT_FOUND') {
+        return response.notFound({
+          success: false,
+          error: { message: 'Transaction not found', code: 'E_NOT_FOUND' },
+        })
+      }
+      return response.internalServerError({
+        success: false,
+        error: { message: 'Failed to create offer', code: 'E_INTERNAL_ERROR' },
+      })
+    }
+  }
+
+  /**
+   * Helper: load offer and verify ownership via its transaction
+   */
+  private async loadOfferWithOwnershipCheck(offerId: number, userId: number) {
+    const offer = await Offer.query()
+      .where('id', offerId)
+      .preload('revisions', (query) => {
+        query.preload('createdBy').orderBy('revision_number', 'asc')
+      })
+      .firstOrFail()
+
+    const transaction = await Transaction.query()
+      .where('id', offer.transactionId)
+      .where('owner_user_id', userId)
+      .firstOrFail()
+
+    return { offer, transaction }
+  }
+
+  /**
+   * Helper: load offer (no revisions) and verify ownership
+   */
+  private async loadOfferBasicWithOwnershipCheck(offerId: number, userId: number) {
+    const offer = await Offer.findOrFail(offerId)
+
+    const transaction = await Transaction.query()
+      .where('id', offer.transactionId)
+      .where('owner_user_id', userId)
+      .firstOrFail()
+
+    return { offer, transaction }
+  }
+
+  /**
+   * Show a single offer with all its revisions
+   */
+  async show({ params, response, auth }: HttpContext) {
+    try {
+      const { offer } = await this.loadOfferWithOwnershipCheck(params.offerId, auth.user!.id)
+
+      return response.ok({
+        success: true,
+        data: { offer },
+      })
+    } catch (error) {
+      if (error.code === 'E_ROW_NOT_FOUND') {
+        return response.notFound({
+          success: false,
+          error: { message: 'Offer not found', code: 'E_NOT_FOUND' },
+        })
+      }
+      return response.internalServerError({
+        success: false,
+        error: { message: 'Failed to retrieve offer', code: 'E_INTERNAL_ERROR' },
+      })
+    }
+  }
+
+  /**
+   * Add a counter/negotiation revision to an offer
+   */
+  async addRevision({ params, request, response, auth }: HttpContext) {
+    try {
+      const { offer } = await this.loadOfferBasicWithOwnershipCheck(params.offerId, auth.user!.id)
+
+      const payload = await request.validateUsing(addRevisionValidator)
+
+      const revision = await OfferService.addRevision({
+        offerId: offer.id,
+        price: payload.price,
+        deposit: payload.deposit,
+        financingAmount: payload.financingAmount,
+        expiryAt: payload.expiryAt ? DateTime.fromISO(payload.expiryAt) : undefined,
+        notes: payload.notes,
+        direction: payload.direction,
+        createdByUserId: auth.user!.id,
+      })
+
+      // Reload offer with revisions
+      await offer.load('revisions', (query) => query.orderBy('revision_number', 'asc'))
+
+      return response.created({
+        success: true,
+        data: { offer, revision },
+      })
+    } catch (error) {
+      if (error.messages) {
+        return response.unprocessableEntity({
+          success: false,
+          error: {
+            message: 'Validation failed',
+            code: 'E_VALIDATION_FAILED',
+            details: error.messages,
+          },
+        })
+      }
+      if (error.code === 'E_ROW_NOT_FOUND') {
+        return response.notFound({
+          success: false,
+          error: { message: 'Offer not found', code: 'E_NOT_FOUND' },
+        })
+      }
+      if (error.message?.includes('Cannot add revision')) {
+        return response.badRequest({
+          success: false,
+          error: { message: error.message, code: 'E_INVALID_OFFER_STATUS' },
+        })
+      }
+      return response.internalServerError({
+        success: false,
+        error: { message: 'Failed to add revision', code: 'E_INTERNAL_ERROR' },
+      })
+    }
+  }
+
+  /**
+   * Accept an offer
+   */
+  async accept({ params, response, auth }: HttpContext) {
+    try {
+      await this.loadOfferBasicWithOwnershipCheck(params.offerId, auth.user!.id)
+
+      const acceptedOffer = await OfferService.acceptOffer(params.offerId)
+
+      return response.ok({
+        success: true,
+        data: { offer: acceptedOffer },
+      })
+    } catch (error) {
+      if (error.code === 'E_ROW_NOT_FOUND') {
+        return response.notFound({
+          success: false,
+          error: { message: 'Offer not found', code: 'E_NOT_FOUND' },
+        })
+      }
+      if (error.message?.includes('Cannot accept') || error.message?.includes('expired')) {
+        return response.badRequest({
+          success: false,
+          error: { message: error.message, code: 'E_INVALID_OFFER_STATUS' },
+        })
+      }
+      return response.internalServerError({
+        success: false,
+        error: { message: 'Failed to accept offer', code: 'E_INTERNAL_ERROR' },
+      })
+    }
+  }
+
+  /**
+   * Reject an offer
+   */
+  async reject({ params, response, auth }: HttpContext) {
+    try {
+      await this.loadOfferBasicWithOwnershipCheck(params.offerId, auth.user!.id)
+
+      const rejectedOffer = await OfferService.rejectOffer(params.offerId)
+
+      return response.ok({
+        success: true,
+        data: { offer: rejectedOffer },
+      })
+    } catch (error) {
+      if (error.code === 'E_ROW_NOT_FOUND') {
+        return response.notFound({
+          success: false,
+          error: { message: 'Offer not found', code: 'E_NOT_FOUND' },
+        })
+      }
+      if (error.message?.includes('Cannot reject')) {
+        return response.badRequest({
+          success: false,
+          error: { message: error.message, code: 'E_INVALID_OFFER_STATUS' },
+        })
+      }
+      return response.internalServerError({
+        success: false,
+        error: { message: 'Failed to reject offer', code: 'E_INTERNAL_ERROR' },
+      })
+    }
+  }
+
+  /**
+   * Withdraw an offer
+   */
+  async withdraw({ params, response, auth }: HttpContext) {
+    try {
+      await this.loadOfferBasicWithOwnershipCheck(params.offerId, auth.user!.id)
+
+      const withdrawnOffer = await OfferService.withdrawOffer(params.offerId)
+
+      return response.ok({
+        success: true,
+        data: { offer: withdrawnOffer },
+      })
+    } catch (error) {
+      if (error.code === 'E_ROW_NOT_FOUND') {
+        return response.notFound({
+          success: false,
+          error: { message: 'Offer not found', code: 'E_NOT_FOUND' },
+        })
+      }
+      if (error.message?.includes('Cannot withdraw')) {
+        return response.badRequest({
+          success: false,
+          error: { message: error.message, code: 'E_INVALID_OFFER_STATUS' },
+        })
+      }
+      return response.internalServerError({
+        success: false,
+        error: { message: 'Failed to withdraw offer', code: 'E_INTERNAL_ERROR' },
+      })
+    }
+  }
+
+  /**
+   * Delete an offer (only if not accepted)
+   */
+  async destroy({ params, response, auth }: HttpContext) {
+    try {
+      const { offer } = await this.loadOfferBasicWithOwnershipCheck(params.offerId, auth.user!.id)
+
+      if (offer.status === 'accepted') {
+        return response.badRequest({
+          success: false,
+          error: {
+            message: 'Cannot delete an accepted offer',
+            code: 'E_CANNOT_DELETE_ACCEPTED',
+          },
+        })
+      }
+
+      await offer.delete()
+
+      return response.noContent()
+    } catch (error) {
+      if (error.code === 'E_ROW_NOT_FOUND') {
+        return response.notFound({
+          success: false,
+          error: { message: 'Offer not found', code: 'E_NOT_FOUND' },
+        })
+      }
+      return response.internalServerError({
+        success: false,
+        error: { message: 'Failed to delete offer', code: 'E_INTERNAL_ERROR' },
+      })
+    }
+  }
+}

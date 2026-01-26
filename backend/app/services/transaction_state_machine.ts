@@ -3,33 +3,34 @@ import { TransactionStatus } from '#models/transaction'
 /**
  * Defines valid status transitions for transactions
  *
- * Flow: consultation → offer → accepted → conditions → notary → closing → completed
- * Any status can transition to 'canceled'
- * Some backward transitions are allowed (e.g., rejected offer goes back to consultation)
+ * Flow: active → offer → conditional → firm → closing → completed
+ * Any status can transition to 'cancelled'
+ * Some backward transitions are allowed
+ *
+ * Business rule: transition to 'conditional' or 'firm' requires an accepted offer
+ * (enforced in controller, not here)
  */
 const VALID_TRANSITIONS: Record<TransactionStatus, TransactionStatus[]> = {
-  consultation: ['offer', 'canceled'],
-  offer: ['accepted', 'consultation', 'canceled'], // Can go back if offer rejected
-  accepted: ['conditions', 'offer', 'canceled'], // Can go back if issues found
-  conditions: ['notary', 'accepted', 'canceled'], // Can go back if conditions fail
-  notary: ['closing', 'conditions', 'canceled'], // Can go back if notary issues
-  closing: ['completed', 'notary', 'canceled'], // Can go back if closing delayed
-  completed: [], // Terminal state - no transitions allowed
-  canceled: ['consultation'], // Can reopen a canceled transaction
+  active: ['offer', 'cancelled'],
+  offer: ['conditional', 'active', 'cancelled'], // conditional when offer accepted
+  conditional: ['firm', 'offer', 'cancelled'], // firm when all conditions met
+  firm: ['closing', 'conditional', 'cancelled'], // closing when notary done
+  closing: ['completed', 'firm', 'cancelled'],
+  completed: [], // Terminal state
+  cancelled: ['active'], // Can reopen
 }
 
 /**
  * Human-readable status labels
  */
 export const STATUS_LABELS: Record<TransactionStatus, string> = {
-  consultation: 'Consultation',
-  offer: 'Offer Made',
-  accepted: 'Offer Accepted',
-  conditions: 'Conditions Period',
-  notary: 'At Notary',
+  active: 'Active',
+  offer: 'Offer',
+  conditional: 'Conditional',
+  firm: 'Firm',
   closing: 'Closing',
   completed: 'Completed',
-  canceled: 'Canceled',
+  cancelled: 'Cancelled',
 }
 
 /**
@@ -39,7 +40,6 @@ export function isValidTransition(
   fromStatus: TransactionStatus,
   toStatus: TransactionStatus
 ): boolean {
-  // Same status is always valid (no change)
   if (fromStatus === toStatus) {
     return true
   }
@@ -79,14 +79,13 @@ export function isTerminalStatus(status: TransactionStatus): boolean {
  */
 export function getStatusProgress(status: TransactionStatus): number {
   const progressMap: Record<TransactionStatus, number> = {
-    consultation: 0,
-    offer: 15,
-    accepted: 30,
-    conditions: 50,
-    notary: 70,
-    closing: 85,
+    active: 0,
+    offer: 20,
+    conditional: 40,
+    firm: 60,
+    closing: 80,
     completed: 100,
-    canceled: 0,
+    cancelled: 0,
   }
   return progressMap[status]
 }

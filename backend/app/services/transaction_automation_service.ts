@@ -12,13 +12,13 @@ import brand from '#config/brand'
  *
  * Mapping des emails:
  * - Type ACHAT (purchase):
- *   - status 'accepted' → Email A1 (Offre acceptée)
- *   - status 'notary' → Email A2 (Deal FIRM)
+ *   - status 'conditional' → Email A1 (Offre acceptée, période conditionnelle)
+ *   - status 'firm' → Email A2 (Deal FIRM)
  *   - status 'completed' → Email A3 (Closing/Remise des clés)
  *
  * - Type VENTE (sale):
- *   - status 'accepted' → Email V1 (Offre acceptée)
- *   - status 'notary' → Email V2 (Deal FIRM)
+ *   - status 'conditional' → Email V1 (Offre acceptée, période conditionnelle)
+ *   - status 'firm' → Email V2 (Deal FIRM)
  *   - status 'completed' → Email V3 (Vente complétée)
  */
 export class TransactionAutomationService {
@@ -140,9 +140,9 @@ export class TransactionAutomationService {
     // Mapping pour les achats (purchase)
     if (type === 'purchase') {
       switch (newStatus) {
-        case 'accepted':
+        case 'conditional':
           return this.sendBuyerOfferAcceptedEmail
-        case 'notary':
+        case 'firm':
           return this.sendBuyerFirmEmail
         case 'completed':
           return this.sendBuyerClosingEmail
@@ -152,9 +152,9 @@ export class TransactionAutomationService {
     // Mapping pour les ventes (sale)
     if (type === 'sale') {
       switch (newStatus) {
-        case 'accepted':
+        case 'conditional':
           return this.sendSellerOfferAcceptedEmail
-        case 'notary':
+        case 'firm':
           return this.sendSellerFirmEmail
         case 'completed':
           return this.sendSellerClosingEmail

@@ -1,14 +1,13 @@
 import Transaction from '#models/transaction'
 
 export type TransactionStatus =
-  | 'consultation'
+  | 'active'
   | 'offer'
-  | 'accepted'
-  | 'conditions'
-  | 'notary'
+  | 'conditional'
+  | 'firm'
   | 'closing'
   | 'completed'
-  | 'canceled'
+  | 'cancelled'
 
 export async function createTransaction(
   ownerUserId: number,
@@ -23,7 +22,7 @@ export async function createTransaction(
     ownerUserId,
     clientId,
     type: overrides.type ?? 'purchase',
-    status: overrides.status ?? 'consultation',
+    status: overrides.status ?? 'active',
     salePrice: overrides.salePrice ?? 500000,
   })
 }
