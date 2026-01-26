@@ -57,6 +57,14 @@ export default class extends BaseSchema {
     `)
 
     // 5. Update transaction_status_histories
+    // Drop CHECK constraints first
+    await this.db.rawQuery(`
+      ALTER TABLE transaction_status_histories DROP CONSTRAINT IF EXISTS transaction_status_histories_from_status_check;
+    `)
+    await this.db.rawQuery(`
+      ALTER TABLE transaction_status_histories DROP CONSTRAINT IF EXISTS transaction_status_histories_to_status_check;
+    `)
+
     // from_status
     await this.db.rawQuery(
       `UPDATE transaction_status_histories SET from_status = 'active' WHERE from_status = 'consultation'`
@@ -90,6 +98,16 @@ export default class extends BaseSchema {
       `UPDATE transaction_status_histories SET to_status = 'cancelled' WHERE to_status = 'canceled'`
     )
 
+    // Add new CHECK constraints
+    await this.db.rawQuery(`
+      ALTER TABLE transaction_status_histories ADD CONSTRAINT transaction_status_histories_from_status_check
+      CHECK (from_status IN ('active', 'offer', 'conditional', 'firm', 'closing', 'completed', 'cancelled'))
+    `)
+    await this.db.rawQuery(`
+      ALTER TABLE transaction_status_histories ADD CONSTRAINT transaction_status_histories_to_status_check
+      CHECK (to_status IN ('active', 'offer', 'conditional', 'firm', 'closing', 'completed', 'cancelled'))
+    `)
+
     // 6. Update template_conditions stages
     await this.db.rawQuery(`
       ALTER TABLE template_conditions DROP CONSTRAINT IF EXISTS template_conditions_stage_check;
@@ -116,13 +134,18 @@ export default class extends BaseSchema {
   }
 
   async down() {
-    // Reverse: new → old status mapping
-    // Drop new constraints
+    // Drop ALL constraints first
     await this.db.rawQuery(
       `ALTER TABLE transactions DROP CONSTRAINT IF EXISTS transactions_status_check;`
     )
     await this.db.rawQuery(
       `ALTER TABLE conditions DROP CONSTRAINT IF EXISTS conditions_stage_check;`
+    )
+    await this.db.rawQuery(
+      `ALTER TABLE transaction_status_histories DROP CONSTRAINT IF EXISTS transaction_status_histories_from_status_check;`
+    )
+    await this.db.rawQuery(
+      `ALTER TABLE transaction_status_histories DROP CONSTRAINT IF EXISTS transaction_status_histories_to_status_check;`
     )
     await this.db.rawQuery(
       `ALTER TABLE template_conditions DROP CONSTRAINT IF EXISTS template_conditions_stage_check;`
@@ -180,7 +203,7 @@ export default class extends BaseSchema {
       `UPDATE template_conditions SET stage = 'canceled' WHERE stage = 'cancelled'`
     )
 
-    // Restore old constraints
+    // Restore ALL old constraints
     await this.db.rawQuery(`
       ALTER TABLE transactions ADD CONSTRAINT transactions_status_check
       CHECK (status IN ('consultation', 'offer', 'accepted', 'conditions', 'notary', 'closing', 'completed', 'canceled'))
@@ -188,6 +211,14 @@ export default class extends BaseSchema {
     await this.db.rawQuery(`
       ALTER TABLE conditions ADD CONSTRAINT conditions_stage_check
       CHECK (stage IN ('consultation', 'offer', 'accepted', 'conditions', 'notary', 'closing', 'completed', 'canceled'))
+    `)
+    await this.db.rawQuery(`
+      ALTER TABLE transaction_status_histories ADD CONSTRAINT transaction_status_histories_from_status_check
+      CHECK (from_status IN ('consultation', 'offer', 'accepted', 'conditions', 'notary', 'closing', 'completed', 'canceled'))
+    `)
+    await this.db.rawQuery(`
+      ALTER TABLE transaction_status_histories ADD CONSTRAINT transaction_status_histories_to_status_check
+      CHECK (to_status IN ('consultation', 'offer', 'accepted', 'conditions', 'notary', 'closing', 'completed', 'canceled'))
     `)
     await this.db.rawQuery(`
       ALTER TABLE template_conditions ADD CONSTRAINT template_conditions_stage_check
