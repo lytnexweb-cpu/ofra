@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { authApi } from '../api/auth.api'
 import Breadcrumb from './Breadcrumb'
 import { BRAND } from '../config/brand'
-import ThemeToggle from './ui/ThemeToggle'
 import UserDropdown from './ui/UserDropdown'
 import {
   DashboardIcon,
@@ -105,9 +104,6 @@ export default function Layout() {
                 {/* Badge - uncomment when notifications are implemented */}
                 {/* <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span> */}
               </button>
-
-              {/* Theme Toggle */}
-              <ThemeToggle />
 
               {/* User Dropdown (desktop) */}
               <div className="hidden sm:block">

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -7,6 +7,7 @@ import {
   type TransactionType,
 } from '../api/transactions.api'
 import { clientsApi } from '../api/clients.api'
+import { templatesApi, type TransactionTemplate } from '../api/templates.api'
 import { parseApiError, isSessionExpired, type ParsedError } from '../utils/apiError'
 
 interface CreateTransactionModalProps {
@@ -21,9 +22,8 @@ export default function CreateTransactionModal({
   const [formData, setFormData] = useState<CreateTransactionRequest>({
     clientId: 0,
     type: 'purchase',
-    counterOfferEnabled: false,
   })
-  const [showOfferDetails, setShowOfferDetails] = useState(false)
+  const [selectedTemplateId, setSelectedTemplateId] = useState<number | null>(null)
   const [error, setError] = useState<ParsedError | null>(null)
   const queryClient = useQueryClient()
   const navigate = useNavigate()
@@ -33,7 +33,28 @@ export default function CreateTransactionModal({
     queryFn: clientsApi.list,
   })
 
+  const { data: templatesData } = useQuery({
+    queryKey: ['templates', formData.type],
+    queryFn: () => templatesApi.list({ type: formData.type }),
+    enabled: isOpen,
+  })
+
   const clients = clientsData?.data?.clients || []
+  const templates = templatesData?.data?.templates || []
+
+  // Auto-select default template when templates load or type changes
+  useEffect(() => {
+    if (templates.length > 0) {
+      const defaultTemplate = templates.find((t: TransactionTemplate) => t.isDefault)
+      if (defaultTemplate) {
+        setSelectedTemplateId(defaultTemplate.id)
+      } else {
+        setSelectedTemplateId(null)
+      }
+    } else {
+      setSelectedTemplateId(null)
+    }
+  }, [templates])
 
   const createMutation = useMutation({
     mutationFn: transactionsApi.create,
@@ -66,9 +87,8 @@ export default function CreateTransactionModal({
     setFormData({
       clientId: 0,
       type: 'purchase',
-      counterOfferEnabled: false,
     })
-    setShowOfferDetails(false)
+    setSelectedTemplateId(null)
     setError(null)
   }
 
@@ -84,58 +104,17 @@ export default function CreateTransactionModal({
       return
     }
 
-    // Validate counterOffer logic
-    if (formData.counterOfferEnabled && !formData.counterOfferPrice) {
-      setError({
-        title: 'Required Field',
-        message: 'Counter offer price is required when counter offer is enabled.',
-      })
-      return
-    }
-
-    // Helper: parse number or return undefined
-    const parseNumber = (value: any): number | undefined => {
-      if (value === null || value === undefined || value === '') return undefined
-      const num = typeof value === 'string' ? parseFloat(value) : value
-      return isNaN(num) || num < 0 ? undefined : num
-    }
-
-    // Helper: parse datetime-local string to ISO or undefined
-    const parseDatetime = (value: any): string | undefined => {
-      if (!value || value === '') return undefined
-      // datetime-local format: "YYYY-MM-DDTHH:mm" -> convert to ISO string for backend
-      return value
-    }
-
-    // Build payload: only include fields if they have values (not empty strings or 0 when untouched)
-    const payload: any = {
+    const payload: CreateTransactionRequest = {
       clientId: formData.clientId,
       type: formData.type,
     }
 
-    // Optional basic fields
-    if (formData.salePrice) payload.salePrice = parseNumber(formData.salePrice)
-    if (formData.notesText?.trim()) payload.notesText = formData.notesText.trim()
-
-    // Offer Details: only include if showOfferDetails was opened and user filled them
-    if (showOfferDetails) {
-      const listPriceNum = parseNumber(formData.listPrice)
-      const offerPriceNum = parseNumber(formData.offerPrice)
-      const counterOfferPriceNum = parseNumber(formData.counterOfferPrice)
-      const commissionNum = parseNumber(formData.commission)
-      const expiryDate = parseDatetime(formData.offerExpiryAt)
-
-      if (listPriceNum !== undefined) payload.listPrice = listPriceNum
-      if (offerPriceNum !== undefined) payload.offerPrice = offerPriceNum
-      if (expiryDate !== undefined) payload.offerExpiryAt = expiryDate
-      if (commissionNum !== undefined) payload.commission = commissionNum
-
-      // Counter offer logic
-      payload.counterOfferEnabled = formData.counterOfferEnabled || false
-      if (formData.counterOfferEnabled && counterOfferPriceNum !== undefined) {
-        payload.counterOfferPrice = counterOfferPriceNum
-      }
+    if (selectedTemplateId) {
+      payload.templateId = selectedTemplateId
     }
+
+    if (formData.salePrice) payload.salePrice = formData.salePrice
+    if (formData.notesText?.trim()) payload.notesText = formData.notesText.trim()
 
     createMutation.mutate(payload)
   }
@@ -236,12 +215,48 @@ export default function CreateTransactionModal({
                         type: e.target.value as TransactionType,
                       })
                     }
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   >
                     <option value="purchase">Purchase</option>
                     <option value="sale">Sale</option>
                   </select>
                 </div>
+
+                {/* Template Selector */}
+                {templates.length > 0 && (
+                  <div>
+                    <label
+                      htmlFor="templateId"
+                      className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
+                      Template
+                    </label>
+                    <select
+                      id="templateId"
+                      value={selectedTemplateId || ''}
+                      onChange={(e) =>
+                        setSelectedTemplateId(
+                          e.target.value ? parseInt(e.target.value) : null
+                        )
+                      }
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    >
+                      <option value="">No template (start from scratch)</option>
+                      {templates.map((template: TransactionTemplate) => (
+                        <option key={template.id} value={template.id}>
+                          {template.name}
+                          {template.isDefault ? ' (Recommended)' : ''}
+                          {template.conditions?.length
+                            ? ` - ${template.conditions.length} conditions`
+                            : ''}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      Templates auto-create conditions with pre-configured due dates
+                    </p>
+                  </div>
+                )}
 
                 <div>
                   <label
@@ -291,206 +306,6 @@ export default function CreateTransactionModal({
                   />
                 </div>
 
-                {/* Offer Details Section (Collapsible) */}
-                <div className="border-t border-gray-200 pt-4">
-                  <button
-                    type="button"
-                    onClick={() => setShowOfferDetails(!showOfferDetails)}
-                    className="flex items-center justify-between w-full text-left text-sm font-medium text-gray-700 hover:text-gray-900"
-                  >
-                    <span>Offer Details (optional)</span>
-                    <svg
-                      className={`w-5 h-5 transition-transform ${showOfferDetails ? 'rotate-180' : ''}`}
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 9l-7 7-7-7"
-                      />
-                    </svg>
-                  </button>
-
-                  {showOfferDetails && (
-                    <div className="mt-4 space-y-4">
-                      <div>
-                        <label
-                          htmlFor="listPrice"
-                          className="block text-sm font-medium text-gray-700"
-                        >
-                          List Price
-                        </label>
-                        <div className="mt-1 relative rounded-md shadow-sm">
-                          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                            <span className="text-gray-500 sm:text-sm">$</span>
-                          </div>
-                          <input
-                            type="number"
-                            id="listPrice"
-                            value={formData.listPrice || ''}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                listPrice: e.target.value
-                                  ? parseFloat(e.target.value)
-                                  : undefined,
-                              })
-                            }
-                            className="block w-full border border-gray-300 rounded-md py-2 pl-7 pr-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                            placeholder="0.00"
-                            step="0.01"
-                            min="0"
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <label
-                          htmlFor="offerPrice"
-                          className="block text-sm font-medium text-gray-700"
-                        >
-                          Offer Price
-                        </label>
-                        <div className="mt-1 relative rounded-md shadow-sm">
-                          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                            <span className="text-gray-500 sm:text-sm">$</span>
-                          </div>
-                          <input
-                            type="number"
-                            id="offerPrice"
-                            value={formData.offerPrice || ''}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                offerPrice: e.target.value
-                                  ? parseFloat(e.target.value)
-                                  : undefined,
-                              })
-                            }
-                            className="block w-full border border-gray-300 rounded-md py-2 pl-7 pr-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                            placeholder="0.00"
-                            step="0.01"
-                            min="0"
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <label
-                          htmlFor="offerExpiryAt"
-                          className="block text-sm font-medium text-gray-700"
-                        >
-                          Offer Expiry
-                        </label>
-                        <input
-                          type="datetime-local"
-                          id="offerExpiryAt"
-                          value={formData.offerExpiryAt || ''}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              offerExpiryAt: e.target.value || undefined,
-                            })
-                          }
-                          className="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="flex items-center">
-                          <input
-                            type="checkbox"
-                            checked={formData.counterOfferEnabled || false}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                counterOfferEnabled: e.target.checked,
-                                counterOfferPrice: e.target.checked
-                                  ? formData.counterOfferPrice
-                                  : undefined,
-                              })
-                            }
-                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                          />
-                          <span className="ml-2 text-sm font-medium text-gray-700">
-                            Counter offer?
-                          </span>
-                        </label>
-                      </div>
-
-                      {formData.counterOfferEnabled && (
-                        <div>
-                          <label
-                            htmlFor="counterOfferPrice"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Counter Offer Price{' '}
-                            <span className="text-red-500">*</span>
-                          </label>
-                          <div className="mt-1 relative rounded-md shadow-sm">
-                            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                              <span className="text-gray-500 sm:text-sm">$</span>
-                            </div>
-                            <input
-                              type="number"
-                              id="counterOfferPrice"
-                              value={formData.counterOfferPrice || ''}
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  counterOfferPrice: e.target.value
-                                    ? parseFloat(e.target.value)
-                                    : undefined,
-                                })
-                              }
-                              className="block w-full border border-gray-300 rounded-md py-2 pl-7 pr-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                              placeholder="0.00"
-                              step="0.01"
-                              min="0"
-                            />
-                          </div>
-                        </div>
-                      )}
-
-                      <div>
-                        <label
-                          htmlFor="commission"
-                          className="block text-sm font-medium text-gray-500"
-                        >
-                          Commission{' '}
-                          <span className="text-xs font-normal text-gray-400">
-                            (Internal / optional)
-                          </span>
-                        </label>
-                        <div className="mt-1 relative rounded-md shadow-sm">
-                          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                            <span className="text-gray-500 sm:text-sm">$</span>
-                          </div>
-                          <input
-                            type="number"
-                            id="commission"
-                            value={formData.commission || ''}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                commission: e.target.value
-                                  ? parseFloat(e.target.value)
-                                  : undefined,
-                              })
-                            }
-                            className="block w-full border border-gray-300 rounded-md py-2 pl-7 pr-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                            placeholder="0.00"
-                            step="0.01"
-                            min="0"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
               </div>
             </div>
 

@@ -23,7 +23,7 @@ export default class DashboardController {
         Transaction.query().where('owner_user_id', userId).count('* as total'),
         Transaction.query()
           .where('owner_user_id', userId)
-          .whereNotIn('status', ['completed', 'canceled'])
+          .whereNotIn('status', ['completed', 'cancelled'])
           .count('* as total'),
         Transaction.query()
           .where('owner_user_id', userId)
@@ -49,17 +49,16 @@ export default class DashboardController {
       // Pipeline: count by status
       const pipelineData = await Transaction.query()
         .where('owner_user_id', userId)
-        .whereNotIn('status', ['completed', 'canceled'])
+        .whereNotIn('status', ['completed', 'cancelled'])
         .select('status')
         .count('* as count')
         .groupBy('status')
 
       const pipeline = {
-        consultation: 0,
+        active: 0,
         offer: 0,
-        accepted: 0,
-        conditions: 0,
-        notary: 0,
+        conditional: 0,
+        firm: 0,
         closing: 0,
       }
       pipelineData.forEach((row) => {
@@ -77,9 +76,9 @@ export default class DashboardController {
         .where('status', 'completed')
         .whereNotNull('commission')
         .where('updated_at', '>=', sixMonthsAgo)
-        .select(db.raw("strftime('%Y-%m', updated_at) as month"))
+        .select(db.raw("to_char(updated_at, 'YYYY-MM') as month"))
         .sum('commission as total')
-        .groupByRaw("strftime('%Y-%m', updated_at)")
+        .groupByRaw("to_char(updated_at, 'YYYY-MM')")
         .orderBy('month', 'asc')
 
       // Build revenue array for last 6 months
@@ -118,7 +117,7 @@ export default class DashboardController {
       // Conversion rate (completed / total non-canceled)
       const totalNonCanceled = await Transaction.query()
         .where('owner_user_id', userId)
-        .whereNot('status', 'canceled')
+        .whereNot('status', 'cancelled')
         .count('* as total')
 
       const totalNonCanceledCount = Number(totalNonCanceled[0].$extras.total) || 0

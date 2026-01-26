@@ -49,6 +49,16 @@ router.group(() => {
   router.get('/transactions/:id/allowed-transitions', '#controllers/transactions_controller.allowedTransitions')
   router.delete('/transactions/:id', '#controllers/transactions_controller.destroy')
 
+  // Offers
+  router.get('/transactions/:id/offers', '#controllers/offers_controller.index')
+  router.post('/transactions/:id/offers', '#controllers/offers_controller.store')
+  router.get('/offers/:offerId', '#controllers/offers_controller.show')
+  router.post('/offers/:offerId/revisions', '#controllers/offers_controller.addRevision')
+  router.patch('/offers/:offerId/accept', '#controllers/offers_controller.accept')
+  router.patch('/offers/:offerId/reject', '#controllers/offers_controller.reject')
+  router.patch('/offers/:offerId/withdraw', '#controllers/offers_controller.withdraw')
+  router.delete('/offers/:offerId', '#controllers/offers_controller.destroy')
+
   // Conditions
   router.post('/transactions/:id/conditions', '#controllers/conditions_controller.store')
   router.put('/conditions/:id', '#controllers/conditions_controller.update')
@@ -59,4 +69,8 @@ router.group(() => {
   router.get('/transactions/:id/notes', '#controllers/notes_controller.index')
   router.post('/transactions/:id/notes', '#controllers/notes_controller.store')
   router.delete('/notes/:id', '#controllers/notes_controller.destroy')
+
+  // Templates
+  router.get('/templates', '#controllers/templates_controller.index')
+  router.get('/templates/:id', '#controllers/templates_controller.show')
 }).prefix('/api').use(middleware.auth())

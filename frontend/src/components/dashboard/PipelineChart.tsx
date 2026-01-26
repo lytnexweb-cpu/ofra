@@ -1,12 +1,10 @@
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
-import { useTheme } from '../../contexts/ThemeContext'
 
 interface PipelineData {
-  consultation: number
+  active: number
   offer: number
-  accepted: number
-  conditions: number
-  notary: number
+  conditional: number
+  firm: number
   closing: number
 }
 
@@ -15,26 +13,23 @@ interface PipelineChartProps {
 }
 
 const STATUS_CONFIG = [
-  { key: 'consultation', label: 'Consultation', color: '#6366F1' },
+  { key: 'active', label: 'Active', color: '#6366F1' },
   { key: 'offer', label: 'Offer', color: '#8B5CF6' },
-  { key: 'accepted', label: 'Accepted', color: '#A855F7' },
-  { key: 'conditions', label: 'Conditions', color: '#D946EF' },
-  { key: 'notary', label: 'Notary', color: '#EC4899' },
+  { key: 'conditional', label: 'Conditional', color: '#D946EF' },
+  { key: 'firm', label: 'Firm', color: '#EC4899' },
   { key: 'closing', label: 'Closing', color: '#F43F5E' },
 ]
 
 const DEFAULT_PIPELINE: PipelineData = {
-  consultation: 0,
+  active: 0,
   offer: 0,
-  accepted: 0,
-  conditions: 0,
-  notary: 0,
+  conditional: 0,
+  firm: 0,
   closing: 0,
 }
 
 export default function PipelineChart({ data }: PipelineChartProps) {
-  const { resolvedTheme } = useTheme()
-  const isDark = resolvedTheme === 'dark'
+  const isDark = false
 
   const safeData = data ?? DEFAULT_PIPELINE
   const chartData = STATUS_CONFIG.map((status) => ({
