@@ -15,6 +15,7 @@ import {
 } from '../api/conditions.api'
 import { notesApi, type Note } from '../api/notes.api'
 import CreateConditionModal from '../components/CreateConditionModal'
+import OffersSection from '../components/OffersSection'
 import ConfirmDialog from '../components/ConfirmDialog'
 
 const statusLabels: Record<TransactionStatus, string> = {
@@ -1451,6 +1452,12 @@ export default function TransactionDetailPage() {
             })()}
           </div>
         </div>
+
+        {/* Offers Section */}
+        <OffersSection
+          transactionId={transactionId}
+          transactionStatus={transaction.status}
+        />
 
         {/* Notes Section */}
         <div className="bg-white shadow sm:rounded-lg">
