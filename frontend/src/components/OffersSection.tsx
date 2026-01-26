@@ -42,7 +42,7 @@ function getLastRevision(offer: Offer): OfferRevision | null {
   , offer.revisions[0])
 }
 
-export default function OffersSection({ transactionId, transactionStatus }: OffersSectionProps) {
+export default function OffersSection({ transactionId, transactionStatus: _transactionStatus }: OffersSectionProps) {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
 
