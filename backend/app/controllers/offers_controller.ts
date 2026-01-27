@@ -3,15 +3,13 @@ import { DateTime } from 'luxon'
 import Transaction from '#models/transaction'
 import Offer from '#models/offer'
 import { OfferService } from '#services/offer_service'
+import { ActivityFeedService } from '#services/activity_feed_service'
 import {
   createOfferValidator,
   addRevisionValidator,
 } from '#validators/offer_validator'
 
 export default class OffersController {
-  /**
-   * List all offers for a transaction
-   */
   async index({ params, response, auth }: HttpContext) {
     try {
       const transaction = await Transaction.query()
@@ -39,9 +37,6 @@ export default class OffersController {
     }
   }
 
-  /**
-   * Create a new offer for a transaction
-   */
   async store({ params, request, response, auth }: HttpContext) {
     try {
       const transaction = await Transaction.query()
@@ -62,11 +57,12 @@ export default class OffersController {
         createdByUserId: auth.user!.id,
       })
 
-      // Auto-advance transaction to 'offer' status if still 'active'
-      if (transaction.status === 'active') {
-        transaction.status = 'offer'
-        await transaction.save()
-      }
+      await ActivityFeedService.log({
+        transactionId: transaction.id,
+        userId: auth.user!.id,
+        activityType: 'offer_created',
+        metadata: { offerId: offer.id, price: payload.price },
+      })
 
       return response.created({
         success: true,
@@ -96,9 +92,6 @@ export default class OffersController {
     }
   }
 
-  /**
-   * Helper: load offer and verify ownership via its transaction
-   */
   private async loadOfferWithOwnershipCheck(offerId: number, userId: number) {
     const offer = await Offer.query()
       .where('id', offerId)
@@ -115,9 +108,6 @@ export default class OffersController {
     return { offer, transaction }
   }
 
-  /**
-   * Helper: load offer (no revisions) and verify ownership
-   */
   private async loadOfferBasicWithOwnershipCheck(offerId: number, userId: number) {
     const offer = await Offer.findOrFail(offerId)
 
@@ -129,9 +119,6 @@ export default class OffersController {
     return { offer, transaction }
   }
 
-  /**
-   * Show a single offer with all its revisions
-   */
   async show({ params, response, auth }: HttpContext) {
     try {
       const { offer } = await this.loadOfferWithOwnershipCheck(params.offerId, auth.user!.id)
@@ -154,9 +141,6 @@ export default class OffersController {
     }
   }
 
-  /**
-   * Add a counter/negotiation revision to an offer
-   */
   async addRevision({ params, request, response, auth }: HttpContext) {
     try {
       const { offer } = await this.loadOfferBasicWithOwnershipCheck(params.offerId, auth.user!.id)
@@ -174,7 +158,6 @@ export default class OffersController {
         createdByUserId: auth.user!.id,
       })
 
-      // Reload offer with revisions
       await offer.load('revisions', (query) => query.orderBy('revision_number', 'asc'))
 
       return response.created({
@@ -211,14 +194,21 @@ export default class OffersController {
     }
   }
 
-  /**
-   * Accept an offer
-   */
   async accept({ params, response, auth }: HttpContext) {
     try {
-      await this.loadOfferBasicWithOwnershipCheck(params.offerId, auth.user!.id)
+      const { transaction } = await this.loadOfferBasicWithOwnershipCheck(
+        params.offerId,
+        auth.user!.id
+      )
 
       const acceptedOffer = await OfferService.acceptOffer(params.offerId)
+
+      await ActivityFeedService.log({
+        transactionId: transaction.id,
+        userId: auth.user!.id,
+        activityType: 'offer_accepted',
+        metadata: { offerId: acceptedOffer.id },
+      })
 
       return response.ok({
         success: true,
@@ -244,14 +234,21 @@ export default class OffersController {
     }
   }
 
-  /**
-   * Reject an offer
-   */
   async reject({ params, response, auth }: HttpContext) {
     try {
-      await this.loadOfferBasicWithOwnershipCheck(params.offerId, auth.user!.id)
+      const { transaction } = await this.loadOfferBasicWithOwnershipCheck(
+        params.offerId,
+        auth.user!.id
+      )
 
       const rejectedOffer = await OfferService.rejectOffer(params.offerId)
+
+      await ActivityFeedService.log({
+        transactionId: transaction.id,
+        userId: auth.user!.id,
+        activityType: 'offer_rejected',
+        metadata: { offerId: rejectedOffer.id },
+      })
 
       return response.ok({
         success: true,
@@ -277,14 +274,21 @@ export default class OffersController {
     }
   }
 
-  /**
-   * Withdraw an offer
-   */
   async withdraw({ params, response, auth }: HttpContext) {
     try {
-      await this.loadOfferBasicWithOwnershipCheck(params.offerId, auth.user!.id)
+      const { transaction } = await this.loadOfferBasicWithOwnershipCheck(
+        params.offerId,
+        auth.user!.id
+      )
 
       const withdrawnOffer = await OfferService.withdrawOffer(params.offerId)
+
+      await ActivityFeedService.log({
+        transactionId: transaction.id,
+        userId: auth.user!.id,
+        activityType: 'offer_withdrawn',
+        metadata: { offerId: withdrawnOffer.id },
+      })
 
       return response.ok({
         success: true,
@@ -310,9 +314,6 @@ export default class OffersController {
     }
   }
 
-  /**
-   * Delete an offer (only if not accepted)
-   */
   async destroy({ params, response, auth }: HttpContext) {
     try {
       const { offer } = await this.loadOfferBasicWithOwnershipCheck(params.offerId, auth.user!.id)
@@ -328,7 +329,6 @@ export default class OffersController {
       }
 
       await offer.delete()
-
       return response.noContent()
     } catch (error) {
       if (error.code === 'E_ROW_NOT_FOUND') {

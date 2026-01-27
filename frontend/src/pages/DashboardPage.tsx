@@ -42,7 +42,7 @@ export default function DashboardPage() {
     overdueConditions: data.data.overdueConditions ?? 0,
     dueSoonConditions: data.data.dueSoonConditions ?? 0,
     conversionRate: data.data.conversionRate ?? 0,
-    pipeline: data.data.pipeline ?? { active: 0, offer: 0, conditional: 0, firm: 0, closing: 0 },
+    pipeline: data.data.pipeline ?? [],
     revenue: data.data.revenue ?? [],
     totalRevenue: data.data.totalRevenue ?? 0,
     monthRevenue: data.data.monthRevenue ?? 0,

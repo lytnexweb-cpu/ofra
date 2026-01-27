@@ -1,8 +1,10 @@
 import { DateTime } from 'luxon'
 import hash from '@adonisjs/core/services/hash'
 import { compose } from '@adonisjs/core/helpers'
-import { BaseModel, column } from '@adonisjs/lucid/orm'
+import { BaseModel, column, belongsTo } from '@adonisjs/lucid/orm'
+import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import { withAuthFinder } from '@adonisjs/auth/mixins/lucid'
+import Organization from './organization.js'
 
 const AuthFinder = withAuthFinder(() => hash.use('scrypt'), {
   uids: ['email'],
@@ -49,9 +51,19 @@ export default class User extends compose(BaseModel, AuthFinder) {
   @column()
   declare timezone: string
 
+  // Organization & language
+  @column()
+  declare organizationId: number | null
+
+  @column()
+  declare preferredLanguage: string
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
+
+  @belongsTo(() => Organization, { foreignKey: 'organizationId' })
+  declare organization: BelongsTo<typeof Organization>
 }

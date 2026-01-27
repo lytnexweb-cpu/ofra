@@ -24,17 +24,7 @@ export const createConditionValidator = vine.compile(
       ])
       .optional(),
     priority: vine.enum(['low', 'medium', 'high']).optional(),
-    stage: vine
-      .enum([
-        'active',
-        'offer',
-        'conditional',
-        'firm',
-        'closing',
-        'completed',
-        'cancelled',
-      ])
-      .optional(),
+    transactionStepId: vine.number().positive().optional(),
     isBlocking: vine.boolean().optional(),
     offerId: vine.number().positive().optional(),
     documentUrl: vine.string().trim().maxLength(2048).optional(),
@@ -67,17 +57,7 @@ export const updateConditionValidator = vine.compile(
       ])
       .optional(),
     priority: vine.enum(['low', 'medium', 'high']).optional(),
-    stage: vine
-      .enum([
-        'active',
-        'offer',
-        'conditional',
-        'firm',
-        'closing',
-        'completed',
-        'cancelled',
-      ])
-      .optional(),
+    transactionStepId: vine.number().positive().optional(),
     isBlocking: vine.boolean().optional(),
     offerId: vine.number().positive().optional(),
     documentUrl: vine.string().trim().maxLength(2048).optional(),

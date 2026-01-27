@@ -10,24 +10,18 @@ export default class DashboardController {
       const today = DateTime.now()
       const todaySQL = today.toSQLDate()!
       const sevenDaysLater = today.plus({ days: 7 }).toSQLDate()!
-      const thirtyDaysAgo = today.minus({ days: 30 }).toSQLDate()!
 
       // Basic counts
       const [
         totalTransactions,
         activeTransactions,
-        completedTransactions,
         overdueConditions,
         dueSoonConditions,
       ] = await Promise.all([
         Transaction.query().where('owner_user_id', userId).count('* as total'),
         Transaction.query()
           .where('owner_user_id', userId)
-          .whereNotIn('status', ['completed', 'cancelled'])
-          .count('* as total'),
-        Transaction.query()
-          .where('owner_user_id', userId)
-          .where('status', 'completed')
+          .whereNotNull('current_step_id')
           .count('* as total'),
         db
           .from('conditions')
@@ -46,34 +40,38 @@ export default class DashboardController {
           .count('* as total'),
       ])
 
-      // Pipeline: count by status
-      const pipelineData = await Transaction.query()
-        .where('owner_user_id', userId)
-        .whereNotIn('status', ['completed', 'cancelled'])
-        .select('status')
+      // Pipeline: count by current workflow step slug
+      const pipelineData = await db
+        .from('transactions as t')
+        .join('transaction_steps as ts', 't.current_step_id', 'ts.id')
+        .join('workflow_steps as ws', 'ts.workflow_step_id', 'ws.id')
+        .where('t.owner_user_id', userId)
+        .whereNotNull('t.current_step_id')
+        .select('ws.slug', 'ws.name')
         .count('* as count')
-        .groupBy('status')
+        .groupBy('ws.slug', 'ws.name')
+        .orderBy('ws.slug')
 
-      const pipeline = {
-        active: 0,
-        offer: 0,
-        conditional: 0,
-        firm: 0,
-        closing: 0,
-      }
-      pipelineData.forEach((row) => {
-        const status = row.status as keyof typeof pipeline
-        if (status in pipeline) {
-          pipeline[status] = Number(row.$extras.count)
-        }
-      })
+      const pipeline = pipelineData.map((row) => ({
+        slug: row.slug,
+        name: row.name,
+        count: Number(row.count),
+      }))
+
+      // Completed transactions (no current step)
+      const completedTransactions = await Transaction.query()
+        .where('owner_user_id', userId)
+        .whereNull('current_step_id')
+        .whereNotNull('workflow_template_id')
+        .count('* as total')
+      const completedCount = Number(completedTransactions[0].$extras.total) || 0
 
       // Revenue: commissions by month (last 6 months)
       const sixMonthsAgo = today.minus({ months: 6 }).startOf('month').toSQLDate()!
       const revenueData = await db
         .from('transactions')
         .where('owner_user_id', userId)
-        .where('status', 'completed')
+        .whereNull('current_step_id')
         .whereNotNull('commission')
         .where('updated_at', '>=', sixMonthsAgo)
         .select(db.raw("to_char(updated_at, 'YYYY-MM') as month"))
@@ -81,7 +79,6 @@ export default class DashboardController {
         .groupByRaw("to_char(updated_at, 'YYYY-MM')")
         .orderBy('month', 'asc')
 
-      // Build revenue array for last 6 months
       const revenue: { month: string; total: number }[] = []
       for (let i = 5; i >= 0; i--) {
         const monthDate = today.minus({ months: i })
@@ -94,10 +91,10 @@ export default class DashboardController {
         })
       }
 
-      // Total revenue (completed transactions)
+      // Total revenue
       const totalRevenueResult = await Transaction.query()
         .where('owner_user_id', userId)
-        .where('status', 'completed')
+        .whereNull('current_step_id')
         .whereNotNull('commission')
         .sum('commission as total')
 
@@ -107,113 +104,47 @@ export default class DashboardController {
       const startOfMonth = today.startOf('month').toSQLDate()!
       const monthRevenueResult = await Transaction.query()
         .where('owner_user_id', userId)
-        .where('status', 'completed')
+        .whereNull('current_step_id')
         .whereNotNull('commission')
         .where('updated_at', '>=', startOfMonth)
         .sum('commission as total')
 
       const monthRevenue = Number(monthRevenueResult[0].$extras.total) || 0
 
-      // Conversion rate (completed / total non-canceled)
-      const totalNonCanceled = await Transaction.query()
-        .where('owner_user_id', userId)
-        .whereNot('status', 'cancelled')
-        .count('* as total')
-
-      const totalNonCanceledCount = Number(totalNonCanceled[0].$extras.total) || 0
-      const completedCount = Number(completedTransactions[0].$extras.total) || 0
+      // Conversion rate
+      const totalAll = Number(totalTransactions[0].$extras.total) || 0
       const conversionRate =
-        totalNonCanceledCount > 0 ? Math.round((completedCount / totalNonCanceledCount) * 100) : 0
+        totalAll > 0 ? Math.round((completedCount / totalAll) * 100) : 0
 
-      // Recent activity using raw queries for better performance
-      const recentStatusChangesRaw = await db
-        .from('transaction_status_histories as h')
-        .join('transactions as t', 'h.transaction_id', 't.id')
+      // Recent activity from activity_feed
+      const recentActivity = await db
+        .from('activity_feed as af')
+        .join('transactions as t', 'af.transaction_id', 't.id')
         .join('clients as c', 't.client_id', 'c.id')
+        .leftJoin('users as u', 'af.user_id', 'u.id')
         .where('t.owner_user_id', userId)
-        .where('h.created_at', '>=', thirtyDaysAgo)
         .select(
-          'h.id',
-          'h.transaction_id as transactionId',
-          'h.from_status as fromStatus',
-          'h.to_status as toStatus',
-          'h.created_at as createdAt',
-          'c.first_name as clientFirstName',
-          'c.last_name as clientLastName'
-        )
-        .orderBy('h.created_at', 'desc')
-        .limit(5)
-
-      const recentNotesRaw = await db
-        .from('notes as n')
-        .join('transactions as t', 'n.transaction_id', 't.id')
-        .join('clients as c', 't.client_id', 'c.id')
-        .leftJoin('users as u', 'n.author_user_id', 'u.id')
-        .where('t.owner_user_id', userId)
-        .where('n.created_at', '>=', thirtyDaysAgo)
-        .select(
-          'n.id',
-          'n.transaction_id as transactionId',
-          'n.content',
-          'n.created_at as createdAt',
+          'af.id',
+          'af.transaction_id as transactionId',
+          'af.activity_type as activityType',
+          'af.metadata',
+          'af.created_at as createdAt',
           'c.first_name as clientFirstName',
           'c.last_name as clientLastName',
-          'u.full_name as authorName',
-          'u.email as authorEmail'
+          'u.full_name as userName'
         )
-        .orderBy('n.created_at', 'desc')
-        .limit(5)
+        .orderBy('af.created_at', 'desc')
+        .limit(10)
 
-      const recentConditionsRaw = await db
-        .from('conditions as cond')
-        .join('transactions as t', 'cond.transaction_id', 't.id')
-        .join('clients as c', 't.client_id', 'c.id')
-        .where('t.owner_user_id', userId)
-        .where('cond.status', 'completed')
-        .where('cond.updated_at', '>=', thirtyDaysAgo)
-        .select(
-          'cond.id',
-          'cond.transaction_id as transactionId',
-          'cond.title',
-          'cond.updated_at as createdAt',
-          'c.first_name as clientFirstName',
-          'c.last_name as clientLastName'
-        )
-        .orderBy('cond.updated_at', 'desc')
-        .limit(5)
-
-      // Merge and sort recent activity
-      const recentActivity = [
-        ...recentStatusChangesRaw.map((h) => ({
-          type: 'status_change' as const,
-          id: h.id,
-          transactionId: h.transactionId,
-          clientName: `${h.clientFirstName} ${h.clientLastName}`,
-          description: `Status: ${h.fromStatus || 'new'} → ${h.toStatus}`,
-          fromStatus: h.fromStatus || undefined,
-          toStatus: h.toStatus,
-          createdAt: h.createdAt,
-        })),
-        ...recentNotesRaw.map((n) => ({
-          type: 'note' as const,
-          id: n.id,
-          transactionId: n.transactionId,
-          clientName: `${n.clientFirstName} ${n.clientLastName}`,
-          description: `Note: ${n.content.substring(0, 50)}${n.content.length > 50 ? '...' : ''}`,
-          author: n.authorName || n.authorEmail || 'Unknown',
-          createdAt: n.createdAt,
-        })),
-        ...recentConditionsRaw.map((c) => ({
-          type: 'condition_completed' as const,
-          id: c.id,
-          transactionId: c.transactionId,
-          clientName: `${c.clientFirstName} ${c.clientLastName}`,
-          description: `Condition completed: ${c.title}`,
-          createdAt: c.createdAt,
-        })),
-      ]
-        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-        .slice(0, 10)
+      const activities = recentActivity.map((a) => ({
+        id: a.id,
+        transactionId: a.transactionId,
+        activityType: a.activityType,
+        metadata: a.metadata,
+        clientName: `${a.clientFirstName} ${a.clientLastName}`,
+        userName: a.userName,
+        createdAt: a.createdAt,
+      }))
 
       // Upcoming deadlines
       const upcomingDeadlinesRaw = await db
@@ -251,22 +182,17 @@ export default class DashboardController {
       return response.ok({
         success: true,
         data: {
-          // Basic stats
-          totalTransactions: Number(totalTransactions[0].$extras.total),
+          totalTransactions: totalAll,
           activeTransactions: Number(activeTransactions[0].$extras.total),
           completedTransactions: completedCount,
           overdueConditions: Number(overdueConditions[0].total),
           dueSoonConditions: Number(dueSoonConditions[0].total),
-          // Pipeline
           pipeline,
-          // Revenue
           revenue,
           totalRevenue,
           monthRevenue,
-          // Metrics
           conversionRate,
-          // Activity
-          recentActivity,
+          recentActivity: activities,
           upcomingDeadlines: deadlines,
         },
       })

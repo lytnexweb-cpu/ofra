@@ -13,25 +13,16 @@ export type ConditionType =
   | 'repairs'
   | 'other'
 export type ConditionPriority = 'low' | 'medium' | 'high'
-export type TransactionStatus =
-  | 'active'
-  | 'offer'
-  | 'conditional'
-  | 'firm'
-  | 'closing'
-  | 'completed'
-  | 'cancelled'
-export type ConditionStage = TransactionStatus
 
 export interface Condition {
   id: number
   transactionId: number
+  transactionStepId: number | null
   title: string
   description: string | null
   status: ConditionStatus
   type: ConditionType
   priority: ConditionPriority
-  stage: ConditionStage
   isBlocking: boolean
   documentUrl: string | null
   documentLabel: string | null
@@ -48,7 +39,7 @@ export interface CreateConditionRequest {
   dueDate: string
   type?: ConditionType
   priority?: ConditionPriority
-  stage?: ConditionStage
+  transactionStepId?: number
   isBlocking?: boolean
   documentUrl?: string
   documentLabel?: string
@@ -61,7 +52,7 @@ export interface UpdateConditionRequest {
   status?: ConditionStatus
   type?: ConditionType
   priority?: ConditionPriority
-  stage?: ConditionStage
+  transactionStepId?: number
   isBlocking?: boolean
   documentUrl?: string
   documentLabel?: string

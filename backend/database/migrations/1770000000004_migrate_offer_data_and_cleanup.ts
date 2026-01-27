@@ -37,7 +37,7 @@ export default class extends BaseSchema {
       // Create offer
       const offerResult = await this.db.rawQuery(
         `INSERT INTO offers (transaction_id, status, accepted_at, created_at, updated_at)
-         VALUES ($1, $2, $3, NOW(), NOW())
+         VALUES (?, ?, ?, NOW(), NOW())
          RETURNING id`,
         [txn.id, offerStatus, acceptedAt]
       )
@@ -46,7 +46,7 @@ export default class extends BaseSchema {
       // Create initial revision (buyer's offer)
       await this.db.rawQuery(
         `INSERT INTO offer_revisions (offer_id, revision_number, price, expiry_at, direction, created_by_user_id, created_at)
-         VALUES ($1, 1, $2, $3, 'buyer_to_seller', $4, NOW())`,
+         VALUES (?, 1, ?, ?, 'buyer_to_seller', ?, NOW())`,
         [offerId, txn.offer_price, txn.offer_expiry_at, txn.owner_user_id]
       )
 
@@ -54,7 +54,7 @@ export default class extends BaseSchema {
       if (txn.counter_offer_enabled && txn.counter_offer_price) {
         await this.db.rawQuery(
           `INSERT INTO offer_revisions (offer_id, revision_number, price, direction, created_by_user_id, created_at)
-           VALUES ($1, 2, $2, 'seller_to_buyer', $3, NOW())`,
+           VALUES (?, 2, ?, 'seller_to_buyer', ?, NOW())`,
           [offerId, txn.counter_offer_price, txn.owner_user_id]
         )
       }
@@ -92,11 +92,11 @@ export default class extends BaseSchema {
     for (const offer of offers.rows) {
       await this.db.rawQuery(
         `UPDATE transactions
-         SET offer_price = $1,
-             counter_offer_enabled = $2,
-             counter_offer_price = $3,
-             offer_expiry_at = $4
-         WHERE id = $5`,
+         SET offer_price = ?,
+             counter_offer_enabled = ?,
+             counter_offer_price = ?,
+             offer_expiry_at = ?
+         WHERE id = ?`,
         [
           offer.offer_price,
           offer.counter_offer_price ? true : false,

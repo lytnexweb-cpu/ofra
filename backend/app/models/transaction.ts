@@ -6,17 +6,11 @@ import Client from './client.js'
 import Property from './property.js'
 import Condition from './condition.js'
 import Note from './note.js'
-import TransactionStatusHistory from './transaction_status_history.js'
 import Offer from './offer.js'
-
-export type TransactionStatus =
-  | 'active'
-  | 'offer'
-  | 'conditional'
-  | 'firm'
-  | 'closing'
-  | 'completed'
-  | 'cancelled'
+import Organization from './organization.js'
+import WorkflowTemplate from './workflow_template.js'
+import TransactionStep from './transaction_step.js'
+import ActivityFeed from './activity_feed.js'
 
 export type TransactionType = 'purchase' | 'sale'
 
@@ -37,7 +31,13 @@ export default class Transaction extends BaseModel {
   declare type: TransactionType
 
   @column()
-  declare status: TransactionStatus
+  declare workflowTemplateId: number | null
+
+  @column()
+  declare currentStepId: number | null
+
+  @column()
+  declare organizationId: number | null
 
   @column()
   declare salePrice: number | null
@@ -69,6 +69,18 @@ export default class Transaction extends BaseModel {
   @belongsTo(() => Property, { foreignKey: 'propertyId' })
   declare property: BelongsTo<typeof Property>
 
+  @belongsTo(() => WorkflowTemplate, { foreignKey: 'workflowTemplateId' })
+  declare workflowTemplate: BelongsTo<typeof WorkflowTemplate>
+
+  @belongsTo(() => TransactionStep, { foreignKey: 'currentStepId' })
+  declare currentStep: BelongsTo<typeof TransactionStep>
+
+  @belongsTo(() => Organization, { foreignKey: 'organizationId' })
+  declare organization: BelongsTo<typeof Organization>
+
+  @hasMany(() => TransactionStep, { foreignKey: 'transactionId' })
+  declare transactionSteps: HasMany<typeof TransactionStep>
+
   @hasMany(() => Condition, { foreignKey: 'transactionId' })
   declare conditions: HasMany<typeof Condition>
 
@@ -78,6 +90,6 @@ export default class Transaction extends BaseModel {
   @hasMany(() => Note, { foreignKey: 'transactionId' })
   declare notes: HasMany<typeof Note>
 
-  @hasMany(() => TransactionStatusHistory, { foreignKey: 'transactionId' })
-  declare statusHistories: HasMany<typeof TransactionStatusHistory>
+  @hasMany(() => ActivityFeed, { foreignKey: 'transactionId' })
+  declare activities: HasMany<typeof ActivityFeed>
 }
