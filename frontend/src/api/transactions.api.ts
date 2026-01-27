@@ -1,16 +1,8 @@
 import { http } from './http'
 import type { Client } from './clients.api'
 
-export type TransactionStatus =
-  | 'active'
-  | 'offer'
-  | 'conditional'
-  | 'firm'
-  | 'closing'
-  | 'completed'
-  | 'cancelled'
-
 export type TransactionType = 'purchase' | 'sale'
+export type TransactionStepStatus = 'pending' | 'active' | 'completed' | 'skipped'
 
 export interface OfferRevision {
   id: number
@@ -38,13 +30,37 @@ export interface Offer {
   revisions?: OfferRevision[]
 }
 
+export interface WorkflowStepInfo {
+  id: number
+  name: string
+  slug: string
+  stepOrder: number
+  typicalDurationDays: number | null
+}
+
+export interface TransactionStep {
+  id: number
+  transactionId: number
+  workflowStepId: number
+  stepOrder: number
+  status: TransactionStepStatus
+  enteredAt: string | null
+  completedAt: string | null
+  createdAt: string
+  updatedAt: string
+  workflowStep?: WorkflowStepInfo
+  conditions?: any[]
+}
+
 export interface Transaction {
   id: number
   ownerUserId: number
   clientId: number
   propertyId: number | null
   type: TransactionType
-  status: TransactionStatus
+  workflowTemplateId: number | null
+  currentStepId: number | null
+  organizationId: number | null
   salePrice: number | null
   notesText: string | null
   listPrice: number | null
@@ -54,6 +70,8 @@ export interface Transaction {
   updatedAt: string
   client?: Client
   property?: any
+  currentStep?: TransactionStep
+  transactionSteps?: TransactionStep[]
   conditions?: any[]
   offers?: Offer[]
   notes?: any[]
@@ -63,20 +81,18 @@ export interface CreateTransactionRequest {
   clientId: number
   propertyId?: number
   type: TransactionType
-  status?: TransactionStatus
+  workflowTemplateId: number
   salePrice?: number
   notesText?: string
   listPrice?: number
   commission?: number
   folderUrl?: string
-  templateId?: number
 }
 
 export interface UpdateTransactionRequest {
   clientId?: number
   propertyId?: number
   type?: TransactionType
-  status?: TransactionStatus
   salePrice?: number
   notesText?: string
   listPrice?: number
@@ -84,10 +100,20 @@ export interface UpdateTransactionRequest {
   folderUrl?: string
 }
 
+export interface ActivityEntry {
+  id: number
+  transactionId: number
+  userId: number | null
+  activityType: string
+  metadata: Record<string, any>
+  createdAt: string
+  user?: { id: number; fullName: string | null; email: string }
+}
+
 export const transactionsApi = {
-  list: (params?: { status?: string; q?: string }) => {
+  list: (params?: { step?: string; q?: string }) => {
     const query = new URLSearchParams()
-    if (params?.status) query.append('status', params.status)
+    if (params?.step) query.append('step', params.step)
     if (params?.q) query.append('q', params.q)
     const queryString = query.toString()
     return http.get<{ transactions: Transaction[] }>(
@@ -104,11 +130,28 @@ export const transactionsApi = {
   update: (id: number, data: UpdateTransactionRequest) =>
     http.put<{ transaction: Transaction }>(`/api/transactions/${id}`, data),
 
-  updateStatus: (id: number, status: TransactionStatus, note?: string) =>
-    http.patch<{ transaction: Transaction }>(`/api/transactions/${id}/status`, {
-      status,
-      note,
-    }),
-
   delete: (id: number) => http.delete<{}>(`/api/transactions/${id}`),
+
+  advanceStep: (id: number) =>
+    http.patch<{ transaction: Transaction; newStep: TransactionStep | null }>(
+      `/api/transactions/${id}/advance`,
+      {}
+    ),
+
+  skipStep: (id: number) =>
+    http.patch<{ transaction: Transaction; newStep: TransactionStep | null }>(
+      `/api/transactions/${id}/skip`,
+      {}
+    ),
+
+  goToStep: (id: number, stepOrder: number) =>
+    http.patch<{ transaction: Transaction; newStep: TransactionStep }>(
+      `/api/transactions/${id}/goto/${stepOrder}`,
+      {}
+    ),
+
+  getActivity: (id: number, page = 1, limit = 20) =>
+    http.get<{ data: ActivityEntry[]; meta: { total: number; perPage: number; currentPage: number } }>(
+      `/api/transactions/${id}/activity?page=${page}&limit=${limit}`
+    ),
 }

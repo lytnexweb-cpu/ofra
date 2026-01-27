@@ -48,19 +48,24 @@ export default function Layout() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col transition-colors">
+    <div className="min-h-screen bg-background text-foreground flex flex-col transition-colors">
+      {/* Skip link for accessibility (AR8) */}
+      <a href="#main" className="skip-link">
+        Skip to main content
+      </a>
+
       {/* Header */}
-      <nav className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <nav className="bg-card border-b border-border sticky top-0 z-dialog shadow-sm">
+        <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Left side: Logo + Nav */}
             <div className="flex items-center">
               {/* Logo/Brand */}
               <Link to="/" className="flex items-center gap-2 group">
-                <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
-                  <HomeIcon className="w-5 h-5 text-white" />
+                <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
+                  <HomeIcon className="w-5 h-5 text-primary-foreground" />
                 </div>
-                <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent hidden sm:block">
+                <span className="text-xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent hidden sm:block">
                   {BRAND.name}
                 </span>
               </Link>
@@ -81,8 +86,8 @@ export default function Layout() {
                       to={link.to}
                       className={`relative flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                         active
-                          ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30'
-                          : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700'
+                          ? 'text-primary bg-primary/10'
+                          : 'text-muted-foreground hover:text-foreground hover:bg-accent'
                       }`}
                     >
                       <Icon className="w-4 h-4" />
@@ -97,7 +102,7 @@ export default function Layout() {
             <div className="flex items-center gap-1 sm:gap-2">
               {/* Notifications (placeholder for future) */}
               <button
-                className="relative p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                className="relative p-2 rounded-lg text-muted-foreground hover:bg-accent transition-colors"
                 title="Notifications (coming soon)"
               >
                 <BellIcon className="w-5 h-5" />
@@ -116,7 +121,7 @@ export default function Layout() {
               {/* Mobile menu button */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="sm:hidden p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                className="sm:hidden p-2 rounded-lg text-muted-foreground hover:bg-accent transition-colors"
                 aria-expanded={mobileMenuOpen}
               >
                 <span className="sr-only">Open main menu</span>
@@ -140,7 +145,7 @@ export default function Layout() {
               transition={{ duration: 0.2 }}
               className="sm:hidden overflow-hidden"
             >
-              <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+              <div className="bg-card border-t border-border">
                 <div className="px-2 py-3 space-y-1">
                   {navLinks.map((link) => {
                     const Icon = link.icon
@@ -152,8 +157,8 @@ export default function Layout() {
                         onClick={handleNavClick}
                         className={`flex items-center gap-3 px-3 py-3 rounded-lg text-base font-medium transition-colors ${
                           active
-                            ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30'
-                            : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700'
+                            ? 'text-primary bg-primary/10'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-accent'
                         }`}
                       >
                         <Icon className="w-5 h-5" />
@@ -164,14 +169,14 @@ export default function Layout() {
                 </div>
 
                 {/* Mobile user section */}
-                <div className="px-4 py-4 border-t border-gray-200 dark:border-gray-700">
+                <div className="px-4 py-4 border-t border-border">
                   <button
                     onClick={() => {
                       setMobileMenuOpen(false)
                       logoutMutation.mutate()
                     }}
                     disabled={logoutMutation.isPending}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors disabled:opacity-50"
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-destructive bg-destructive/10 hover:bg-destructive/20 transition-colors disabled:opacity-50"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -186,14 +191,14 @@ export default function Layout() {
       </nav>
 
       {/* Main Content */}
-      <main className="flex-1 max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 w-full">
+      <main id="main" className="flex-1 max-w-screen-xl mx-auto py-6 px-4 sm:px-6 lg:px-8 w-full">
         <Outlet />
       </main>
 
       {/* Footer */}
-      <footer className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 mt-auto">
-        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row items-center justify-between text-sm text-gray-500 dark:text-gray-400">
+      <footer className="bg-card border-t border-border mt-auto">
+        <div className="max-w-screen-xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col sm:flex-row items-center justify-between text-sm text-muted-foreground">
             <div className="mb-2 sm:mb-0">
               <span>{BRAND.copyright}</span>
             </div>
@@ -203,7 +208,7 @@ export default function Layout() {
                 href="https://www.lytnexweb.ca"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline font-medium"
+                className="text-primary hover:text-primary/80 hover:underline font-medium"
               >
                 Lytnex Web
               </a>

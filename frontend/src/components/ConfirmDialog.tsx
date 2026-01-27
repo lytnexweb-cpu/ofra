@@ -26,38 +26,38 @@ export default function ConfirmDialog({
   if (!isOpen) return null
 
   const variantClasses = {
-    danger: 'bg-red-600 hover:bg-red-700 focus:ring-red-500',
-    warning: 'bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500',
-    info: 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500',
+    danger: 'bg-destructive hover:bg-destructive/90 focus:ring-destructive',
+    warning: 'bg-warning hover:bg-warning/90 focus:ring-warning',
+    info: 'bg-primary hover:bg-primary/90 focus:ring-primary',
   }
 
   return (
-    <div className="fixed inset-0 z-50">
+    <div className="fixed inset-0 z-40">
       {/* Overlay */}
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
 
       {/* Modal content */}
       <div className="relative z-10 flex min-h-full items-center justify-center p-4">
         <div
-          className="w-full max-w-md rounded-xl bg-white shadow-xl"
+          className="w-full max-w-md rounded-xl bg-card shadow-xl border border-border"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Body */}
           <div className="p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
+            <h3 className="text-lg font-medium text-foreground mb-4">
               {title}
             </h3>
-            <p className="text-sm text-gray-600">{message}</p>
+            <p className="text-sm text-muted-foreground">{message}</p>
           </div>
 
           {/* Footer */}
-          <div className="bg-gray-50 px-6 py-4 flex justify-end gap-3 rounded-b-xl">
+          <div className="bg-muted px-6 py-4 flex justify-end gap-3 rounded-b-xl">
             {!hideCancelButton && (
               <button
                 type="button"
                 onClick={onClose}
                 disabled={isLoading}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                className="px-4 py-2 text-sm font-medium text-foreground bg-card border border-border rounded-md hover:bg-muted focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring disabled:opacity-50"
               >
                 {cancelLabel}
               </button>

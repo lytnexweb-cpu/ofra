@@ -185,8 +185,8 @@ export default class ClientsController {
       const transactions = await Transaction.query()
         .where('client_id', client.id)
         .where('owner_user_id', auth.user!.id)
-        .preload('statusHistories', (query) => {
-          query.orderBy('created_at', 'asc')
+        .preload('transactionSteps', (query) => {
+          query.preload('workflowStep').orderBy('step_order', 'asc')
         })
         .preload('conditions', (query) => {
           query.orderBy('due_date', 'asc')

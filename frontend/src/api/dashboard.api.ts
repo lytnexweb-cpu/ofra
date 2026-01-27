@@ -1,11 +1,9 @@
 import { http } from './http'
 
-export interface PipelineData {
-  active: number
-  offer: number
-  conditional: number
-  firm: number
-  closing: number
+export interface PipelineStep {
+  slug: string
+  name: string
+  count: number
 }
 
 export interface RevenueData {
@@ -14,15 +12,13 @@ export interface RevenueData {
 }
 
 export interface RecentActivity {
-  type: 'status_change' | 'note' | 'condition_completed'
   id: number
   transactionId: number
+  activityType: string
+  metadata: Record<string, any>
   clientName: string
-  description: string
+  userName: string | null
   createdAt: string
-  fromStatus?: string
-  toStatus?: string
-  author?: string
 }
 
 export interface UpcomingDeadline {
@@ -42,8 +38,8 @@ export interface DashboardSummary {
   completedTransactions: number
   overdueConditions: number
   dueSoonConditions: number
-  // Pipeline
-  pipeline: PipelineData
+  // Pipeline (step-based)
+  pipeline: PipelineStep[]
   // Revenue
   revenue: RevenueData[]
   totalRevenue: number

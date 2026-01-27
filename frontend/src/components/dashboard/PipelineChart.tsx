@@ -1,44 +1,41 @@
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 
-interface PipelineData {
-  active: number
-  offer: number
-  conditional: number
-  firm: number
-  closing: number
+interface PipelineStep {
+  slug: string
+  name: string
+  count: number
 }
 
 interface PipelineChartProps {
-  data: PipelineData
+  data: PipelineStep[]
 }
 
-const STATUS_CONFIG = [
-  { key: 'active', label: 'Active', color: '#6366F1' },
-  { key: 'offer', label: 'Offer', color: '#8B5CF6' },
-  { key: 'conditional', label: 'Conditional', color: '#D946EF' },
-  { key: 'firm', label: 'Firm', color: '#EC4899' },
-  { key: 'closing', label: 'Closing', color: '#F43F5E' },
+const STEP_COLORS = [
+  '#6366F1',
+  '#8B5CF6',
+  '#D946EF',
+  '#EC4899',
+  '#F43F5E',
+  '#F97316',
+  '#EAB308',
+  '#22C55E',
 ]
 
-const DEFAULT_PIPELINE: PipelineData = {
-  active: 0,
-  offer: 0,
-  conditional: 0,
-  firm: 0,
-  closing: 0,
+function getColorForIndex(index: number): string {
+  return STEP_COLORS[index % STEP_COLORS.length]
 }
 
 export default function PipelineChart({ data }: PipelineChartProps) {
   const isDark = false
 
-  const safeData = data ?? DEFAULT_PIPELINE
-  const chartData = STATUS_CONFIG.map((status) => ({
-    name: status.label,
-    value: safeData[status.key as keyof PipelineData] ?? 0,
-    color: status.color,
+  const safeData = data ?? []
+  const chartData = safeData.map((step, index) => ({
+    name: step.name,
+    value: step.count,
+    color: getColorForIndex(index),
   }))
 
-  const total = Object.values(safeData).reduce((sum, val) => sum + (val ?? 0), 0)
+  const total = safeData.reduce((sum, step) => sum + step.count, 0)
 
   // Theme-aware colors
   const axisTickColor = isDark ? '#9CA3AF' : '#6B7280'
@@ -75,7 +72,7 @@ export default function PipelineChart({ data }: PipelineChartProps) {
                   axisLine={false}
                   tickLine={false}
                   tick={{ fontSize: 12, fill: axisTickColor }}
-                  width={80}
+                  width={120}
                 />
                 <Tooltip
                   contentStyle={{
