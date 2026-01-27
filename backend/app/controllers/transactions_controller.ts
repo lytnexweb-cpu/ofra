@@ -1,59 +1,33 @@
 import type { HttpContext } from '@adonisjs/core/http'
-import Transaction, { TransactionType, TransactionStatus } from '#models/transaction'
-import TransactionStatusHistory from '#models/transaction_status_history'
+import Transaction from '#models/transaction'
 import {
   createTransactionValidator,
   updateTransactionValidator,
-  updateStatusValidator,
 } from '#validators/transaction_validator'
-import { TransactionAutomationService } from '#services/transaction_automation_service'
-import { TemplateService } from '#services/template_service'
-import { OfferService } from '#services/offer_service'
-import {
-  isValidTransition,
-  getTransitionError,
-  getAllowedTransitions,
-  STATUS_LABELS,
-} from '#services/transaction_state_machine'
-import env from '#start/env'
-
-interface CreateTransactionData {
-  clientId: number
-  propertyId?: number | null
-  type: TransactionType
-  status: TransactionStatus
-  salePrice?: number | null
-  notesText?: string | null
-  listPrice?: number | null
-  commission?: number | null
-  ownerUserId: number
-}
-
-interface UpdateTransactionData {
-  clientId?: number
-  propertyId?: number | null
-  type?: TransactionType
-  salePrice?: number | null
-  notesText?: string | null
-  listPrice?: number | null
-  commission?: number | null
-}
+import { WorkflowEngineService } from '#services/workflow_engine_service'
+import { ActivityFeedService } from '#services/activity_feed_service'
 
 export default class TransactionsController {
   async index({ request, response, auth }: HttpContext) {
     try {
-      const { status, q } = request.qs()
+      const { step, q } = request.qs()
       const query = Transaction.query()
         .where('owner_user_id', auth.user!.id)
         .preload('client')
         .preload('property')
+        .preload('currentStep', (sq) => sq.preload('workflowStep'))
+        .preload('transactionSteps', (sq) => sq.orderBy('step_order', 'asc'))
         .preload('conditions')
         .preload('offers', (offerQuery) => {
-          offerQuery.preload('revisions', (revQuery) => revQuery.orderBy('revision_number', 'desc').limit(1))
+          offerQuery.preload('revisions', (revQuery) =>
+            revQuery.orderBy('revision_number', 'desc').limit(1)
+          )
         })
 
-      if (status) {
-        query.where('status', status)
+      if (step) {
+        query.whereHas('currentStep', (sq) => {
+          sq.whereHas('workflowStep', (wsq) => wsq.where('slug', step))
+        })
       }
 
       if (q) {
@@ -74,10 +48,7 @@ export default class TransactionsController {
     } catch (error) {
       return response.internalServerError({
         success: false,
-        error: {
-          message: 'Failed to retrieve transactions',
-          code: 'E_INTERNAL_ERROR',
-        },
+        error: { message: 'Failed to retrieve transactions', code: 'E_INTERNAL_ERROR' },
       })
     }
   }
@@ -86,32 +57,26 @@ export default class TransactionsController {
     try {
       const payload = await request.validateUsing(createTransactionValidator)
 
-      // Extract templateId from payload (not part of transaction data)
-      const { templateId, ...transactionPayload } = payload
-
-      const transactionData: CreateTransactionData = {
-        ...transactionPayload,
+      const transaction = await WorkflowEngineService.createTransactionFromTemplate({
+        templateId: payload.workflowTemplateId,
         ownerUserId: auth.user!.id,
-        status: transactionPayload.status || 'active',
-      }
+        clientId: payload.clientId,
+        propertyId: payload.propertyId ?? null,
+        type: payload.type,
+        salePrice: payload.salePrice ?? null,
+        listPrice: payload.listPrice ?? null,
+        commission: payload.commission ?? null,
+        notesText: payload.notesText ?? null,
+        folderUrl: payload.folderUrl ?? null,
+      })
 
-      const transaction = await Transaction.create(transactionData)
-
-      // Apply template if provided
-      if (templateId) {
-        try {
-          await TemplateService.applyTemplate(transaction, templateId)
-        } catch (templateError) {
-          console.error('[TransactionsController] Template application error:', templateError)
-        }
-      }
-
+      // Reload with full relations
       await transaction.load('client')
       await transaction.load('conditions')
       await transaction.load('offers')
-      if (transaction.propertyId) {
-        await transaction.load('property')
-      }
+      await transaction.load('currentStep', (sq) => sq.preload('workflowStep'))
+      await transaction.load('transactionSteps', (sq) => sq.orderBy('step_order', 'asc'))
+      if (transaction.propertyId) await transaction.load('property')
 
       return response.created({
         success: true,
@@ -130,10 +95,7 @@ export default class TransactionsController {
       }
       return response.internalServerError({
         success: false,
-        error: {
-          message: 'Failed to create transaction',
-          code: 'E_INTERNAL_ERROR',
-        },
+        error: { message: 'Failed to create transaction', code: 'E_INTERNAL_ERROR' },
       })
     }
   }
@@ -145,14 +107,18 @@ export default class TransactionsController {
         .where('owner_user_id', auth.user!.id)
         .preload('client')
         .preload('property')
+        .preload('currentStep', (sq) => sq.preload('workflowStep'))
+        .preload('transactionSteps', (sq) => {
+          sq.orderBy('step_order', 'asc').preload('workflowStep').preload('conditions')
+        })
         .preload('conditions')
         .preload('offers', (offerQuery) => {
           offerQuery
             .preload('revisions', (revQuery) => revQuery.orderBy('revision_number', 'asc'))
             .orderBy('created_at', 'desc')
         })
-        .preload('notes', (query) => {
-          query.preload('author').orderBy('created_at', 'desc')
+        .preload('notes', (nq) => {
+          nq.preload('author').orderBy('created_at', 'desc')
         })
         .firstOrFail()
 
@@ -163,10 +129,7 @@ export default class TransactionsController {
     } catch (error) {
       return response.notFound({
         success: false,
-        error: {
-          message: 'Transaction not found',
-          code: 'E_NOT_FOUND',
-        },
+        error: { message: 'Transaction not found', code: 'E_NOT_FOUND' },
       })
     }
   }
@@ -179,18 +142,11 @@ export default class TransactionsController {
         .firstOrFail()
 
       const payload = await request.validateUsing(updateTransactionValidator)
-
-      const updateData: UpdateTransactionData = {
-        ...payload,
-      }
-
-      transaction.merge(updateData)
+      transaction.merge(payload)
       await transaction.save()
 
       await transaction.load('client')
-      if (transaction.propertyId) {
-        await transaction.load('property')
-      }
+      if (transaction.propertyId) await transaction.load('property')
 
       return response.ok({
         success: true,
@@ -210,150 +166,169 @@ export default class TransactionsController {
       if (error.code === 'E_ROW_NOT_FOUND') {
         return response.notFound({
           success: false,
-          error: {
-            message: 'Transaction not found',
-            code: 'E_NOT_FOUND',
-          },
+          error: { message: 'Transaction not found', code: 'E_NOT_FOUND' },
         })
       }
       return response.internalServerError({
         success: false,
-        error: {
-          message: 'Failed to update transaction',
-          code: 'E_INTERNAL_ERROR',
-        },
+        error: { message: 'Failed to update transaction', code: 'E_INTERNAL_ERROR' },
       })
     }
   }
 
-  async updateStatus({ params, request, response, auth }: HttpContext) {
+  async advanceStep({ params, response, auth }: HttpContext) {
     try {
       const transaction = await Transaction.query()
         .where('id', params.id)
         .where('owner_user_id', auth.user!.id)
         .firstOrFail()
 
-      const payload = await request.validateUsing(updateStatusValidator)
-      const oldStatus = transaction.status
+      const result = await WorkflowEngineService.advanceStep(transaction.id, auth.user!.id)
 
-      // Validate status transition
-      if (!isValidTransition(oldStatus, payload.status)) {
-        const errorMessage = getTransitionError(oldStatus, payload.status)
-        console.log(`[INVALID_TRANSITION] Transaction ${transaction.id}: ${errorMessage}`)
-        return response.badRequest({
-          success: false,
-          error: {
-            message: errorMessage,
-            code: 'E_INVALID_TRANSITION',
-            currentStatus: oldStatus,
-            requestedStatus: payload.status,
-          },
-        })
-      }
-
-      // Business rule: require accepted offer before moving to conditional or firm
-      if (['conditional', 'firm'].includes(payload.status)) {
-        const hasAccepted = await OfferService.hasAcceptedOffer(transaction.id)
-        if (!hasAccepted) {
-          console.log(
-            `[OFFER_REQUIRED] Transaction ${transaction.id}: Cannot move to ${payload.status} without accepted offer`
-          )
-          return response.badRequest({
-            success: false,
-            error: {
-              message: `Cannot change status to "${STATUS_LABELS[payload.status]}": an accepted offer is required`,
-              code: 'E_NO_ACCEPTED_OFFER',
-            },
-          })
-        }
-      }
-
-      // Enforce blocking conditions if feature flag is enabled
-      if (env.get('ENFORCE_BLOCKING_CONDITIONS') === true) {
-        await transaction.load('conditions', (query) => {
-          query.where('stage', oldStatus).where('is_blocking', true).where('status', 'pending')
-        })
-
-        const blockingConditions = transaction.conditions
-
-        if (blockingConditions.length > 0) {
-          const conditionTitles = blockingConditions.map((c) => c.title).join(', ')
-
-          console.log(
-            `[BLOCKING] Transaction ${transaction.id}: Status change ${oldStatus} -> ${payload.status} BLOCKED by ${blockingConditions.length} condition(s): ${conditionTitles}`
-          )
-
-          return response.badRequest({
-            success: false,
-            error: {
-              message: `Cannot change status: ${blockingConditions.length} blocking condition(s) must be completed first: ${conditionTitles}`,
-              code: 'E_BLOCKING_CONDITIONS',
-              blockingConditions: blockingConditions.map((c) => ({
-                id: c.id,
-                title: c.title,
-                dueDate: c.dueDate,
-              })),
-            },
-          })
-        }
-      }
-
-      transaction.status = payload.status
-      await transaction.save()
-
-      await TransactionStatusHistory.create({
-        transactionId: transaction.id,
-        changedByUserId: auth.user!.id,
-        fromStatus: oldStatus,
-        toStatus: payload.status,
-        note: payload.note,
-      })
-
-      console.log(
-        `[STATUS_CHANGE] Transaction ${transaction.id}: ${oldStatus} -> ${payload.status} by user ${auth.user!.id}`
-      )
-
-      // Automatic email sending
-      try {
-        await TransactionAutomationService.handleStatusChange(
-          transaction,
-          oldStatus,
-          payload.status
-        )
-      } catch (emailError) {
-        console.error('[TransactionController] Email automation sending error:', emailError)
-      }
+      // Reload full data
+      await result.transaction.load('currentStep', (sq) => sq.preload('workflowStep'))
+      await result.transaction.load('transactionSteps', (sq) => sq.orderBy('step_order', 'asc'))
 
       return response.ok({
         success: true,
-        data: { transaction },
+        data: {
+          transaction: result.transaction,
+          newStep: result.newStep,
+        },
       })
     } catch (error) {
-      if (error.messages) {
-        return response.unprocessableEntity({
-          success: false,
-          error: {
-            message: 'Validation failed',
-            code: 'E_VALIDATION_FAILED',
-            details: error.messages,
-          },
-        })
-      }
       if (error.code === 'E_ROW_NOT_FOUND') {
         return response.notFound({
           success: false,
+          error: { message: 'Transaction not found', code: 'E_NOT_FOUND' },
+        })
+      }
+      if (error.code === 'E_BLOCKING_CONDITIONS') {
+        return response.badRequest({
+          success: false,
           error: {
-            message: 'Transaction not found',
-            code: 'E_NOT_FOUND',
+            message: error.message,
+            code: 'E_BLOCKING_CONDITIONS',
+            blockingConditions: error.blockingConditions?.map((c: any) => ({
+              id: c.id,
+              title: c.title,
+              dueDate: c.dueDate,
+            })),
           },
         })
       }
       return response.internalServerError({
         success: false,
-        error: {
-          message: 'Failed to update transaction status',
-          code: 'E_INTERNAL_ERROR',
+        error: { message: 'Failed to advance step', code: 'E_INTERNAL_ERROR' },
+      })
+    }
+  }
+
+  async skipStep({ params, response, auth }: HttpContext) {
+    try {
+      const transaction = await Transaction.query()
+        .where('id', params.id)
+        .where('owner_user_id', auth.user!.id)
+        .firstOrFail()
+
+      const result = await WorkflowEngineService.skipStep(transaction.id, auth.user!.id)
+
+      await result.transaction.load('currentStep', (sq) => sq.preload('workflowStep'))
+      await result.transaction.load('transactionSteps', (sq) => sq.orderBy('step_order', 'asc'))
+
+      return response.ok({
+        success: true,
+        data: {
+          transaction: result.transaction,
+          newStep: result.newStep,
         },
+      })
+    } catch (error) {
+      if (error.code === 'E_ROW_NOT_FOUND') {
+        return response.notFound({
+          success: false,
+          error: { message: 'Transaction not found', code: 'E_NOT_FOUND' },
+        })
+      }
+      return response.internalServerError({
+        success: false,
+        error: { message: 'Failed to skip step', code: 'E_INTERNAL_ERROR' },
+      })
+    }
+  }
+
+  async goToStep({ params, response, auth }: HttpContext) {
+    try {
+      const transaction = await Transaction.query()
+        .where('id', params.id)
+        .where('owner_user_id', auth.user!.id)
+        .firstOrFail()
+
+      const targetStepOrder = Number(params.stepOrder)
+      if (!targetStepOrder || targetStepOrder < 1) {
+        return response.badRequest({
+          success: false,
+          error: { message: 'Invalid step order', code: 'E_INVALID_STEP' },
+        })
+      }
+
+      const result = await WorkflowEngineService.goToStep(
+        transaction.id,
+        targetStepOrder,
+        auth.user!.id
+      )
+
+      await result.transaction.load('currentStep', (sq) => sq.preload('workflowStep'))
+      await result.transaction.load('transactionSteps', (sq) => sq.orderBy('step_order', 'asc'))
+
+      return response.ok({
+        success: true,
+        data: {
+          transaction: result.transaction,
+          newStep: result.newStep,
+        },
+      })
+    } catch (error) {
+      if (error.code === 'E_ROW_NOT_FOUND') {
+        return response.notFound({
+          success: false,
+          error: { message: 'Transaction not found', code: 'E_NOT_FOUND' },
+        })
+      }
+      return response.badRequest({
+        success: false,
+        error: { message: error.message || 'Failed to go to step', code: 'E_GOTO_FAILED' },
+      })
+    }
+  }
+
+  async activity({ params, request, response, auth }: HttpContext) {
+    try {
+      // Verify ownership
+      await Transaction.query()
+        .where('id', params.id)
+        .where('owner_user_id', auth.user!.id)
+        .firstOrFail()
+
+      const page = Number(request.qs().page) || 1
+      const limit = Number(request.qs().limit) || 20
+
+      const activities = await ActivityFeedService.getForTransaction(params.id, page, limit)
+
+      return response.ok({
+        success: true,
+        data: activities,
+      })
+    } catch (error) {
+      if (error.code === 'E_ROW_NOT_FOUND') {
+        return response.notFound({
+          success: false,
+          error: { message: 'Transaction not found', code: 'E_NOT_FOUND' },
+        })
+      }
+      return response.internalServerError({
+        success: false,
+        error: { message: 'Failed to retrieve activity', code: 'E_INTERNAL_ERROR' },
       })
     }
   }
@@ -365,73 +340,22 @@ export default class TransactionsController {
       if (transaction.ownerUserId !== auth.user!.id) {
         return response.notFound({
           success: false,
-          error: {
-            message: 'Transaction not found',
-            code: 'E_NOT_FOUND',
-          },
+          error: { message: 'Transaction not found', code: 'E_NOT_FOUND' },
         })
       }
 
       await transaction.delete()
-
       return response.noContent()
     } catch (error) {
       if (error.code === 'E_ROW_NOT_FOUND') {
         return response.notFound({
           success: false,
-          error: {
-            message: 'Transaction not found',
-            code: 'E_NOT_FOUND',
-          },
+          error: { message: 'Transaction not found', code: 'E_NOT_FOUND' },
         })
       }
       return response.internalServerError({
         success: false,
-        error: {
-          message: 'Failed to delete transaction',
-          code: 'E_INTERNAL_ERROR',
-        },
-      })
-    }
-  }
-
-  async allowedTransitions({ params, response, auth }: HttpContext) {
-    try {
-      const transaction = await Transaction.query()
-        .where('id', params.id)
-        .where('owner_user_id', auth.user!.id)
-        .firstOrFail()
-
-      const allowedStatuses = getAllowedTransitions(transaction.status)
-      const transitions = allowedStatuses.map((status) => ({
-        status,
-        label: STATUS_LABELS[status],
-      }))
-
-      return response.ok({
-        success: true,
-        data: {
-          currentStatus: transaction.status,
-          currentStatusLabel: STATUS_LABELS[transaction.status],
-          allowedTransitions: transitions,
-        },
-      })
-    } catch (error) {
-      if (error.code === 'E_ROW_NOT_FOUND') {
-        return response.notFound({
-          success: false,
-          error: {
-            message: 'Transaction not found',
-            code: 'E_NOT_FOUND',
-          },
-        })
-      }
-      return response.internalServerError({
-        success: false,
-        error: {
-          message: 'Failed to get allowed transitions',
-          code: 'E_INTERNAL_ERROR',
-        },
+        error: { message: 'Failed to delete transaction', code: 'E_INTERNAL_ERROR' },
       })
     }
   }

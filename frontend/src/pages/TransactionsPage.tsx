@@ -1,239 +1,243 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useState, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
-import { transactionsApi, type TransactionStatus } from '../api/transactions.api'
+import { differenceInDays, parseISO } from 'date-fns'
+import { transactionsApi, type Transaction } from '../api/transactions.api'
+import type { Condition } from '../api/conditions.api'
+import { normalizeSearch } from '../lib/utils'
+import { TransactionCard, TransactionCardSkeleton, WeeklySummary, EmptyState, ReturnBanner } from '../components/transaction'
+import { Button } from '../components/ui/Button'
+import { Input } from '../components/ui/Input'
+import { AlertCircle, Plus, RefreshCw, Search, X } from 'lucide-react'
 import CreateTransactionModal from '../components/CreateTransactionModal'
 
-const statusLabels: Record<TransactionStatus, string> = {
-  active: 'Active',
-  offer: 'Offer',
-  conditional: 'Conditional',
-  firm: 'Firm',
-  closing: 'Closing',
-  completed: 'Completed',
-  cancelled: 'Cancelled',
+const STEP_SLUGS = [
+  'consultation',
+  'offer-submitted',
+  'offer-accepted',
+  'conditional-period',
+  'firm-pending',
+  'pre-closing',
+  'closing-day',
+  'post-closing',
+] as const
+
+function getUrgencyScore(transaction: Transaction): number {
+  const conditions = (transaction.conditions ?? []) as Condition[]
+  const blocking = conditions.filter((c) => c.isBlocking && c.status === 'pending')
+
+  if (blocking.length === 0) return 0
+
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  let minDays = Infinity
+  for (const c of blocking) {
+    if (!c.dueDate) continue
+    const due = parseISO(c.dueDate)
+    due.setHours(0, 0, 0, 0)
+    const days = differenceInDays(due, today)
+    if (days < minDays) minDays = days
+  }
+
+  if (minDays === Infinity) return 0
+  return -minDays
 }
 
-const statusColors: Record<TransactionStatus, string> = {
-  active: 'bg-gray-100 text-gray-800',
-  offer: 'bg-blue-100 text-blue-800',
-  conditional: 'bg-yellow-100 text-yellow-800',
-  firm: 'bg-purple-100 text-purple-800',
-  closing: 'bg-indigo-100 text-indigo-800',
-  completed: 'bg-green-200 text-green-900',
-  cancelled: 'bg-red-100 text-red-800',
+function sortByUrgency(transactions: Transaction[]): Transaction[] {
+  return [...transactions].sort((a, b) => getUrgencyScore(b) - getUrgencyScore(a))
 }
 
 export default function TransactionsPage() {
+  const { t } = useTranslation()
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
-  const [statusFilter, setStatusFilter] = useState<string>('')
   const [searchQuery, setSearchQuery] = useState('')
+  const [stepFilter, setStepFilter] = useState('')
 
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['transactions', statusFilter, searchQuery],
-    queryFn: () =>
-      transactionsApi.list({
-        status: statusFilter || undefined,
-        q: searchQuery || undefined,
-      }),
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ['transactions'],
+    queryFn: () => transactionsApi.list(),
+    staleTime: 30_000,
   })
 
-  const transactions = data?.data?.transactions || []
+  const transactions = data?.data?.transactions ?? []
+  const sorted = useMemo(() => sortByUrgency(transactions), [transactions])
+
+  // Client-side filtering (FR20, AR4)
+  const filtered = useMemo(() => {
+    const normalizedQuery = normalizeSearch(searchQuery)
+    return sorted.filter((tx) => {
+      // Step filter
+      if (stepFilter && tx.currentStep?.workflowStep?.slug !== stepFilter) {
+        return false
+      }
+      // Search filter (accent-safe)
+      if (normalizedQuery) {
+        const clientName = tx.client
+          ? `${tx.client.firstName} ${tx.client.lastName}`
+          : ''
+        const property = tx.property?.address ?? ''
+        const haystack = normalizeSearch(`${clientName} ${property}`)
+        if (!haystack.includes(normalizedQuery)) return false
+      }
+      return true
+    })
+  }, [sorted, searchQuery, stepFilter])
+
+  const hasActiveFilters = searchQuery !== '' || stepFilter !== ''
+  const isFilteredEmpty = hasActiveFilters && filtered.length === 0 && transactions.length > 0
 
   return (
-    <div className="py-6">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-6">
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-semibold text-gray-900">
-              Transactions
-            </h1>
-            <button
-              onClick={() => setIsCreateModalOpen(true)}
-              className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            >
-              New Transaction
-            </button>
-          </div>
-        </div>
+    <div data-testid="transactions-page">
+      {/* Header */}
+      <div className="mb-4 flex justify-between items-center">
+        <h1 className="text-2xl font-semibold text-foreground">
+          {t('nav.transactions')}
+        </h1>
+        <Button
+          onClick={() => setIsCreateModalOpen(true)}
+          className="hidden sm:inline-flex"
+          data-testid="create-transaction-btn"
+        >
+          {t('transaction.new')}
+        </Button>
+      </div>
 
-        {/* Filters */}
-        <div className="mb-6 flex flex-col sm:flex-row gap-4">
-          <div className="flex-1">
-            <input
+      {/* Return banner — conditional after 24h absence (FR26) */}
+      {!isLoading && !error && transactions.length > 0 && <ReturnBanner />}
+
+      {/* Weekly summary (FR21) */}
+      {!isLoading && !error && transactions.length > 0 && (
+        <WeeklySummary transactions={transactions} />
+      )}
+
+      {/* Search + Filter bar */}
+      {!isLoading && !error && transactions.length > 0 && (
+        <div className="mb-4 flex flex-col sm:flex-row gap-3" data-testid="filter-bar">
+          {/* SearchBar */}
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
               type="text"
-              placeholder="Search by client name..."
+              placeholder={t('common.search') + '...'}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              className="pl-9 pr-9"
+              data-testid="search-input"
             />
-          </div>
-          <div className="w-full sm:w-64">
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-            >
-              <option value="">All Statuses</option>
-              {Object.entries(statusLabels).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {/* Loading state */}
-        {isLoading && (
-          <div className="flex justify-center items-center py-12">
-            <svg
-              className="animate-spin h-8 w-8 text-blue-600"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              ></circle>
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              ></path>
-            </svg>
-          </div>
-        )}
-
-        {/* Error state */}
-        {error && (
-          <div className="rounded-md bg-red-50 p-4">
-            <p className="text-sm text-red-800">
-              Failed to load transactions. Please try again.
-            </p>
-          </div>
-        )}
-
-        {/* Empty state */}
-        {!isLoading && !error && transactions.length === 0 && (
-          <div className="text-center py-12">
-            <svg
-              className="mx-auto h-12 w-12 text-gray-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
-            </svg>
-            <h3 className="mt-2 text-sm font-medium text-gray-900">
-              No transactions
-            </h3>
-            <p className="mt-1 text-sm text-gray-500">
-              Get started by creating a new transaction.
-            </p>
-            <div className="mt-6">
+            {searchQuery && (
               <button
-                onClick={() => setIsCreateModalOpen(true)}
-                className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 rounded-sm text-muted-foreground hover:text-foreground"
+                aria-label={t('common.close')}
               >
-                New Transaction
+                <X className="w-3.5 h-3.5" />
               </button>
-            </div>
+            )}
           </div>
-        )}
 
-        {/* Transactions list */}
-        {!isLoading && !error && transactions.length > 0 && (
-          <div className="bg-white shadow overflow-hidden sm:rounded-md">
-            <ul className="divide-y divide-gray-200">
-              {transactions.map((transaction) => (
-                <li key={transaction.id}>
-                  <Link
-                    to={`/transactions/${transaction.id}`}
-                    className="block hover:bg-gray-50 transition-colors"
-                  >
-                    <div className="px-4 py-4 sm:px-6">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-3">
-                            <p className="text-sm font-medium text-blue-600 truncate">
-                              #{transaction.id}
-                            </p>
-                            <span
-                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                statusColors[transaction.status]
-                              }`}
-                            >
-                              {statusLabels[transaction.status]}
-                            </span>
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                              {transaction.type === 'purchase'
-                                ? 'Purchase'
-                                : 'Sale'}
-                            </span>
-                          </div>
-                          <div className="mt-2 flex items-center text-sm text-gray-500">
-                            <span className="truncate">
-                              {transaction.client
-                                ? `${transaction.client.firstName} ${transaction.client.lastName}`
-                                : 'No client'}
-                            </span>
-                            {transaction.salePrice && (
-                              <>
-                                <span className="mx-2">•</span>
-                                <span>
-                                  $
-                                  {transaction.salePrice.toLocaleString(
-                                    'en-US',
-                                    {
-                                      minimumFractionDigits: 2,
-                                      maximumFractionDigits: 2,
-                                    }
-                                  )}
-                                </span>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                        <div className="ml-4 flex-shrink-0">
-                          <svg
-                            className="h-5 w-5 text-gray-400"
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                        </div>
-                      </div>
-                    </div>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </div>
+          {/* Step filter */}
+          <select
+            value={stepFilter}
+            onChange={(e) => setStepFilter(e.target.value)}
+            className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:w-56"
+            data-testid="step-filter"
+          >
+            <option value="">{t('common.all')}</option>
+            {STEP_SLUGS.map((slug) => (
+              <option key={slug} value={slug}>
+                {t(`workflow.steps.${slug}`)}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {/* Loading state — 3 skeleton cards */}
+      {isLoading && (
+        <div
+          className="grid grid-cols-1 lg:grid-cols-2 gap-3"
+          data-testid="transactions-skeleton"
+        >
+          <TransactionCardSkeleton />
+          <TransactionCardSkeleton />
+          <TransactionCardSkeleton />
+        </div>
+      )}
+
+      {/* Error state with retry */}
+      {error && !isLoading && (
+        <div
+          className="flex flex-col items-center justify-center py-12 text-center"
+          data-testid="transactions-error"
+        >
+          <AlertCircle className="w-10 h-10 text-destructive mb-3" />
+          <p className="text-sm text-muted-foreground mb-4">
+            {t('common.error')}
+          </p>
+          <Button
+            variant="outline"
+            onClick={() => refetch()}
+            className="gap-2"
+            data-testid="retry-btn"
+          >
+            <RefreshCw className="w-4 h-4" />
+            {t('common.retry')}
+          </Button>
+        </div>
+      )}
+
+      {/* Empty state — no transactions (FR25) */}
+      {!isLoading && !error && transactions.length === 0 && (
+        <EmptyState onCreateClick={() => setIsCreateModalOpen(true)} />
+      )}
+
+      {/* Empty filter results */}
+      {isFilteredEmpty && (
+        <div className="text-center py-12" data-testid="filter-empty">
+          <p className="text-sm text-muted-foreground mb-2">
+            {t('common.noResults')}
+          </p>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setSearchQuery('')
+              setStepFilter('')
+            }}
+            data-testid="clear-filters-btn"
+          >
+            {t('common.close')} filters
+          </Button>
+        </div>
+      )}
+
+      {/* Transaction cards grid */}
+      {!isLoading && !error && filtered.length > 0 && (
+        <div
+          className="grid grid-cols-1 lg:grid-cols-2 gap-3"
+          data-testid="transactions-grid"
+        >
+          {filtered.map((transaction) => (
+            <TransactionCard key={transaction.id} transaction={transaction} />
+          ))}
+        </div>
+      )}
 
       <CreateTransactionModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
       />
+
+      {/* FAB for mobile (AR3 z-fab=10, AR12 Sheet bottom) */}
+      <button
+        onClick={() => setIsCreateModalOpen(true)}
+        className="fixed bottom-6 right-6 z-10 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg hover:shadow-xl active:scale-95 transition-all flex items-center justify-center sm:hidden"
+        data-testid="fab-create"
+        aria-label={t('transaction.new')}
+      >
+        <Plus className="w-6 h-6" />
+      </button>
     </div>
   )
 }

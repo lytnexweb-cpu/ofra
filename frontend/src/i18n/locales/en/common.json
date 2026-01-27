@@ -1,0 +1,124 @@
+{
+  "app": {
+    "name": "OFRA",
+    "tagline": "Real Estate Transaction Management"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "transactions": "Transactions",
+    "clients": "Clients",
+    "settings": "Settings",
+    "logout": "Logout"
+  },
+  "workflow": {
+    "steps": {
+      "consultation": "Buyer/Seller Consultation",
+      "offer-submitted": "Offer Submitted",
+      "offer-accepted": "Offer Accepted",
+      "conditional-period": "Conditional Period",
+      "firm-pending": "Firm Pending",
+      "pre-closing": "Pre-Closing Tasks",
+      "closing-day": "Closing Day / Key Delivery",
+      "post-closing": "Post-Closing Follow-Up"
+    },
+    "status": {
+      "pending": "Pending",
+      "active": "Active",
+      "completed": "Completed",
+      "skipped": "Skipped"
+    },
+    "actions": {
+      "advance": "Advance Step",
+      "skip": "Skip Step",
+      "goTo": "Go to Step",
+      "skipConfirm": "Skip step \"{{step}}\"? Incomplete conditions will be ignored. This cannot be undone.",
+      "advancedTo": "Advanced to: {{step}}",
+      "stepSkipped": "Step skipped"
+    }
+  },
+  "actionZone": {
+    "blockingCount": "{{count}} blocking condition(s)",
+    "readyToAdvance": "Ready to advance",
+    "deadline": "Deadline"
+  },
+  "blocking": {
+    "modalTitle": "Advancement Blocked",
+    "modalMessage": "Ofra blocked the advancement because {{count}} critical condition(s) are not yet completed. This is by design — the system protects you from costly oversights.",
+    "dontShowAgain": "Don't show this again",
+    "bannerMessage": "{{count}} blocking condition(s) must be completed before advancing",
+    "completionTitle": "Transaction Completed!",
+    "completionMessage": "Congratulations! All steps have been completed successfully."
+  },
+  "conditions": {
+    "blocking": "Blocking",
+    "types": {
+      "financing": "Financing",
+      "deposit": "Deposit",
+      "inspection": "Inspection",
+      "water_test": "Water Test",
+      "rpds_review": "RPDS Review",
+      "appraisal": "Appraisal",
+      "legal": "Legal",
+      "documents": "Documents",
+      "repairs": "Repairs",
+      "other": "Other"
+    }
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "loading": "Loading...",
+    "noResults": "No results found",
+    "confirm": "Confirm",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "yes": "Yes",
+    "no": "No",
+    "add": "Add",
+    "remove": "Remove",
+    "view": "View",
+    "details": "Details",
+    "all": "All",
+    "required": "Required",
+    "optional": "Optional",
+    "retry": "Retry",
+    "error": "An error occurred",
+    "success": "Success"
+  },
+  "tabs": {
+    "conditions": "Conditions",
+    "offers": "Offers",
+    "documents": "Documents",
+    "timeline": "Timeline",
+    "notes": "Notes"
+  },
+  "transaction": {
+    "type": "Type",
+    "address": "Address",
+    "price": "Price",
+    "client": "Client",
+    "step": "Step",
+    "dueDate": "Due Date",
+    "progress": "Progress",
+    "purchase": "Purchase",
+    "sale": "Sale",
+    "new": "New Transaction",
+    "empty": "No transactions yet",
+    "emptyDescription": "Create your first transaction to get started",
+    "emptyCta": "Create my first transaction"
+  },
+  "returnBanner": {
+    "message": "Welcome back! Here's what changed since your last visit.",
+    "dismiss": "Dismiss"
+  },
+  "summary": {
+    "overdue": "{{count}} overdue",
+    "thisWeek": "{{count}} this week",
+    "allClear": "All clear this week"
+  }
+}

@@ -1,8 +1,9 @@
 import { DateTime } from 'luxon'
 import { BaseModel, column, belongsTo } from '@adonisjs/lucid/orm'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
-import Transaction, { type TransactionStatus } from './transaction.js'
+import Transaction from './transaction.js'
 import Offer from './offer.js'
+import TransactionStep from './transaction_step.js'
 
 export type ConditionStatus = 'pending' | 'completed'
 export type ConditionType =
@@ -17,7 +18,6 @@ export type ConditionType =
   | 'repairs'
   | 'other'
 export type ConditionPriority = 'low' | 'medium' | 'high'
-export type ConditionStage = TransactionStatus
 
 export default class Condition extends BaseModel {
   @column({ isPrimary: true })
@@ -25,6 +25,9 @@ export default class Condition extends BaseModel {
 
   @column()
   declare transactionId: number
+
+  @column()
+  declare transactionStepId: number | null
 
   @column()
   declare offerId: number | null
@@ -43,9 +46,6 @@ export default class Condition extends BaseModel {
 
   @column()
   declare priority: ConditionPriority
-
-  @column()
-  declare stage: ConditionStage
 
   @column({ columnName: 'is_blocking' })
   declare isBlocking: boolean
@@ -70,6 +70,9 @@ export default class Condition extends BaseModel {
 
   @belongsTo(() => Transaction, { foreignKey: 'transactionId' })
   declare transaction: BelongsTo<typeof Transaction>
+
+  @belongsTo(() => TransactionStep, { foreignKey: 'transactionStepId' })
+  declare transactionStep: BelongsTo<typeof TransactionStep>
 
   @belongsTo(() => Offer, { foreignKey: 'offerId' })
   declare offer: BelongsTo<typeof Offer>

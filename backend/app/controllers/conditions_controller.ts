@@ -5,6 +5,7 @@ import {
   createConditionValidator,
   updateConditionValidator,
 } from '#validators/condition_validator'
+import { ActivityFeedService } from '#services/activity_feed_service'
 import { DateTime } from 'luxon'
 
 export default class ConditionsController {
@@ -16,11 +17,23 @@ export default class ConditionsController {
         .firstOrFail()
 
       const payload = await request.validateUsing(createConditionValidator)
+
+      // Default transactionStepId to the current step if not provided
+      const transactionStepId =
+        payload.transactionStepId ?? transaction.currentStepId ?? undefined
+
       const condition = await Condition.create({
         ...payload,
         transactionId: transaction.id,
+        transactionStepId: transactionStepId ?? null,
         status: 'pending',
-        stage: payload.stage || transaction.status, // Auto-set stage to current transaction status if not provided
+      })
+
+      await ActivityFeedService.log({
+        transactionId: transaction.id,
+        userId: auth.user!.id,
+        activityType: 'condition_created',
+        metadata: { conditionId: condition.id, title: condition.title },
       })
 
       return response.created({
@@ -41,18 +54,12 @@ export default class ConditionsController {
       if (error.code === 'E_ROW_NOT_FOUND') {
         return response.notFound({
           success: false,
-          error: {
-            message: 'Transaction not found',
-            code: 'E_NOT_FOUND',
-          },
+          error: { message: 'Transaction not found', code: 'E_NOT_FOUND' },
         })
       }
       return response.internalServerError({
         success: false,
-        error: {
-          message: 'Failed to create condition',
-          code: 'E_INTERNAL_ERROR',
-        },
+        error: { message: 'Failed to create condition', code: 'E_INTERNAL_ERROR' },
       })
     }
   }
@@ -61,7 +68,6 @@ export default class ConditionsController {
     try {
       const condition = await Condition.findOrFail(params.id)
 
-      // Verify ownership
       const transaction = await Transaction.query()
         .where('id', condition.transactionId)
         .where('owner_user_id', auth.user!.id)
@@ -70,21 +76,16 @@ export default class ConditionsController {
       if (!transaction) {
         return response.notFound({
           success: false,
-          error: {
-            message: 'Condition not found',
-            code: 'E_NOT_FOUND',
-          },
+          error: { message: 'Condition not found', code: 'E_NOT_FOUND' },
         })
       }
 
       const payload = await request.validateUsing(updateConditionValidator)
       condition.merge(payload)
 
-      // Reset completedAt if status changes to pending
       if (payload.status === 'pending') {
         condition.completedAt = null
       }
-      // Set completedAt if status changes to completed
       if (payload.status === 'completed' && !condition.completedAt) {
         condition.completedAt = DateTime.now()
       }
@@ -109,18 +110,12 @@ export default class ConditionsController {
       if (error.code === 'E_ROW_NOT_FOUND') {
         return response.notFound({
           success: false,
-          error: {
-            message: 'Condition not found',
-            code: 'E_NOT_FOUND',
-          },
+          error: { message: 'Condition not found', code: 'E_NOT_FOUND' },
         })
       }
       return response.internalServerError({
         success: false,
-        error: {
-          message: 'Failed to update condition',
-          code: 'E_INTERNAL_ERROR',
-        },
+        error: { message: 'Failed to update condition', code: 'E_INTERNAL_ERROR' },
       })
     }
   }
@@ -129,7 +124,6 @@ export default class ConditionsController {
     try {
       const condition = await Condition.findOrFail(params.id)
 
-      // Verify ownership
       const transaction = await Transaction.query()
         .where('id', condition.transactionId)
         .where('owner_user_id', auth.user!.id)
@@ -138,16 +132,20 @@ export default class ConditionsController {
       if (!transaction) {
         return response.notFound({
           success: false,
-          error: {
-            message: 'Condition not found',
-            code: 'E_NOT_FOUND',
-          },
+          error: { message: 'Condition not found', code: 'E_NOT_FOUND' },
         })
       }
 
       condition.status = 'completed'
       condition.completedAt = DateTime.now()
       await condition.save()
+
+      await ActivityFeedService.log({
+        transactionId: transaction.id,
+        userId: auth.user!.id,
+        activityType: 'condition_completed',
+        metadata: { conditionId: condition.id, title: condition.title },
+      })
 
       return response.ok({
         success: true,
@@ -157,18 +155,12 @@ export default class ConditionsController {
       if (error.code === 'E_ROW_NOT_FOUND') {
         return response.notFound({
           success: false,
-          error: {
-            message: 'Condition not found',
-            code: 'E_NOT_FOUND',
-          },
+          error: { message: 'Condition not found', code: 'E_NOT_FOUND' },
         })
       }
       return response.internalServerError({
         success: false,
-        error: {
-          message: 'Failed to complete condition',
-          code: 'E_INTERNAL_ERROR',
-        },
+        error: { message: 'Failed to complete condition', code: 'E_INTERNAL_ERROR' },
       })
     }
   }
@@ -177,7 +169,6 @@ export default class ConditionsController {
     try {
       const condition = await Condition.findOrFail(params.id)
 
-      // Verify ownership by checking the transaction
       const transaction = await Transaction.query()
         .where('id', condition.transactionId)
         .where('owner_user_id', auth.user!.id)
@@ -186,32 +177,22 @@ export default class ConditionsController {
       if (!transaction) {
         return response.notFound({
           success: false,
-          error: {
-            message: 'Condition not found',
-            code: 'E_NOT_FOUND',
-          },
+          error: { message: 'Condition not found', code: 'E_NOT_FOUND' },
         })
       }
 
       await condition.delete()
-
       return response.noContent()
     } catch (error) {
       if (error.code === 'E_ROW_NOT_FOUND') {
         return response.notFound({
           success: false,
-          error: {
-            message: 'Condition not found',
-            code: 'E_NOT_FOUND',
-          },
+          error: { message: 'Condition not found', code: 'E_NOT_FOUND' },
         })
       }
       return response.internalServerError({
         success: false,
-        error: {
-          message: 'Failed to delete condition',
-          code: 'E_INTERNAL_ERROR',
-        },
+        error: { message: 'Failed to delete condition', code: 'E_INTERNAL_ERROR' },
       })
     }
   }

@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OFRA — Design Directions</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400&display=swap');
+
+  :root {
+    --primary: #1E3A5F;
+    --primary-light: #60A5FA;
+    --accent: #F59E0B;
+    --accent-light: #FBBF24;
+    --success: #10B981;
+    --danger: #EF4444;
+    --warning: #F97316;
+    --bg: #F8FAFC;
+    --card: #FFFFFF;
+    --text: #0F172A;
+    --muted: #64748B;
+    --border: #E2E8F0;
+    --gray-light: #CBD5E1;
+    --gray: #94A3B8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #0F172A;
+    color: #F1F5F9;
+    padding: 24px;
+  }
+
+  .page-title {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  .page-title h1 { font-size: 32px; font-weight: 700; margin-bottom: 8px; }
+  .page-title p { color: #94A3B8; font-size: 16px; }
+
+  .nav-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+  }
+  .nav-tab {
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: 1px solid #334155;
+    background: transparent;
+    color: #94A3B8;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 150ms ease-in-out;
+  }
+  .nav-tab:hover { border-color: #60A5FA; color: #F1F5F9; }
+  .nav-tab.active { background: #1E3A5F; border-color: #60A5FA; color: #F1F5F9; }
+
+  .section { display: none; }
+  .section.active { display: block; }
+
+  .direction {
+    background: var(--bg);
+    border-radius: 16px;
+    margin-bottom: 32px;
+    overflow: hidden;
+  }
+  .direction-header {
+    background: var(--primary);
+    color: white;
+    padding: 20px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .direction-header h2 { font-size: 20px; font-weight: 600; }
+  .direction-tag {
+    background: var(--accent);
+    color: var(--text);
+    padding: 4px 12px;
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .direction-body { padding: 24px; }
+  .direction-desc {
+    color: var(--muted);
+    font-size: 14px;
+    margin-bottom: 20px;
+    line-height: 1.5;
+  }
+
+  /* Phone mockup */
+  .phone {
+    width: 375px;
+    max-width: 100%;
+    margin: 0 auto;
+    background: var(--card);
+    border-radius: 24px;
+    border: 3px solid var(--border);
+    overflow: hidden;
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15);
+  }
+  .phone-status {
+    background: var(--primary);
+    color: white;
+    padding: 8px 16px;
+    font-size: 12px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  /* Shared components */
+  .header-bar {
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .back-arrow {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    background: #F1F5F9;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--primary);
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .client-name { font-weight: 600; font-size: 16px; color: var(--text); }
+  .client-address { font-size: 13px; color: var(--muted); }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 100px;
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .pill-primary { background: #EFF6FF; color: var(--primary); border: 1px solid #BFDBFE; }
+  .pill-accent { background: #FFFBEB; color: #92400E; border: 1px solid #FDE68A; }
+  .pill-danger { background: #FEF2F2; color: #991B1B; border: 1px solid #FECACA; }
+  .pill-success { background: #ECFDF5; color: #065F46; border: 1px solid #A7F3D0; }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .badge-amber { background: #FEF3C7; color: #92400E; }
+  .badge-red { background: #FEE2E2; color: #991B1B; }
+  .badge-green { background: #D1FAE5; color: #065F46; }
+  .badge-gray { background: #F1F5F9; color: #64748B; }
+
+  .progress-bar {
+    height: 4px;
+    background: #E2E8F0;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 300ms ease;
+  }
+  .progress-fill-accent { background: var(--accent); }
+  .progress-fill-success { background: var(--success); }
+
+  .tab-bar {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    padding: 0 16px;
+    gap: 0;
+    overflow-x: auto;
+  }
+  .tab {
+    padding: 12px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+  }
+  .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+  .action-zone {
+    margin: 12px 16px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .action-zone-amber { background: #FFFBEB; border: 1px solid #FDE68A; }
+  .action-zone-red { background: #FEF2F2; border: 1px solid #FECACA; }
+
+  .action-icon {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .action-icon-amber { background: #FDE68A; }
+  .action-icon-red { background: #FECACA; }
+
+  .action-text { font-size: 13px; color: var(--text); line-height: 1.4; }
+  .action-text strong { font-weight: 600; }
+  .action-link { color: var(--primary); font-weight: 600; font-size: 13px; text-decoration: none; }
+
+  .condition-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    border-bottom: 1px solid #F1F5F9;
+  }
+  .checkbox {
+    width: 22px; height: 22px;
+    border-radius: 6px;
+    border: 2px solid var(--border);
+    flex-shrink: 0;
+    margin-top: 1px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .checkbox.checked { background: var(--success); border-color: var(--success); color: white; font-size: 12px; }
+  .condition-info { flex: 1; }
+  .condition-title { font-size: 14px; font-weight: 500; color: var(--text); }
+  .condition-title.done { color: var(--muted); text-decoration: line-through; }
+  .condition-meta { font-size: 12px; color: var(--muted); margin-top: 2px; display: flex; gap: 8px; align-items: center; }
+
+  .btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+  }
+  .btn-primary { background: var(--primary); color: white; }
+  .btn-accent { background: var(--accent); color: var(--text); }
+  .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+
+  /* Stepper horizontal desktop */
+  .stepper-h {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    gap: 0;
+    overflow-x: auto;
+  }
+  .step-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 80px;
+    position: relative;
+  }
+  .step-circle {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .step-circle-done { background: var(--success); color: white; }
+  .step-circle-active { background: var(--accent); color: var(--text); }
+  .step-circle-future { background: #E2E8F0; color: var(--muted); }
+  .step-label { font-size: 10px; color: var(--muted); text-align: center; max-width: 70px; }
+  .step-label-active { color: var(--text); font-weight: 600; }
+  .step-line {
+    flex: 1;
+    height: 2px;
+    background: #E2E8F0;
+    min-width: 16px;
+    margin-top: -18px;
+  }
+  .step-line-done { background: var(--success); }
+
+  /* Listing cards */
+  .txn-card {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 16px;
+    margin: 8px 16px;
+    border: 1px solid var(--border);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  }
+  .txn-card-row1 { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .txn-card-row2 { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+  .txn-card-row3 { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+
+  .summary-bar {
+    margin: 12px 16px;
+    padding: 12px 16px;
+    background: #EFF6FF;
+    border-radius: 12px;
+    font-size: 13px;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* Layout helpers */
+  .flex-row { display: flex; gap: 24px; flex-wrap: wrap; }
+  .flex-col { display: flex; flex-direction: column; }
+  .mockup-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(390px, 1fr)); gap: 24px; }
+
+  .pros-cons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 16px;
+  }
+  .pros, .cons {
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+  }
+  .pros { background: #ECFDF5; color: #065F46; }
+  .cons { background: #FEF2F2; color: #991B1B; }
+  .pros strong, .cons strong { display: block; margin-bottom: 4px; }
+  .pros li, .cons li { margin-left: 16px; margin-top: 4px; }
+
+  .recommendation {
+    margin-top: 24px;
+    padding: 20px 24px;
+    background: #FFFBEB;
+    border-radius: 12px;
+    border: 2px solid #FDE68A;
+  }
+  .recommendation h3 { color: #92400E; margin-bottom: 8px; }
+  .recommendation p { color: #78350F; font-size: 14px; line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<div class="page-title">
+  <h1>OFRA — Design Directions</h1>
+  <p>Explorez les variantes de mise en page pour les deux écrans principaux</p>
+</div>
+
+<div class="nav-tabs">
+  <button class="nav-tab active" onclick="showSection('detail')">TransactionDetailPage</button>
+  <button class="nav-tab" onclick="showSection('listing')">TransactionsPage (Listing)</button>
+  <button class="nav-tab" onclick="showSection('recap')">Récapitulatif</button>
+</div>
+
+<!-- ==================== DETAIL PAGE DIRECTIONS ==================== -->
+<div id="detail" class="section active">
+
+<!-- Direction A -->
+<div class="direction">
+  <div class="direction-header">
+    <h2>Direction A — Pill + Action Zone + Tabs</h2>
+    <span class="direction-tag">RECOMMANDÉE</span>
+  </div>
+  <div class="direction-body">
+    <p class="direction-desc">Layout le plus aligné avec nos décisions : pill compacte stepper, zone d'action urgente au-dessus des onglets, tabs pour le contenu. L'info critique est above the fold.</p>
+    <div class="mockup-grid">
+      <div class="phone">
+        <div class="phone-status"><span>9:41</span><span>OFRA</span><span>LTE ▪▪▪</span></div>
+        <div class="header-bar">
+          <div class="back-arrow">←</div>
+          <div>
+            <div class="client-name">Jean Tremblay</div>
+            <div class="client-address">123 rue Principale, Moncton NB</div>
+          </div>
+        </div>
+        <!-- Pill stepper -->
+        <div style="padding: 12px 16px; display: flex; align-items: center; gap: 8px;">
+          <span class="pill pill-accent">Étape 4/8 — Conditionnel <strong>● 3/5</strong></span>
+          <div style="flex:1">
+            <div class="progress-bar"><div class="progress-fill progress-fill-accent" style="width:60%"></div></div>
+          </div>
+        </div>
+        <!-- Action zone -->
+        <div class="action-zone action-zone-amber">
+          <div class="action-icon action-icon-amber">⚠</div>
+          <div>
+            <div class="action-text"><strong>2 conditions bloquantes</strong> empêchent l'avancement</div>
+            <a href="#" class="action-link">Voir les conditions →</a>
+          </div>
+        </div>
+        <!-- Tabs -->
+        <div class="tab-bar">
+          <div class="tab active">Conditions</div>
+          <div class="tab">Offres</div>
+          <div class="tab">Documents</div>
+          <div class="tab">Timeline</div>
+          <div class="tab">Notes</div>
+        </div>
+        <!-- Conditions list -->
+        <div class="condition-item">
+          <div class="checkbox checked">✓</div>
+          <div class="condition-info">
+            <div class="condition-title done">Dépôt reçu</div>
+            <div class="condition-meta"><span class="badge badge-green">Complétée</span></div>
+          </div>
+        </div>
+        <div class="condition-item">
+          <div class="checkbox checked">✓</div>
+          <div class="condition-info">
+            <div class="condition-title done">Inspection réalisée</div>
+            <div class="condition-meta"><span class="badge badge-green">Complétée</span></div>
+          </div>
+        </div>
+        <div class="condition-item">
+          <div class="checkbox checked">✓</div>
+          <div class="condition-info">
+            <div class="condition-title done">Test d'eau</div>
+            <div class="condition-meta"><span class="badge badge-green">Complétée</span></div>
+          </div>
+        </div>
+        <div class="condition-item">
+          <div class="checkbox"></div>
+          <div class="condition-info">
+            <div class="condition-title">Financement approuvé</div>
+            <div class="condition-meta">
+              <span class="badge badge-amber">BLOQUANT</span>
+              <span>Dans 3 jours</span>
+            </div>
+          </div>
+        </div>
+        <div class="condition-item">
+          <div class="checkbox"></div>
+          <div class="condition-info">
+            <div class="condition-title">Revue RPDS</div>
+            <div class="condition-meta">
+              <span class="badge badge-amber">BLOQUANT</span>
+              <span>Dans 5 jours</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="pros-cons">
+      <div class="pros"><strong>✅ Avantages</strong>
+        <ul>
+          <li>Info critique above the fold (pill + action zone)</li>
+          <li>Tabs séparent le contenu sans surcharge</li>
+          <li>Pill compacte = maximum d'espace pour le contenu</li>
+          <li>Aligné avec toutes nos décisions UX</li>
+        </ul>
+      </div>
+      <div class="cons"><strong>⚠️ Points d'attention</strong>
+        <ul>
+          <li>L'action zone prend de la place si pas de blocking</li>
+          <li>La pill nécessite un tap pour voir le stepper complet</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Direction B -->
+<div class="direction">
+  <div class="direction-header">
+    <h2>Direction B — Stepper horizontal + Tabs</h2>
+    <span class="direction-tag">DESKTOP FOCUS</span>
+  </div>
+  <div class="direction-body">
+    <p class="direction-desc">Stepper horizontal visible avec toutes les étapes. Plus visuel mais prend plus d'espace vertical. Mieux adapté desktop/tablette.</p>
+    <div class="mockup-grid">
+      <div class="phone">
+        <div class="phone-status"><span>9:41</span><span>OFRA</span><span>LTE ▪▪▪</span></div>
+        <div class="header-bar">
+          <div class="back-arrow">←</div>
+          <div>
+            <div class="client-name">Jean Tremblay</div>
+            <div class="client-address">123 rue Principale, Moncton NB</div>
+          </div>
+        </div>
+        <!-- Stepper horizontal -->
+        <div class="stepper-h">
+          <div class="step-node"><div class="step-circle step-circle-done">✓</div><div class="step-label">Consult.</div></div>
+          <div class="step-line step-line-done"></div>
+          <div class="step-node"><div class="step-circle step-circle-done">✓</div><div class="step-label">Offre</div></div>
+          <div class="step-line step-line-done"></div>
+          <div class="step-node"><div class="step-circle step-circle-done">✓</div><div class="step-label">Acceptée</div></div>
+          <div class="step-line step-line-done"></div>
+          <div class="step-node"><div class="step-circle step-circle-active">4</div><div class="step-label step-label-active">Condit.</div></div>
+          <div class="step-line"></div>
+          <div class="step-node"><div class="step-circle step-circle-future">5</div><div class="step-label">Ferme</div></div>
+          <div class="step-line"></div>
+          <div class="step-node"><div class="step-circle step-circle-future">6</div><div class="step-label">Pré-clos.</div></div>
+          <div class="step-line"></div>
+          <div class="step-node"><div class="step-circle step-circle-future">7</div><div class="step-label">Closing</div></div>
+          <div class="step-line"></div>
+          <div class="step-node"><div class="step-circle step-circle-future">8</div><div class="step-label">Post</div></div>
+        </div>
+        <!-- Action zone -->
+        <div class="action-zone action-zone-amber">
+          <div class="action-icon action-icon-amber">⚠</div>
+          <div>
+            <div class="action-text"><strong>2 bloquantes</strong></div>
+            <a href="#" class="action-link">Voir →</a>
+          </div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab active">Conditions</div>
+          <div class="tab">Offres</div>
+          <div class="tab">Docs</div>
+          <div class="tab">Timeline</div>
+          <div class="tab">Notes</div>
+        </div>
+        <div class="condition-item">
+          <div class="checkbox"></div>
+          <div class="condition-info">
+            <div class="condition-title">Financement approuvé</div>
+            <div class="condition-meta"><span class="badge badge-amber">BLOQUANT</span><span>Dans 3 jours</span></div>
+          </div>
+        </div>
+        <div class="condition-item">
+          <div class="checkbox"></div>
+          <div class="condition-info">
+            <div class="condition-title">Revue RPDS</div>
+            <div class="condition-meta"><span class="badge badge-amber">BLOQUANT</span><span>Dans 5 jours</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="pros-cons">
+      <div class="pros"><strong>✅ Avantages</strong>
+        <ul>
+          <li>Toutes les étapes visibles d'un coup</li>
+          <li>Progression "storytelling" très claire</li>
+          <li>Pas besoin de tap pour voir le stepper</li>
+        </ul>
+      </div>
+      <div class="cons"><strong>❌ Inconvénients</strong>
+        <ul>
+          <li>Prend ~80px de hauteur sur mobile — réduit le contenu visible</li>
+          <li>Labels tronqués sur petit écran</li>
+          <li>Scroll horizontal potentiel — confus sur mobile</li>
+          <li>Anti-pattern identifié : stepper horizontal mobile</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Direction C -->
+<div class="direction">
+  <div class="direction-header">
+    <h2>Direction C — Pill + Conditions directes (sans tabs)</h2>
+    <span class="direction-tag">MINIMAL</span>
+  </div>
+  <div class="direction-body">
+    <p class="direction-desc">Pas d'onglets — tout le contenu en scroll vertical. Les conditions sont affichées directement. Plus simple mais plus long à scroller.</p>
+    <div class="mockup-grid">
+      <div class="phone">
+        <div class="phone-status"><span>9:41</span><span>OFRA</span><span>LTE ▪▪▪</span></div>
+        <div class="header-bar">
+          <div class="back-arrow">←</div>
+          <div>
+            <div class="client-name">Jean Tremblay</div>
+            <div class="client-address">123 rue Principale, Moncton NB</div>
+          </div>
+        </div>
+        <div style="padding: 12px 16px; display: flex; align-items: center; gap: 8px;">
+          <span class="pill pill-accent">Étape 4/8 — Conditionnel <strong>● 3/5</strong></span>
+        </div>
+        <div class="action-zone action-zone-amber">
+          <div class="action-icon action-icon-amber">⚠</div>
+          <div><div class="action-text"><strong>2 conditions bloquantes</strong></div></div>
+        </div>
+        <div style="padding: 12px 16px;"><strong style="font-size:14px; color:#0F172A;">Conditions de l'étape</strong></div>
+        <div class="condition-item">
+          <div class="checkbox checked">✓</div>
+          <div class="condition-info"><div class="condition-title done">Dépôt reçu</div></div>
+        </div>
+        <div class="condition-item">
+          <div class="checkbox"></div>
+          <div class="condition-info">
+            <div class="condition-title">Financement approuvé</div>
+            <div class="condition-meta"><span class="badge badge-amber">BLOQUANT</span><span>Dans 3 jours</span></div>
+          </div>
+        </div>
+        <div style="padding: 16px; border-top: 8px solid #F1F5F9;">
+          <strong style="font-size:14px; color:#0F172A;">Offres</strong>
+          <div style="padding:12px 0; color:#64748B; font-size:13px;">1 offre — Acceptée à $345,000</div>
+        </div>
+        <div style="padding: 16px; border-top: 8px solid #F1F5F9;">
+          <strong style="font-size:14px; color:#0F172A;">Documents</strong>
+          <div style="padding:12px 0; color:#64748B; font-size:13px;">3 documents attachés</div>
+        </div>
+      </div>
+    </div>
+    <div class="pros-cons">
+      <div class="pros"><strong>✅ Avantages</strong>
+        <ul>
+          <li>Simplicité maximale — pas de navigation tabs</li>
+          <li>Tout visible en un scroll</li>
+          <li>Moins de charge cognitive pour les agents non-tech</li>
+        </ul>
+      </div>
+      <div class="cons"><strong>❌ Inconvénients</strong>
+        <ul>
+          <li>Page très longue — beaucoup de scroll</li>
+          <li>Pas de deep link vers un onglet spécifique</li>
+          <li>Retour au god component — exactement ce qu'on veut éviter</li>
+          <li>Offres/Documents/Timeline enterrés en bas</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Direction D -->
+<div class="direction">
+  <div class="direction-header">
+    <h2>Direction D — Hybrid (Pill + Action + Accordion)</h2>
+    <span class="direction-tag">ALTERNATIVE</span>
+  </div>
+  <div class="direction-body">
+    <p class="direction-desc">Remplace les tabs par des accordions collapsibles. Chaque section (Conditions, Offres, Documents) s'ouvre/ferme. L'agent voit les titres de toutes les sections.</p>
+    <div class="mockup-grid">
+      <div class="phone">
+        <div class="phone-status"><span>9:41</span><span>OFRA</span><span>LTE ▪▪▪</span></div>
+        <div class="header-bar">
+          <div class="back-arrow">←</div>
+          <div>
+            <div class="client-name">Jean Tremblay</div>
+            <div class="client-address">123 rue Principale, Moncton NB</div>
+          </div>
+        </div>
+        <div style="padding: 12px 16px;">
+          <span class="pill pill-accent">Étape 4/8 — Conditionnel <strong>● 3/5</strong></span>
+        </div>
+        <div class="action-zone action-zone-amber">
+          <div class="action-icon action-icon-amber">⚠</div>
+          <div><div class="action-text"><strong>2 bloquantes</strong></div><a href="#" class="action-link">Voir →</a></div>
+        </div>
+        <!-- Accordion sections -->
+        <div style="border-top: 1px solid #E2E8F0;">
+          <div style="padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #F1F5F9;">
+            <div style="display:flex;align-items:center;gap:8px;"><strong style="font-size:14px;color:#0F172A;">▼ Conditions</strong><span class="badge badge-amber">2 bloquantes</span></div>
+            <span style="color:#64748B;font-size:13px;">3/5</span>
+          </div>
+          <div class="condition-item">
+            <div class="checkbox"></div>
+            <div class="condition-info">
+              <div class="condition-title">Financement approuvé</div>
+              <div class="condition-meta"><span class="badge badge-amber">BLOQUANT</span></div>
+            </div>
+          </div>
+          <div style="padding: 14px 16px; display: flex; justify-content: space-between; border-bottom: 1px solid #F1F5F9; background: #F8FAFC;">
+            <strong style="font-size:14px;color:#0F172A;">▶ Offres</strong>
+            <span style="color:#64748B;font-size:13px;">1 acceptée</span>
+          </div>
+          <div style="padding: 14px 16px; display: flex; justify-content: space-between; border-bottom: 1px solid #F1F5F9; background: #F8FAFC;">
+            <strong style="font-size:14px;color:#0F172A;">▶ Documents</strong>
+            <span style="color:#64748B;font-size:13px;">3 fichiers</span>
+          </div>
+          <div style="padding: 14px 16px; display: flex; justify-content: space-between; border-bottom: 1px solid #F1F5F9; background: #F8FAFC;">
+            <strong style="font-size:14px;color:#0F172A;">▶ Timeline</strong>
+            <span style="color:#64748B;font-size:13px;">12 activités</span>
+          </div>
+          <div style="padding: 14px 16px; display: flex; justify-content: space-between; background: #F8FAFC;">
+            <strong style="font-size:14px;color:#0F172A;">▶ Notes</strong>
+            <span style="color:#64748B;font-size:13px;">2 notes</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="pros-cons">
+      <div class="pros"><strong>✅ Avantages</strong>
+        <ul>
+          <li>Résumé de TOUTES les sections visible (compteurs à droite)</li>
+          <li>L'agent voit d'un coup : 2 bloquantes, 1 offre, 3 docs</li>
+          <li>Sections collapsibles = pas de page longue</li>
+        </ul>
+      </div>
+      <div class="cons"><strong>⚠️ Points d'attention</strong>
+        <ul>
+          <li>Pas de deep link natif vers un accordion</li>
+          <li>Pattern moins standard que tabs</li>
+          <li>Une seule section ouverte à la fois? ou multiples?</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<!-- ==================== LISTING PAGE DIRECTIONS ==================== -->
+<div id="listing" class="section">
+
+<!-- Listing Direction A -->
+<div class="direction">
+  <div class="direction-header">
+    <h2>Listing A — Cards avec résumé hebdomadaire</h2>
+    <span class="direction-tag">RECOMMANDÉE</span>
+  </div>
+  <div class="direction-body">
+    <p class="direction-desc">Header résumé hebdo + cards triées par urgence. Chaque card montre : client, étape, badges conditions, deadline. Aligné avec le triage matinal.</p>
+    <div class="mockup-grid">
+      <div class="phone">
+        <div class="phone-status"><span>9:41</span><span>OFRA</span><span>LTE ▪▪▪</span></div>
+        <div style="padding: 16px; background: var(--primary); color: white;">
+          <div style="font-size: 20px; font-weight: 700; margin-bottom: 4px;">Mes transactions</div>
+          <div style="font-size: 13px; opacity: 0.8;">8 dossiers actifs</div>
+        </div>
+        <!-- Summary bar -->
+        <div class="summary-bar">
+          📋 Cette semaine : <strong>3 conditions à compléter</strong> · 1 deadline vendredi · <span style="color:#EF4444;font-weight:600;">1 en retard</span>
+        </div>
+        <!-- Urgent card (overdue) -->
+        <div class="txn-card" style="border-left: 3px solid #EF4444;">
+          <div class="txn-card-row1">
+            <strong style="font-size:15px; color: var(--text);">Marie Bouchard</strong>
+            <span class="badge badge-red">1 en retard</span>
+          </div>
+          <div class="txn-card-row2">456 av. Royal, Fredericton NB</div>
+          <div class="txn-card-row3">
+            <span class="pill pill-primary" style="font-size:11px; padding: 3px 10px;">Étape 5 — Ferme</span>
+            <span style="font-size:12px; color: var(--danger); font-weight: 500;">Financement — en retard</span>
+          </div>
+        </div>
+        <!-- Warning card -->
+        <div class="txn-card" style="border-left: 3px solid #F59E0B;">
+          <div class="txn-card-row1">
+            <strong style="font-size:15px; color: var(--text);">Jean Tremblay</strong>
+            <span class="badge badge-amber">2 bloquantes</span>
+          </div>
+          <div class="txn-card-row2">123 rue Principale, Moncton NB</div>
+          <div class="txn-card-row3">
+            <span class="pill pill-accent" style="font-size:11px; padding: 3px 10px;">Étape 4 — Conditionnel ● 3/5</span>
+            <span style="font-size:12px; color: var(--warning);">Dans 3 jours</span>
+          </div>
+        </div>
+        <!-- Normal card -->
+        <div class="txn-card">
+          <div class="txn-card-row1">
+            <strong style="font-size:15px; color: var(--text);">Pierre Gagnon</strong>
+            <span class="badge badge-green">On track</span>
+          </div>
+          <div class="txn-card-row2">789 boul. Champlain, Saint John NB</div>
+          <div class="txn-card-row3">
+            <span class="pill pill-success" style="font-size:11px; padding: 3px 10px;">Étape 6 — Pré-closing ● 2/2</span>
+            <span style="font-size:12px; color: var(--muted);">Closing le 15 fév</span>
+          </div>
+        </div>
+        <!-- Normal card 2 -->
+        <div class="txn-card">
+          <div class="txn-card-row1">
+            <strong style="font-size:15px; color: var(--text);">Luc Pelletier</strong>
+            <span class="badge badge-gray">À jour</span>
+          </div>
+          <div class="txn-card-row2">22 rue des Érables, Dieppe NB</div>
+          <div class="txn-card-row3">
+            <span class="pill pill-primary" style="font-size:11px; padding: 3px 10px;">Étape 3 — Acceptée</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="pros-cons">
+      <div class="pros"><strong>✅ Avantages</strong>
+        <ul>
+          <li>Triage matinal immédiat — urgences en haut (bordure rouge/ambre)</li>
+          <li>Résumé hebdo répond à "qu'est-ce qui arrive cette semaine?"</li>
+          <li>Cards avec 3 niveaux d'info (client, adresse, step+badges)</li>
+          <li>Progression intra-step visible (● 3/5)</li>
+        </ul>
+      </div>
+      <div class="cons"><strong>⚠️ Points d'attention</strong>
+        <ul>
+          <li>Beaucoup d'info par card — attention à la surcharge sur petits écrans</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Listing Direction B -->
+<div class="direction">
+  <div class="direction-header">
+    <h2>Listing B — Groupé par étape (Kanban-like)</h2>
+    <span class="direction-tag">KANBAN</span>
+  </div>
+  <div class="direction-body">
+    <p class="direction-desc">Transactions groupées par étape avec compteur. L'agent voit combien de dossiers à chaque étape. Inspiré Trello/Linear.</p>
+    <div class="mockup-grid">
+      <div class="phone">
+        <div class="phone-status"><span>9:41</span><span>OFRA</span><span>LTE ▪▪▪</span></div>
+        <div style="padding: 16px; background: var(--primary); color: white;">
+          <div style="font-size: 20px; font-weight: 700;">Mes transactions</div>
+        </div>
+        <!-- Group headers -->
+        <div style="padding: 10px 16px; background: #FEF2F2; display: flex; justify-content: space-between; align-items: center;">
+          <div style="display:flex;gap:8px;align-items:center;"><span style="font-weight:600;color:#991B1B;">⚠ En retard</span></div>
+          <span class="badge badge-red">1</span>
+        </div>
+        <div class="txn-card" style="margin-top:0; border-radius: 0;">
+          <div class="txn-card-row1"><strong>Marie Bouchard</strong></div>
+          <div class="txn-card-row3"><span class="pill pill-primary" style="font-size:11px; padding: 3px 10px;">Étape 5</span><span style="font-size:12px; color:var(--danger);">Financement en retard</span></div>
+        </div>
+        <div style="padding: 10px 16px; background: #FFFBEB; display: flex; justify-content: space-between;">
+          <span style="font-weight:600;color:#92400E;">Étape 4 — Conditionnel</span>
+          <span class="badge badge-amber">2</span>
+        </div>
+        <div class="txn-card" style="margin-top:0; border-radius: 0; border-bottom: 1px solid #F1F5F9;">
+          <div class="txn-card-row1"><strong>Jean Tremblay</strong></div>
+          <div class="txn-card-row3"><span style="font-size:12px;">● 3/5 conditions</span></div>
+        </div>
+        <div class="txn-card" style="margin-top:0; border-radius: 0;">
+          <div class="txn-card-row1"><strong>Anne Dufour</strong></div>
+          <div class="txn-card-row3"><span style="font-size:12px;">● 1/5 conditions</span></div>
+        </div>
+        <div style="padding: 10px 16px; background: #F1F5F9; display: flex; justify-content: space-between;">
+          <span style="font-weight:600;color:#0F172A;">Étape 6 — Pré-closing</span>
+          <span class="badge badge-gray">1</span>
+        </div>
+      </div>
+    </div>
+    <div class="pros-cons">
+      <div class="pros"><strong>✅ Avantages</strong>
+        <ul>
+          <li>Vue pipeline — l'agent voit la répartition par étape</li>
+          <li>Urgences groupées en haut</li>
+          <li>Compteurs par étape utiles pour vision globale</li>
+        </ul>
+      </div>
+      <div class="cons"><strong>❌ Inconvénients</strong>
+        <ul>
+          <li>Perd le tri par urgence individuelle — la card Marie Bouchard (étape 5, en retard) est séparée des dossiers étape 4</li>
+          <li>Moins adapté au triage matinal (urgence > étape)</li>
+          <li>Plus complexe — l'agent doit scanner plusieurs groupes</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<!-- ==================== RECAP ==================== -->
+<div id="recap" class="section">
+  <div class="direction">
+    <div class="direction-header">
+      <h2>Récapitulatif — Recommandation Sally</h2>
+      <span class="direction-tag">SYNTHÈSE</span>
+    </div>
+    <div class="direction-body">
+      <div class="recommendation">
+        <h3>🎨 Recommandation : Direction A (Detail) + Direction A (Listing)</h3>
+        <p>
+          <strong>TransactionDetailPage :</strong> Direction A — Pill compacte + Action Zone + Tabs. C'est le layout le plus aligné avec nos décisions (pill mobile, zone d'action urgente, deep link tabs, above-the-fold critique). La Direction D (accordion) est une alternative intéressante pour le résumé visible de toutes les sections, mais les tabs sont plus standard et supportent mieux le deep linking notification → onglet conditions.
+        </p>
+        <br>
+        <p>
+          <strong>TransactionsPage :</strong> Direction A — Cards triées par urgence + résumé hebdomadaire. Le tri par urgence (overdue → blocking proche → normal) est plus adapté au triage matinal que le groupement par étape (kanban). L'agent cherche "qu'est-ce qui brûle?", pas "combien de dossiers à l'étape 4?".
+        </p>
+        <br>
+        <p>
+          <strong>Élément à emprunter :</strong> De la Direction D (accordion), on peut emprunter les <strong>compteurs résumé</strong> dans les onglets tabs : "Conditions (3/5)" "Offres (1)" "Documents (3)". Ça combine l'avantage de l'accordion (vue résumé) avec la navigation tabs.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
+</body>
+</html>

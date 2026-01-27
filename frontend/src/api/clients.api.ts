@@ -1,19 +1,9 @@
 import { http } from './http'
-import type { Transaction, TransactionStatus } from './transactions.api'
+import type { Transaction, TransactionStep } from './transactions.api'
 import type { Condition } from './conditions.api'
 
-export interface TransactionStatusHistory {
-  id: number
-  transactionId: number
-  changedByUserId: number
-  fromStatus: TransactionStatus | null
-  toStatus: TransactionStatus
-  note: string | null
-  createdAt: string
-}
-
 export interface TransactionWithTimeline extends Transaction {
-  statusHistories: TransactionStatusHistory[]
+  transactionSteps: TransactionStep[]
   conditions: Condition[]
 }
 

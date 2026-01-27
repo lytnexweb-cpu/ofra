@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom'
 import {
   conditionsApi,
   type CreateConditionRequest,
-  type ConditionStage,
 } from '../api/conditions.api'
 import { parseApiError, isSessionExpired, type ParsedError } from '../utils/apiError'
 
@@ -25,8 +24,7 @@ export default function CreateConditionModal({
     description: '',
     type: 'financing',
     priority: 'medium',
-    stage: undefined, // Will be auto-set by backend to current transaction status
-    isBlocking: true, // Default to blocking
+    isBlocking: true,
     documentUrl: '',
     documentLabel: '',
   })
@@ -70,7 +68,6 @@ export default function CreateConditionModal({
       description: '',
       type: 'financing',
       priority: 'medium',
-      stage: undefined,
       isBlocking: true,
       documentUrl: '',
       documentLabel: '',
@@ -97,7 +94,6 @@ export default function CreateConditionModal({
       description: formData.description?.trim() || undefined,
       type: formData.type,
       priority: formData.priority,
-      stage: formData.stage,
       isBlocking: formData.isBlocking,
       documentUrl: formData.documentUrl?.trim() || undefined,
       documentLabel: formData.documentLabel?.trim() || undefined,
@@ -249,38 +245,6 @@ export default function CreateConditionModal({
                   </div>
                 </div>
 
-                <div>
-                  <label
-                    htmlFor="stage"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Stage
-                  </label>
-                  <select
-                    id="stage"
-                    value={formData.stage || ''}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        stage: e.target.value ? (e.target.value as ConditionStage) : undefined,
-                      })
-                    }
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  >
-                    <option value="">Auto (Current transaction status)</option>
-                    <option value="active">Active</option>
-                    <option value="offer">Offer</option>
-                    <option value="conditional">Conditional</option>
-                    <option value="firm">Firm</option>
-                    <option value="closing">Closing</option>
-                    <option value="completed">Completed</option>
-                    <option value="cancelled">Cancelled</option>
-                  </select>
-                  <p className="mt-1 text-xs text-gray-500">
-                    Leave "Auto" to use current transaction status
-                  </p>
-                </div>
-
                 <div className="flex items-start">
                   <div className="flex items-center h-5">
                     <input
@@ -298,7 +262,7 @@ export default function CreateConditionModal({
                       Blocking condition
                     </label>
                     <p className="text-xs text-gray-500">
-                      Prevents status change until this condition is completed
+                      Prevents step advance until this condition is completed
                     </p>
                   </div>
                 </div>

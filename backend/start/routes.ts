@@ -40,13 +40,22 @@ router.group(() => {
   router.put('/clients/:id', '#controllers/clients_controller.update')
   router.delete('/clients/:id', '#controllers/clients_controller.destroy')
 
+  // Workflow Templates
+  router.get('/workflow-templates', '#controllers/workflow_templates_controller.index')
+  router.post('/workflow-templates', '#controllers/workflow_templates_controller.store')
+  router.get('/workflow-templates/:id', '#controllers/workflow_templates_controller.show')
+  router.put('/workflow-templates/:id', '#controllers/workflow_templates_controller.update')
+  router.delete('/workflow-templates/:id', '#controllers/workflow_templates_controller.destroy')
+
   // Transactions
   router.get('/transactions', '#controllers/transactions_controller.index')
   router.post('/transactions', '#controllers/transactions_controller.store')
   router.get('/transactions/:id', '#controllers/transactions_controller.show')
   router.put('/transactions/:id', '#controllers/transactions_controller.update')
-  router.patch('/transactions/:id/status', '#controllers/transactions_controller.updateStatus')
-  router.get('/transactions/:id/allowed-transitions', '#controllers/transactions_controller.allowedTransitions')
+  router.patch('/transactions/:id/advance', '#controllers/transactions_controller.advanceStep')
+  router.patch('/transactions/:id/skip', '#controllers/transactions_controller.skipStep')
+  router.patch('/transactions/:id/goto/:stepOrder', '#controllers/transactions_controller.goToStep')
+  router.get('/transactions/:id/activity', '#controllers/transactions_controller.activity')
   router.delete('/transactions/:id', '#controllers/transactions_controller.destroy')
 
   // Offers
@@ -69,8 +78,4 @@ router.group(() => {
   router.get('/transactions/:id/notes', '#controllers/notes_controller.index')
   router.post('/transactions/:id/notes', '#controllers/notes_controller.store')
   router.delete('/notes/:id', '#controllers/notes_controller.destroy')
-
-  // Templates
-  router.get('/templates', '#controllers/templates_controller.index')
-  router.get('/templates/:id', '#controllers/templates_controller.show')
 }).prefix('/api').use(middleware.auth())

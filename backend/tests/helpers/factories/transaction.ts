@@ -1,20 +1,13 @@
 import Transaction from '#models/transaction'
 
-export type TransactionStatus =
-  | 'active'
-  | 'offer'
-  | 'conditional'
-  | 'firm'
-  | 'closing'
-  | 'completed'
-  | 'cancelled'
-
 export async function createTransaction(
   ownerUserId: number,
   clientId: number,
   overrides: Partial<{
     type: 'purchase' | 'sale'
-    status: TransactionStatus
+    workflowTemplateId: number
+    currentStepId: number
+    organizationId: number
     salePrice: number
   }> = {}
 ): Promise<Transaction> {
@@ -22,7 +15,9 @@ export async function createTransaction(
     ownerUserId,
     clientId,
     type: overrides.type ?? 'purchase',
-    status: overrides.status ?? 'active',
+    workflowTemplateId: overrides.workflowTemplateId ?? null,
+    currentStepId: overrides.currentStepId ?? null,
+    organizationId: overrides.organizationId ?? null,
     salePrice: overrides.salePrice ?? 500000,
   })
 }

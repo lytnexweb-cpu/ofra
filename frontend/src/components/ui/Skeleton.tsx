@@ -1,18 +1,17 @@
-interface SkeletonProps {
-  className?: string
-}
+import { cn } from '@/lib/utils'
 
-export function Skeleton({ className = '' }: SkeletonProps) {
+function Skeleton({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={`animate-pulse bg-gray-200 dark:bg-gray-700 rounded ${className}`}
+      className={cn('animate-pulse rounded-md bg-muted', className)}
+      {...props}
     />
   )
 }
 
-export function SkeletonCard() {
+function SkeletonCard() {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+    <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
       <div className="flex items-center justify-between">
         <Skeleton className="h-12 w-12 rounded-lg" />
         <Skeleton className="h-4 w-16" />
@@ -25,9 +24,9 @@ export function SkeletonCard() {
   )
 }
 
-export function SkeletonChart() {
+function SkeletonChart() {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+    <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
       <div className="flex items-center justify-between mb-6">
         <div className="space-y-2">
           <Skeleton className="h-5 w-32" />
@@ -47,9 +46,9 @@ export function SkeletonChart() {
   )
 }
 
-export function SkeletonList({ count = 5 }: { count?: number }) {
+function SkeletonList({ count = 5 }: { count?: number }) {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+    <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
       <Skeleton className="h-5 w-40 mb-4" />
       <div className="space-y-4">
         {Array.from({ length: count }).map((_, i) => (
@@ -66,13 +65,13 @@ export function SkeletonList({ count = 5 }: { count?: number }) {
   )
 }
 
-export function SkeletonTable({ rows = 5 }: { rows?: number }) {
+function SkeletonTable({ rows = 5 }: { rows?: number }) {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-      <div className="p-4 border-b border-gray-100 dark:border-gray-700">
+    <div className="rounded-lg border border-border bg-card overflow-hidden shadow-sm">
+      <div className="p-4 border-b border-border">
         <Skeleton className="h-6 w-48" />
       </div>
-      <div className="divide-y divide-gray-100 dark:divide-gray-700">
+      <div className="divide-y divide-border">
         {Array.from({ length: rows }).map((_, i) => (
           <div key={i} className="p-4 flex items-center gap-4">
             <Skeleton className="h-10 w-10 rounded-full" />
@@ -88,30 +87,23 @@ export function SkeletonTable({ rows = 5 }: { rows?: number }) {
   )
 }
 
-export function DashboardSkeleton() {
+function DashboardSkeleton() {
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div>
         <Skeleton className="h-8 w-48 mb-2" />
         <Skeleton className="h-4 w-72" />
       </div>
-
-      {/* KPIs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <SkeletonCard />
         <SkeletonCard />
         <SkeletonCard />
         <SkeletonCard />
       </div>
-
-      {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <SkeletonChart />
         <SkeletonChart />
       </div>
-
-      {/* Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <SkeletonList count={5} />
         <SkeletonList count={5} />
@@ -119,3 +111,5 @@ export function DashboardSkeleton() {
     </div>
   )
 }
+
+export { Skeleton, SkeletonCard, SkeletonChart, SkeletonList, SkeletonTable, DashboardSkeleton }

@@ -1,0 +1,124 @@
+{
+  "app": {
+    "name": "OFRA",
+    "tagline": "Gestion de transactions immobilières"
+  },
+  "nav": {
+    "dashboard": "Tableau de bord",
+    "transactions": "Transactions",
+    "clients": "Clients",
+    "settings": "Paramètres",
+    "logout": "Déconnexion"
+  },
+  "workflow": {
+    "steps": {
+      "consultation": "Consultation acheteur/vendeur",
+      "offer-submitted": "Offre soumise",
+      "offer-accepted": "Offre acceptée",
+      "conditional-period": "Période conditionnelle",
+      "firm-pending": "Ferme en attente",
+      "pre-closing": "Tâches pré-clôture",
+      "closing-day": "Jour de clôture / Remise des clés",
+      "post-closing": "Suivi post-clôture"
+    },
+    "status": {
+      "pending": "En attente",
+      "active": "Actif",
+      "completed": "Complété",
+      "skipped": "Passé"
+    },
+    "actions": {
+      "advance": "Avancer l'étape",
+      "skip": "Passer l'étape",
+      "goTo": "Aller à l'étape",
+      "skipConfirm": "Passer l'étape \"{{step}}\" ? Les conditions incomplètes seront ignorées. Cette action est irréversible.",
+      "advancedTo": "Avancé à : {{step}}",
+      "stepSkipped": "Étape passée"
+    }
+  },
+  "actionZone": {
+    "blockingCount": "{{count}} condition(s) bloquante(s)",
+    "readyToAdvance": "Prêt à avancer",
+    "deadline": "Échéance"
+  },
+  "blocking": {
+    "modalTitle": "Avancement bloqué",
+    "modalMessage": "Ofra a bloqué l'avancement parce que {{count}} condition(s) critique(s) ne sont pas complétées. C'est voulu — le système vous protège contre les oublis coûteux.",
+    "dontShowAgain": "Ne plus afficher",
+    "bannerMessage": "{{count}} condition(s) bloquante(s) doivent être complétées avant d'avancer",
+    "completionTitle": "Transaction terminée !",
+    "completionMessage": "Félicitations ! Toutes les étapes ont été complétées avec succès."
+  },
+  "conditions": {
+    "blocking": "Bloquante",
+    "types": {
+      "financing": "Financement",
+      "deposit": "Dépôt",
+      "inspection": "Inspection",
+      "water_test": "Test d'eau",
+      "rpds_review": "Révision RPDS",
+      "appraisal": "Évaluation",
+      "legal": "Juridique",
+      "documents": "Documents",
+      "repairs": "Réparations",
+      "other": "Autre"
+    }
+  },
+  "common": {
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "create": "Créer",
+    "search": "Rechercher",
+    "loading": "Chargement...",
+    "noResults": "Aucun résultat trouvé",
+    "confirm": "Confirmer",
+    "close": "Fermer",
+    "back": "Retour",
+    "next": "Suivant",
+    "yes": "Oui",
+    "no": "Non",
+    "add": "Ajouter",
+    "remove": "Retirer",
+    "view": "Voir",
+    "details": "Détails",
+    "all": "Tous",
+    "required": "Obligatoire",
+    "optional": "Facultatif",
+    "retry": "Réessayer",
+    "error": "Une erreur est survenue",
+    "success": "Succès"
+  },
+  "tabs": {
+    "conditions": "Conditions",
+    "offers": "Offres",
+    "documents": "Documents",
+    "timeline": "Historique",
+    "notes": "Notes"
+  },
+  "transaction": {
+    "type": "Type",
+    "address": "Adresse",
+    "price": "Prix",
+    "client": "Client",
+    "step": "Étape",
+    "dueDate": "Date d'échéance",
+    "progress": "Progrès",
+    "purchase": "Achat",
+    "sale": "Vente",
+    "new": "Nouvelle transaction",
+    "empty": "Aucune transaction",
+    "emptyDescription": "Créez votre première transaction pour commencer",
+    "emptyCta": "Créer ma première transaction"
+  },
+  "returnBanner": {
+    "message": "Bienvenue ! Voici ce qui a changé depuis votre dernière visite.",
+    "dismiss": "Fermer"
+  },
+  "summary": {
+    "overdue": "{{count}} en retard",
+    "thisWeek": "{{count}} cette semaine",
+    "allClear": "Tout est en ordre cette semaine"
+  }
+}
