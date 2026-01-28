@@ -93,6 +93,18 @@
   - POST /api/reset-password ✓
   - 9 nouveaux tests (70 total backend)
 
+### Décision #4: Option C - Multi-tenant enforcement
+- **Proposé par**: Équipe BMAD
+- **Validé par**: Sam ("go")
+- **Date**: 2026-01-28
+- **Contenu**: Organization-scoped queries pour clients et transactions
+- **Agents**: Amelia (Dev) + Winston (Architect)
+- **Résultat**: ✅ COMPLÉTÉ (50f8110)
+  - TenantScopeService créé
+  - organization_id ajouté à clients
+  - Controllers mis à jour (transactions, clients)
+  - Tests passent (70 total)
+
 ---
 
 ## TODO Immédiat
@@ -106,7 +118,8 @@
 - [x] Tests ajoutés (61 tests backend total) ✅
 - [x] Commit (073c008) ✅
 - [x] Option B Auth hardening ✅ (dda8495)
-- [ ] **EN ATTENTE**: Prochaine décision (Sam) - Option C ou D ?
+- [x] Option C Multi-tenant enforcement ✅ (50f8110)
+- [ ] **EN ATTENTE**: Prochaine décision (Sam) - Option D (E2E) ou autre ?
 
 ---
 
