@@ -14,6 +14,9 @@ import { AutomationExecutorService } from '#services/automation_executor_service
 import ActivityFeed from '#models/activity_feed'
 import OfferAcceptedMail from '#mails/offer_accepted_mail'
 import FirmConfirmedMail from '#mails/firm_confirmed_mail'
+import FintracReminderMail from '#mails/fintrac_reminder_mail'
+import CelebrationMail from '#mails/celebration_mail'
+import GoogleReviewReminderMail from '#mails/google_review_reminder_mail'
 
 test.group('AutomationExecutorService', (group) => {
   let fakeMailer: ReturnType<typeof mail.fake>
@@ -103,6 +106,111 @@ test.group('AutomationExecutorService', (group) => {
     assert.isTrue(result.sent)
 
     fakeMailer.mails.assertSent(FirmConfirmedMail)
+  })
+
+  test('send_email + fintrac_reminder sends FintracReminderMail to client', async ({ assert }) => {
+    const user = await createUser({ email: 'auto-fintrac@test.com' })
+    const client = await createClient(user.id, { email: 'fintrac-client@test.com' })
+    const template = await createWorkflowTemplate({ slug: 'auto-tpl-fintrac' })
+    const step = await createWorkflowStep(template.id, {
+      stepOrder: 1,
+      name: 'Firm Pending',
+      slug: 'auto-fintrac-1',
+    })
+
+    const automation = await createWorkflowStepAutomation(step.id, {
+      trigger: 'on_enter',
+      actionType: 'send_email',
+      templateRef: 'fintrac_reminder',
+    })
+
+    const tx = await WorkflowEngineService.createTransactionFromTemplate({
+      templateId: template.id,
+      ownerUserId: user.id,
+      clientId: client.id,
+      type: 'purchase',
+    })
+
+    const result = await AutomationExecutorService.execute(automation, tx.id, {
+      stepName: 'Firm Pending',
+      trigger: 'on_enter',
+    })
+
+    assert.isFalse(result.skipped)
+    assert.isTrue(result.sent)
+
+    fakeMailer.mails.assertSent(FintracReminderMail)
+  })
+
+  test('send_email + celebration sends CelebrationMail to client', async ({ assert }) => {
+    const user = await createUser({ email: 'auto-celebration@test.com' })
+    const client = await createClient(user.id, { email: 'celebration-client@test.com' })
+    const template = await createWorkflowTemplate({ slug: 'auto-tpl-celebration' })
+    const step = await createWorkflowStep(template.id, {
+      stepOrder: 1,
+      name: 'Closing Day',
+      slug: 'auto-celebration-1',
+    })
+
+    const automation = await createWorkflowStepAutomation(step.id, {
+      trigger: 'on_enter',
+      actionType: 'send_email',
+      templateRef: 'celebration',
+    })
+
+    const tx = await WorkflowEngineService.createTransactionFromTemplate({
+      templateId: template.id,
+      ownerUserId: user.id,
+      clientId: client.id,
+      type: 'purchase',
+    })
+
+    const result = await AutomationExecutorService.execute(automation, tx.id, {
+      stepName: 'Closing Day',
+      trigger: 'on_enter',
+    })
+
+    assert.isFalse(result.skipped)
+    assert.isTrue(result.sent)
+
+    fakeMailer.mails.assertSent(CelebrationMail)
+  })
+
+  test('send_email + google_review_reminder sends GoogleReviewReminderMail to client', async ({
+    assert,
+  }) => {
+    const user = await createUser({ email: 'auto-review@test.com' })
+    const client = await createClient(user.id, { email: 'review-client@test.com' })
+    const template = await createWorkflowTemplate({ slug: 'auto-tpl-review' })
+    const step = await createWorkflowStep(template.id, {
+      stepOrder: 1,
+      name: 'Post-Closing',
+      slug: 'auto-review-1',
+    })
+
+    const automation = await createWorkflowStepAutomation(step.id, {
+      trigger: 'on_enter',
+      actionType: 'send_email',
+      templateRef: 'google_review_reminder',
+      delayDays: 7,
+    })
+
+    const tx = await WorkflowEngineService.createTransactionFromTemplate({
+      templateId: template.id,
+      ownerUserId: user.id,
+      clientId: client.id,
+      type: 'purchase',
+    })
+
+    const result = await AutomationExecutorService.execute(automation, tx.id, {
+      stepName: 'Post-Closing',
+      trigger: 'on_enter',
+    })
+
+    assert.isFalse(result.skipped)
+    assert.isTrue(result.sent)
+
+    fakeMailer.mails.assertSent(GoogleReviewReminderMail)
   })
 
   test('send_email skipped when client has no email', async ({ assert }) => {
