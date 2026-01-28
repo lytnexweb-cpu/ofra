@@ -178,7 +178,10 @@ All routes prefixed with `/api`. Protected routes require session auth.
 | Method | Path | Description |
 |--------|------|-------------|
 | GET | `/health` | Health check |
+| POST | `/register` | Create new account (rate limited) |
 | POST | `/login` | Login (rate limited) |
+| POST | `/forgot-password` | Request password reset email (rate limited) |
+| POST | `/reset-password` | Reset password with token (rate limited) |
 
 ### Protected (require auth)
 
@@ -282,7 +285,7 @@ All routes prefixed with `/api`. Protected routes require session auth.
 | Activity feed | Working | Unified log of all transaction events |
 | Dashboard summary | Working | KPIs, pipeline, revenue, deadlines |
 | Client management | Working | CRUD with transaction association |
-| Auth (login/logout) | Working | Session/cookie based |
+| Auth (login/logout/register) | Working | Session/cookie based + registration + password reset |
 | i18n (FR/EN) | Working | All UI strings translated |
 | Dark mode | Working | Auto (prefers-color-scheme) + manual toggle |
 | Automation execution | Working | `automation_executor_service.ts` | Sends emails and logs tasks via `AutomationExecutorService`. Wired to `WorkflowEngineService.executeAutomations()` |
@@ -380,7 +383,7 @@ expect(results).toHaveNoViolations()
 | Epic | Status | Description |
 |------|--------|-------------|
 | Epic 0: Foundation | Done | Design system, layout, i18n, test infrastructure |
-| Epic 1: Workflow Engine | Done | Backend models, API, services, tests (61 backend tests) |
+| Epic 1: Workflow Engine | Done | Backend models, API, services, tests (70 backend tests) |
 | Epic 2A: Voir et creer mes dossiers | Done | Transaction listing, search, filter, create |
 | Epic 2B: Comprendre mon dossier | Done | Transaction detail, stepper, conditions read |
 | Epic 2C: Agir sur mon dossier | Done | Condition toggle, action zone, blocking system |
@@ -391,9 +394,9 @@ expect(results).toHaveNoViolations()
 
 ### Epic 3 Priority (validated by team)
 
-1. **Automation execution** — Wire `executeAutomations()` to actually send emails and create tasks
-2. **Auth hardening** — Registration flow, password reset, session management
-3. **Multi-tenant enforcement** — Organization-scoped queries, row-level security
+1. ~~**Automation execution**~~ ✅ DONE — `AutomationExecutorService` sends emails (5 templates)
+2. ~~**Auth hardening**~~ ✅ DONE — Registration, forgot-password, reset-password
+3. **Multi-tenant enforcement** — Organization-scoped queries, row-level security (NEXT)
 
 ## 11. NB Broker Automations (Source of Truth)
 
