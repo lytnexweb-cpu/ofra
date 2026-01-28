@@ -81,6 +81,14 @@
 - **Contenu**: Créer les 3 templates manquants avant de passer à autre chose
 - **Résultat**: ✅ COMPLÉTÉ - 5/5 templates, 61 tests backend
 
+### Décision #3: Option B - Auth hardening
+- **Proposé par**: Équipe BMAD (John recommandait B)
+- **Validé par**: Sam ("ok, pas de party mode alors on passe a B")
+- **Date**: 2026-01-28
+- **Contenu**: Registration flow + password reset
+- **Agents**: Amelia (Dev) + Murat (Test) + Winston (Architect)
+- **Résultat**: EN COURS
+
 ---
 
 ## TODO Immédiat

@@ -1,6 +1,85 @@
 import { test } from '@japa/runner'
 import { cuid } from '@adonisjs/core/helpers'
+import mail from '@adonisjs/mail/services/main'
 import { truncateAll, createUser } from '#tests/helpers/index'
+import User from '#models/user'
+import WelcomeMail from '#mails/welcome_mail'
+import PasswordResetMail from '#mails/password_reset_mail'
+
+test.group('Auth - Register', (group) => {
+  let fakeMailer: ReturnType<typeof mail.fake>
+
+  group.each.setup(async () => {
+    await truncateAll()
+    fakeMailer = mail.fake()
+  })
+
+  group.each.teardown(() => {
+    mail.restore()
+  })
+
+  test('register creates a new user and sends welcome email', async ({ client, assert }) => {
+    const response = await client.post('/api/register').json({
+      email: 'newuser@test.com',
+      password: 'securepassword123',
+      fullName: 'New User',
+    })
+
+    response.assertStatus(201)
+    response.assertBodyContains({
+      success: true,
+      data: {
+        user: {
+          email: 'newuser@test.com',
+          fullName: 'New User',
+        },
+      },
+    })
+
+    // Verify user was created
+    const user = await User.findBy('email', 'newuser@test.com')
+    assert.isNotNull(user)
+
+    // Verify welcome email was queued
+    fakeMailer.mails.assertSent(WelcomeMail)
+  })
+
+  test('register fails with existing email', async ({ client }) => {
+    await createUser({ email: 'existing@test.com' })
+
+    const response = await client.post('/api/register').json({
+      email: 'existing@test.com',
+      password: 'securepassword123',
+      fullName: 'Duplicate User',
+    })
+
+    response.assertStatus(409)
+    response.assertBodyContains({
+      success: false,
+      error: { code: 'E_EMAIL_EXISTS' },
+    })
+  })
+
+  test('register fails with invalid email', async ({ client }) => {
+    const response = await client.post('/api/register').json({
+      email: 'not-an-email',
+      password: 'securepassword123',
+      fullName: 'Invalid Email',
+    })
+
+    response.assertStatus(422)
+  })
+
+  test('register fails with short password', async ({ client }) => {
+    const response = await client.post('/api/register').json({
+      email: 'short@test.com',
+      password: 'short',
+      fullName: 'Short Password',
+    })
+
+    response.assertStatus(422)
+  })
+})
 
 test.group('Auth - Login', (group) => {
   group.each.setup(async () => {
@@ -53,6 +132,119 @@ test.group('Auth - Login', (group) => {
           email: 'me@test.com',
         },
       },
+    })
+  })
+})
+
+test.group('Auth - Forgot Password', (group) => {
+  let fakeMailer: ReturnType<typeof mail.fake>
+
+  group.each.setup(async () => {
+    await truncateAll()
+    fakeMailer = mail.fake()
+  })
+
+  group.each.teardown(() => {
+    mail.restore()
+  })
+
+  test('forgot-password sends reset email for existing user', async ({ client, assert }) => {
+    await createUser({ email: 'forgot@test.com' })
+
+    const response = await client.post('/api/forgot-password').json({
+      email: 'forgot@test.com',
+    })
+
+    response.assertStatus(200)
+    response.assertBodyContains({ success: true })
+
+    // Verify reset token was set
+    const user = await User.findBy('email', 'forgot@test.com')
+    assert.isNotNull(user?.passwordResetToken)
+    assert.isNotNull(user?.passwordResetExpires)
+
+    // Verify email was sent
+    fakeMailer.mails.assertSent(PasswordResetMail)
+  })
+
+  test('forgot-password returns success even for non-existent email (prevents enumeration)', async ({
+    client,
+  }) => {
+    const response = await client.post('/api/forgot-password').json({
+      email: 'nonexistent@test.com',
+    })
+
+    response.assertStatus(200)
+    response.assertBodyContains({ success: true })
+  })
+})
+
+test.group('Auth - Reset Password', (group) => {
+  group.each.setup(async () => {
+    await truncateAll()
+  })
+
+  test('reset-password succeeds with valid token', async ({ client, assert }) => {
+    const user = await createUser({ email: 'reset@test.com' })
+
+    // Set a reset token
+    const { DateTime } = await import('luxon')
+    user.passwordResetToken = 'valid-reset-token-123'
+    user.passwordResetExpires = DateTime.now().plus({ hours: 1 })
+    await user.save()
+
+    const response = await client.post('/api/reset-password').json({
+      token: 'valid-reset-token-123',
+      password: 'newpassword123',
+    })
+
+    response.assertStatus(200)
+    response.assertBodyContains({ success: true })
+
+    // Verify token was cleared
+    await user.refresh()
+    assert.isNull(user.passwordResetToken)
+    assert.isNull(user.passwordResetExpires)
+
+    // Verify new password works
+    const loginResponse = await client.post('/api/login').json({
+      email: 'reset@test.com',
+      password: 'newpassword123',
+    })
+    loginResponse.assertStatus(200)
+  })
+
+  test('reset-password fails with invalid token', async ({ client }) => {
+    const response = await client.post('/api/reset-password').json({
+      token: 'invalid-token',
+      password: 'newpassword123',
+    })
+
+    response.assertStatus(400)
+    response.assertBodyContains({
+      success: false,
+      error: { code: 'E_INVALID_TOKEN' },
+    })
+  })
+
+  test('reset-password fails with expired token', async ({ client }) => {
+    const user = await createUser({ email: 'expired@test.com' })
+
+    // Set an expired reset token
+    const { DateTime } = await import('luxon')
+    user.passwordResetToken = 'expired-token-123'
+    user.passwordResetExpires = DateTime.now().minus({ hours: 1 })
+    await user.save()
+
+    const response = await client.post('/api/reset-password').json({
+      token: 'expired-token-123',
+      password: 'newpassword123',
+    })
+
+    response.assertStatus(400)
+    response.assertBodyContains({
+      success: false,
+      error: { code: 'E_INVALID_TOKEN' },
     })
   })
 })

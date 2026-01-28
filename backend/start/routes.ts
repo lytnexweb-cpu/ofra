@@ -15,7 +15,10 @@ router.get('/api/health', async () => {
   return { success: true, data: { status: 'ok', timestamp: new Date().toISOString() } }
 })
 
+router.post('/api/register', '#controllers/auth_controller.register').use(middleware.rateLimit())
 router.post('/api/login', '#controllers/auth_controller.login').use(middleware.rateLimit())
+router.post('/api/forgot-password', '#controllers/auth_controller.forgotPassword').use(middleware.rateLimit())
+router.post('/api/reset-password', '#controllers/auth_controller.resetPassword').use(middleware.rateLimit())
 
 // Routes protégées
 router.group(() => {
