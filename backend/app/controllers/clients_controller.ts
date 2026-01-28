@@ -2,13 +2,14 @@ import type { HttpContext } from '@adonisjs/core/http'
 import Client from '#models/client'
 import Transaction from '#models/transaction'
 import { createClientValidator, updateClientValidator } from '#validators/client_validator'
+import { TenantScopeService } from '#services/tenant_scope_service'
 
 export default class ClientsController {
   async index({ response, auth }: HttpContext) {
     try {
-      const clients = await Client.query()
-        .where('owner_user_id', auth.user!.id)
-        .orderBy('created_at', 'desc')
+      const query = Client.query()
+      TenantScopeService.apply(query, auth.user!)
+      const clients = await query.orderBy('created_at', 'desc')
 
       return response.ok({
         success: true,
@@ -31,6 +32,7 @@ export default class ClientsController {
       const client = await Client.create({
         ...payload,
         ownerUserId: auth.user!.id,
+        organizationId: TenantScopeService.getOrganizationId(auth.user!),
       })
 
       return response.created({
@@ -60,10 +62,9 @@ export default class ClientsController {
 
   async show({ params, response, auth }: HttpContext) {
     try {
-      const client = await Client.query()
-        .where('id', params.id)
-        .where('owner_user_id', auth.user!.id)
-        .firstOrFail()
+      const query = Client.query().where('id', params.id)
+      TenantScopeService.apply(query, auth.user!)
+      const client = await query.firstOrFail()
 
       return response.ok({
         success: true,
@@ -82,10 +83,9 @@ export default class ClientsController {
 
   async update({ params, request, response, auth }: HttpContext) {
     try {
-      const client = await Client.query()
-        .where('id', params.id)
-        .where('owner_user_id', auth.user!.id)
-        .firstOrFail()
+      const query = Client.query().where('id', params.id)
+      TenantScopeService.apply(query, auth.user!)
+      const client = await query.firstOrFail()
 
       const payload = await request.validateUsing(updateClientValidator)
       client.merge(payload)
@@ -127,10 +127,9 @@ export default class ClientsController {
 
   async destroy({ params, response, auth }: HttpContext) {
     try {
-      const client = await Client.query()
-        .where('id', params.id)
-        .where('owner_user_id', auth.user!.id)
-        .firstOrFail()
+      const query = Client.query().where('id', params.id)
+      TenantScopeService.apply(query, auth.user!)
+      const client = await query.firstOrFail()
 
       // Check if client has any transactions
       const transactionCount = await Transaction.query()
@@ -175,16 +174,15 @@ export default class ClientsController {
 
   async transactions({ params, response, auth }: HttpContext) {
     try {
-      // Verify client belongs to user
-      const client = await Client.query()
-        .where('id', params.id)
-        .where('owner_user_id', auth.user!.id)
-        .firstOrFail()
+      // Verify client access
+      const clientQuery = Client.query().where('id', params.id)
+      TenantScopeService.apply(clientQuery, auth.user!)
+      const client = await clientQuery.firstOrFail()
 
-      // Get all transactions for this client with related data
-      const transactions = await Transaction.query()
-        .where('client_id', client.id)
-        .where('owner_user_id', auth.user!.id)
+      // Get all transactions for this client (scoped by tenant)
+      const txQuery = Transaction.query().where('client_id', client.id)
+      TenantScopeService.apply(txQuery, auth.user!)
+      const transactions = await txQuery
         .preload('transactionSteps', (query) => {
           query.preload('workflowStep').orderBy('step_order', 'asc')
         })
