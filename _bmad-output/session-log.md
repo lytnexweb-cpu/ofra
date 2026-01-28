@@ -78,11 +78,11 @@
 
 ## TODO Immédiat
 
-- [ ] Démarrer Docker Desktop
-- [ ] Lancer tests backend pour valider le travail
-- [ ] Commiter le travail d'automation (si tests passent)
-- [ ] Mettre à jour project-context.md (automation n'est plus un stub)
-- [ ] Décider de la suite: templates email manquants OU auth hardening OU E2E
+- [x] Démarrer Docker Desktop ✅
+- [x] Lancer tests backend pour valider le travail ✅ (58 tests passent)
+- [x] Commiter le travail d'automation ✅ (fca06f4)
+- [x] Mettre à jour project-context.md ✅
+- [ ] **EN ATTENTE**: Décider de la suite (Sam doit choisir)
 
 ---
 
