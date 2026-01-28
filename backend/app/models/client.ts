@@ -2,6 +2,7 @@ import { DateTime } from 'luxon'
 import { BaseModel, column, belongsTo } from '@adonisjs/lucid/orm'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import User from './user.js'
+import Organization from './organization.js'
 
 export default class Client extends BaseModel {
   @column({ isPrimary: true })
@@ -9,6 +10,9 @@ export default class Client extends BaseModel {
 
   @column()
   declare ownerUserId: number
+
+  @column()
+  declare organizationId: number | null
 
   @column()
   declare firstName: string
@@ -57,4 +61,7 @@ export default class Client extends BaseModel {
 
   @belongsTo(() => User, { foreignKey: 'ownerUserId' })
   declare owner: BelongsTo<typeof User>
+
+  @belongsTo(() => Organization, { foreignKey: 'organizationId' })
+  declare organization: BelongsTo<typeof Organization>
 }
