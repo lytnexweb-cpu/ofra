@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
-import { differenceInDays, parseISO } from 'date-fns'
+import { differenceInDays, parseISO } from '../lib/date'
 import { transactionsApi, type Transaction } from '../api/transactions.api'
 import type { Condition } from '../api/conditions.api'
 import { normalizeSearch } from '../lib/utils'
@@ -142,6 +142,7 @@ export default function TransactionsPage() {
             onChange={(e) => setStepFilter(e.target.value)}
             className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:w-56"
             data-testid="step-filter"
+            aria-label={t('transaction.step')}
           >
             <option value="">{t('common.all')}</option>
             {STEP_SLUGS.map((slug) => (
@@ -207,7 +208,7 @@ export default function TransactionsPage() {
             }}
             data-testid="clear-filters-btn"
           >
-            {t('common.close')} filters
+            {t('common.clearFilters')}
           </Button>
         </div>
       )}

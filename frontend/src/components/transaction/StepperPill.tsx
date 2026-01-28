@@ -43,6 +43,7 @@ export default function StepperPill({ steps, currentStepId, onClick }: StepperPi
           className="h-full rounded-full bg-primary transition-all duration-300"
           style={{ width: `${progress}%` }}
           role="progressbar"
+          aria-label={t('transaction.progress')}
           aria-valuenow={currentOrder}
           aria-valuemin={0}
           aria-valuemax={total}

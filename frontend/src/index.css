@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
 /* --- Google Fonts --- */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
@@ -47,6 +48,7 @@
   --z-index-banner: 30;
   --z-index-dialog: 40;
   --z-index-sheet: 50;
+  --z-index-tooltip: 50;
 
   /* Typography */
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;

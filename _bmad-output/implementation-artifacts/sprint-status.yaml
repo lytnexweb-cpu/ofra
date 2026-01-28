@@ -1,0 +1,99 @@
+# generated: 2026-01-27
+# project: crm-yanick
+# project_key: ofra
+# tracking_system: file-system
+# story_location: _bmad-output/implementation-artifacts
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Epic Status Transitions:
+#   - backlog → in-progress: Automatically when first story is created (via create-story)
+#   - in-progress → done: Manually when all stories reach 'done' status
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created in stories folder
+#   - in-progress: Developer actively working on implementation
+#   - review: Implementation complete, ready for review
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when first story is created
+# - Stories can be worked in parallel if team capacity allows
+# - SM typically creates next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+
+generated: 2026-01-27
+project: crm-yanick
+project_key: ofra
+tracking_system: file-system
+story_location: "_bmad-output/implementation-artifacts"
+
+development_status:
+  # ============================================================
+  # Epic 1: Workflow Engine + Infrastructure (DONE - validated)
+  # ============================================================
+  epic-1: done
+  epic-1-retrospective: optional
+
+  # ============================================================
+  # Story 0: Foundation
+  # ============================================================
+  story-0: done
+  0-1-design-system-foundation: done
+  0-2-applayout-et-structure-composants: done
+  0-3-i18n-et-utilitaires: done
+  0-4-infrastructure-de-tests: done
+  story-0-retrospective: optional
+
+  # ============================================================
+  # Epic 2A: Voir et créer mes dossiers
+  # ============================================================
+  epic-2a: done
+  2a-1-transactioncard-countdownbadge: done
+  2a-2-transactionspage-listing: done
+  2a-3-searchbar-filtrage-par-step: done
+  2a-4-weeklysummary: done
+  2a-5-creation-transaction: done
+  2a-6-emptystate-returnbanner: done
+  epic-2a-retrospective: optional
+
+  # ============================================================
+  # Epic 2B: Comprendre mon dossier (lecture)
+  # ============================================================
+  epic-2b: done
+  2b-1-transactionheader: done
+  2b-2-stepprogressbar-stepperpill: done
+  2b-3-stepperbottomsheet: done
+  2b-4-transactiondetailpage-orchestrator-onglets: done
+  2b-5-conditionstab-conditioncard-lecture: done
+  epic-2b-retrospective: optional
+
+  # ============================================================
+  # Epic 2C: Agir sur mon dossier (interaction)
+  # ============================================================
+  epic-2c: done
+  2c-1-toggle-condition-interactive: done
+  2c-2-actionzone: done
+  2c-3-blocking-system: done
+  epic-2c-retrospective: optional
+
+  # ============================================================
+  # Epic 2D: Historique complet
+  # ============================================================
+  epic-2d: done
+  2d-1-offerstab: done
+  2d-2-documentstab: done
+  2d-3-timelinetab-activityfeed: done
+  2d-4-notestab-crud: done
+  epic-2d-retrospective: optional

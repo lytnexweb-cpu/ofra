@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { format, differenceInDays, parseISO } from 'date-fns'
+import { formatDate, differenceInDays, parseISO } from '../../lib/date'
 
 interface Deadline {
   id: number
@@ -102,7 +102,7 @@ export default function UpcomingDeadlines({ deadlines = [] }: UpcomingDeadlinesP
                     </span>
                     {deadline.dueDate && (
                       <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                        {format(parseISO(deadline.dueDate), 'MMM d')}
+                        {formatDate(parseISO(deadline.dueDate), 'MMM d')}
                       </p>
                     )}
                   </div>

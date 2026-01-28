@@ -75,6 +75,7 @@
     "noResults": "No results found",
     "confirm": "Confirm",
     "close": "Close",
+    "clearFilters": "Clear filters",
     "back": "Back",
     "next": "Next",
     "yes": "Yes",
@@ -88,7 +89,18 @@
     "optional": "Optional",
     "retry": "Retry",
     "error": "An error occurred",
-    "success": "Success"
+    "success": "Success",
+    "skipToContent": "Skip to main content",
+    "openMenu": "Open main menu",
+    "notifications": "Notifications",
+    "poweredBy": "Powered by",
+    "breadcrumb": "Breadcrumb",
+    "goBack": "Go back",
+    "mainNavigation": "Main navigation"
+  },
+  "auth": {
+    "logout": "Logout",
+    "loggingOut": "Logging out..."
   },
   "tabs": {
     "conditions": "Conditions",
@@ -115,6 +127,12 @@
   "returnBanner": {
     "message": "Welcome back! Here's what changed since your last visit.",
     "dismiss": "Dismiss"
+  },
+  "countdown": {
+    "today": "Today!",
+    "tomorrow": "Tomorrow",
+    "daysLeft": "in {{count}} days",
+    "overdue": "{{count}} days ago"
   },
   "summary": {
     "overdue": "{{count}} overdue",

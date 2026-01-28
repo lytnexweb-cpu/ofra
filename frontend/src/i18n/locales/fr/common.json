@@ -75,6 +75,7 @@
     "noResults": "Aucun résultat trouvé",
     "confirm": "Confirmer",
     "close": "Fermer",
+    "clearFilters": "Effacer les filtres",
     "back": "Retour",
     "next": "Suivant",
     "yes": "Oui",
@@ -88,7 +89,18 @@
     "optional": "Facultatif",
     "retry": "Réessayer",
     "error": "Une erreur est survenue",
-    "success": "Succès"
+    "success": "Succès",
+    "skipToContent": "Aller au contenu principal",
+    "openMenu": "Ouvrir le menu principal",
+    "notifications": "Notifications",
+    "poweredBy": "Propulsé par",
+    "breadcrumb": "Fil d'Ariane",
+    "goBack": "Retour",
+    "mainNavigation": "Navigation principale"
+  },
+  "auth": {
+    "logout": "Déconnexion",
+    "loggingOut": "Déconnexion en cours..."
   },
   "tabs": {
     "conditions": "Conditions",
@@ -115,6 +127,12 @@
   "returnBanner": {
     "message": "Bienvenue ! Voici ce qui a changé depuis votre dernière visite.",
     "dismiss": "Fermer"
+  },
+  "countdown": {
+    "today": "Aujourd'hui !",
+    "tomorrow": "Demain",
+    "daysLeft": "dans {{count}} jours",
+    "overdue": "il y a {{count}} jours"
   },
   "summary": {
     "overdue": "{{count}} en retard",

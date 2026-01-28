@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { differenceInDays, parseISO } from 'date-fns'
+import { differenceInDays, parseISO } from '../../lib/date'
 import { AlertTriangle, CheckCircle, Clock } from 'lucide-react'
 import type { Transaction } from '../../api/transactions.api'
 import type { Condition } from '../../api/conditions.api'

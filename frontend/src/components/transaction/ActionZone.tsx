@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { differenceInDays, parseISO } from 'date-fns'
+import { differenceInDays, parseISO } from '../../lib/date'
 import { AlertTriangle, CheckCircle, Clock, ArrowRight, SkipForward, X } from 'lucide-react'
 import { transactionsApi, type Transaction } from '../../api/transactions.api'
 import type { Condition } from '../../api/conditions.api'
