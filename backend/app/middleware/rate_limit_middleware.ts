@@ -1,5 +1,6 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import type { NextFn } from '@adonisjs/core/types/http'
+import app from '@adonisjs/core/services/app'
 
 interface RateLimitEntry {
   count: number
@@ -30,6 +31,11 @@ export default class RateLimitMiddleware {
   private windowMs = 15 * 60 * 1000 // 15 minutes
 
   async handle(ctx: HttpContext, next: NextFn) {
+    // Skip rate limiting in test environment
+    if (app.inTest) {
+      return next()
+    }
+
     const ip = ctx.request.ip()
     const key = `login:${ip}`
     const now = Date.now()
