@@ -203,6 +203,12 @@ export default class TransactionsController {
           error: { message: 'Transaction not found', code: 'E_NOT_FOUND' },
         })
       }
+      if (error.code === 'E_STEP_NOT_ACTIVE') {
+        return response.conflict({
+          success: false,
+          error: { message: error.message, code: 'E_STEP_NOT_ACTIVE' },
+        })
+      }
       if (error.code === 'E_BLOCKING_CONDITIONS') {
         return response.badRequest({
           success: false,
@@ -248,6 +254,12 @@ export default class TransactionsController {
         return response.notFound({
           success: false,
           error: { message: 'Transaction not found', code: 'E_NOT_FOUND' },
+        })
+      }
+      if (error.code === 'E_STEP_NOT_ACTIVE') {
+        return response.conflict({
+          success: false,
+          error: { message: error.message, code: 'E_STEP_NOT_ACTIVE' },
         })
       }
       return response.internalServerError({

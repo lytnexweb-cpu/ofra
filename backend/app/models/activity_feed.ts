@@ -17,6 +17,8 @@ export type ActivityType =
   | 'offer_withdrawn'
   | 'note_added'
   | 'automation_executed'
+  | 'email_sent'
+  | 'task_created'
 
 export default class ActivityFeed extends BaseModel {
   static table = 'activity_feed'

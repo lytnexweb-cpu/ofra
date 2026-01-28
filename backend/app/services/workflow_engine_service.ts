@@ -4,6 +4,8 @@ import WorkflowTemplate from '#models/workflow_template'
 import WorkflowStep from '#models/workflow_step'
 import Condition from '#models/condition'
 import { ActivityFeedService } from '#services/activity_feed_service'
+import { AutomationExecutorService } from '#services/automation_executor_service'
+import logger from '@adonisjs/core/services/logger'
 import { DateTime } from 'luxon'
 
 interface CreateTransactionParams {
@@ -131,6 +133,14 @@ export class WorkflowEngineService {
       throw new Error('No active step found for this transaction')
     }
 
+    // Guard against duplicate calls (double-click, retry)
+    await currentStep.refresh()
+    if (currentStep.status !== 'active') {
+      const error: any = new Error('Step is no longer active — possible duplicate request')
+      error.code = 'E_STEP_NOT_ACTIVE'
+      throw error
+    }
+
     // Check blocking conditions
     if (!options?.skipBlockingCheck) {
       const blocking = await this.checkBlockingConditions(currentStep.id)
@@ -232,6 +242,14 @@ export class WorkflowEngineService {
 
     if (!currentStep) {
       throw new Error('No active step found for this transaction')
+    }
+
+    // Guard against duplicate calls (double-click, retry)
+    await currentStep.refresh()
+    if (currentStep.status !== 'active') {
+      const error: any = new Error('Step is no longer active — possible duplicate request')
+      error.code = 'E_STEP_NOT_ACTIVE'
+      throw error
     }
 
     // Mark as skipped
@@ -427,8 +445,8 @@ export class WorkflowEngineService {
 
   /**
    * Execute automations for a given trigger type.
-   * Currently logs the automation execution; actual email/task creation
-   * can be wired up to external services.
+   * Dispatches each matching automation through AutomationExecutorService.
+   * Errors are caught and logged — never blocks step advancement.
    */
   private static async executeAutomations(
     workflowStep: WorkflowStep,
@@ -442,18 +460,17 @@ export class WorkflowEngineService {
     )
 
     for (const automation of matchingAutomations) {
-      await ActivityFeedService.log({
-        transactionId,
-        activityType: 'automation_executed',
-        metadata: {
-          actionType: automation.actionType,
-          templateRef: automation.templateRef,
-          trigger: automation.trigger,
-          delayDays: automation.delayDays,
-          config: automation.config,
+      try {
+        await AutomationExecutorService.execute(automation, transactionId, {
           stepName: workflowStep.name,
-        },
-      })
+          trigger,
+        })
+      } catch (err) {
+        logger.error(
+          { err, automationId: automation.id, transactionId },
+          'Automation execution failed — continuing step advancement'
+        )
+      }
     }
   }
 }
