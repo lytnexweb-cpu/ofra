@@ -3,6 +3,9 @@ import Transaction from '#models/transaction'
 import WorkflowStepAutomation from '#models/workflow_step_automation'
 import OfferAcceptedMail from '#mails/offer_accepted_mail'
 import FirmConfirmedMail from '#mails/firm_confirmed_mail'
+import FintracReminderMail from '#mails/fintrac_reminder_mail'
+import CelebrationMail from '#mails/celebration_mail'
+import GoogleReviewReminderMail from '#mails/google_review_reminder_mail'
 import { ActivityFeedService } from '#services/activity_feed_service'
 import logger from '@adonisjs/core/services/logger'
 
@@ -173,6 +176,16 @@ export class AutomationExecutorService {
         return new OfferAcceptedMail(opts)
       case 'firm_confirmed':
         return new FirmConfirmedMail(opts)
+      case 'fintrac_reminder':
+        return new FintracReminderMail(opts)
+      case 'celebration':
+        return new CelebrationMail(opts)
+      case 'google_review_reminder':
+        return new GoogleReviewReminderMail({
+          ...opts,
+          agentName: undefined, // Will use default "your agent"
+          reviewUrl: null, // Agent can configure this later
+        })
       default:
         return null
     }
