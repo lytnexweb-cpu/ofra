@@ -148,3 +148,16 @@ describe('TimelineTab', () => {
     expect(results).toHaveNoViolations()
   })
 })
+
+describe('TimelineTab — resilience', () => {
+  it('does not crash when getActivity API rejects (network error)', async () => {
+    mockGetActivity.mockRejectedValue(new Error('Network error'))
+
+    renderWithProviders(<TimelineTab transactionId={1} />)
+
+    // Should show empty state after query fails (no data)
+    await waitFor(() => {
+      expect(screen.getByTestId('timeline-empty')).toBeInTheDocument()
+    })
+  })
+})
