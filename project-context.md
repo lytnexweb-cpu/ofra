@@ -286,13 +286,12 @@ All routes prefixed with `/api`. Protected routes require session auth.
 | i18n (FR/EN) | Working | All UI strings translated |
 | Dark mode | Working | Auto (prefers-color-scheme) + manual toggle |
 | Automation execution | Working | `automation_executor_service.ts` | Sends emails and logs tasks via `AutomationExecutorService`. Wired to `WorkflowEngineService.executeAutomations()` |
-| Email templates (2/5) | Partial | `backend/app/mails/` | `offer_accepted` and `firm_confirmed` implemented. Missing: `fintrac_reminder`, `celebration`, `google_review_reminder` |
+| Email templates (5/5) | Working | `backend/app/mails/` | All 5 templates: `offer_accepted`, `firm_confirmed`, `fintrac_reminder`, `celebration`, `google_review_reminder` |
 
 ### Stub / Not Implemented
 
 | Feature | Status | Location | Details |
 |---------|--------|----------|---------|
-| Email templates (3/5) | Not implemented | Need to create | `fintrac_reminder`, `celebration`, `google_review_reminder` templates not yet created |
 | BullMQ job queue | Not installed | Referenced in decisions doc for async jobs | Required for delayed automations (e.g., Google review 7 days post-closing) |
 | Birthday reminder | Not implemented | From broker requirements | "Register client birthday in CRM after FINTRAC complete" |
 | Social media reminders | Not implemented | From broker requirements | Triggered at Offer Accepted, SOLD, Key Day |
@@ -381,7 +380,7 @@ expect(results).toHaveNoViolations()
 | Epic | Status | Description |
 |------|--------|-------------|
 | Epic 0: Foundation | Done | Design system, layout, i18n, test infrastructure |
-| Epic 1: Workflow Engine | Done | Backend models, API, services, tests (58 backend tests) |
+| Epic 1: Workflow Engine | Done | Backend models, API, services, tests (61 backend tests) |
 | Epic 2A: Voir et creer mes dossiers | Done | Transaction listing, search, filter, create |
 | Epic 2B: Comprendre mon dossier | Done | Transaction detail, stepper, conditions read |
 | Epic 2C: Agir sur mon dossier | Done | Condition toggle, action zone, blocking system |
