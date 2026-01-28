@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { formatDistanceToNow } from 'date-fns'
+import { formatDistanceToNow } from '../../lib/date'
 
 interface Activity {
   id: number
@@ -122,7 +122,7 @@ export default function RecentActivity({ activities = [] }: RecentActivityProps)
                   {getActivityDescription(activity)}
                 </p>
                 <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                  {formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true })}
+                  {formatDistanceToNow(activity.createdAt)}
                 </p>
               </div>
             </Link>
