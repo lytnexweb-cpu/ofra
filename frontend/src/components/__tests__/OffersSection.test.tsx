@@ -204,3 +204,30 @@ describe('OffersSection', () => {
     expect(results).toHaveNoViolations()
   })
 })
+
+describe('OffersSection — resilience', () => {
+  it('does not crash when list API rejects (network error)', async () => {
+    mockList.mockRejectedValue(new Error('Network error'))
+
+    renderWithProviders(
+      <OffersSection transactionId={1} transactionStatus="Active" />
+    )
+
+    // Should show loading, then not crash — "New Offer" button still accessible
+    await waitFor(() => {
+      expect(screen.getByText('+ New Offer')).toBeInTheDocument()
+    })
+  })
+
+  it('shows empty state when list returns non-success response', async () => {
+    mockList.mockResolvedValue({ success: false, error: { message: 'Unauthorized' } })
+
+    renderWithProviders(
+      <OffersSection transactionId={1} transactionStatus="Active" />
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('No offers yet.')).toBeInTheDocument()
+    })
+  })
+})

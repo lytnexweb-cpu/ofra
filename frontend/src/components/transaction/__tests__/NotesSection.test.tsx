@@ -177,3 +177,36 @@ describe('NotesSection', () => {
     expect(results).toHaveNoViolations()
   })
 })
+
+describe('NotesSection — resilience', () => {
+  it('does not crash when list API rejects (network error)', async () => {
+    mockList.mockRejectedValue(new Error('Network error'))
+
+    renderWithProviders(<NotesSection transactionId={1} />)
+
+    // Component should still render with input area
+    await waitFor(() => {
+      expect(screen.getByTestId('notes-section')).toBeInTheDocument()
+    })
+    expect(screen.getByTestId('note-input')).toBeInTheDocument()
+  })
+
+  it('shows error toast when create note fails', async () => {
+    const { toast } = await import('../../../hooks/use-toast')
+    mockCreate.mockRejectedValue(new Error('Server error'))
+
+    renderWithProviders(<NotesSection transactionId={1} />)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('note-input')).toBeInTheDocument()
+    })
+
+    // Type and submit
+    fireEvent.change(screen.getByTestId('note-input'), { target: { value: 'Test note' } })
+    fireEvent.click(screen.getByTestId('note-submit'))
+
+    await waitFor(() => {
+      expect(toast).toHaveBeenCalled()
+    })
+  })
+})
