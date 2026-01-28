@@ -185,3 +185,129 @@ describe('ActionZone', () => {
     expect(results).toHaveNoViolations()
   })
 })
+
+describe('ActionZone — blocking system', () => {
+  it('shows pedagogical modal on first advance with blocking (AC1)', async () => {
+    mockAdvanceStep.mockRejectedValue({
+      response: {
+        data: {
+          error: { code: 'E_BLOCKING_CONDITIONS', blockingConditions: [{ id: 1 }] },
+        },
+      },
+    })
+
+    const tx = makeTx({
+      conditions: [makeCondition({ id: 1, isBlocking: true, status: 'pending' })],
+    })
+    renderWithProviders(<ActionZone transaction={tx} />)
+
+    fireEvent.click(screen.getByTestId('advance-step-btn'))
+
+    await waitFor(() => {
+      // Pedagogical modal should appear — look for the "don't show again" checkbox
+      expect(screen.getByTestId('dont-show-again')).toBeInTheDocument()
+    })
+  })
+
+  it('"don\'t show again" persists to localStorage (AC2)', async () => {
+    mockAdvanceStep.mockRejectedValue({
+      response: {
+        data: {
+          error: { code: 'E_BLOCKING_CONDITIONS', blockingConditions: [{ id: 1 }] },
+        },
+      },
+    })
+
+    const tx = makeTx({
+      conditions: [makeCondition({ id: 1, isBlocking: true, status: 'pending' })],
+    })
+    renderWithProviders(<ActionZone transaction={tx} />)
+
+    fireEvent.click(screen.getByTestId('advance-step-btn'))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('dont-show-again')).toBeInTheDocument()
+    })
+
+    // Check the "don't show again" checkbox
+    fireEvent.click(screen.getByTestId('dont-show-again'))
+    // Close the modal
+    fireEvent.click(screen.getByTestId('blocking-modal-close'))
+
+    expect(localStorage.getItem('ofra-blockingModalDismissed')).toBe('true')
+  })
+
+  it('shows banner instead of modal when localStorage set (AC3)', async () => {
+    localStorage.setItem('ofra-blockingModalDismissed', 'true')
+
+    mockAdvanceStep.mockRejectedValue({
+      response: {
+        data: {
+          error: { code: 'E_BLOCKING_CONDITIONS', blockingConditions: [{ id: 1 }] },
+        },
+      },
+    })
+
+    const tx = makeTx({
+      conditions: [makeCondition({ id: 1, isBlocking: true, status: 'pending' })],
+    })
+    renderWithProviders(<ActionZone transaction={tx} />)
+
+    fireEvent.click(screen.getByTestId('advance-step-btn'))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('blocking-banner')).toBeInTheDocument()
+    })
+
+    // Modal should NOT be visible (no "don't show again" checkbox)
+    expect(screen.queryByTestId('dont-show-again')).not.toBeInTheDocument()
+  })
+
+  it('banner dismiss button hides the banner (AC4)', async () => {
+    localStorage.setItem('ofra-blockingModalDismissed', 'true')
+
+    mockAdvanceStep.mockRejectedValue({
+      response: {
+        data: {
+          error: { code: 'E_BLOCKING_CONDITIONS', blockingConditions: [{ id: 1 }] },
+        },
+      },
+    })
+
+    const tx = makeTx({
+      conditions: [makeCondition({ id: 1, isBlocking: true, status: 'pending' })],
+    })
+    renderWithProviders(<ActionZone transaction={tx} />)
+
+    fireEvent.click(screen.getByTestId('advance-step-btn'))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('blocking-banner')).toBeInTheDocument()
+    })
+
+    // Click dismiss
+    const dismissBtn = screen.getByTestId('blocking-banner').querySelector('button')
+    expect(dismissBtn).toBeTruthy()
+    fireEvent.click(dismissBtn!)
+
+    expect(screen.queryByTestId('blocking-banner')).not.toBeInTheDocument()
+  })
+
+  it('shows nearest deadline in days (AC5)', () => {
+    const tx = makeTx({
+      conditions: [
+        makeCondition({
+          id: 1,
+          isBlocking: true,
+          status: 'pending',
+          dueDate: '2025-01-20T12:00:00.000Z',
+        }),
+      ],
+    })
+    renderWithProviders(<ActionZone transaction={tx} />)
+
+    const zone = screen.getByTestId('action-zone')
+    // Should contain the "j" (jours) indicator for deadline
+    expect(zone.textContent).toContain('j')
+  })
+})

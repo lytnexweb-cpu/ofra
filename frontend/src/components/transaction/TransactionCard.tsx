@@ -30,7 +30,7 @@ function getNearestDeadline(conditions: Condition[]): string | null {
 }
 
 export default function TransactionCard({ transaction }: TransactionCardProps) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
 
   const clientName = transaction.client
     ? `${transaction.client.firstName} ${transaction.client.lastName}`
@@ -53,7 +53,7 @@ export default function TransactionCard({ transaction }: TransactionCardProps) {
       className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-lg"
       data-testid={`transaction-card-${transaction.id}`}
     >
-      <Card className="p-4 hover:shadow-md transition-shadow cursor-pointer">
+      <Card className={`p-4 hover:shadow-md transition-shadow cursor-pointer border-l-4 ${blockingCount > 0 ? 'border-l-destructive' : 'border-l-border'}`}>
         {/* Row 1: Step badge + Type */}
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
@@ -84,7 +84,7 @@ export default function TransactionCard({ transaction }: TransactionCardProps) {
           )}
           {transaction.salePrice != null && (
             <p className="mt-0.5 text-xs text-muted-foreground pl-5">
-              {transaction.salePrice.toLocaleString('en-CA', {
+              {transaction.salePrice.toLocaleString(i18n.language === 'fr' ? 'fr-CA' : 'en-CA', {
                 style: 'currency',
                 currency: 'CAD',
                 maximumFractionDigits: 0,

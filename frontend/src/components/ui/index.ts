@@ -13,6 +13,8 @@ export { Skeleton, SkeletonCard, SkeletonChart, SkeletonList, SkeletonTable, Das
 export { ToastProvider, ToastViewport, Toast, ToastTitle, ToastDescription, ToastClose, ToastAction } from './Toast'
 export type { ToastProps, ToastActionElement } from './Toast'
 
+export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from './Tooltip'
+
 // Custom components
 export { default as PageTransition } from './PageTransition'
 export { default as ThemeToggle } from './ThemeToggle'

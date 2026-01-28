@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
-import { formatDistanceToNow } from 'date-fns'
-import { enCA } from 'date-fns/locale/en-CA'
 import {
   ArrowRight,
   Check,
@@ -13,9 +11,8 @@ import {
   HandCoins,
 } from 'lucide-react'
 import { transactionsApi, type ActivityEntry } from '../../api/transactions.api'
-import { formatDate } from '../../lib/date'
+import { formatDate, formatDistanceToNow, differenceInDays } from '../../lib/date'
 import { Button } from '../ui/Button'
-import { differenceInDays } from 'date-fns'
 
 const ACTIVITY_ICONS: Record<string, typeof ArrowRight> = {
   step_advanced: ArrowRight,
@@ -68,7 +65,7 @@ export default function TimelineTab({ transactionId }: TimelineTabProps) {
     const date = new Date(dateStr)
     const days = differenceInDays(new Date(), date)
     if (days <= 7) {
-      return formatDistanceToNow(date, { addSuffix: true, locale: enCA })
+      return formatDistanceToNow(date)
     }
     return formatDate(dateStr, 'PP')
   }
