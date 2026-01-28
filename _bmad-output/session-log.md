@@ -87,7 +87,11 @@
 - **Date**: 2026-01-28
 - **Contenu**: Registration flow + password reset
 - **Agents**: Amelia (Dev) + Murat (Test) + Winston (Architect)
-- **Résultat**: EN COURS
+- **Résultat**: ✅ COMPLÉTÉ (dda8495)
+  - POST /api/register ✓
+  - POST /api/forgot-password ✓
+  - POST /api/reset-password ✓
+  - 9 nouveaux tests (70 total backend)
 
 ---
 
@@ -101,7 +105,8 @@
 - [x] Templates créés: fintrac_reminder, celebration, google_review_reminder ✅
 - [x] Tests ajoutés (61 tests backend total) ✅
 - [x] Commit (073c008) ✅
-- [ ] **EN ATTENTE**: Prochaine décision (Sam)
+- [x] Option B Auth hardening ✅ (dda8495)
+- [ ] **EN ATTENTE**: Prochaine décision (Sam) - Option C ou D ?
 
 ---
 
