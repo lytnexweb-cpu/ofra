@@ -300,7 +300,7 @@ All routes prefixed with `/api`. Protected routes require session auth.
 | Social media reminders | Not implemented | From broker requirements | Triggered at Offer Accepted, SOLD, Key Day |
 | Conditional follow-ups | Not implemented | From broker requirements | Financing + inspection follow-up during conditional period |
 | Client onboarding form | Not implemented | From broker requirements | External form sent to client after listing appointment |
-| Multi-tenant enforcement | Schema only | `organizations` table exists, `organization_id` on users | No row-level security or org-scoped queries yet |
+| ~~Multi-tenant enforcement~~ | ✅ DONE | `TenantScopeService` | Org-scoped queries for clients and transactions |
 | Notifications in-app | Not implemented | Planned for Epic 3 | Architecture designed but not built |
 
 ## 8. Testing Patterns
@@ -396,7 +396,7 @@ expect(results).toHaveNoViolations()
 
 1. ~~**Automation execution**~~ ✅ DONE — `AutomationExecutorService` sends emails (5 templates)
 2. ~~**Auth hardening**~~ ✅ DONE — Registration, forgot-password, reset-password
-3. **Multi-tenant enforcement** — Organization-scoped queries, row-level security (NEXT)
+3. ~~**Multi-tenant enforcement**~~ ✅ DONE — `TenantScopeService` for org-scoped queries
 
 ## 11. NB Broker Automations (Source of Truth)
 
