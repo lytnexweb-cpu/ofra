@@ -1,5 +1,6 @@
 import { test } from '@japa/runner'
 import { cuid } from '@adonisjs/core/helpers'
+import mail from '@adonisjs/mail/services/main'
 import {
   truncateAll,
   createUser,
@@ -33,7 +34,12 @@ async function setupWorkflow() {
 
 test.group('Transactions - Workflow CRUD', (group) => {
   group.each.setup(async () => {
+    mail.fake()
     await truncateAll()
+  })
+
+  group.each.teardown(async () => {
+    mail.restore()
   })
 
   test('POST /api/transactions creates a workflow-based transaction', async ({ client }) => {
@@ -225,6 +231,38 @@ test.group('Transactions - Workflow CRUD', (group) => {
     response.assertBodyContains({ success: true })
   })
 
+  test('PATCH /api/transactions/:id/advance returns 409 when step already completed', async ({
+    client,
+  }) => {
+    const { user, client: testClient, template } = await setupWorkflow()
+
+    const tx = await WorkflowEngineService.createTransactionFromTemplate({
+      templateId: template.id,
+      ownerUserId: user.id,
+      clientId: testClient.id,
+      type: 'purchase',
+    })
+
+    // Manually complete the current step to simulate a prior advance
+    const currentStep = await TransactionStep.query()
+      .where('transactionId', tx.id)
+      .where('status', 'active')
+      .firstOrFail()
+    currentStep.status = 'completed'
+    await currentStep.save()
+
+    const response = await withAuth(
+      client.patch(`/api/transactions/${tx.id}/advance`),
+      user.id
+    )
+
+    response.assertStatus(409)
+    response.assertBodyContains({
+      success: false,
+      error: { code: 'E_STEP_NOT_ACTIVE' },
+    })
+  })
+
   test('DELETE /api/transactions/:id deletes the transaction', async ({ client }) => {
     const { user, client: testClient, template } = await setupWorkflow()
 
@@ -246,7 +284,12 @@ test.group('Transactions - Workflow CRUD', (group) => {
 
 test.group('Transactions - Multi-tenancy', (group) => {
   group.each.setup(async () => {
+    mail.fake()
     await truncateAll()
+  })
+
+  group.each.teardown(async () => {
+    mail.restore()
   })
 
   test('User A cannot access User B transaction', async ({ client }) => {
