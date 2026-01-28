@@ -104,6 +104,18 @@
   - Controllers mis à jour (transactions, clients)
   - Tests passent (70 total)
 
+### Décision #5: Option D - Stratégie E2E
+- **Proposé par**: Party Mode (tous les agents)
+- **Validé par**: Sam ("je valide mais on documente la strategie E2E")
+- **Date**: 2026-01-28
+- **Contenu**:
+  - Framework: Playwright
+  - Scope: 3 parcours critiques (Auth, Transaction, Client)
+  - Mode: Happy path only
+  - Documentation: `_bmad-output/e2e-strategy.md`
+- **Agents**: Murat (Test Architect) + Amelia (Dev)
+- **Résultat**: EN COURS
+
 ---
 
 ## TODO Immédiat
