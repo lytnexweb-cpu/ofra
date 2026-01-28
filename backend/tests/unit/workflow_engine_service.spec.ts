@@ -1,4 +1,5 @@
 import { test } from '@japa/runner'
+import mail from '@adonisjs/mail/services/main'
 import {
   truncateAll,
   createUser,
@@ -14,7 +15,12 @@ import Condition from '#models/condition'
 
 test.group('WorkflowEngineService', (group) => {
   group.each.setup(async () => {
+    mail.fake()
     await truncateAll()
+  })
+
+  group.each.teardown(async () => {
+    mail.restore()
   })
 
   test('createTransactionFromTemplate creates transaction with all steps', async ({ assert }) => {
@@ -382,5 +388,79 @@ test.group('WorkflowEngineService', (group) => {
     // step_entered appears twice: once on create, once on advance
     const enterCount = types.filter((t) => t === 'step_entered').length
     assert.isAtLeast(enterCount, 2)
+  })
+
+  test('advanceStep rejects duplicate call on already-completed step', async ({ assert }) => {
+    const user = await createUser({ email: 'dupe-adv@test.com' })
+    const client = await createClient(user.id)
+    const template = await createWorkflowTemplate({ slug: 'test-tpl-dupe-adv' })
+    await createWorkflowStep(template.id, { stepOrder: 1, name: 'Step 1', slug: 'dupe-adv-1' })
+    await createWorkflowStep(template.id, { stepOrder: 2, name: 'Step 2', slug: 'dupe-adv-2' })
+
+    const tx = await WorkflowEngineService.createTransactionFromTemplate({
+      templateId: template.id,
+      ownerUserId: user.id,
+      clientId: client.id,
+      type: 'purchase',
+    })
+
+    // First call succeeds
+    await WorkflowEngineService.advanceStep(tx.id, user.id)
+
+    // Reload to get updated currentStepId
+    await tx.refresh()
+
+    // Manually complete step 2 to simulate it already being processed
+    const step2 = await TransactionStep.query()
+      .where('transactionId', tx.id)
+      .where('status', 'active')
+      .firstOrFail()
+    step2.status = 'completed'
+    await step2.save()
+
+    // Second call on same transaction should fail
+    try {
+      await WorkflowEngineService.advanceStep(tx.id, user.id)
+      assert.fail('Should have thrown E_STEP_NOT_ACTIVE')
+    } catch (error) {
+      assert.equal(error.code, 'E_STEP_NOT_ACTIVE')
+    }
+  })
+
+  test('skipStep rejects duplicate call on already-skipped step', async ({ assert }) => {
+    const user = await createUser({ email: 'dupe-skip@test.com' })
+    const client = await createClient(user.id)
+    const template = await createWorkflowTemplate({ slug: 'test-tpl-dupe-skip' })
+    await createWorkflowStep(template.id, { stepOrder: 1, name: 'Step 1', slug: 'dupe-skip-1' })
+    await createWorkflowStep(template.id, { stepOrder: 2, name: 'Step 2', slug: 'dupe-skip-2' })
+
+    const tx = await WorkflowEngineService.createTransactionFromTemplate({
+      templateId: template.id,
+      ownerUserId: user.id,
+      clientId: client.id,
+      type: 'purchase',
+    })
+
+    // First call succeeds
+    await WorkflowEngineService.skipStep(tx.id, user.id)
+
+    // Reload to get updated currentStepId
+    await tx.refresh()
+
+    // Manually skip step 2 to simulate it already being processed
+    const step2 = await TransactionStep.query()
+      .where('transactionId', tx.id)
+      .where('status', 'active')
+      .firstOrFail()
+    step2.status = 'skipped'
+    await step2.save()
+
+    // Second call should fail
+    try {
+      await WorkflowEngineService.skipStep(tx.id, user.id)
+      assert.fail('Should have thrown E_STEP_NOT_ACTIVE')
+    } catch (error) {
+      assert.equal(error.code, 'E_STEP_NOT_ACTIVE')
+    }
   })
 })

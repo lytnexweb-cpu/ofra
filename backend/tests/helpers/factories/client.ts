@@ -7,7 +7,7 @@ export async function createClient(
   overrides: Partial<{
     firstName: string
     lastName: string
-    email: string
+    email: string | null
   }> = {}
 ): Promise<Client> {
   clientCounter++
@@ -15,6 +15,6 @@ export async function createClient(
     ownerUserId,
     firstName: overrides.firstName ?? `John${clientCounter}`,
     lastName: overrides.lastName ?? `Doe${clientCounter}`,
-    email: overrides.email ?? `client${clientCounter}@test.com`,
+    email: 'email' in overrides ? overrides.email : `client${clientCounter}@test.com`,
   })
 }
