@@ -74,6 +74,13 @@
 - **Date**: 2026-01-28
 - **Contenu**: Workflow en 6 étapes avec consignation obligatoire
 
+### Décision #2: Option A - Finir les templates email
+- **Proposé par**: Équipe BMAD (John recommandait A)
+- **Validé par**: Sam ("je valide amelia")
+- **Date**: 2026-01-28
+- **Contenu**: Créer les 3 templates manquants avant de passer à autre chose
+- **Résultat**: ✅ COMPLÉTÉ - 5/5 templates, 61 tests backend
+
 ---
 
 ## TODO Immédiat
@@ -82,7 +89,11 @@
 - [x] Lancer tests backend pour valider le travail ✅ (58 tests passent)
 - [x] Commiter le travail d'automation ✅ (fca06f4)
 - [x] Mettre à jour project-context.md ✅
-- [ ] **EN ATTENTE**: Décider de la suite (Sam doit choisir)
+- [x] Option A choisie par Sam: Finir les 3 templates email ✅
+- [x] Templates créés: fintrac_reminder, celebration, google_review_reminder ✅
+- [x] Tests ajoutés (61 tests backend total) ✅
+- [x] Commit (073c008) ✅
+- [ ] **EN ATTENTE**: Prochaine décision (Sam)
 
 ---
 
