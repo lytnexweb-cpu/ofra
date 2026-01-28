@@ -6,13 +6,15 @@ import {
 } from '#validators/transaction_validator'
 import { WorkflowEngineService } from '#services/workflow_engine_service'
 import { ActivityFeedService } from '#services/activity_feed_service'
+import { TenantScopeService } from '#services/tenant_scope_service'
 
 export default class TransactionsController {
   async index({ request, response, auth }: HttpContext) {
     try {
       const { step, q } = request.qs()
-      const query = Transaction.query()
-        .where('owner_user_id', auth.user!.id)
+      const baseQuery = Transaction.query()
+      TenantScopeService.apply(baseQuery, auth.user!)
+      const query = baseQuery
         .preload('client')
         .preload('property')
         .preload('currentStep', (sq) => sq.preload('workflowStep'))
@@ -60,6 +62,7 @@ export default class TransactionsController {
       const transaction = await WorkflowEngineService.createTransactionFromTemplate({
         templateId: payload.workflowTemplateId,
         ownerUserId: auth.user!.id,
+        organizationId: TenantScopeService.getOrganizationId(auth.user!),
         clientId: payload.clientId,
         propertyId: payload.propertyId ?? null,
         type: payload.type,
@@ -102,9 +105,9 @@ export default class TransactionsController {
 
   async show({ params, response, auth }: HttpContext) {
     try {
-      const transaction = await Transaction.query()
-        .where('id', params.id)
-        .where('owner_user_id', auth.user!.id)
+      const query = Transaction.query().where('id', params.id)
+      TenantScopeService.apply(query, auth.user!)
+      const transaction = await query
         .preload('client')
         .preload('property')
         .preload('currentStep', (sq) => sq.preload('workflowStep'))
@@ -136,10 +139,9 @@ export default class TransactionsController {
 
   async update({ params, request, response, auth }: HttpContext) {
     try {
-      const transaction = await Transaction.query()
-        .where('id', params.id)
-        .where('owner_user_id', auth.user!.id)
-        .firstOrFail()
+      const query = Transaction.query().where('id', params.id)
+      TenantScopeService.apply(query, auth.user!)
+      const transaction = await query.firstOrFail()
 
       const payload = await request.validateUsing(updateTransactionValidator)
       transaction.merge(payload)
@@ -178,10 +180,9 @@ export default class TransactionsController {
 
   async advanceStep({ params, response, auth }: HttpContext) {
     try {
-      const transaction = await Transaction.query()
-        .where('id', params.id)
-        .where('owner_user_id', auth.user!.id)
-        .firstOrFail()
+      const query = Transaction.query().where('id', params.id)
+      TenantScopeService.apply(query, auth.user!)
+      const transaction = await query.firstOrFail()
 
       const result = await WorkflowEngineService.advanceStep(transaction.id, auth.user!.id)
 
@@ -232,10 +233,9 @@ export default class TransactionsController {
 
   async skipStep({ params, response, auth }: HttpContext) {
     try {
-      const transaction = await Transaction.query()
-        .where('id', params.id)
-        .where('owner_user_id', auth.user!.id)
-        .firstOrFail()
+      const query = Transaction.query().where('id', params.id)
+      TenantScopeService.apply(query, auth.user!)
+      const transaction = await query.firstOrFail()
 
       const result = await WorkflowEngineService.skipStep(transaction.id, auth.user!.id)
 
@@ -271,10 +271,9 @@ export default class TransactionsController {
 
   async goToStep({ params, response, auth }: HttpContext) {
     try {
-      const transaction = await Transaction.query()
-        .where('id', params.id)
-        .where('owner_user_id', auth.user!.id)
-        .firstOrFail()
+      const query = Transaction.query().where('id', params.id)
+      TenantScopeService.apply(query, auth.user!)
+      const transaction = await query.firstOrFail()
 
       const targetStepOrder = Number(params.stepOrder)
       if (!targetStepOrder || targetStepOrder < 1) {
@@ -316,11 +315,10 @@ export default class TransactionsController {
 
   async activity({ params, request, response, auth }: HttpContext) {
     try {
-      // Verify ownership
-      await Transaction.query()
-        .where('id', params.id)
-        .where('owner_user_id', auth.user!.id)
-        .firstOrFail()
+      // Verify access
+      const query = Transaction.query().where('id', params.id)
+      TenantScopeService.apply(query, auth.user!)
+      await query.firstOrFail()
 
       const page = Number(request.qs().page) || 1
       const limit = Number(request.qs().limit) || 20
@@ -349,7 +347,7 @@ export default class TransactionsController {
     try {
       const transaction = await Transaction.findOrFail(params.id)
 
-      if (transaction.ownerUserId !== auth.user!.id) {
+      if (!TenantScopeService.canAccess(transaction, auth.user!)) {
         return response.notFound({
           success: false,
           error: { message: 'Transaction not found', code: 'E_NOT_FOUND' },
