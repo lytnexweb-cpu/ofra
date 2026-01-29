@@ -40,6 +40,7 @@ export default class ClientsController {
         data: { client },
       })
     } catch (error) {
+      console.error('[ClientsController.store] Error:', error)
       if (error.messages) {
         return response.unprocessableEntity({
           success: false,
@@ -55,6 +56,8 @@ export default class ClientsController {
         error: {
           message: 'Failed to create client',
           code: 'E_INTERNAL_ERROR',
+          // Include error details in dev
+          details: process.env.NODE_ENV !== 'production' ? String(error) : undefined,
         },
       })
     }
