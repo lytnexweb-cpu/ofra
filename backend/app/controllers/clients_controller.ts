@@ -3,6 +3,7 @@ import Client from '#models/client'
 import Transaction from '#models/transaction'
 import { createClientValidator, updateClientValidator } from '#validators/client_validator'
 import { TenantScopeService } from '#services/tenant_scope_service'
+import { CsvImportService } from '#services/csv_import_service'
 
 export default class ClientsController {
   async index({ response, auth }: HttpContext) {
@@ -216,5 +217,92 @@ export default class ClientsController {
         },
       })
     }
+  }
+
+  /**
+   * Import clients from CSV file
+   * POST /api/clients/import
+   */
+  async importCsv({ request, response, auth }: HttpContext) {
+    try {
+      const csvFile = request.file('file', {
+        size: '5mb',
+        extnames: ['csv'],
+      })
+
+      if (!csvFile) {
+        return response.badRequest({
+          success: false,
+          error: {
+            message: 'No CSV file provided',
+            code: 'E_NO_FILE',
+          },
+        })
+      }
+
+      if (!csvFile.isValid) {
+        return response.badRequest({
+          success: false,
+          error: {
+            message: csvFile.errors[0]?.message || 'Invalid file',
+            code: 'E_INVALID_FILE',
+          },
+        })
+      }
+
+      // Read file content
+      const fs = await import('node:fs/promises')
+      const csvContent = await fs.readFile(csvFile.tmpPath!, 'utf-8')
+
+      // Import clients
+      const result = await CsvImportService.importClients(
+        csvContent,
+        auth.user!.id,
+        TenantScopeService.getOrganizationId(auth.user!)
+      )
+
+      if (!result.success && result.imported === 0) {
+        return response.unprocessableEntity({
+          success: false,
+          error: {
+            message: 'CSV import failed',
+            code: 'E_IMPORT_FAILED',
+            details: result.errors,
+          },
+        })
+      }
+
+      return response.ok({
+        success: true,
+        data: {
+          imported: result.imported,
+          skipped: result.skipped,
+          errors: result.errors,
+        },
+      })
+    } catch (error) {
+      console.error('[ClientsController.importCsv] Error:', error)
+      return response.internalServerError({
+        success: false,
+        error: {
+          message: 'Failed to import CSV',
+          code: 'E_INTERNAL_ERROR',
+          details: process.env.NODE_ENV !== 'production' ? String(error) : undefined,
+        },
+      })
+    }
+  }
+
+  /**
+   * Get CSV template for import
+   * GET /api/clients/import/template
+   */
+  async getTemplate({ response }: HttpContext) {
+    const template = CsvImportService.generateTemplate()
+
+    response.header('Content-Type', 'text/csv')
+    response.header('Content-Disposition', 'attachment; filename="ofra-clients-template.csv"')
+
+    return response.send(template)
   }
 }

@@ -38,6 +38,8 @@ router.group(() => {
   // Clients
   router.get('/clients', '#controllers/clients_controller.index')
   router.post('/clients', '#controllers/clients_controller.store')
+  router.post('/clients/import', '#controllers/clients_controller.importCsv')
+  router.get('/clients/import/template', '#controllers/clients_controller.getTemplate')
   router.get('/clients/:id', '#controllers/clients_controller.show')
   router.get('/clients/:id/transactions', '#controllers/clients_controller.transactions')
   router.put('/clients/:id', '#controllers/clients_controller.update')
