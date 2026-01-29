@@ -17,12 +17,67 @@ interface AutomationContext {
 interface ExecuteResult {
   sent: boolean
   skipped: boolean
+  scheduled?: boolean
   error?: string
 }
 
 export class AutomationExecutorService {
   /**
-   * Dispatch a single automation.
+   * Schedule or execute an automation based on delayDays.
+   * If delayDays > 0, schedules via BullMQ queue.
+   * Otherwise, executes immediately.
+   */
+  static async scheduleOrExecute(
+    automation: WorkflowStepAutomation,
+    transactionId: number,
+    context: AutomationContext
+  ): Promise<ExecuteResult> {
+    // If there's a delay, schedule it via the queue
+    if (automation.delayDays > 0) {
+      try {
+        const { queueService } = await import('#services/queue_service')
+        const delayMs = automation.delayDays * 24 * 60 * 60 * 1000
+
+        await queueService.scheduleDelayedAutomation(
+          {
+            automationId: automation.id,
+            transactionId,
+            stepName: context.stepName,
+            trigger: context.trigger,
+          },
+          delayMs
+        )
+
+        await ActivityFeedService.log({
+          transactionId,
+          activityType: 'automation_scheduled',
+          metadata: {
+            automationId: automation.id,
+            templateRef: automation.templateRef,
+            actionType: automation.actionType,
+            delayDays: automation.delayDays,
+            scheduledFor: new Date(Date.now() + delayMs).toISOString(),
+          },
+        })
+
+        logger.info(
+          { automationId: automation.id, delayDays: automation.delayDays },
+          'Automation scheduled for delayed execution'
+        )
+
+        return { sent: false, skipped: false, scheduled: true }
+      } catch (err) {
+        logger.error({ err, automationId: automation.id }, 'Failed to schedule automation')
+        // Fall through to execute immediately as fallback
+      }
+    }
+
+    // Execute immediately
+    return this.execute(automation, transactionId, context)
+  }
+
+  /**
+   * Dispatch a single automation immediately.
    * Returns a result object — never throws.
    */
   static async execute(
