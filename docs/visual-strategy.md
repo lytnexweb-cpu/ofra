@@ -1,21 +1,16 @@
 # Stratégie Visuelle Ofra
 
-> Document de référence pour transformer Ofra d'un prototype en SaaS premium à 49$/mois
+> Guide de design pour l'interface Ofra
 > Dernière mise à jour: 2026-01-29
 
 ## 1. Problème Actuel
 
-### Constat brutal
-Le design actuel ressemble à un **template Tailwind gratuit**. Aucun agent immobilier ne paierait 49$/mois pour quelque chose qui a l'air amateur.
-
-### Impact business
-| Perception | Prix acceptable | Notre cible |
-|------------|-----------------|-------------|
-| Amateur | 0-10$/mois | ❌ |
-| Correct | 20-30$/mois | ❌ |
-| **Premium** | **50-100$/mois** | ✅ 49$ |
-
-**Objectif:** Créer une perception de valeur qui justifie le prix.
+### Constat
+Le design actuel utilise Tailwind "out of the box" sans personnalisation:
+- Couleurs génériques (blue-600)
+- Pas de logo
+- Pas d'identité visuelle
+- Ressemble à un template gratuit
 
 ---
 
@@ -451,30 +446,7 @@ xl: 1280px  /* Large desktop */
 
 ---
 
-## 12. Métriques de Succès
-
-### Tests à effectuer
-1. **5-second test**: Montrer la landing 5 secondes
-   - Objectif: 80% comprennent "gestion transactions immobilier"
-
-2. **Willingness to pay**: "Combien paieriez-vous?"
-   - Objectif: Moyenne > 35$/mois
-
-3. **Trust score**: "Donneriez-vous vos données?"
-   - Objectif: > 4/5
-
-4. **Comparison test**: Montrer vs SkySlope
-   - Objectif: "Aussi bien ou mieux"
-
-### KPIs business
-- Taux de conversion landing → signup: > 5%
-- Taux de conversion trial → paid: > 30%
-- NPS: > 40
-- Churn: < 5%/mois
-
----
-
-## 13. Ressources
+## 12. Ressources
 
 ### Inspiration
 - [Stripe](https://stripe.com) - Clean, trustworthy
