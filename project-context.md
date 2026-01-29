@@ -1,7 +1,7 @@
 ---
 project_name: OFRA
 user_name: Sam
-date: 2026-01-28
+date: 2026-01-29
 sections_completed:
   [
     'technology_stack',
@@ -208,6 +208,8 @@ All routes prefixed with `/api`. Protected routes require session auth.
 |--------|------|------------|
 | GET | `/clients` | clients_controller.index |
 | POST | `/clients` | clients_controller.store |
+| POST | `/clients/import` | clients_controller.importCsv |
+| GET | `/clients/import/template` | clients_controller.getTemplate |
 | GET | `/clients/:id` | clients_controller.show |
 | GET | `/clients/:id/transactions` | clients_controller.transactions |
 | PUT | `/clients/:id` | clients_controller.update |
@@ -295,7 +297,10 @@ All routes prefixed with `/api`. Protected routes require session auth.
 
 | Feature | Status | Location | Details |
 |---------|--------|----------|---------|
-| BullMQ job queue | Not installed | Referenced in decisions doc for async jobs | Required for delayed automations (e.g., Google review 7 days post-closing) |
+| ~~BullMQ job queue~~ | ✅ DONE | `backend/app/services/queue_service.ts` | Delayed automations, daily digest, deadline warnings |
+| CSV Import API | ✅ DONE | `backend/app/services/csv_import_service.ts` | Bilingual headers, duplicate detection |
+| CSV Import UI | Not implemented | Epic 5 | Drag & drop frontend needed |
+| Document uploads | Not implemented | Epic 5 | S3 storage, quota per tier |
 | Birthday reminder | Not implemented | From broker requirements | "Register client birthday in CRM after FINTRAC complete" |
 | Social media reminders | Not implemented | From broker requirements | Triggered at Offer Accepted, SOLD, Key Day |
 | Conditional follow-ups | Not implemented | From broker requirements | Financing + inspection follow-up during conditional period |
@@ -389,14 +394,30 @@ expect(results).toHaveNoViolations()
 | Epic 2C: Agir sur mon dossier | Done | Condition toggle, action zone, blocking system |
 | Epic 2D: Historique complet | Done | Offers, documents, timeline, notes tabs |
 | Dashboard coverage | Done | KPI, pipeline, revenue, activity, deadlines tests |
-| **Epic 3: Automations & Reminders** | **Next** | Wire automation execution, email templates, BullMQ |
-| Epic 4: Onboarding & Import | Backlog | Client onboarding form, CSV import, FollowUpBoss |
+| Epic 3: Automations & Reminders | Done | Email templates, BullMQ, auth hardening, multi-tenant |
+| Epic 4: CSV Import API | Done | Backend API only, UI in Epic 5 |
+| **Epic 5: UI Import + Uploads** | **Next** | Frontend import CSV, S3 documents, quota per tier |
+| Epic 6: Landing Page | Backlog | Marketing page, pricing, founder signup |
+| Epic 7: Stripe Billing | Backlog | Subscriptions, webhooks, plan enforcement |
 
-### Epic 3 Priority (validated by team)
+### Epic 3 Completed
 
-1. ~~**Automation execution**~~ ✅ DONE — `AutomationExecutorService` sends emails (5 templates)
-2. ~~**Auth hardening**~~ ✅ DONE — Registration, forgot-password, reset-password
-3. ~~**Multi-tenant enforcement**~~ ✅ DONE — `TenantScopeService` for org-scoped queries
+1. ✅ **Automation execution** — `AutomationExecutorService` sends emails (5 templates)
+2. ✅ **Auth hardening** — Registration, forgot-password, reset-password
+3. ✅ **Multi-tenant enforcement** — `TenantScopeService` for org-scoped queries
+4. ✅ **BullMQ** — Delayed automations, daily digest, deadline warnings
+
+### SaaS Pricing (Validated)
+
+| Tier | Prix | Users | Storage | Max/fichier |
+|------|------|-------|---------|-------------|
+| Essentiel | 29$ CAD/mois | 1 | 500 MB | 5 MB |
+| Pro ⭐ | 49$ CAD/mois | 3 | 2 GB | 15 MB |
+| Agence | 99$ CAD/mois | 10 | 10 GB | 25 MB |
+
+**Programme Fondateur**: 25 places, 3 mois gratuits, -25% à vie
+
+Voir `docs/pricing-strategy.md` et `docs/roadmap.md` pour détails complets.
 
 ## 11. NB Broker Automations (Source of Truth)
 
@@ -426,5 +447,5 @@ These automations are defined in the seeder (`nb_workflow_template_seeder.ts`) b
 
 ---
 
-_Generated 2026-01-28 by BMAD team. Source: broker email, codebase audit, decision documents._
+_Updated 2026-01-29 by BMAD team. Source: broker email, codebase audit, decision documents._
 _This file MUST be updated when features move from stub to functional._
