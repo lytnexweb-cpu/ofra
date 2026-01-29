@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { authApi } from '../api/auth.api'
 import { BRAND } from '../config/brand'
 import { useTranslation } from 'react-i18next'
@@ -15,13 +15,28 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [error, setError] = useState('')
+  const [isLoggingIn, setIsLoggingIn] = useState(false)
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
 
   const registerMutation = useMutation({
     mutationFn: authApi.register,
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       if (data.success) {
-        navigate('/login', { state: { registered: true } })
+        // Auto-login after successful registration
+        setIsLoggingIn(true)
+        try {
+          const loginResult = await authApi.login({ email: email.trim(), password })
+          if (loginResult.success) {
+            queryClient.clear()
+            setTimeout(() => navigate('/'), 100)
+          } else {
+            // Fallback to login page if auto-login fails
+            navigate('/login', { state: { registered: true } })
+          }
+        } catch {
+          navigate('/login', { state: { registered: true } })
+        }
       } else {
         if (data.error?.code === 'E_RATE_LIMIT') {
           const retryAfter = data.error?.retryAfter || 300
@@ -43,6 +58,8 @@ export default function RegisterPage() {
       setError(t('auth.networkError'))
     },
   })
+
+  const isPending = registerMutation.isPending || isLoggingIn
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -154,10 +171,10 @@ export default function RegisterPage() {
           <div>
             <button
               type="submit"
-              disabled={registerMutation.isPending || !isFormValid}
+              disabled={isPending || !isFormValid}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
             >
-              {registerMutation.isPending ? t('auth.creatingAccount') : t('auth.register')}
+              {isPending ? (isLoggingIn ? t('auth.loggingIn') : t('auth.creatingAccount')) : t('auth.register')}
             </button>
           </div>
           <div className="text-center">

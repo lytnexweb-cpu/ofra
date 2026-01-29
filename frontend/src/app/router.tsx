@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { authApi } from '../api/auth.api'
 import LoginPage from '../pages/LoginPage'
 import RegisterPage from '../pages/RegisterPage'
+import ForgotPasswordPage from '../pages/ForgotPasswordPage'
 import DashboardPage from '../pages/DashboardPage'
 import ClientsPage from '../pages/ClientsPage'
 import ClientDetailsPage from '../pages/ClientDetailsPage'
@@ -38,6 +39,10 @@ export const router = createBrowserRouter([
   {
     path: '/register',
     element: <RegisterPage />,
+  },
+  {
+    path: '/forgot-password',
+    element: <ForgotPasswordPage />,
   },
   {
     path: '/',
