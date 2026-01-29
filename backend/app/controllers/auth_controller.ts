@@ -2,6 +2,7 @@ import type { HttpContext } from '@adonisjs/core/http'
 import { randomBytes } from 'node:crypto'
 import { DateTime } from 'luxon'
 import User from '#models/user'
+import Organization from '#models/organization'
 import mail from '@adonisjs/mail/services/main'
 import env from '#start/env'
 import {
@@ -30,7 +31,13 @@ export default class AuthController {
         })
       }
 
-      // Create user
+      // Create a personal organization for the user
+      const organization = await Organization.create({
+        name: `${data.fullName ?? data.email}'s Organization`,
+        provinceCode: 'NB', // Default to New Brunswick
+      })
+
+      // Create user with organization
       const user = await User.create({
         email: data.email,
         password: data.password,
@@ -42,6 +49,7 @@ export default class AuthController {
         language: data.preferredLanguage ?? 'en',
         dateFormat: 'YYYY-MM-DD',
         timezone: 'America/Moncton',
+        organizationId: organization.id,
       })
 
       // Send welcome email (non-blocking)

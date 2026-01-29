@@ -13,6 +13,7 @@ export default defineConfig({
     alias: [{ find: '@', replacement: path.resolve(__dirname, './src') }],
   },
   server: {
+    port: 5174,
     proxy: {
       '/api': {
         target: 'http://localhost:3333',
