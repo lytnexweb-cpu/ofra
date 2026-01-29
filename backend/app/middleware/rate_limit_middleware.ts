@@ -23,12 +23,12 @@ setInterval(
 )
 
 /**
- * Rate limit middleware for login protection
- * Limits to 5 attempts per 15 minutes per IP
+ * Rate limit middleware for auth protection
+ * Limits to 20 attempts per 5 minutes per IP
  */
 export default class RateLimitMiddleware {
-  private maxAttempts = 5
-  private windowMs = 15 * 60 * 1000 // 15 minutes
+  private maxAttempts = 20
+  private windowMs = 5 * 60 * 1000 // 5 minutes
 
   async handle(ctx: HttpContext, next: NextFn) {
     // Skip rate limiting in test environment
