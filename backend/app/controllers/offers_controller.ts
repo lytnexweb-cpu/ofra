@@ -4,6 +4,7 @@ import Transaction from '#models/transaction'
 import Offer from '#models/offer'
 import { OfferService } from '#services/offer_service'
 import { ActivityFeedService } from '#services/activity_feed_service'
+import { TenantScopeService } from '#services/tenant_scope_service'
 import {
   createOfferValidator,
   addRevisionValidator,
@@ -12,10 +13,8 @@ import {
 export default class OffersController {
   async index({ params, response, auth }: HttpContext) {
     try {
-      const transaction = await Transaction.query()
-        .where('id', params.id)
-        .where('owner_user_id', auth.user!.id)
-        .firstOrFail()
+      const query = Transaction.query().where('id', params.id)
+      const transaction = await TenantScopeService.apply(query, auth.user!).firstOrFail()
 
       const offers = await OfferService.getOffers(transaction.id)
 
@@ -39,10 +38,8 @@ export default class OffersController {
 
   async store({ params, request, response, auth }: HttpContext) {
     try {
-      const transaction = await Transaction.query()
-        .where('id', params.id)
-        .where('owner_user_id', auth.user!.id)
-        .firstOrFail()
+      const query = Transaction.query().where('id', params.id)
+      const transaction = await TenantScopeService.apply(query, auth.user!).firstOrFail()
 
       const payload = await request.validateUsing(createOfferValidator)
 
@@ -92,7 +89,7 @@ export default class OffersController {
     }
   }
 
-  private async loadOfferWithOwnershipCheck(offerId: number, userId: number) {
+  private async loadOfferWithOwnershipCheck(offerId: number, user: { id: number; organizationId: number | null }) {
     const offer = await Offer.query()
       .where('id', offerId)
       .preload('revisions', (query) => {
@@ -100,28 +97,24 @@ export default class OffersController {
       })
       .firstOrFail()
 
-    const transaction = await Transaction.query()
-      .where('id', offer.transactionId)
-      .where('owner_user_id', userId)
-      .firstOrFail()
+    const query = Transaction.query().where('id', offer.transactionId)
+    const transaction = await TenantScopeService.apply(query, user as any).firstOrFail()
 
     return { offer, transaction }
   }
 
-  private async loadOfferBasicWithOwnershipCheck(offerId: number, userId: number) {
+  private async loadOfferBasicWithOwnershipCheck(offerId: number, user: { id: number; organizationId: number | null }) {
     const offer = await Offer.findOrFail(offerId)
 
-    const transaction = await Transaction.query()
-      .where('id', offer.transactionId)
-      .where('owner_user_id', userId)
-      .firstOrFail()
+    const query = Transaction.query().where('id', offer.transactionId)
+    const transaction = await TenantScopeService.apply(query, user as any).firstOrFail()
 
     return { offer, transaction }
   }
 
   async show({ params, response, auth }: HttpContext) {
     try {
-      const { offer } = await this.loadOfferWithOwnershipCheck(params.offerId, auth.user!.id)
+      const { offer } = await this.loadOfferWithOwnershipCheck(params.offerId, auth.user!)
 
       return response.ok({
         success: true,
@@ -143,7 +136,7 @@ export default class OffersController {
 
   async addRevision({ params, request, response, auth }: HttpContext) {
     try {
-      const { offer } = await this.loadOfferBasicWithOwnershipCheck(params.offerId, auth.user!.id)
+      const { offer } = await this.loadOfferBasicWithOwnershipCheck(params.offerId, auth.user!)
 
       const payload = await request.validateUsing(addRevisionValidator)
 
@@ -198,7 +191,7 @@ export default class OffersController {
     try {
       const { transaction } = await this.loadOfferBasicWithOwnershipCheck(
         params.offerId,
-        auth.user!.id
+        auth.user!
       )
 
       const acceptedOffer = await OfferService.acceptOffer(params.offerId)
@@ -238,7 +231,7 @@ export default class OffersController {
     try {
       const { transaction } = await this.loadOfferBasicWithOwnershipCheck(
         params.offerId,
-        auth.user!.id
+        auth.user!
       )
 
       const rejectedOffer = await OfferService.rejectOffer(params.offerId)
@@ -278,7 +271,7 @@ export default class OffersController {
     try {
       const { transaction } = await this.loadOfferBasicWithOwnershipCheck(
         params.offerId,
-        auth.user!.id
+        auth.user!
       )
 
       const withdrawnOffer = await OfferService.withdrawOffer(params.offerId)
@@ -316,7 +309,7 @@ export default class OffersController {
 
   async destroy({ params, response, auth }: HttpContext) {
     try {
-      const { offer } = await this.loadOfferBasicWithOwnershipCheck(params.offerId, auth.user!.id)
+      const { offer } = await this.loadOfferBasicWithOwnershipCheck(params.offerId, auth.user!)
 
       if (offer.status === 'accepted') {
         return response.badRequest({
