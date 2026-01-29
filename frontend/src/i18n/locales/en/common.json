@@ -114,7 +114,17 @@
     "fillAllFields": "Please fill in all fields.",
     "passwordMismatch": "Passwords do not match.",
     "passwordTooShort": "Password must be at least 8 characters.",
-    "rateLimitError": "Too many attempts. Please wait {{minutes}} minute(s) before trying again."
+    "rateLimitError": "Too many attempts. Please wait {{minutes}} minute(s) before trying again.",
+    "loggingIn": "Signing in...",
+    "forgotPasswordTitle": "Reset your password",
+    "forgotPasswordDescription": "Enter your email address and we'll send you a link to reset your password.",
+    "enterEmail": "Please enter your email address.",
+    "sendResetLink": "Send reset link",
+    "sending": "Sending...",
+    "checkYourEmail": "Check your email",
+    "resetEmailSent": "If an account exists with this email, you will receive a password reset link shortly.",
+    "backToLogin": "Back to login",
+    "forgotPasswordFailed": "Failed to send reset email. Please try again."
   },
   "tabs": {
     "conditions": "Conditions",
