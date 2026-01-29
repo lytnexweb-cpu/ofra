@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { authApi } from '../api/auth.api'
 import { BRAND } from '../config/brand'
@@ -132,6 +132,17 @@ export default function LoginPage() {
                 'Sign in'
               )}
             </button>
+          </div>
+          <div className="text-center">
+            <span className="text-sm text-gray-600 dark:text-gray-400">
+              Don't have an account?{' '}
+            </span>
+            <Link
+              to="/register"
+              className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-500 font-medium"
+            >
+              Create one
+            </Link>
           </div>
         </form>
       </div>
