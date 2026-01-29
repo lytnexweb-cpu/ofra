@@ -25,12 +25,19 @@ export interface RegisterRequest {
   password: string
 }
 
+export interface ForgotPasswordRequest {
+  email: string
+}
+
 export const authApi = {
   login: (credentials: LoginRequest) =>
     http.post<{ user: User }>('/api/login', credentials),
 
   register: (data: RegisterRequest) =>
     http.post<{ user: User }>('/api/register', data),
+
+  forgotPassword: (data: ForgotPasswordRequest) =>
+    http.post('/api/forgot-password', data),
 
   logout: () => http.post('/api/logout'),
 
