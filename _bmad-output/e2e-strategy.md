@@ -110,8 +110,9 @@ export default defineConfig({
   testDir: './e2e',
   timeout: 30000,
   retries: process.env.CI ? 2 : 0,
+  globalSetup: './e2e/global-setup.ts',
   use: {
-    baseURL: 'http://localhost:5173',
+    baseURL: 'http://localhost:5174',  // Port dédié Ofra
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
@@ -119,11 +120,10 @@ export default defineConfig({
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
     // Firefox et Safari en CI seulement
   ],
-  webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:5173',
-    reuseExistingServer: !process.env.CI,
-  },
+  webServer: [
+    { command: 'cd ../backend && npm run dev', url: 'http://localhost:3333/api/health' },
+    { command: 'npm run dev', url: 'http://localhost:5174' },
+  ],
 })
 ```
 
@@ -141,7 +141,7 @@ export default defineConfig({
 - Connecté à la DB de test
 
 ### Frontend
-- Dev server sur `localhost:5173`
+- Dev server sur `localhost:5174` (port dédié pour éviter conflits avec autres projets)
 - Playwright le lance automatiquement si pas running
 
 ---
@@ -186,14 +186,49 @@ export class LoginPage {
 
 ## 9. Critères de Succès
 
-- [ ] 12 tests E2E passent en local
+- [x] 14/16 tests E2E passent en local (2 skipped - voir Known Issues)
 - [ ] Tests peuvent tourner en CI (GitHub Actions)
-- [ ] Temps d'exécution < 2 minutes
-- [ ] Screenshots sur échec pour debug
+- [x] Temps d'exécution < 2 minutes (~17 secondes)
+- [x] Screenshots sur échec pour debug
 
 ---
 
-## 10. Non-Goals (Hors Scope)
+## 10. Utilisateur de Test
+
+L'utilisateur de test est créé automatiquement par `global-setup.ts`:
+
+```typescript
+export const TEST_USER = {
+  email: 'e2e-test@ofra.app',
+  password: 'TestPassword123!',
+  fullName: 'E2E Test User',
+}
+```
+
+**Note**: Cet utilisateur est créé via `/api/register`. Si l'utilisateur existe déjà, le setup continue sans erreur.
+
+---
+
+## 11. Known Issues (TODO)
+
+### Multi-tenant: Création client/transaction échoue
+
+**Symptôme**: "Erreur inattendue" lors de la création de clients ou transactions.
+
+**Cause probable**: L'utilisateur de test (`e2e-test@ofra.app`) n'a pas d'`organization_id`, ce qui cause des erreurs avec le `TenantScopeService`.
+
+**Tests affectés** (skipped):
+- `clients.spec.ts`: "should create a new client"
+- `transactions.spec.ts`: "should create a transaction with existing client"
+
+**Solution proposée**:
+1. Créer une organisation de test dans le seed
+2. Assigner l'utilisateur de test à cette organisation
+3. Ou: modifier le register pour créer une org par défaut
+
+---
+
+## 12. Non-Goals (Hors Scope)
 
 - Tests de performance (Lighthouse)
 - Tests d'accessibilité (a11y)
