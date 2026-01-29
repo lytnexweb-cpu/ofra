@@ -1,5 +1,6 @@
 import { test } from '@japa/runner'
 import { cuid } from '@adonisjs/core/helpers'
+import { createHash } from 'node:crypto'
 import mail from '@adonisjs/mail/services/main'
 import { truncateAll, createUser } from '#tests/helpers/index'
 import User from '#models/user'
@@ -26,13 +27,11 @@ test.group('Auth - Register', (group) => {
     })
 
     response.assertStatus(201)
+    // Response no longer includes user details to prevent enumeration
     response.assertBodyContains({
       success: true,
       data: {
-        user: {
-          email: 'newuser@test.com',
-          fullName: 'New User',
-        },
+        message: 'If this email is available, your account has been created. Please check your email.',
       },
     })
 
@@ -44,7 +43,7 @@ test.group('Auth - Register', (group) => {
     fakeMailer.mails.assertSent(WelcomeMail)
   })
 
-  test('register fails with existing email', async ({ client }) => {
+  test('register returns same success response for existing email (prevents enumeration)', async ({ client, assert }) => {
     await createUser({ email: 'existing@test.com' })
 
     const response = await client.post('/api/register').json({
@@ -53,11 +52,18 @@ test.group('Auth - Register', (group) => {
       fullName: 'Duplicate User',
     })
 
-    response.assertStatus(409)
+    // Returns 201 with same message to prevent email enumeration
+    response.assertStatus(201)
     response.assertBodyContains({
-      success: false,
-      error: { code: 'E_EMAIL_EXISTS' },
+      success: true,
+      data: {
+        message: 'If this email is available, your account has been created. Please check your email.',
+      },
     })
+
+    // Verify no duplicate user was created
+    const users = await User.query().where('email', 'existing@test.com')
+    assert.equal(users.length, 1)
   })
 
   test('register fails with invalid email', async ({ client }) => {
@@ -187,14 +193,17 @@ test.group('Auth - Reset Password', (group) => {
   test('reset-password succeeds with valid token', async ({ client, assert }) => {
     const user = await createUser({ email: 'reset@test.com' })
 
-    // Set a reset token
+    // Set a reset token (store HASHED token, send plain token)
     const { DateTime } = await import('luxon')
-    user.passwordResetToken = 'valid-reset-token-123'
+    const plainToken = 'valid-reset-token-123'
+    const tokenHash = createHash('sha256').update(plainToken).digest('hex')
+    user.passwordResetToken = tokenHash
     user.passwordResetExpires = DateTime.now().plus({ hours: 1 })
     await user.save()
 
+    // Send plain token (as user would receive via email)
     const response = await client.post('/api/reset-password').json({
-      token: 'valid-reset-token-123',
+      token: plainToken,
       password: 'newpassword123',
     })
 
@@ -230,14 +239,16 @@ test.group('Auth - Reset Password', (group) => {
   test('reset-password fails with expired token', async ({ client }) => {
     const user = await createUser({ email: 'expired@test.com' })
 
-    // Set an expired reset token
+    // Set an expired reset token (store HASHED token)
     const { DateTime } = await import('luxon')
-    user.passwordResetToken = 'expired-token-123'
+    const plainToken = 'expired-token-123'
+    const tokenHash = createHash('sha256').update(plainToken).digest('hex')
+    user.passwordResetToken = tokenHash
     user.passwordResetExpires = DateTime.now().minus({ hours: 1 })
     await user.save()
 
     const response = await client.post('/api/reset-password').json({
-      token: 'expired-token-123',
+      token: plainToken,
       password: 'newpassword123',
     })
 

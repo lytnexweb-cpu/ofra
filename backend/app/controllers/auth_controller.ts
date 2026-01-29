@@ -1,5 +1,5 @@
 import type { HttpContext } from '@adonisjs/core/http'
-import { randomBytes } from 'node:crypto'
+import { randomBytes, createHash } from 'node:crypto'
 import { DateTime } from 'luxon'
 import User from '#models/user'
 import Organization from '#models/organization'
@@ -19,14 +19,15 @@ export default class AuthController {
     try {
       const data = await request.validateUsing(registerValidator)
 
-      // Check if email already exists
+      // Check if email already exists - but don't reveal this to prevent enumeration
       const existingUser = await User.findBy('email', data.email)
       if (existingUser) {
-        return response.conflict({
-          success: false,
-          error: {
-            message: 'Email already registered',
-            code: 'E_EMAIL_EXISTS',
+        // Return same success response to prevent email enumeration
+        // User will realize email exists when they try to login or reset password
+        return response.created({
+          success: true,
+          data: {
+            message: 'If this email is available, your account has been created. Please check your email.',
           },
         })
       }
@@ -69,12 +70,7 @@ export default class AuthController {
       return response.created({
         success: true,
         data: {
-          user: {
-            id: user.id,
-            email: user.email,
-            fullName: user.fullName,
-          },
-          message: 'Account created successfully',
+          message: 'If this email is available, your account has been created. Please check your email.',
         },
       })
     } catch (error) {
@@ -203,13 +199,14 @@ export default class AuthController {
         })
       }
 
-      // Generate token
+      // Generate token and hash it for storage (SHA256 for deterministic lookup)
       const token = randomBytes(32).toString('hex')
-      user.passwordResetToken = token
+      const tokenHash = createHash('sha256').update(token).digest('hex')
+      user.passwordResetToken = tokenHash
       user.passwordResetExpires = DateTime.now().plus({ hours: 1 })
       await user.save()
 
-      // Send reset email
+      // Send reset email with original (unhashed) token
       const frontendUrl = env.get('FRONTEND_URL', 'https://ofra.app')
       const resetUrl = `${frontendUrl}/reset-password?token=${token}`
 
@@ -246,8 +243,11 @@ export default class AuthController {
     try {
       const { token, password } = await request.validateUsing(resetPasswordValidator)
 
+      // Hash the incoming token to compare with stored hash
+      const tokenHash = createHash('sha256').update(token).digest('hex')
+
       const user = await User.query()
-        .where('passwordResetToken', token)
+        .where('passwordResetToken', tokenHash)
         .where('passwordResetExpires', '>', DateTime.now().toSQL())
         .first()
 
