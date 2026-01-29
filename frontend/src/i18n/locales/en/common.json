@@ -113,7 +113,8 @@
     "networkError": "Network error. Please check your connection.",
     "fillAllFields": "Please fill in all fields.",
     "passwordMismatch": "Passwords do not match.",
-    "passwordTooShort": "Password must be at least 8 characters."
+    "passwordTooShort": "Password must be at least 8 characters.",
+    "rateLimitError": "Too many attempts. Please wait {{minutes}} minute(s) before trying again."
   },
   "tabs": {
     "conditions": "Conditions",
