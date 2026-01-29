@@ -100,7 +100,20 @@
   },
   "auth": {
     "logout": "Logout",
-    "loggingOut": "Logging out..."
+    "loggingOut": "Logging out...",
+    "createAccount": "Create your account",
+    "fullName": "Full name",
+    "email": "Email address",
+    "password": "Password",
+    "confirmPassword": "Confirm password",
+    "register": "Create account",
+    "creatingAccount": "Creating account...",
+    "alreadyHaveAccount": "Already have an account? Sign in",
+    "registrationFailed": "Registration failed. Please try again.",
+    "networkError": "Network error. Please check your connection.",
+    "fillAllFields": "Please fill in all fields.",
+    "passwordMismatch": "Passwords do not match.",
+    "passwordTooShort": "Password must be at least 8 characters."
   },
   "tabs": {
     "conditions": "Conditions",

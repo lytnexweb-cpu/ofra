@@ -2,6 +2,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { authApi } from '../api/auth.api'
 import LoginPage from '../pages/LoginPage'
+import RegisterPage from '../pages/RegisterPage'
 import DashboardPage from '../pages/DashboardPage'
 import ClientsPage from '../pages/ClientsPage'
 import ClientDetailsPage from '../pages/ClientDetailsPage'
@@ -33,6 +34,10 @@ export const router = createBrowserRouter([
   {
     path: '/login',
     element: <LoginPage />,
+  },
+  {
+    path: '/register',
+    element: <RegisterPage />,
   },
   {
     path: '/',

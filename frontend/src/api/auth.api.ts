@@ -19,9 +19,18 @@ export interface LoginRequest {
   password: string
 }
 
+export interface RegisterRequest {
+  fullName: string
+  email: string
+  password: string
+}
+
 export const authApi = {
   login: (credentials: LoginRequest) =>
     http.post<{ user: User }>('/api/login', credentials),
+
+  register: (data: RegisterRequest) =>
+    http.post<{ user: User }>('/api/register', data),
 
   logout: () => http.post('/api/logout'),
 
