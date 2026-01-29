@@ -17,6 +17,7 @@ export type ActivityType =
   | 'offer_withdrawn'
   | 'note_added'
   | 'automation_executed'
+  | 'automation_scheduled'
   | 'email_sent'
   | 'task_created'
 

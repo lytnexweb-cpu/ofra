@@ -444,8 +444,9 @@ export class WorkflowEngineService {
   }
 
   /**
-   * Execute automations for a given trigger type.
+   * Execute or schedule automations for a given trigger type.
    * Dispatches each matching automation through AutomationExecutorService.
+   * If automation has delayDays > 0, it gets scheduled via BullMQ queue.
    * Errors are caught and logged — never blocks step advancement.
    */
   private static async executeAutomations(
@@ -461,7 +462,7 @@ export class WorkflowEngineService {
 
     for (const automation of matchingAutomations) {
       try {
-        await AutomationExecutorService.execute(automation, transactionId, {
+        await AutomationExecutorService.scheduleOrExecute(automation, transactionId, {
           stepName: workflowStep.name,
           trigger,
         })
