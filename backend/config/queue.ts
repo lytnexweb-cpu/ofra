@@ -16,8 +16,8 @@ const queueConfig = {
     removeOnFail: 500, // Keep last 500 failed jobs
   },
   queues: {
-    automations: 'ofra:automations',
-    reminders: 'ofra:reminders',
+    automations: 'ofra-automations',
+    reminders: 'ofra-reminders',
   },
 }
 
