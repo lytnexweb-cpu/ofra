@@ -26,9 +26,11 @@ export const createConditionValidator = vine.compile(
     priority: vine.enum(['low', 'medium', 'high']).optional(),
     transactionStepId: vine.number().positive().optional(),
     isBlocking: vine.boolean().optional(),
+    level: vine.enum(['blocking', 'required', 'recommended']).optional(),
     offerId: vine.number().positive().optional(),
     documentUrl: vine.string().trim().maxLength(2048).optional(),
     documentLabel: vine.string().trim().maxLength(255).optional(),
+    templateId: vine.number().positive().optional(), // Link to condition template
   })
 )
 
@@ -59,6 +61,7 @@ export const updateConditionValidator = vine.compile(
     priority: vine.enum(['low', 'medium', 'high']).optional(),
     transactionStepId: vine.number().positive().optional(),
     isBlocking: vine.boolean().optional(),
+    level: vine.enum(['blocking', 'required', 'recommended']).optional(),
     offerId: vine.number().positive().optional(),
     documentUrl: vine.string().trim().maxLength(2048).optional(),
     documentLabel: vine.string().trim().maxLength(255).optional(),

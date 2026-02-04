@@ -5,7 +5,9 @@ import {
   changePasswordValidator,
   updateProfileValidator,
   updateProfileInfoValidator,
+  onboardingValidator,
 } from '#validators/profile_validator'
+import { DateTime } from 'luxon'
 
 export default class ProfileController {
   /**
@@ -218,5 +220,78 @@ export default class ProfileController {
       }
       throw error
     }
+  }
+
+  /**
+   * D40: Save onboarding profile
+   * PUT /api/me/onboarding
+   */
+  async saveOnboarding({ request, response, auth }: HttpContext) {
+    try {
+      const user = auth.user!
+
+      // Validate request
+      const payload = await request.validateUsing(onboardingValidator)
+
+      // Update user profile with onboarding data
+      user.language = payload.language
+      user.practiceType = payload.practiceType
+      user.propertyContexts = payload.propertyContexts
+      user.annualVolume = payload.annualVolume
+      user.preferAutoConditions = payload.preferAutoConditions
+      user.onboardingCompleted = true
+      user.onboardingSkipped = payload.skipped ?? false
+      user.onboardingCompletedAt = DateTime.now()
+
+      await user.save()
+
+      return response.ok({
+        success: true,
+        data: {
+          message: 'Onboarding completed successfully',
+          profile: {
+            practiceType: user.practiceType,
+            propertyContexts: user.propertyContexts,
+            annualVolume: user.annualVolume,
+            preferAutoConditions: user.preferAutoConditions,
+            onboardingCompleted: user.onboardingCompleted,
+          },
+        },
+      })
+    } catch (error) {
+      // Validation error
+      if (error.messages) {
+        return response.unprocessableEntity({
+          success: false,
+          error: {
+            message: 'Validation failed',
+            code: 'E_VALIDATION_FAILED',
+            details: error.messages,
+          },
+        })
+      }
+      throw error
+    }
+  }
+
+  /**
+   * D40: Skip onboarding
+   * POST /api/me/onboarding/skip
+   */
+  async skipOnboarding({ response, auth }: HttpContext) {
+    const user = auth.user!
+
+    user.onboardingSkipped = true
+    user.onboardingCompleted = true
+    user.onboardingCompletedAt = DateTime.now()
+
+    await user.save()
+
+    return response.ok({
+      success: true,
+      data: {
+        message: 'Onboarding skipped',
+      },
+    })
   }
 }

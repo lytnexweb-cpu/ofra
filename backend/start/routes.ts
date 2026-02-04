@@ -32,6 +32,10 @@ router.group(() => {
   router.put('/me/profile', '#controllers/profile_controller.updateProfileInfo')
   router.post('/me/logout-all', '#controllers/profile_controller.logoutAll')
 
+  // D40: Onboarding
+  router.put('/me/onboarding', '#controllers/profile_controller.saveOnboarding')
+  router.post('/me/onboarding/skip', '#controllers/profile_controller.skipOnboarding')
+
   // Dashboard
   router.get('/dashboard/summary', '#controllers/dashboard_controller.summary')
 
@@ -60,6 +64,7 @@ router.group(() => {
   router.patch('/transactions/:id/advance', '#controllers/transactions_controller.advanceStep')
   router.patch('/transactions/:id/skip', '#controllers/transactions_controller.skipStep')
   router.patch('/transactions/:id/goto/:stepOrder', '#controllers/transactions_controller.goToStep')
+  router.patch('/transactions/:id/cancel', '#controllers/transactions_controller.cancel')
   router.get('/transactions/:id/activity', '#controllers/transactions_controller.activity')
   router.delete('/transactions/:id', '#controllers/transactions_controller.destroy')
 
@@ -73,11 +78,35 @@ router.group(() => {
   router.patch('/offers/:offerId/withdraw', '#controllers/offers_controller.withdraw')
   router.delete('/offers/:offerId', '#controllers/offers_controller.destroy')
 
-  // Conditions
+  // Conditions (Legacy + Premium)
   router.post('/transactions/:id/conditions', '#controllers/conditions_controller.store')
   router.put('/conditions/:id', '#controllers/conditions_controller.update')
   router.patch('/conditions/:id/complete', '#controllers/conditions_controller.complete')
   router.delete('/conditions/:id', '#controllers/conditions_controller.destroy')
+
+  // Conditions Premium (D4/D27)
+  router.post('/conditions/:id/resolve', '#controllers/conditions_controller.resolve')
+  router.get('/conditions/:id/history', '#controllers/conditions_controller.history')
+  router.get('/conditions/:id/evidence', '#controllers/conditions_controller.listEvidence')
+  router.post('/conditions/:id/evidence', '#controllers/conditions_controller.addEvidence')
+  router.delete('/conditions/:id/evidence/:evidenceId', '#controllers/conditions_controller.removeEvidence')
+
+  // Transaction Conditions - Timeline & Active (Premium)
+  router.get('/transactions/:id/conditions/timeline', '#controllers/conditions_controller.timeline')
+  router.get('/transactions/:id/conditions/active', '#controllers/conditions_controller.active')
+  router.get('/transactions/:id/conditions/advance-check', '#controllers/conditions_controller.advanceCheck')
+
+  // Transaction Profiles (D1)
+  router.get('/transactions/:id/profile', '#controllers/transaction_profiles_controller.show')
+  router.put('/transactions/:id/profile', '#controllers/transaction_profiles_controller.upsert')
+  router.get('/transactions/:id/profile/status', '#controllers/transaction_profiles_controller.status')
+  router.post('/transactions/:id/profile/load-pack', '#controllers/transaction_profiles_controller.loadPack') // D39
+  router.get('/transactions/:id/applicable-templates', '#controllers/condition_templates_controller.applicableForTransaction')
+
+  // Condition Templates (D27)
+  router.get('/conditions/templates', '#controllers/condition_templates_controller.index')
+  router.get('/conditions/templates/by-pack', '#controllers/condition_templates_controller.byPack')
+  router.get('/conditions/templates/:id', '#controllers/condition_templates_controller.show')
 
   // Notes
   router.get('/transactions/:id/notes', '#controllers/notes_controller.index')

@@ -169,6 +169,14 @@ export default class AuthController {
             id: user.id,
             email: user.email,
             fullName: user.fullName,
+            language: user.language,
+            // D40: Onboarding profile
+            onboardingCompleted: user.onboardingCompleted,
+            onboardingSkipped: user.onboardingSkipped,
+            practiceType: user.practiceType,
+            propertyContexts: user.propertyContexts,
+            annualVolume: user.annualVolume,
+            preferAutoConditions: user.preferAutoConditions,
           },
         },
       })
