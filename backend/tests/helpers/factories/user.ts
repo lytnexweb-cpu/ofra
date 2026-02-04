@@ -1,4 +1,5 @@
 import User from '#models/user'
+import type { PracticeType, PropertyContext, AnnualVolume } from '#models/user'
 
 let userCounter = 0
 
@@ -7,6 +8,16 @@ export async function createUser(
     email: string
     password: string
     fullName: string
+    language: string
+    dateFormat: string
+    timezone: string
+    preferredLanguage: string
+    onboardingCompleted: boolean
+    onboardingSkipped: boolean
+    practiceType: PracticeType
+    propertyContexts: PropertyContext[]
+    annualVolume: AnnualVolume
+    preferAutoConditions: boolean
   }> = {}
 ): Promise<User> {
   userCounter++
@@ -14,5 +25,15 @@ export async function createUser(
     email: overrides.email ?? `testuser${userCounter}@test.com`,
     password: overrides.password ?? 'password123',
     fullName: overrides.fullName ?? `Test User ${userCounter}`,
+    language: overrides.language ?? 'en',
+    dateFormat: overrides.dateFormat ?? 'YYYY-MM-DD',
+    timezone: overrides.timezone ?? 'America/Moncton',
+    preferredLanguage: overrides.preferredLanguage ?? 'en',
+    onboardingCompleted: overrides.onboardingCompleted ?? false,
+    onboardingSkipped: overrides.onboardingSkipped ?? false,
+    practiceType: overrides.practiceType ?? null,
+    propertyContexts: overrides.propertyContexts ?? [],
+    annualVolume: overrides.annualVolume ?? null,
+    preferAutoConditions: overrides.preferAutoConditions ?? true,
   })
 }
