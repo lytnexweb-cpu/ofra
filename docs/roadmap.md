@@ -1,28 +1,341 @@
-# Roadmap Ofra - SaaS Launch
+# Roadmap Ofra - SaaS Premium
 
-> Plan d'exécution pour le lancement SaaS d'Ofra
-> Dernière mise à jour: 2026-01-29
+> Plan d'exécution pour le lancement SaaS Premium d'Ofra
+> Dernière mise à jour: 2026-02-04
+> Version: 2.3 (Post-Audit Technique)
 
-## Vue d'ensemble
+---
+
+## Vision Produit
+
+**Ofra** est un Transaction Manager Premium pour agents immobiliers canadiens.
+
+### Ce qu'Ofra EST
+- Transaction Manager intelligent avec Conditions Engine
+- Suggestions automatiques basées sur le contexte (Rural/Condo/Financé)
+- 3 niveaux de conditions (Blocking/Required/Recommended)
+- 100% Canadien, bilingue FR/EN natif
+- Focus NB first, puis expansion
+
+### Ce qu'Ofra N'EST PAS
+- Un CRM de prospection (on gère post-signature)
+- Un ERP complexe (on reste simple et focalisé)
+- Un outil US adapté au Canada (on est Canadian-built)
+
+---
+
+## État Actuel (Post-Audit 2026-02-04)
 
 ```
-ÉTAT ACTUEL (Complété)
+COMPLÉTÉ ✓
 ├── Epic 1: Workflow Engine ✓
 ├── Epic 2: Frontend Core ✓
 ├── Epic 3: Automations + Multi-tenant + Auth ✓
 ├── Epic 4 (partiel): CSV Import API ✓
-└── 77 tests backend + 16 tests E2E ✓
+├── Pack Rural NB v1.0 ✓ (conditions définies)
+├── D40: Onboarding 5 étapes ✓ (NON COMMITÉ)
+├── D41: Garde-fous + Escape tracking ✓ (NON COMMITÉ)
+├── D38: Edit Deadline/Note ✓ (NON COMMITÉ)
+├── D27: Conditions Engine Premium ✓ (NON COMMITÉ)
+└── 356 tests (94 backend + 262 frontend)
 
-À FAIRE (Lancement SaaS)
-├── Epic 5: UI Import CSV + Uploads documents
-├── Epic 6: Landing Page
-└── Epic 7: Stripe Billing
+⚠️ ALERTE: 122 fichiers non commités = 2 semaines de travail à risque
 ```
+
+---
+
+## 🚨 Priorités Immédiates (Post-Audit)
+
+### P0 - AUJOURD'HUI (Critique)
+
+| Tâche | Responsable | Statut |
+|-------|-------------|--------|
+| Fixer doublon migration 1772000000006 | Dev | ⏳ |
+| Commit migrations (9 fichiers) | Dev | ⏳ |
+| Commit models & services | Dev | ⏳ |
+| Commit controllers & routes | Dev | ⏳ |
+| Commit frontend components | Dev | ⏳ |
+| Commit docs & roadmap | Dev | ⏳ |
+
+### P1 - Cette Semaine (Important)
+
+| Tâche | Responsable | Bloque |
+|-------|-------------|--------|
+| Transaction Profile UI | Amelia | Suggestions conditions |
+| Tests Notes Controller | Murat | Couverture 0% → 80% |
+| Tests Offers Controller | Murat | Couverture 40% → 80% |
+| Tenant scoping ReminderService | Winston | GDPR compliance |
+| Optimiser N+1 queries | Winston | Performance |
+
+### P2 - Sprint Suivant
+
+| Tâche | Responsable | Epic |
+|-------|-------------|------|
+| Timeline UI (D32) | Sally + Amelia | Epic 9 |
+| Tests E2E Playwright | Murat | Quality Gates |
+| Exception Handler amélioré | Winston | Observabilité |
+
+---
+
+## Scores Audit Technique
+
+| Domaine | Score | Responsable |
+|---------|-------|-------------|
+| Architecture Backend | 7/10 | Winston |
+| Frontend UX | 8.2/10 | Sally |
+| Couverture Tests | 63% | Murat |
+| Versioning | 🔴 CRITIQUE | - |
+
+> Rapport complet: `_bmad-output/audit-2026-02-04.md`
+
+---
+
+## Decision Queue
+
+Décisions requises pour débloquer le développement:
+
+| ID | Décision | Statut | Bloque | Document |
+|----|----------|--------|--------|----------|
+| D1 | Transaction Profile v1 (8 champs) | ✅ VALIDÉ | Epic 8 | `decisions/D1-transaction-profile-v1.md` |
+| D2 | Pack Condo NB v1.0 | ✅ VALIDÉ | Epic 8 | `decisions/D2-pack-condo-nb-v1.0.md` |
+| D3 | Pack Financé NB v1.0 | ✅ VALIDÉ | Epic 8 | `decisions/D3-pack-finance-nb-v1.0.md` |
+| D4 | Archivage conditions dans Timeline | ✅ VALIDÉ | Epic 9 | `decisions/D4-archivage-timeline.md` |
+| D5 | CSV scope v1 | ⏳ En attente | Epic 5 | - |
+| D6 | Pricing page (corriger plans) | 🔴 URGENT | Epic 6 | `pricing-strategy.md` |
+| D27 | Conditions Engine Premium | ✅ IMPLÉMENTÉ | Epic 8 | NON COMMITÉ |
+| D32 | Timeline interactive | ✅ SPÉCIFIÉ | Epic 9 | `_bmad-output/decisions/D32-timeline-interactive.md` |
+| D34/D35 | Nettoyage onglets | ⏳ À implémenter | UX | - |
+| D36 | Archivage automatique | ⏳ À implémenter | Epic 9 | - |
+| D38 | Edit Deadline/Note conditions | ✅ IMPLÉMENTÉ | Epic 8 | NON COMMITÉ |
+| D40 | Onboarding personnalisé | ✅ IMPLÉMENTÉ | Onboarding | NON COMMITÉ |
+| D41 | Garde-fous validation avec preuves | ✅ IMPLÉMENTÉ | Epic 8 | NON COMMITÉ |
+
+### ⚠️ Blocage Technique Identifié
+
+**Transaction Profile UI manquante** — Backend prêt, API fonctionnelle, mais pas d'interface utilisateur pour créer le profil. Sans profil, le système ne peut pas suggérer de conditions templates.
+
+**Solution:** Ajouter formulaire dans CreateTransactionModal ou onglet dédié.
+
+---
+
+## Phases de Développement
+
+### Vue d'ensemble
+
+```
+TRACK A: CŒUR PREMIUM
+├── Epic 8: Conditions Engine Premium ──► Epic 9: Timeline & Command Center
+│
+TRACK B: INFRASTRUCTURE SAAS (en parallèle)
+├── Epic 5: Documents/Uploads ──► Epic 6: Landing ──► Epic 7: Stripe
+│
+└──────────────────────► LAUNCH FONDATEURS
+```
+
+**Stratégie:** Tracks A et B avancent en parallèle. Epic 5 (Documents) supporte "Evidence sur conditions" du Premium.
+
+---
+
+## Launch Minimum (Must Have)
+
+Ce qui DOIT être terminé avant le lancement Fondateurs:
+
+| Feature | Epic | Statut |
+|---------|------|--------|
+| Transaction Profile v1 | Epic 8 | ✅ Décidé |
+| Pack Rural NB v1.0 | Epic 8 | ✅ Gravé |
+| 3 niveaux conditions | Epic 8 | ⏳ À implémenter |
+| Evidence/Documents sur conditions | Epic 5 | ⏳ À implémenter |
+| Timeline unifiée (basique) | Epic 9 | ⏳ À implémenter |
+| Stripe Minimal Viable Billing | Epic 7 | ⏳ À implémenter |
+| Landing Page | Epic 6 | ⏳ À implémenter |
+
+### Post-Launch (Nice to Have)
+
+- Pack Condo NB
+- Pack Financé NB
+- Command Center avancé
+- Automations email
+- Rapports poussés
+
+---
+
+## Epic 8: Conditions Engine Premium
+
+### Objectif
+Transformer le système de conditions basique en un moteur intelligent qui suggère automatiquement les bonnes conditions selon le contexte de la transaction.
+
+### Décisions validées
+- **D1: Transaction Profile v1** - 6 champs (validé 2026-01-31)
+- **Pack Rural NB v1.0** - 40+ conditions templates (gravé 2026-01-31)
+
+### État d'implémentation (2026-02-01)
+
+| Phase | Description | Statut |
+|-------|-------------|--------|
+| Phase 1 | Data Model (5 migrations) | ✅ COMPLÉTÉ |
+| Phase 2 | Backend Integration | ✅ COMPLÉTÉ |
+| Phase 3 | API Endpoints (15 nouveaux) | ✅ COMPLÉTÉ |
+| Phase 4A | Frontend Resolution Modal | ✅ COMPLÉTÉ |
+| Phase 4B | Level Selector (3 boutons) | ✅ COMPLÉTÉ |
+| Phase 4C | Intelligent Create Modal | ✅ COMPLÉTÉ |
+| Phase 4D | Timeline par étape | 📋 À FAIRE |
+
+### Bugs fixés (Session 2026-02-01)
+- ✅ 500 errors sur `/advance` et `/skip` (legacy conditions NULL handling)
+- ✅ React Query undefined warnings (404 graceful handling)
+- ✅ "Étape ?" affichage (currentStepOrder propagation)
+
+### Blocage actuel
+- ⚠️ **Transaction Profile UI manquante** — Les utilisateurs doivent créer le profil via API. Sans profil, pas de suggestions de templates.
+
+### Prochaines étapes
+1. **UI création de profil** — Formulaire dans la création de transaction OU onglet Paramètres
+2. **Tester flow complet** — Profil → Suggestions → Créer condition
+3. **Phase 4D** — Timeline par étape
+
+### User Stories
+
+#### 8.1 Transaction Profile
+
+**En tant qu'** agent immobilier
+**Je veux** définir le profil de ma transaction (type, contexte, financement)
+**Afin que** le système me suggère automatiquement les bonnes conditions
+
+**Critères d'acceptation:**
+- [x] 3 champs obligatoires à la création (property_type, property_context, is_financed)
+- [x] 3 champs conditionnels si rural (has_well, has_septic, access_type)
+- [ ] Progressive disclosure (champs ruraux cachés si urbain/condo) — **UI manquante**
+- [x] Sauvegarde dans transaction_profile
+- [ ] Tests E2E pour chaque combinaison
+
+**Modèle de données:**
+```typescript
+interface TransactionProfile {
+  property_type: 'house' | 'condo' | 'land'
+  property_context: 'urban' | 'suburban' | 'rural'
+  is_financed: boolean
+  has_well?: boolean
+  has_septic?: boolean
+  access_type?: 'public' | 'private' | 'right_of_way'
+}
+```
+
+#### 8.2 Conditions Templates avec applies_when
+
+**En tant qu'** agent immobilier
+**Je veux** que les conditions appropriées soient suggérées automatiquement
+**Afin de** ne rien oublier selon mon type de transaction
+
+**Critères d'acceptation:**
+- [x] Table condition_templates avec applies_when JSON
+- [x] Logique de matching profile → templates
+- [x] Pack Rural NB v1.0 chargé en seed (46 templates)
+- [x] API GET /applicable-templates retourne les conditions applicables
+
+**Modèle de données:**
+```typescript
+interface ConditionTemplate {
+  id: string
+  label_fr: string
+  label_en: string
+  level: 'blocking' | 'required' | 'recommended'
+  applicable_steps: number[]
+  applies_when: Record<string, any>  // JSON rules
+  default_responsible: string
+  source_type: 'legal' | 'government' | 'industry' | 'best_practice'
+  category: string
+  order: number
+}
+```
+
+#### 8.3 Trois niveaux de conditions
+
+**En tant qu'** agent immobilier
+**Je veux** voir clairement quelles conditions sont critiques vs recommandées
+**Afin de** prioriser mon travail
+
+**Critères d'acceptation:**
+- [x] Niveau Blocking - Empêche l'avancement (rouge)
+- [x] Niveau Required - Apparaît en "Risque" si non fait (orange)
+- [x] Niveau Recommended - Suggestion/best practice (gris)
+- [x] Affichage visuel distinct pour chaque niveau
+- [ ] Filtre par niveau dans l'onglet Conditions
+
+#### 8.4 Evidence sur conditions
+
+**En tant qu'** agent immobilier
+**Je veux** attacher des preuves (documents, notes) à mes conditions
+**Afin de** centraliser toute l'information
+
+**Critères d'acceptation:**
+- [ ] Champ document_ids[] sur transaction_conditions
+- [ ] Lien vers documents uploadés (Epic 5)
+- [ ] Champ notes sur condition
+- [ ] Affichage des preuves dans ConditionCard
+
+### Quality Gates (Epic 8)
+- [ ] Tests E2E: 100% coverage sur les règles applies_when
+- [ ] Tests unitaires: chaque niveau de condition
+- [ ] Tests: Pack Rural NB complet
+- [ ] Performance: < 500ms pour charger les suggestions
+
+### Dépendances
+- D1 Transaction Profile v1 ✅
+- D2 Pack Condo NB (pour extension)
+- D3 Pack Financé NB (pour extension)
+
+---
+
+## Epic 9: Timeline & Command Center
+
+### Objectif
+Unifier l'expérience utilisateur avec une timeline claire et un Command Center qui montre les actions prioritaires.
+
+### User Stories
+
+#### 9.1 Timeline Unifiée
+
+**En tant qu'** agent immobilier
+**Je veux** voir une seule timeline claire de ma transaction
+**Afin de** comprendre l'historique et l'état actuel en un coup d'œil
+
+**Critères d'acceptation:**
+- [ ] Fusion des 2 timelines existantes
+- [ ] Affichage des 8 étapes du workflow NB
+- [ ] Conditions archivées sous chaque étape (verrouillées)
+- [ ] Historique des activités intégré
+- [ ] Deadlines visuelles
+
+#### 9.2 Command Center Light
+
+**En tant qu'** agent immobilier
+**Je veux** voir mes actions prioritaires en 2 secondes
+**Afin de** savoir immédiatement quoi faire
+
+**Critères d'acceptation:**
+- [ ] Section "Next Actions" (3 actions prioritaires)
+- [ ] Section "Waiting On" (client/vendeur/avocat/banque)
+- [ ] Indicateur de risques visibles
+- [ ] Intégration dans le dashboard transaction
+
+### Quality Gates (Epic 9)
+- [ ] Performance: Timeline < 1s avec 100+ activités
+- [ ] Tests E2E: navigation timeline complète
+- [ ] Accessibilité: WCAG 2.1 AA
+
+### Dépendances
+- Epic 8 (Conditions Engine)
+- D4 Archivage conditions dans Timeline
+
+---
 
 ## Epic 5: UI Import CSV + Uploads Documents
 
 ### Objectif
 Compléter l'expérience utilisateur avec l'interface d'import et la gestion de documents par transaction.
+
+> Note: Les documents supportent "Evidence sur conditions" (Epic 8.4)
 
 ### User Stories
 
@@ -41,34 +354,6 @@ Compléter l'expérience utilisateur avec l'interface d'import et la gestion de 
 - [ ] Liste des erreurs avec numéro de ligne
 - [ ] Tests E2E pour le flow complet
 
-**Maquette:**
-```
-┌─────────────────────────────────────────────────────┐
-│  Importer des clients                          [X]  │
-├─────────────────────────────────────────────────────┤
-│                                                     │
-│  ┌─────────────────────────────────────────────┐   │
-│  │                                             │   │
-│  │     📁 Glissez votre fichier CSV ici       │   │
-│  │        ou cliquez pour sélectionner        │   │
-│  │                                             │   │
-│  └─────────────────────────────────────────────┘   │
-│                                                     │
-│  📥 Télécharger le template CSV                    │
-│                                                     │
-│  ─────────────────────────────────────────────     │
-│  Colonnes supportées:                              │
-│  • firstName / prénom                              │
-│  • lastName / nom                                  │
-│  • email / courriel                                │
-│  • phone / téléphone                               │
-│  • address / adresse                               │
-│                                                     │
-├─────────────────────────────────────────────────────┤
-│                              [Annuler] [Importer]  │
-└─────────────────────────────────────────────────────┘
-```
-
 #### 5.2 Upload Documents par Transaction
 
 **En tant qu'** agent immobilier
@@ -84,354 +369,118 @@ Compléter l'expérience utilisateur avec l'interface d'import et la gestion de 
 - [ ] Preview PDF et images dans modal
 - [ ] Téléchargement fichier
 - [ ] Suppression fichier
-- [ ] Tests unitaires service S3
-- [ ] Tests E2E upload/download
+- [ ] Lien document → condition (Evidence)
 
-**Backend tasks:**
-- [ ] Model `Document` (id, transaction_id, filename, original_name, size, mime_type, s3_key)
-- [ ] Migration create_documents_table
-- [ ] Service `StorageService` (upload, download, delete, getSignedUrl)
-- [ ] Configuration S3 (bucket, credentials)
-- [ ] Endpoints:
-  - `POST /api/transactions/:id/documents` - upload
-  - `GET /api/transactions/:id/documents` - list
-  - `GET /api/documents/:id/download` - signed URL
-  - `DELETE /api/documents/:id` - delete
+**Backend:**
+- [ ] Model Document
+- [ ] Service StorageService (S3)
+- [ ] Endpoints CRUD documents
 - [ ] Validation quota par tier
-- [ ] Middleware vérification plan utilisateur
-
-**Frontend tasks:**
-- [ ] Component `DocumentUpload` (dropzone)
-- [ ] Component `DocumentList` (table avec actions)
-- [ ] Component `DocumentPreview` (modal PDF/image)
-- [ ] Component `StorageQuota` (barre de progression)
-- [ ] Hook `useDocuments` (CRUD + upload progress)
-- [ ] Intégration dans `TransactionDetail`
-
-**Maquette:**
-```
-┌─────────────────────────────────────────────────────┐
-│  📁 Documents                                       │
-│  ─────────────────────────────────────────────────  │
-│                                                     │
-│  ┌─────────────────────────────────────────────┐   │
-│  │  + Glisser vos fichiers ici                 │   │
-│  │    PDF, JPG, PNG, DOC • Max 15 MB           │   │
-│  └─────────────────────────────────────────────┘   │
-│                                                     │
-│  📄 Offre_achat_123.pdf         1.2 MB   👁️  ⬇️  🗑️ │
-│  📄 Rapport_inspection.pdf      8.4 MB   👁️  ⬇️  🗑️ │
-│  🖼️ Photo_facade.jpg            2.1 MB   👁️  ⬇️  🗑️ │
-│                                                     │
-│  ─────────────────────────────────────────────────  │
-│  Utilisé: 847 MB / 2 GB                    [42%]   │
-│  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░░░░░░░░░░░░░░░░░░░░░░░░   │
-└─────────────────────────────────────────────────────┘
-```
-
-### Estimation
-- Backend: 3-4 jours
-- Frontend: 3-4 jours
-- Tests: 1-2 jours
-- **Total: ~8-10 jours**
 
 ### Dépendances
 - AWS S3 bucket configuré
-- Variables d'environnement S3
+- D5 CSV scope v1
 
 ---
 
 ## Epic 6: Landing Page
 
 ### Objectif
-Créer une page marketing pour présenter Ofra et recruter les Fondateurs.
+Créer une page marketing pour présenter Ofra Premium et recruter les Fondateurs.
 
 ### User Stories
 
 #### 6.1 Landing Page Marketing
 
-**En tant que** visiteur
-**Je veux** comprendre ce qu'est Ofra et ses avantages
-**Afin de** décider si je veux m'inscrire
-
 **Sections:**
-- [ ] Hero: Titre accrocheur + CTA
-- [ ] Problème: Pain points des agents
-- [ ] Solution: Features clés Ofra
-- [ ] Pricing: 3 tiers avec recommandation
-- [ ] Programme Fondateur: Offre spéciale
+- [ ] Hero: Titre accrocheur + CTA Programme Fondateur
+- [ ] Problème: Pain points des agents (oublis coûteux)
+- [ ] Solution: Conditions Engine intelligent, Packs NB
+- [ ] Pricing: Essentiel $29 / Pro $49 / Agence $99 (CAD)
+- [ ] Programme Fondateur: 25 places, 3 mois gratuits
 - [ ] FAQ: Questions fréquentes
-- [ ] Footer: Contact, légal
+- [ ] Footer: Contact, légal, Moncton NB
 
-**Maquette Hero:**
-```
-┌─────────────────────────────────────────────────────────────┐
-│  🍁 OFRA                              FR | EN    [Connexion]│
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│     Gérez vos transactions immobilières                     │
-│     sans stress, de l'offre à la clôture                   │
-│     ─────────────────────────────────────                   │
-│                                                             │
-│     Le seul Transaction Manager 100% canadien,              │
-│     bilingue, conçu pour les agents du Nouveau-Brunswick.   │
-│                                                             │
-│     [Rejoindre le Programme Fondateur - 3 mois gratuits]   │
-│                                                             │
-│     ✓ 100% Canadien   ✓ Bilingue FR/EN   ✓ Simple          │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-```
+#### 6.2 Correction Pricing Page
 
-**Maquette Pricing:**
-```
-┌─────────────────────────────────────────────────────────────┐
-│                                                             │
-│     Choisissez votre plan                                   │
-│     Tous les prix en dollars canadiens. Sans surprise.      │
-│                                                             │
-│  ┌─────────────┐  ┌───────────────┐  ┌─────────────┐       │
-│  │  ESSENTIEL  │  │ ⭐ MEILLEUR   │  │   AGENCE    │       │
-│  │             │  │    CHOIX      │  │             │       │
-│  │    29$      │  │   PRO  49$    │  │     99$     │       │
-│  │   /mois     │  │    /mois      │  │    /mois    │       │
-│  │             │  │               │  │             │       │
-│  │ 1 user      │  │ 3 users       │  │ 10 users    │       │
-│  │ 500 MB      │  │ 2 GB          │  │ 10 GB       │       │
-│  │ 5 MB/file   │  │ 15 MB/file    │  │ 25 MB/file  │       │
-│  │             │  │               │  │             │       │
-│  │ [Choisir]   │  │ [Commencer]   │  │ [Choisir]   │       │
-│  └─────────────┘  └───────────────┘  └─────────────┘       │
-│                                                             │
-│  💳 Essai 14 jours • Annulez quand vous voulez             │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-```
+**URGENT (D6):** La page pricing actuelle affiche les MAUVAIS plans.
 
-#### 6.2 Formulaire Programme Fondateur
+**Corriger:**
+- Starter (Free) → **Essentiel ($29 CAD/mois)**
+- Pro ($49) → **Pro ($49 CAD/mois)** ✅
+- Enterprise (Custom) → **Agence ($99 CAD/mois)**
 
-**En tant que** agent immobilier intéressé
-**Je veux** m'inscrire au Programme Fondateur
-**Afin de** bénéficier de 3 mois gratuits
-
-**Critères d'acceptation:**
-- [ ] Formulaire: Nom, Email, Téléphone, Ville, Années d'expérience
-- [ ] Compteur places restantes (25 - inscrits)
-- [ ] Validation email unique
-- [ ] Email de confirmation
-- [ ] Page "Merci" avec prochaines étapes
-- [ ] Admin: liste des inscrits
-
-**Maquette:**
-```
-┌─────────────────────────────────────────────────────┐
-│  🎁 Programme Fondateur                             │
-│  ─────────────────────────────────────────────────  │
-│                                                     │
-│  ⚡ Plus que 18 places disponibles!                │
-│                                                     │
-│  Prénom:     [___________________________]         │
-│  Nom:        [___________________________]         │
-│  Email:      [___________________________]         │
-│  Téléphone:  [___________________________]         │
-│  Ville:      [___________________________]         │
-│  Expérience: [___ ans dans l'immobilier__]         │
-│                                                     │
-│  [ ] J'accepte d'offrir 2 sessions de feedback     │
-│                                                     │
-│  [     Rejoindre le Programme Fondateur     ]      │
-│                                                     │
-│  ─────────────────────────────────────────────────  │
-│  ✓ 3 mois gratuits (plan Pro)                      │
-│  ✓ -25% à vie après la période d'essai            │
-│  ✓ Badge Membre Fondateur                          │
-│                                                     │
-└─────────────────────────────────────────────────────┘
-```
-
-#### 6.3 SEO & Analytics
-
-**Critères d'acceptation:**
-- [ ] Meta tags (title, description, og:image)
-- [ ] Sitemap.xml
-- [ ] robots.txt
-- [ ] Analytics (Plausible ou Posthog)
-- [ ] Événements: page_view, cta_click, form_submit
-
-### Stack technique
-
-Options:
-1. **Astro** - Static site, fast, SEO-friendly
-2. **Next.js static export** - Si besoin d'interactivité
-3. **Page dans l'app React existante** - Plus simple, même stack
-
-**Recommandation:** Page dans l'app React existante (route `/` publique)
-
-### Estimation
-- Design & copy: 1-2 jours
-- Développement: 2-3 jours
-- Tests & polish: 1 jour
-- **Total: ~4-6 jours**
+Référence: `docs/pricing-strategy.md`
 
 ### Dépendances
-- Textes marketing finalisés
-- Assets visuels (screenshots app)
+- D6 Pricing corrigé
+- Screenshots app Premium
+- Textes FR/EN finalisés
 
 ---
 
 ## Epic 7: Stripe Billing
 
 ### Objectif
-Implémenter le système de paiement et gestion des abonnements.
+Implémenter le système de paiement minimal viable pour le lancement Fondateurs.
 
-### User Stories
+### Minimal Viable Billing (Launch)
 
-#### 7.1 Configuration Stripe
+| Feature | Priorité | Notes |
+|---------|----------|-------|
+| Créer compte Stripe | 🔴 Critique | Mode test d'abord |
+| 3 Products (29/49/99 CAD) | 🔴 Critique | |
+| Checkout Session | 🔴 Critique | Redirect vers Stripe |
+| Webhook subscription.created | 🔴 Critique | Activer accès |
+| Trial 90 jours Fondateurs | 🔴 Critique | |
+| Coupon -25% forever | 🟡 Important | Après trial |
 
-**Tasks:**
-- [ ] Créer compte Stripe (mode test)
-- [ ] Créer Products:
-  - Ofra Essentiel (29$ CAD/mois)
-  - Ofra Pro (49$ CAD/mois)
-  - Ofra Agence (99$ CAD/mois)
-- [ ] Créer Prices avec trial_period_days
-- [ ] Configurer webhooks endpoint
-- [ ] Variables d'environnement:
-  - `STRIPE_SECRET_KEY`
-  - `STRIPE_PUBLISHABLE_KEY`
-  - `STRIPE_WEBHOOK_SECRET`
-  - `STRIPE_PRICE_ESSENTIEL`
-  - `STRIPE_PRICE_PRO`
-  - `STRIPE_PRICE_AGENCE`
-
-#### 7.2 Checkout & Subscription
-
-**En tant qu'** utilisateur
-**Je veux** m'abonner à un plan
-**Afin d'** accéder aux fonctionnalités payantes
-
-**Backend tasks:**
-- [ ] Model `Subscription` (user_id, stripe_customer_id, stripe_subscription_id, plan, status, current_period_end)
-- [ ] Migration create_subscriptions_table
-- [ ] Ajouter `plan` et `storage_used` à User model
-- [ ] Service `StripeService`:
-  - createCheckoutSession(userId, priceId)
-  - createPortalSession(userId)
-  - handleWebhook(event)
-- [ ] Endpoints:
-  - `POST /api/billing/checkout` - créer session checkout
-  - `POST /api/billing/portal` - accès portail client
-  - `POST /api/webhooks/stripe` - recevoir events
-- [ ] Webhooks handlers:
-  - `checkout.session.completed` - activer abo
-  - `customer.subscription.updated` - màj plan
-  - `customer.subscription.deleted` - désactiver
-  - `invoice.payment_failed` - notifier user
-
-**Frontend tasks:**
-- [ ] Page `/pricing` avec les 3 plans
-- [ ] Bouton "S'abonner" → redirect Stripe Checkout
-- [ ] Page `/settings/billing`:
-  - Plan actuel
-  - Prochaine facturation
-  - Bouton "Gérer mon abonnement" → Stripe Portal
-- [ ] Affichage quota storage dans sidebar
-- [ ] Bannière upgrade si limite atteinte
-
-**Maquette Settings/Billing:**
-```
-┌─────────────────────────────────────────────────────┐
-│  💳 Facturation                                     │
-│  ─────────────────────────────────────────────────  │
-│                                                     │
-│  Plan actuel:     Pro ⭐                            │
-│  Prix:            49$ CAD/mois                      │
-│  Prochaine date:  28 février 2026                   │
-│  Statut:          ✓ Actif                           │
-│                                                     │
-│  [Gérer mon abonnement]  [Changer de plan]         │
-│                                                     │
-│  ─────────────────────────────────────────────────  │
-│  📊 Utilisation                                     │
-│                                                     │
-│  Stockage:  847 MB / 2 GB                          │
-│  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░░░░░░░░░░░░░░░░  42%      │
-│                                                     │
-│  Utilisateurs:  2 / 3                               │
-│  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░░░░░░░░  67%      │
-│                                                     │
-└─────────────────────────────────────────────────────┘
-```
-
-#### 7.3 Middleware Plan Enforcement
-
-**Tasks:**
-- [ ] Middleware `checkPlan` pour routes protégées
-- [ ] Vérifier:
-  - Nombre d'utilisateurs (team)
-  - Storage utilisé vs limite
-  - Features par plan (import CSV, API, etc.)
-- [ ] Réponse 402 si limite dépassée avec message clair
-- [ ] Grace period 7 jours si paiement échoue
-
-#### 7.4 Programme Fondateur dans Stripe
-
-**Tasks:**
-- [ ] Coupon "-25% forever" pour Fondateurs
-- [ ] Trial 90 jours (3 mois) pour Fondateurs
-- [ ] Flag `is_founder` sur User
-- [ ] Appliquer coupon automatiquement après trial
-
-### Estimation
-- Configuration Stripe: 1 jour
-- Backend (service, webhooks): 3-4 jours
-- Frontend: 2-3 jours
-- Tests: 1-2 jours
-- **Total: ~7-10 jours**
+### Post-Launch
+- Portal client Stripe
+- Proration upgrades/downgrades
+- Gestion des échecs de paiement
+- Grace period
 
 ### Dépendances
 - Compte Stripe vérifié
-- Compte bancaire canadien lié
+- Compte bancaire canadien
 
 ---
 
-## Timeline globale
+## Timeline Globale
 
 ```
-SEMAINE 1-2: Epic 5 (UI Import + Uploads)
-├── Jours 1-4: Backend S3 + Documents
-├── Jours 5-8: Frontend Upload + Import UI
-└── Jours 9-10: Tests E2E
+SPRINT 1-2: FONDATIONS PREMIUM
+├── Track A: Epic 8 (Transaction Profile + Templates + 3 niveaux)
+├── Track B: Epic 5 (Documents/Uploads)
+└── Décisions: D2 (Condo), D3 (Financé)
 
-SEMAINE 3: Epic 6 (Landing Page)
-├── Jours 1-2: Design + Copy
-├── Jours 3-5: Développement
-└── Jour 6: Tests + Polish
+SPRINT 3-4: UX & INFRA
+├── Track A: Epic 8 suite (Evidence) + Epic 9 (Timeline)
+├── Track B: Epic 6 (Landing) + D6 (Pricing corrigé)
+└── Décision: D4 (Archivage Timeline)
 
-SEMAINE 4-5: Epic 7 (Stripe)
-├── Jours 1-2: Config Stripe + Models
-├── Jours 3-6: Backend Webhooks + Service
-├── Jours 7-9: Frontend Billing
-└── Jour 10: Tests
+SPRINT 5: BILLING & POLISH
+├── Epic 7 (Stripe Minimal)
+├── Tests E2E complets
+└── Quality Gates validation
 
-SEMAINE 6: Launch Fondateurs
-├── Ouvrir inscriptions
+SPRINT 6: LAUNCH FONDATEURS
+├── Ouvrir inscriptions (25 places)
 ├── Onboarder premiers Fondateurs
 └── Collecter feedback
 ```
 
-**Total estimé: 5-6 semaines**
-
 ---
 
-## Checklist pré-launch
+## Checklist Pré-Launch
 
 ### Infrastructure
-- [ ] Hébergement production (AWS ca-central-1 ou DO Toronto)
+- [ ] Hébergement production (AWS ca-central-1)
 - [ ] Base de données production
 - [ ] Redis production
 - [ ] S3 bucket documents
-- [ ] Domaine ofra.ca ou ofra.io
+- [ ] Domaine ofra.ca
 - [ ] SSL certificat
 - [ ] Monitoring (Sentry)
 - [ ] Backups automatiques
@@ -439,35 +488,158 @@ SEMAINE 6: Launch Fondateurs
 ### Configuration
 - [ ] Variables d'environnement production
 - [ ] Stripe mode live
-- [ ] Email transactionnel (Resend/Postmark)
+- [ ] Email transactionnel (Resend)
 - [ ] DNS configuré
 
 ### Légal
-- [ ] Conditions d'utilisation
-- [ ] Politique de confidentialité
-- [ ] Mentions légales
+- [ ] Conditions d'utilisation ✅
+- [ ] Politique de confidentialité ✅
+- [ ] Mentions légales ✅
+- [ ] Disclaimer suppression transaction (D17)
 
 ### Marketing
-- [ ] Screenshots app pour landing
+- [ ] Screenshots app Premium
 - [ ] Textes FR et EN
 - [ ] Logo haute résolution
 - [ ] Open Graph image
 
+### Quality Gates
+- [ ] Tests E2E: 100% pass
+- [ ] Audit sécurité
+- [ ] WCAG 2.1 AA validation
+- [ ] Performance < 3s toutes pages
+
 ---
 
-## Métriques de succès
+## Métriques de Succès
 
-### Launch (Mois 1-3)
+### Launch Fondateurs (Mois 1-3)
 - [ ] 25 Fondateurs inscrits
 - [ ] 0 bug critique
 - [ ] NPS > 7
+- [ ] 80% utilisent Transaction Profile
+- [ ] 60% utilisent les suggestions de conditions
 
-### Post-launch (Mois 4-6)
+### Post-Launch (Mois 4-6)
 - [ ] 50% conversion Fondateurs → Payants
 - [ ] 10 clients payants organiques
 - [ ] MRR > 500$ CAD
+- [ ] Churn < 10%
 
 ### Croissance (Mois 7-12)
 - [ ] 100 clients payants
 - [ ] MRR > 4 000$ CAD
 - [ ] Churn < 5%/mois
+- [ ] Expansion NS/PEI planifiée
+
+---
+
+## Historique des versions
+
+| Version | Date | Changements |
+|---------|------|-------------|
+| 1.0 | 2026-01-29 | Roadmap MVP initiale |
+| 2.0 | 2026-01-31 | Pivot Premium: Epic 8-9, Decision Queue, Launch Minimum |
+| 2.1 | 2026-02-01 | Epic 8 Phases 1-4C complétées, bugs legacy conditions fixés |
+| 2.2 | 2026-02-03 | D40 Onboarding + D41 Garde-fous implémentés |
+| 2.3 | 2026-02-04 | Audit technique complet, réorganisation priorités, plan de commits |
+
+---
+
+## Session Log
+
+### 2026-02-01 (Session nocturne)
+
+**Participants:** Sam + Équipe BMAD (Party Mode)
+
+**Accompli:**
+- Diagnostic et fix des erreurs 500 sur `/advance` et `/skip`
+- Root cause: conditions legacy avec `stepWhenCreated = NULL` et `archived = NULL`
+- Fix: queries avec fallback NULL dans `conditions_engine_service.ts`
+- Fix: React Query undefined warnings dans `CreateConditionModal.tsx`
+
+**Fichiers modifiés (non commités):**
+- `backend/app/services/conditions_engine_service.ts`
+- `frontend/src/components/CreateConditionModal.tsx`
+
+**Blocage identifié:**
+- Pas d'UI pour créer Transaction Profile → utilisateurs bloqués sur suggestions
+
+**À faire demain:**
+1. Décider: curl workaround VS UI de profil
+2. Implémenter l'UI de profil (recommandé pour prod)
+3. Tester flow complet avec profil
+4. Continuer Phase 4D (Timeline par étape)
+
+---
+
+### 2026-02-03 (Session matinale)
+
+**Participants:** Sam + Équipe BMAD (Party Mode)
+
+**Accompli:**
+
+**D41 - Garde-fous validation avec preuves:**
+- Friction graduée: blocking > required > recommended
+- Conditions blocking/required verrouillées après completion (Lock icon)
+- Escape tracking avec raison obligatoire (10 chars min)
+- Confirmation phrase pour bypass
+- Migration: `1772000000007_add_escape_tracking_to_conditions.ts`
+- Modals: ConditionValidationModal, EscapeConfirmationModal
+- Traductions FR/EN complètes
+
+**D40 - Onboarding personnalisé:**
+- Wizard 5 étapes: Langue → Pratique → Contextes → Volume → Préférences
+- Choix langue FR/EN en première question (changement instantané)
+- Langue persistée sur le compte utilisateur
+- Chargement automatique langue au login
+- Migration: `1772000000008_add_onboarding_profile_to_users.ts`
+- Redirect automatique vers /onboarding si non complété
+- Logo Ofra correct dans l'onboarding
+- Layout responsive: boutons dans content (desktop) / footer sticky (mobile)
+
+**Fichiers créés/modifiés:**
+- Backend: profile_controller, profile_validator, auth_controller, user model
+- Frontend: OnboardingPage, router.tsx (ProtectedRoute avec langue)
+- Traductions: common.json FR/EN (onboarding.steps.language)
+
+**À faire:**
+- D32: Timeline interactive (en cours)
+- Corriger traductions si nécessaire
+- Tests E2E pour onboarding flow
+
+---
+
+---
+
+### 2026-02-04 (Audit Technique)
+
+**Participants:** Sam + Équipe BMAD complète (Party Mode)
+
+**Audit réalisé par:**
+- 🏗️ Winston (Architecte) - Backend: 7/10
+- 🎨 Sally (UX Designer) - Frontend: 8.2/10
+- 🧪 Murat (Test Architect) - Couverture: 63%
+- 📊 Mary (Analyst) - Git: CRITIQUE
+
+**Constats majeurs:**
+
+1. **122 fichiers non commités** = 2 semaines de travail à risque
+2. **Doublon migration** 1772000000006 (cancellation + deadline)
+3. **N+1 queries** dans TransactionsController.index()
+4. **ReminderService** sans tenant scoping (GDPR)
+5. **Notes/Offers** à 0% de couverture tests
+
+**Décisions prises:**
+- P0: Commits urgents aujourd'hui
+- P1: Transaction Profile UI cette semaine
+- P1: Tests Notes/Offers cette semaine
+- P2: Timeline UI (D32) sprint suivant
+
+**Documents produits:**
+- `_bmad-output/audit-2026-02-04.md` - Rapport complet
+
+---
+
+**Document validé par:** Sam (Product Owner) + Équipe BMAD
+**Prochaine révision:** Après commits P0
