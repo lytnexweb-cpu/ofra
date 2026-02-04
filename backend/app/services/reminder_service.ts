@@ -113,10 +113,10 @@ export class ReminderService {
     const now = DateTime.now()
     const sevenDaysFromNow = now.plus({ days: 7 })
 
-    // Get all transactions for this user that are not completed or canceled
+    // Get all transactions for this user
+    // Note: Transactions don't have a status column - they use workflow steps
     const transactions = await Transaction.query()
       .where('owner_user_id', user.id)
-      .whereNotIn('status', ['completed', 'canceled'])
       .preload('client')
       .preload('property')
 
@@ -213,9 +213,8 @@ export class ReminderService {
     const in48h = now.plus({ hours: 48 })
     const in49h = now.plus({ hours: 49 }) // 1-hour window
 
-    // Get transactions that are not completed or canceled
+    // Get all transactions (they don't have a status column - they use workflow steps)
     const activeTransactionIds = await Transaction.query()
-      .whereNotIn('status', ['completed', 'canceled'])
       .select('id')
 
     const transactionIds = activeTransactionIds.map((t) => t.id)

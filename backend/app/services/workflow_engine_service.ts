@@ -3,8 +3,11 @@ import TransactionStep from '#models/transaction_step'
 import WorkflowTemplate from '#models/workflow_template'
 import WorkflowStep from '#models/workflow_step'
 import Condition from '#models/condition'
+import TransactionProfile from '#models/transaction_profile'
 import { ActivityFeedService } from '#services/activity_feed_service'
 import { AutomationExecutorService } from '#services/automation_executor_service'
+import { ConditionsEngineService } from '#services/conditions_engine_service'
+import type { ResolutionType } from '#models/condition'
 import logger from '@adonisjs/core/services/logger'
 import { DateTime } from 'luxon'
 
@@ -20,10 +23,29 @@ interface CreateTransactionParams {
   notesText?: string | null
   folderUrl?: string | null
   organizationId?: number | null
+  /** D1: Transaction Profile for Premium conditions */
+  profile?: {
+    propertyType: 'house' | 'condo' | 'land'
+    propertyContext: 'urban' | 'suburban' | 'rural'
+    isFinanced: boolean
+    hasWell?: boolean
+    hasSeptic?: boolean
+    accessType?: 'public' | 'private' | 'right_of_way'
+    condoDocsRequired?: boolean
+    appraisalRequired?: boolean | null
+  }
+}
+
+interface ConditionResolutionInput {
+  conditionId: number
+  resolutionType: ResolutionType
+  note?: string
 }
 
 interface AdvanceOptions {
   skipBlockingCheck?: boolean
+  /** D4: Required condition resolutions for step advancement */
+  requiredResolutions?: ConditionResolutionInput[]
 }
 
 export class WorkflowEngineService {
@@ -80,9 +102,37 @@ export class WorkflowEngineService {
       transaction.currentStepId = firstStep.id
       await transaction.save()
 
-      // Create conditions for first step
       const firstWfStep = template.steps[0]
-      await this.createConditionsFromTemplate(transaction.id, firstStep.id, firstWfStep)
+
+      // D1/D27: Create transaction profile if provided
+      if (params.profile) {
+        await TransactionProfile.create({
+          transactionId: transaction.id,
+          propertyType: params.profile.propertyType,
+          propertyContext: params.profile.propertyContext,
+          isFinanced: params.profile.isFinanced,
+          hasWell: params.profile.hasWell,
+          hasSeptic: params.profile.hasSeptic,
+          accessType: params.profile.accessType,
+          condoDocsRequired: params.profile.condoDocsRequired ?? true,
+          appraisalRequired: params.profile.appraisalRequired,
+        })
+
+        // Premium: Create conditions from templates based on profile
+        try {
+          await ConditionsEngineService.createConditionsFromProfile(
+            transaction.id,
+            firstStep.id,
+            1, // First step
+            params.ownerUserId
+          )
+        } catch (err) {
+          logger.warn({ transactionId: transaction.id, err }, 'Failed to create Premium conditions')
+        }
+      } else {
+        // Legacy: Create conditions from workflow step template (no profile)
+        await this.createConditionsFromTemplate(transaction.id, firstStep.id, firstWfStep)
+      }
 
       // Execute on_enter automations for first step
       await this.executeAutomations(firstWfStep, 'on_enter', transaction.id)
@@ -113,7 +163,11 @@ export class WorkflowEngineService {
 
   /**
    * Advance to the next step.
-   * Checks blocking conditions on current step unless skipBlockingCheck is true.
+   * Implements D4: Archivage des Conditions dans la Timeline
+   *
+   * - Blocking conditions must be resolved before advancement
+   * - Required conditions need explicit resolution (via options.requiredResolutions)
+   * - Recommended conditions are auto-archived as 'not_applicable'
    */
   static async advanceStep(
     transactionId: number,
@@ -141,17 +195,43 @@ export class WorkflowEngineService {
       throw error
     }
 
-    // Check blocking conditions
+    const currentStepOrder = currentStep.stepOrder
+
+    // D4: Check step advancement using Premium logic
     if (!options?.skipBlockingCheck) {
-      const blocking = await this.checkBlockingConditions(currentStep.id)
-      if (blocking.length > 0) {
-        const titles = blocking.map((c) => c.title).join(', ')
+      const check = await ConditionsEngineService.checkStepAdvancement(
+        transactionId,
+        currentStepOrder
+      )
+
+      // Blocking conditions must all be resolved
+      if (!check.canAdvance) {
+        const titles = check.blockingConditions.map((c) => c.getLabel('fr')).join(', ')
         const error: any = new Error(
-          `Cannot advance: ${blocking.length} blocking condition(s) pending: ${titles}`
+          `Cannot advance: ${check.blockingConditions.length} blocking condition(s) pending: ${titles}`
         )
         error.code = 'E_BLOCKING_CONDITIONS'
-        error.blockingConditions = blocking
+        error.blockingConditions = check.blockingConditions
         throw error
+      }
+
+      // Required conditions need explicit resolutions
+      if (check.requiredPendingConditions.length > 0) {
+        const providedResolutions = options?.requiredResolutions || []
+        const providedIds = new Set(providedResolutions.map((r) => r.conditionId))
+        const missingResolutions = check.requiredPendingConditions.filter(
+          (c) => !providedIds.has(c.id)
+        )
+
+        if (missingResolutions.length > 0) {
+          const titles = missingResolutions.map((c) => c.getLabel('fr')).join(', ')
+          const error: any = new Error(
+            `Cannot advance: ${missingResolutions.length} required condition(s) need explicit resolution: ${titles}`
+          )
+          error.code = 'E_REQUIRED_RESOLUTIONS_NEEDED'
+          error.requiredConditions = missingResolutions
+          throw error
+        }
       }
     }
 
@@ -168,6 +248,27 @@ export class WorkflowEngineService {
     currentStep.completedAt = DateTime.now()
     await currentStep.save()
 
+    // Find the next step
+    const nextStep = transaction.transactionSteps.find(
+      (s) => s.stepOrder === currentStep.stepOrder + 1
+    )
+
+    const nextStepOrder = nextStep ? nextStep.stepOrder : currentStepOrder + 1
+
+    // D4: Archive conditions from current step
+    try {
+      await ConditionsEngineService.archiveConditionsOnStepChange(
+        transactionId,
+        currentStepOrder,
+        nextStepOrder,
+        userId,
+        options?.requiredResolutions
+      )
+    } catch (archiveError) {
+      logger.error({ transactionId, archiveError }, 'Failed to archive conditions on step change')
+      throw archiveError
+    }
+
     await ActivityFeedService.log({
       transactionId,
       userId,
@@ -177,11 +278,6 @@ export class WorkflowEngineService {
         stepOrder: currentStep.stepOrder,
       },
     })
-
-    // Find the next step
-    const nextStep = transaction.transactionSteps.find(
-      (s) => s.stepOrder === currentStep.stepOrder + 1
-    )
 
     if (!nextStep) {
       // No more steps — transaction is complete
@@ -205,8 +301,28 @@ export class WorkflowEngineService {
       .preload('automations')
       .firstOrFail()
 
-    // Create conditions for new step
-    await this.createConditionsFromTemplate(transactionId, nextStep.id, nextWfStep)
+    // D27: Check if profile exists to decide which condition system to use
+    const profile = await TransactionProfile.find(transactionId)
+
+    if (profile) {
+      // Premium: Create conditions from templates based on profile
+      try {
+        await ConditionsEngineService.createConditionsFromProfile(
+          transactionId,
+          nextStep.id,
+          nextStepOrder,
+          userId
+        )
+      } catch (profileError) {
+        logger.warn(
+          { transactionId, profileError },
+          'Failed to create Premium conditions from profile'
+        )
+      }
+    } else {
+      // Legacy: Create conditions from workflow step template (no profile)
+      await this.createConditionsFromTemplate(transactionId, nextStep.id, nextWfStep)
+    }
 
     // Execute on_enter automations
     await this.executeAutomations(nextWfStep, 'on_enter', transactionId)
@@ -294,7 +410,29 @@ export class WorkflowEngineService {
       .preload('automations')
       .firstOrFail()
 
-    await this.createConditionsFromTemplate(transactionId, nextStep.id, nextWfStep)
+    // D27: Check if profile exists to decide which condition system to use
+    const profile = await TransactionProfile.find(transactionId)
+
+    if (profile) {
+      // Premium: Create conditions from templates based on profile
+      try {
+        await ConditionsEngineService.createConditionsFromProfile(
+          transactionId,
+          nextStep.id,
+          nextStep.stepOrder,
+          userId
+        )
+      } catch (profileError) {
+        logger.warn(
+          { transactionId, profileError },
+          'Failed to create Premium conditions from profile on skip'
+        )
+      }
+    } else {
+      // Legacy: Create conditions from workflow step template (no profile)
+      await this.createConditionsFromTemplate(transactionId, nextStep.id, nextWfStep)
+    }
+
     await this.executeAutomations(nextWfStep, 'on_enter', transactionId)
 
     await ActivityFeedService.log({
@@ -372,12 +510,23 @@ export class WorkflowEngineService {
 
   /**
    * Return all pending blocking conditions for a transaction step.
+   * Now uses Premium 'level' field with fallback to legacy 'isBlocking'
    */
   static async checkBlockingConditions(transactionStepId: number): Promise<Condition[]> {
     return Condition.query()
       .where('transactionStepId', transactionStepId)
-      .where('isBlocking', true)
       .where('status', 'pending')
+      .where((query) => {
+        query.where('level', 'blocking').orWhere('isBlocking', true)
+      })
+  }
+
+  /**
+   * Return conditions that need resolution before step advancement.
+   * D4: Returns both blocking and required pending conditions.
+   */
+  static async getConditionsNeedingResolution(transactionId: number, stepOrder: number) {
+    return ConditionsEngineService.checkStepAdvancement(transactionId, stepOrder)
   }
 
   /**

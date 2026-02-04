@@ -7,6 +7,7 @@ import {
 import { WorkflowEngineService } from '#services/workflow_engine_service'
 import { ActivityFeedService } from '#services/activity_feed_service'
 import { TenantScopeService } from '#services/tenant_scope_service'
+import logger from '@adonisjs/core/services/logger'
 
 export default class TransactionsController {
   async index({ request, response, auth }: HttpContext) {
@@ -218,12 +219,27 @@ export default class TransactionsController {
             code: 'E_BLOCKING_CONDITIONS',
             blockingConditions: error.blockingConditions?.map((c: any) => ({
               id: c.id,
-              title: c.title,
+              title: c.title ?? c.labelFr,
               dueDate: c.dueDate,
             })),
           },
         })
       }
+      if (error.code === 'E_REQUIRED_RESOLUTIONS_NEEDED') {
+        return response.badRequest({
+          success: false,
+          error: {
+            message: error.message,
+            code: 'E_REQUIRED_RESOLUTIONS_NEEDED',
+            requiredConditions: error.requiredConditions?.map((c: any) => ({
+              id: c.id,
+              title: c.title ?? c.labelFr,
+              level: c.level,
+            })),
+          },
+        })
+      }
+      logger.error({ error, transactionId: params.id }, 'Failed to advance step')
       return response.internalServerError({
         success: false,
         error: { message: 'Failed to advance step', code: 'E_INTERNAL_ERROR' },
@@ -339,6 +355,50 @@ export default class TransactionsController {
       return response.internalServerError({
         success: false,
         error: { message: 'Failed to retrieve activity', code: 'E_INTERNAL_ERROR' },
+      })
+    }
+  }
+
+  async cancel({ params, request, response, auth }: HttpContext) {
+    try {
+      const query = Transaction.query().where('id', params.id)
+      TenantScopeService.apply(query, auth.user!)
+      const transaction = await query.firstOrFail()
+
+      const { reason } = request.only(['reason'])
+
+      // Update transaction status to cancelled
+      transaction.status = 'cancelled'
+      transaction.cancelledAt = new Date()
+      transaction.cancellationReason = reason || null
+      await transaction.save()
+
+      // Log activity
+      await ActivityFeedService.log({
+        transactionId: transaction.id,
+        userId: auth.user!.id,
+        activityType: 'transaction_cancelled',
+        metadata: { reason: reason || null },
+      })
+
+      await transaction.load('client')
+      await transaction.load('currentStep', (sq) => sq.preload('workflowStep'))
+
+      return response.ok({
+        success: true,
+        data: { transaction },
+      })
+    } catch (error) {
+      if (error.code === 'E_ROW_NOT_FOUND') {
+        return response.notFound({
+          success: false,
+          error: { message: 'Transaction not found', code: 'E_NOT_FOUND' },
+        })
+      }
+      logger.error({ error, transactionId: params.id }, 'Failed to cancel transaction')
+      return response.internalServerError({
+        success: false,
+        error: { message: 'Failed to cancel transaction', code: 'E_INTERNAL_ERROR' },
       })
     }
   }
