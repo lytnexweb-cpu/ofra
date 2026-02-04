@@ -1,25 +1,34 @@
 import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
-import LanguageDetector from 'i18next-browser-languagedetector'
+// LanguageDetector removed - was overriding user language choices
 import en from './locales/en/common.json'
 import fr from './locales/fr/common.json'
 
+// Get initial language from localStorage or default to 'fr'
+const savedLang = typeof window !== 'undefined' ? localStorage.getItem('i18nextLng') : null
+const initialLang = savedLang && ['en', 'fr'].includes(savedLang) ? savedLang : 'fr'
+
 i18n
-  .use(LanguageDetector)
   .use(initReactI18next)
+  // NOTE: LanguageDetector removed - it was overriding user choices
   .init({
+    debug: true, // TEMP: voir les logs i18next
     resources: {
       en: { common: en },
       fr: { common: fr },
     },
-    defaultNS: 'common',
+    lng: initialLang, // Use our manual detection
+    supportedLngs: ['en', 'fr'],
     fallbackLng: 'en',
+    ns: ['common'],
+    defaultNS: 'common',
     interpolation: {
       escapeValue: false,
     },
-    detection: {
-      order: ['localStorage', 'navigator'],
-      caches: ['localStorage'],
+    react: {
+      useSuspense: false,
+      bindI18n: 'languageChanged loaded',
+      bindI18nStore: 'added removed',
     },
   })
 

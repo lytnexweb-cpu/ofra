@@ -57,6 +57,7 @@ function makeCondition(overrides: Partial<Condition> = {}): Condition {
     type: 'financing',
     priority: 'high',
     isBlocking: true,
+    level: 'blocking',
     documentUrl: null,
     documentLabel: null,
     dueDate: '2025-02-01T00:00:00Z',
@@ -64,7 +65,7 @@ function makeCondition(overrides: Partial<Condition> = {}): Condition {
     createdAt: '2025-01-01T00:00:00Z',
     updatedAt: '2025-01-01T00:00:00Z',
     ...overrides,
-  }
+  } as Condition
 }
 
 function makeTx(overrides: Partial<Transaction> = {}): Transaction {
@@ -204,8 +205,15 @@ describe('ConditionsTab', () => {
   })
 
   it('calls conditionsApi.update when toggling a condition', async () => {
+    // D41: Use 'recommended' level to test direct toggle (blocking/required open validation modal)
     const tx = makeTx({
-      conditions: [makeCondition({ id: 42, transactionStepId: 10, status: 'pending' })],
+      conditions: [makeCondition({
+        id: 42,
+        transactionStepId: 10,
+        status: 'pending',
+        isBlocking: false,
+        level: 'recommended',
+      })],
     })
     renderWithProviders(<ConditionsTab transaction={tx} />)
 

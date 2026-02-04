@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { formatDistanceToNow } from '../../lib/date'
 
 interface Activity {
@@ -13,21 +14,6 @@ interface Activity {
 
 interface RecentActivityProps {
   activities: Activity[]
-}
-
-const activityTypeLabels: Record<string, string> = {
-  transaction_created: 'Transaction created',
-  step_entered: 'Step entered',
-  step_completed: 'Step completed',
-  step_skipped: 'Step skipped',
-  condition_created: 'Condition added',
-  condition_completed: 'Condition completed',
-  condition_deleted: 'Condition removed',
-  offer_created: 'Offer created',
-  offer_accepted: 'Offer accepted',
-  offer_rejected: 'Offer rejected',
-  offer_withdrawn: 'Offer withdrawn',
-  note_added: 'Note added',
 }
 
 function getActivityIcon(activityType: string) {
@@ -76,34 +62,37 @@ function getActivityIcon(activityType: string) {
   )
 }
 
-function getActivityDescription(activity: Activity): string {
-  const label = activityTypeLabels[activity.activityType] || activity.activityType
-  const meta = activity.metadata || {}
-
-  if (activity.activityType === 'step_entered' && meta.stepName) {
-    return `Entered step: ${meta.stepName}`
-  }
-  if (activity.activityType === 'step_completed' && meta.stepName) {
-    return `Completed step: ${meta.stepName}`
-  }
-  if (activity.activityType === 'condition_completed' && meta.conditionTitle) {
-    return `Condition completed: ${meta.conditionTitle}`
-  }
-
-  return label
-}
-
 export default function RecentActivity({ activities = [] }: RecentActivityProps) {
+  const { t } = useTranslation()
+
+  const getActivityDescription = (activity: Activity): string => {
+    const meta = activity.metadata || {}
+
+    if (activity.activityType === 'step_entered' && meta.stepName) {
+      return t('dashboard.charts.activity.enteredStep', { step: meta.stepName })
+    }
+    if (activity.activityType === 'step_completed' && meta.stepName) {
+      return t('dashboard.charts.activity.completedStep', { step: meta.stepName })
+    }
+    if (activity.activityType === 'condition_completed' && meta.conditionTitle) {
+      return t('dashboard.charts.activity.conditionCompleted', { condition: meta.conditionTitle })
+    }
+
+    // Use translated activity type label
+    const translationKey = `dashboard.charts.activity.${activity.activityType}`
+    return t(translationKey, activity.activityType)
+  }
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Recent Activity</h3>
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">{t('dashboard.charts.recentActivity')}</h3>
 
       {activities.length === 0 ? (
         <div className="py-8 text-center text-gray-400 dark:text-gray-500">
           <svg className="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <p>No recent activity</p>
+          <p>{t('dashboard.charts.noRecentActivity')}</p>
         </div>
       ) : (
         <div className="space-y-4">

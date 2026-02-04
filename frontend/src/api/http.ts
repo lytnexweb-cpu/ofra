@@ -7,6 +7,7 @@ export interface ApiResponse<T = any> {
     message: string
     code?: string
     details?: any
+    retryAfter?: number
   }
 }
 

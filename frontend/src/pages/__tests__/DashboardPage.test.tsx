@@ -102,7 +102,8 @@ describe('DashboardPage', () => {
     await waitFor(() => {
       expect(screen.getByText('Dashboard')).toBeInTheDocument()
     })
-    expect(screen.getByText(/Welcome back/)).toBeInTheDocument()
+    // Dashboard shows subtitle with transaction status
+    expect(screen.getByText(/transactions/i)).toBeInTheDocument()
   })
 
   it('renders 4 KPI cards (AC4)', async () => {
@@ -148,8 +149,9 @@ describe('DashboardPage', () => {
       expect(screen.getByText('25')).toBeInTheDocument()
     })
     expect(screen.getByText('5')).toBeInTheDocument()
-    expect(screen.getByText('Total Transactions')).toBeInTheDocument()
-    expect(screen.getByText('Due Soon (7 days)')).toBeInTheDocument()
+    // The stats are shown in the hero banner with translated labels
+    expect(screen.getByText('Transactions')).toBeInTheDocument()
+    expect(screen.getByText('This Week')).toBeInTheDocument()
   })
 
   it('handles nullish data with safe defaults (AC8)', async () => {

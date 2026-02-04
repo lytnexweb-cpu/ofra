@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { screen } from '@testing-library/react'
 import { axe } from 'vitest-axe'
 import { renderWithProviders } from '../../../test/helpers'
@@ -29,6 +29,15 @@ function makeTx(overrides: Partial<Transaction> = {}): Transaction {
       email: 'andre@example.com',
       phone: null,
       ownerUserId: 1,
+      notes: null,
+      addressLine1: null,
+      addressLine2: null,
+      city: null,
+      provinceState: null,
+      postalCode: null,
+      homePhone: null,
+      workPhone: null,
+      cellPhone: null,
       createdAt: '2025-01-01T12:00:00.000Z',
       updatedAt: '2025-01-01T12:00:00.000Z',
     },

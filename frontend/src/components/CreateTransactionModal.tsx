@@ -1,10 +1,15 @@
 import { useState, useEffect } from 'react'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
+import { Home, Building2, Mountain, Trees, Building, Package, Wrench } from 'lucide-react'
 import {
   transactionsApi,
   type CreateTransactionRequest,
+  type CreateProfileRequest,
   type TransactionType,
+  type PropertyType,
+  type PropertyContext,
+  type AccessType,
 } from '../api/transactions.api'
 import { clientsApi } from '../api/clients.api'
 import {
@@ -59,6 +64,22 @@ export default function CreateTransactionModal({
     null
   )
 
+  // Profile fields (D1: Conditions Engine Premium)
+  const [profileData, setProfileData] = useState({
+    propertyType: '' as PropertyType | '',
+    propertyContext: '' as PropertyContext | '',
+    isFinanced: null as boolean | null,
+    // Rural-specific
+    hasWell: null as boolean | null,
+    hasSeptic: null as boolean | null,
+    accessType: '' as AccessType | '',
+    // Financed-specific
+    appraisalRequired: false,
+  })
+
+  // D39: Pack conditions optionnel
+  const [loadConditionPack, setLoadConditionPack] = useState(true) // Default: load pack
+
   const { data: clientsData } = useQuery({
     queryKey: ['clients'],
     queryFn: clientsApi.list,
@@ -87,7 +108,56 @@ export default function CreateTransactionModal({
   }, [templates])
 
   const createMutation = useMutation({
-    mutationFn: transactionsApi.create,
+    mutationFn: async (payload: CreateTransactionRequest) => {
+      // Step 1: Create transaction
+      const txResponse = await transactionsApi.create(payload)
+      if (!txResponse.success || !txResponse.data?.transaction) {
+        throw new Error(txResponse.error?.message || 'Failed to create transaction')
+      }
+
+      const transactionId = txResponse.data.transaction.id
+
+      // Step 2: Create profile (if profile data is provided)
+      if (profileData.propertyType && profileData.propertyContext && profileData.isFinanced !== null) {
+        const profilePayload: CreateProfileRequest = {
+          propertyType: profileData.propertyType as PropertyType,
+          propertyContext: profileData.propertyContext as PropertyContext,
+          isFinanced: profileData.isFinanced,
+        }
+
+        // Add rural fields if applicable
+        if (profileData.propertyContext === 'rural') {
+          if (profileData.hasWell !== null) profilePayload.hasWell = profileData.hasWell
+          if (profileData.hasSeptic !== null) profilePayload.hasSeptic = profileData.hasSeptic
+          if (profileData.accessType) profilePayload.accessType = profileData.accessType as AccessType
+        }
+
+        // Add financed fields if applicable
+        if (profileData.isFinanced) {
+          profilePayload.appraisalRequired = profileData.appraisalRequired
+        }
+
+        try {
+          await transactionsApi.upsertProfile(transactionId, profilePayload)
+
+          // D39: Load condition pack if user opted in
+          if (loadConditionPack) {
+            try {
+              await transactionsApi.loadConditionPack(transactionId)
+            } catch (packError) {
+              console.error('D39: Pack loading failed:', packError)
+              // Non-blocking - transaction and profile exist
+            }
+          }
+        } catch (profileError) {
+          // Profile creation failed, but transaction exists
+          console.error('Profile creation failed:', profileError)
+          // We don't throw here - transaction is created, profile can be added later
+        }
+      }
+
+      return txResponse
+    },
     onSuccess: (response) => {
       if (response.success) {
         queryClient.invalidateQueries({ queryKey: ['transactions'] })
@@ -97,7 +167,9 @@ export default function CreateTransactionModal({
           description: t('transaction.new'),
           variant: 'success',
         })
-        handleClose()
+        // Close directly without checking isPending (race condition fix)
+        resetForm()
+        onClose()
       } else {
         toast({
           title: t('common.error'),
@@ -106,9 +178,10 @@ export default function CreateTransactionModal({
         })
       }
     },
-    onError: () => {
+    onError: (error: Error) => {
       toast({
         title: t('common.error'),
+        description: error.message,
         variant: 'destructive',
       })
     },
@@ -122,6 +195,16 @@ export default function CreateTransactionModal({
       notesText: '',
     })
     setSelectedTemplateId(null)
+    setProfileData({
+      propertyType: '',
+      propertyContext: '',
+      isFinanced: null,
+      hasWell: null,
+      hasSeptic: null,
+      accessType: '',
+      appraisalRequired: false,
+    })
+    setLoadConditionPack(true) // D39: Reset to default
   }
 
   const handleClose = () => {
@@ -207,7 +290,7 @@ export default function CreateTransactionModal({
           htmlFor="templateId"
           className="block text-sm font-medium text-foreground mb-1"
         >
-          Template *
+          {t('transaction.template')} *
         </label>
         <select
           id="templateId"
@@ -224,7 +307,7 @@ export default function CreateTransactionModal({
           {templates.map((tmpl: WorkflowTemplate) => (
             <option key={tmpl.id} value={tmpl.id}>
               {tmpl.name}
-              {tmpl.isDefault ? ' (Default)' : ''}
+              {tmpl.isDefault ? ` (${t('common.default')})` : ''}
             </option>
           ))}
         </select>
@@ -255,6 +338,294 @@ export default function CreateTransactionModal({
           />
         </div>
       </div>
+
+      {/* Profile Section */}
+      <div className="border-t border-border pt-4 mt-4">
+        <p className="text-sm font-medium text-foreground mb-1">
+          {t('transaction.profile.title', 'Profil de la propriété')} *
+        </p>
+        <p className="text-xs text-muted-foreground mb-3">
+          {t('transaction.profile.hint', 'Ce profil permet des suggestions de conditions adaptées.')}
+        </p>
+
+        {/* Property Type */}
+        <div className="mb-3">
+          <label className="block text-xs font-medium text-muted-foreground mb-1.5">
+            {t('transaction.profile.propertyType', 'Type de propriété')} *
+          </label>
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { value: 'house', label: t('transaction.profile.house', 'Maison'), icon: Home },
+              { value: 'condo', label: t('transaction.profile.condo', 'Condo'), icon: Building2 },
+              { value: 'land', label: t('transaction.profile.land', 'Terrain'), icon: Mountain },
+            ].map((option) => {
+              const Icon = option.icon
+              const isSelected = profileData.propertyType === option.value
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setProfileData({ ...profileData, propertyType: option.value as PropertyType })}
+                  className={`flex flex-col items-center gap-1 p-2 rounded-lg border-2 transition-all ${
+                    isSelected
+                      ? 'border-primary bg-primary/5 text-primary'
+                      : 'border-input hover:border-primary/50'
+                  }`}
+                  data-testid={`property-type-${option.value}`}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span className="text-xs font-medium">{option.label}</span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Property Context */}
+        <div className="mb-3">
+          <label className="block text-xs font-medium text-muted-foreground mb-1.5">
+            {t('transaction.profile.propertyContext', 'Contexte')} *
+          </label>
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { value: 'urban', label: t('transaction.profile.urban', 'Urbain'), icon: Building },
+              { value: 'suburban', label: t('transaction.profile.suburban', 'Banlieue'), icon: Home },
+              { value: 'rural', label: t('transaction.profile.rural', 'Rural'), icon: Trees },
+            ].map((option) => {
+              const Icon = option.icon
+              const isSelected = profileData.propertyContext === option.value
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setProfileData({
+                    ...profileData,
+                    propertyContext: option.value as PropertyContext,
+                    // Reset rural fields if not rural
+                    ...(option.value !== 'rural' ? { hasWell: null, hasSeptic: null, accessType: '' } : {})
+                  })}
+                  className={`flex flex-col items-center gap-1 p-2 rounded-lg border-2 transition-all ${
+                    isSelected
+                      ? 'border-primary bg-primary/5 text-primary'
+                      : 'border-input hover:border-primary/50'
+                  }`}
+                  data-testid={`property-context-${option.value}`}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span className="text-xs font-medium">{option.label}</span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Is Financed */}
+        <div className="mb-3">
+          <label className="block text-xs font-medium text-muted-foreground mb-1.5">
+            {t('transaction.profile.isFinanced', 'Financement')} *
+          </label>
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { value: true, label: t('transaction.profile.financed', 'Financé') },
+              { value: false, label: t('transaction.profile.cash', 'Comptant') },
+            ].map((option) => {
+              const isSelected = profileData.isFinanced === option.value
+              return (
+                <button
+                  key={String(option.value)}
+                  type="button"
+                  onClick={() => setProfileData({
+                    ...profileData,
+                    isFinanced: option.value,
+                    // Reset appraisalRequired if not financed
+                    ...(option.value === false ? { appraisalRequired: false } : {})
+                  })}
+                  className={`py-2 px-3 rounded-lg border-2 text-sm font-medium transition-all ${
+                    isSelected
+                      ? 'border-primary bg-primary/5 text-primary'
+                      : 'border-input hover:border-primary/50'
+                  }`}
+                  data-testid={`is-financed-${option.value}`}
+                >
+                  {option.label}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Rural-specific fields (progressive disclosure) */}
+        {profileData.propertyContext === 'rural' && (
+          <div className="mt-3 p-3 bg-muted/50 rounded-lg space-y-3">
+            <p className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+              <Trees className="w-3 h-3" />
+              {t('transaction.profile.ruralDetails', 'Détails ruraux')}
+              <span className="text-primary text-[10px]">({t('common.recommended', 'Recommandé')})</span>
+            </p>
+
+            {/* Has Well */}
+            <div className="flex items-center justify-between">
+              <span className="text-sm">{t('transaction.profile.hasWell', 'Puits')}</span>
+              <div className="flex gap-1">
+                {[
+                  { value: true, label: t('common.yes', 'Oui') },
+                  { value: false, label: t('common.no', 'Non') },
+                ].map((option) => (
+                  <button
+                    key={String(option.value)}
+                    type="button"
+                    onClick={() => setProfileData({ ...profileData, hasWell: option.value })}
+                    className={`px-3 py-1 text-xs rounded border transition-all ${
+                      profileData.hasWell === option.value
+                        ? 'border-primary bg-primary text-white'
+                        : 'border-input hover:border-primary/50'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Has Septic */}
+            <div className="flex items-center justify-between">
+              <span className="text-sm">{t('transaction.profile.hasSeptic', 'Fosse septique')}</span>
+              <div className="flex gap-1">
+                {[
+                  { value: true, label: t('common.yes', 'Oui') },
+                  { value: false, label: t('common.no', 'Non') },
+                ].map((option) => (
+                  <button
+                    key={String(option.value)}
+                    type="button"
+                    onClick={() => setProfileData({ ...profileData, hasSeptic: option.value })}
+                    className={`px-3 py-1 text-xs rounded border transition-all ${
+                      profileData.hasSeptic === option.value
+                        ? 'border-primary bg-primary text-white'
+                        : 'border-input hover:border-primary/50'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Access Type */}
+            <div>
+              <span className="text-sm block mb-1.5">{t('transaction.profile.accessType', 'Type d\'accès')}</span>
+              <div className="grid grid-cols-3 gap-1">
+                {[
+                  { value: 'public', label: t('transaction.profile.accessPublic', 'Public') },
+                  { value: 'private', label: t('transaction.profile.accessPrivate', 'Privé') },
+                  { value: 'right_of_way', label: t('transaction.profile.accessRightOfWay', 'Servitude') },
+                ].map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => setProfileData({ ...profileData, accessType: option.value as AccessType })}
+                    className={`px-2 py-1.5 text-xs rounded border transition-all ${
+                      profileData.accessType === option.value
+                        ? 'border-primary bg-primary text-white'
+                        : 'border-input hover:border-primary/50'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Financed-specific fields (progressive disclosure) */}
+        {profileData.isFinanced && (
+          <div className="mt-3 p-3 bg-muted/50 rounded-lg">
+            <div className="flex items-center justify-between">
+              <span className="text-sm">{t('transaction.profile.appraisalRequired', 'Évaluation requise')}</span>
+              <div className="flex gap-1">
+                {[
+                  { value: true, label: t('common.yes', 'Oui') },
+                  { value: false, label: t('common.no', 'Non') },
+                ].map((option) => (
+                  <button
+                    key={String(option.value)}
+                    type="button"
+                    onClick={() => setProfileData({ ...profileData, appraisalRequired: option.value })}
+                    className={`px-3 py-1 text-xs rounded border transition-all ${
+                      profileData.appraisalRequired === option.value
+                        ? 'border-primary bg-primary text-white'
+                        : 'border-input hover:border-primary/50'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* D39: Condition Pack Option */}
+      {profileData.propertyType && profileData.propertyContext && profileData.isFinanced !== null && (
+        <div className="border-t border-border pt-4 mt-4">
+          <p className="text-sm font-medium text-foreground mb-1">
+            {t('transaction.conditionPack.title', 'Conditions de départ')}
+          </p>
+          <p className="text-xs text-muted-foreground mb-3">
+            {t('transaction.conditionPack.hint', 'Choisissez comment initialiser les conditions de la transaction.')}
+          </p>
+
+          <div className="grid grid-cols-1 gap-2">
+            {[
+              {
+                value: true,
+                label: t('transaction.conditionPack.loadPack', 'Charger le pack recommandé'),
+                description: t('transaction.conditionPack.loadPackDesc', 'Conditions pré-configurées selon le profil'),
+                icon: Package,
+              },
+              {
+                value: false,
+                label: t('transaction.conditionPack.manual', 'Je gère moi-même'),
+                description: t('transaction.conditionPack.manualDesc', 'Transaction vide, ajout manuel'),
+                icon: Wrench,
+              },
+            ].map((option) => {
+              const Icon = option.icon
+              const isSelected = loadConditionPack === option.value
+              return (
+                <button
+                  key={String(option.value)}
+                  type="button"
+                  onClick={() => setLoadConditionPack(option.value)}
+                  className={`flex items-start gap-3 p-3 rounded-lg border-2 text-left transition-all ${
+                    isSelected
+                      ? 'border-primary bg-primary/5'
+                      : 'border-input hover:border-primary/50'
+                  }`}
+                  data-testid={`condition-pack-${option.value}`}
+                >
+                  <div className={`mt-0.5 w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${
+                    isSelected ? 'border-primary bg-primary' : 'border-muted-foreground/50'
+                  }`}>
+                    {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <Icon className={`w-4 h-4 ${isSelected ? 'text-primary' : 'text-muted-foreground'}`} />
+                      <span className={`text-sm font-medium ${isSelected ? 'text-primary' : 'text-foreground'}`}>
+                        {option.label}
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-0.5">{option.description}</p>
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
     </form>
   )
 
@@ -271,7 +642,12 @@ export default function CreateTransactionModal({
       <Button
         onClick={handleSubmit as any}
         disabled={
-          createMutation.isPending || !formData.clientId || !selectedTemplateId
+          createMutation.isPending ||
+          !formData.clientId ||
+          !selectedTemplateId ||
+          !profileData.propertyType ||
+          !profileData.propertyContext ||
+          profileData.isFinanced === null
         }
         data-testid="submit-create"
       >

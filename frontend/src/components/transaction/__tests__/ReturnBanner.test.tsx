@@ -5,7 +5,6 @@ import { renderWithProviders } from '../../../test/helpers'
 import ReturnBanner from '../ReturnBanner'
 
 const STORAGE_KEY = 'ofra-lastSeenAt'
-const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000
 
 describe('ReturnBanner', () => {
   beforeEach(() => {

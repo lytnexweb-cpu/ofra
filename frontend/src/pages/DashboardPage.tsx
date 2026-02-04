@@ -1,5 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { dashboardApi } from '../api/dashboard.api'
+import { authApi } from '../api/auth.api'
 import {
   KPICard,
   PipelineChart,
@@ -10,10 +12,19 @@ import {
 import { PageTransition, DashboardSkeleton } from '../components/ui'
 
 export default function DashboardPage() {
+  const { t } = useTranslation()
+
   const { data, isLoading, error } = useQuery({
     queryKey: ['dashboard', 'summary'],
     queryFn: () => dashboardApi.getSummary(),
   })
+
+  const { data: userData } = useQuery({
+    queryKey: ['auth', 'me'],
+    queryFn: authApi.me,
+  })
+
+  const userName = userData?.data?.user?.fullName?.split(' ')[0] || ''
 
   if (isLoading) {
     return <DashboardSkeleton />
@@ -28,7 +39,7 @@ export default function DashboardPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
           </div>
-          <p className="text-gray-600 dark:text-gray-400">Failed to load dashboard</p>
+          <p className="text-gray-600 dark:text-gray-400">{t('dashboard.error')}</p>
         </div>
       </div>
     )
@@ -53,98 +64,124 @@ export default function DashboardPage() {
   return (
     <PageTransition>
       <div className="space-y-6">
-        {/* Header */}
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">Welcome back! Here's what's happening with your transactions.</p>
-        </div>
+        {/* Hero Banner with greeting + key stats */}
+        <div
+          className="rounded-2xl p-6 text-white relative overflow-hidden"
+          style={{ background: 'linear-gradient(135deg, #1E3A5F 0%, #172E4D 100%)' }}
+        >
+          {/* Decorative elements */}
+          <div
+            className="absolute top-0 right-0 w-64 h-64 rounded-full opacity-10"
+            style={{ background: '#D97706', transform: 'translate(30%, -50%)' }}
+          />
+          <div
+            className="absolute bottom-0 left-0 w-32 h-32 rounded-full opacity-5"
+            style={{ background: '#D97706', transform: 'translate(-30%, 50%)' }}
+          />
 
-      {/* KPIs */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <KPICard
-          title="Active Transactions"
-          value={summary.activeTransactions}
-          color="blue"
-          icon={
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-          }
-        />
-        <KPICard
-          title="Completed"
-          value={summary.completedTransactions}
-          color="green"
-          icon={
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          }
-        />
-        <KPICard
-          title="Conversion Rate"
-          value={summary.conversionRate}
-          suffix="%"
-          color="purple"
-          icon={
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-            </svg>
-          }
-        />
-        <KPICard
-          title="Overdue Conditions"
-          value={summary.overdueConditions}
-          color={summary.overdueConditions > 0 ? 'red' : 'green'}
-          icon={
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          }
-        />
-      </div>
+          {/* Content */}
+          <div className="relative z-10">
+            {/* Greeting */}
+            <div className="mb-6">
+              <h1
+                className="text-2xl sm:text-3xl font-bold text-white"
+                style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}
+              >
+                {userName ? t('dashboard.greeting', { name: userName }) : t('nav.dashboard')}
+              </h1>
+              <p className="text-white/70 mt-1">
+                {t('dashboard.subtitle')}
+              </p>
+            </div>
 
-      {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <PipelineChart data={summary.pipeline} />
-        <RevenueChart
-          data={summary.revenue}
-          totalRevenue={summary.totalRevenue}
-          monthRevenue={summary.monthRevenue}
-        />
-      </div>
-
-      {/* Activity and Deadlines Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <RecentActivity activities={summary.recentActivity} />
-        <UpcomingDeadlines deadlines={summary.upcomingDeadlines} />
-      </div>
-
-      {/* Quick Stats Footer */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl p-6 text-white">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          <div>
-            <p className="text-blue-100 text-sm">Total Transactions</p>
-            <p className="text-3xl font-bold">{summary.totalTransactions}</p>
-          </div>
-          <div>
-            <p className="text-blue-100 text-sm">Due Soon (7 days)</p>
-            <p className="text-3xl font-bold">{summary.dueSoonConditions}</p>
-          </div>
-          <div>
-            <p className="text-blue-100 text-sm">This Month Revenue</p>
-            <p className="text-3xl font-bold">
-              ${(summary.monthRevenue ?? 0).toLocaleString()}
-            </p>
-          </div>
-          <div>
-            <p className="text-blue-100 text-sm">Total Revenue</p>
-            <p className="text-3xl font-bold">
-              ${(summary.totalRevenue ?? 0).toLocaleString()}
-            </p>
+            {/* Hero Stats Grid */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                <p className="text-white/70 text-xs sm:text-sm">{t('dashboard.transactions')}</p>
+                <p className="text-2xl sm:text-3xl font-bold mt-1">{summary.totalTransactions}</p>
+                <p className="text-xs text-white/50 mt-1">{summary.activeTransactions} {t('dashboard.active')}</p>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                <p className="text-white/70 text-xs sm:text-sm">{t('dashboard.thisWeek')}</p>
+                <p className="text-2xl sm:text-3xl font-bold mt-1">{summary.dueSoonConditions}</p>
+                <p className="text-xs text-white/50 mt-1">{t('dashboard.dueSoon')}</p>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                <p className="text-white/70 text-xs sm:text-sm">{t('dashboard.monthRevenue')}</p>
+                <p className="text-xl sm:text-2xl font-bold mt-1">
+                  {(summary.monthRevenue ?? 0).toLocaleString(undefined, { style: 'currency', currency: 'CAD', maximumFractionDigits: 0 })}
+                </p>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                <p className="text-white/70 text-xs sm:text-sm">{t('dashboard.totalRevenue')}</p>
+                <p className="text-xl sm:text-2xl font-bold mt-1" style={{ color: '#FBBF24' }}>
+                  {(summary.totalRevenue ?? 0).toLocaleString(undefined, { style: 'currency', currency: 'CAD', maximumFractionDigits: 0 })}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+
+        {/* KPIs - Now focused on actionable metrics */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <KPICard
+            title={t('dashboard.kpi.active')}
+            value={summary.activeTransactions}
+            color="primary"
+            icon={
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            }
+          />
+          <KPICard
+            title={t('dashboard.kpi.completed')}
+            value={summary.completedTransactions}
+            color="green"
+            icon={
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            }
+          />
+          <KPICard
+            title={t('dashboard.kpi.conversion')}
+            value={summary.conversionRate}
+            suffix="%"
+            color="accent"
+            icon={
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+              </svg>
+            }
+          />
+          <KPICard
+            title={t('dashboard.kpi.overdue')}
+            value={summary.overdueConditions}
+            color={summary.overdueConditions > 0 ? 'red' : 'green'}
+            icon={
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            }
+          />
+        </div>
+
+        {/* Charts Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <PipelineChart data={summary.pipeline} />
+          <RevenueChart
+            data={summary.revenue}
+            totalRevenue={summary.totalRevenue}
+            monthRevenue={summary.monthRevenue}
+          />
+        </div>
+
+        {/* Activity and Deadlines Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <RecentActivity activities={summary.recentActivity} />
+          <UpcomingDeadlines deadlines={summary.upcomingDeadlines} />
+        </div>
       </div>
     </PageTransition>
   )

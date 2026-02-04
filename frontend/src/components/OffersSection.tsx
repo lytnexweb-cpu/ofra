@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { AnimatePresence, motion } from 'framer-motion'
 import { offersApi } from '../api/offers.api'
 import type { Offer, OfferRevision, OfferStatus } from '../api/transactions.api'
@@ -14,25 +15,17 @@ interface OffersSectionProps {
   transactionStatus: string
 }
 
-const statusBadge: Record<OfferStatus, { label: string; classes: string }> = {
-  received: { label: 'Received', classes: 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300' },
-  countered: { label: 'Countered', classes: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300' },
-  accepted: { label: 'Accepted', classes: 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300' },
-  rejected: { label: 'Rejected', classes: 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300' },
-  expired: { label: 'Expired', classes: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300' },
-  withdrawn: { label: 'Withdrawn', classes: 'bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300' },
+const statusBadgeClasses: Record<OfferStatus, string> = {
+  received: 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300',
+  countered: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300',
+  accepted: 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300',
+  rejected: 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300',
+  expired: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300',
+  withdrawn: 'bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300',
 }
 
 function formatCAD(amount: number): string {
   return new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount)
-}
-
-function directionLabel(dir: string): string {
-  return dir === 'buyer_to_seller' ? 'B→S' : 'S→B'
-}
-
-function directionLabelFull(dir: string): string {
-  return dir === 'buyer_to_seller' ? 'Buyer → Seller' : 'Seller → Buyer'
 }
 
 function getLastRevision(offer: Offer): OfferRevision | null {
@@ -43,6 +36,7 @@ function getLastRevision(offer: Offer): OfferRevision | null {
 }
 
 export default function OffersSection({ transactionId, transactionStatus: _transactionStatus }: OffersSectionProps) {
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
   const navigate = useNavigate()
 
@@ -87,7 +81,7 @@ export default function OffersSection({ transactionId, transactionStatus: _trans
       if (response.success) {
         await invalidateAll()
       } else {
-        alert(response.error?.message || 'Failed to accept offer')
+        alert(response.error?.message || t('offers.errors.acceptFailed'))
       }
       setAcceptConfirm({ isOpen: false, offerId: null })
     },
@@ -103,7 +97,7 @@ export default function OffersSection({ transactionId, transactionStatus: _trans
       if (response.success) {
         await invalidateAll()
       } else {
-        alert(response.error?.message || 'Failed to reject offer')
+        alert(response.error?.message || t('offers.errors.rejectFailed'))
       }
       setRejectConfirm({ isOpen: false, offerId: null })
     },
@@ -119,7 +113,7 @@ export default function OffersSection({ transactionId, transactionStatus: _trans
       if (response.success) {
         await invalidateAll()
       } else {
-        alert(response.error?.message || 'Failed to withdraw offer')
+        alert(response.error?.message || t('offers.errors.withdrawFailed'))
       }
       setWithdrawConfirm({ isOpen: false, offerId: null })
     },
@@ -135,7 +129,7 @@ export default function OffersSection({ transactionId, transactionStatus: _trans
       if (response.success) {
         await invalidateAll()
       } else {
-        alert(response.error?.message || 'Failed to delete offer')
+        alert(response.error?.message || t('offers.errors.deleteFailed'))
       }
       setDeleteConfirm({ isOpen: false, offerId: null })
     },
@@ -147,31 +141,47 @@ export default function OffersSection({ transactionId, transactionStatus: _trans
 
   const canTakeAction = (status: OfferStatus) => status === 'received' || status === 'countered'
 
+  const getStatusLabel = (status: OfferStatus): string => {
+    return t(`offers.status.${status}`)
+  }
+
+  const getDirectionLabel = (dir: string): string => {
+    return dir === 'buyer_to_seller'
+      ? t('offers.direction.buyerToSellerShort')
+      : t('offers.direction.sellerToBuyerShort')
+  }
+
+  const getDirectionLabelFull = (dir: string): string => {
+    return dir === 'buyer_to_seller'
+      ? t('offers.direction.buyerToSeller')
+      : t('offers.direction.sellerToBuyer')
+  }
+
   return (
-    <div className="bg-white dark:bg-gray-800 shadow sm:rounded-lg">
-      <div className="px-4 py-5 sm:p-6">
-        <div className="flex items-center justify-between mb-4">
+    <div className="bg-white dark:bg-stone-800 shadow sm:rounded-lg overflow-hidden">
+      <div className="px-4 py-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
           <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white">
-            Offers
+            {t('offers.title')}
           </h3>
           <button
             onClick={() => setIsCreateModalOpen(true)}
-            className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className="inline-flex items-center justify-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring w-full sm:w-auto"
           >
-            + New Offer
+            {t('offers.newButton')}
           </button>
         </div>
 
         {isLoading ? (
-          <p className="text-sm text-gray-500 dark:text-gray-400">Loading offers...</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t('offers.loading')}</p>
         ) : offers.length === 0 ? (
-          <p className="text-sm text-gray-500 dark:text-gray-400">No offers yet.</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t('offers.empty')}</p>
         ) : (
           <div className="space-y-3">
             {offers.map((offer) => {
               const lastRev = getLastRevision(offer)
               const isExpanded = expandedOfferId === offer.id
-              const badge = statusBadge[offer.status]
+              const badgeClasses = statusBadgeClasses[offer.status]
 
               return (
                 <div
@@ -185,15 +195,15 @@ export default function OffersSection({ transactionId, transactionStatus: _trans
                     className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${badge.classes}`}>
-                        {badge.label}
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${badgeClasses}`}>
+                        {getStatusLabel(offer.status)}
                       </span>
                       <span className="text-sm font-semibold text-gray-900 dark:text-white">
                         {lastRev ? formatCAD(lastRev.price) : '—'}
                       </span>
                       {lastRev && (
                         <span className="text-xs text-gray-500 dark:text-gray-400">
-                          {directionLabelFull(lastRev.direction)}
+                          {getDirectionLabelFull(lastRev.direction)}
                         </span>
                       )}
                     </div>
@@ -227,7 +237,7 @@ export default function OffersSection({ transactionId, transactionStatus: _trans
                           {offer.revisions && offer.revisions.length > 0 && (
                             <div className="mt-3">
                               <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
-                                Revision History
+                                {t('offers.revisionHistory')}
                               </h4>
                               <div className="space-y-2">
                                 {[...offer.revisions]
@@ -247,19 +257,19 @@ export default function OffersSection({ transactionId, transactionStatus: _trans
                                             {new Date(rev.createdAt).toLocaleDateString('en-CA', { month: 'short', day: 'numeric' })}
                                           </span>
                                           <span className="text-gray-500 dark:text-gray-400">
-                                            {directionLabel(rev.direction)}
+                                            {getDirectionLabel(rev.direction)}
                                           </span>
                                           <span className="font-semibold text-gray-900 dark:text-white">
                                             {formatCAD(rev.price)}
                                           </span>
                                           {rev.deposit != null && (
                                             <span className="text-gray-500 dark:text-gray-400">
-                                              Deposit: {formatCAD(rev.deposit)}
+                                              {t('offers.deposit')}: {formatCAD(rev.deposit)}
                                             </span>
                                           )}
                                           {rev.financingAmount != null && (
                                             <span className="text-gray-500 dark:text-gray-400">
-                                              Financing: {formatCAD(rev.financingAmount)}
+                                              {t('offers.financing')}: {formatCAD(rev.financingAmount)}
                                             </span>
                                           )}
                                         </div>
@@ -270,7 +280,7 @@ export default function OffersSection({ transactionId, transactionStatus: _trans
                                         )}
                                         {rev.expiryAt && (
                                           <p className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">
-                                            Expires: {new Date(rev.expiryAt).toLocaleString('en-CA')}
+                                            {t('offers.expires')}: {new Date(rev.expiryAt).toLocaleString('en-CA')}
                                           </p>
                                         )}
                                       </div>
@@ -288,27 +298,27 @@ export default function OffersSection({ transactionId, transactionStatus: _trans
                                   onClick={() => setAcceptConfirm({ isOpen: true, offerId: offer.id })}
                                   className="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
                                 >
-                                  Accept
+                                  {t('offers.accept')}
                                 </button>
                                 {lastRev && (
                                   <button
                                     onClick={() => setCounterOffer({ offerId: offer.id, lastRevision: lastRev })}
                                     className="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                                   >
-                                    Counter
+                                    {t('offers.counter')}
                                   </button>
                                 )}
                                 <button
                                   onClick={() => setRejectConfirm({ isOpen: true, offerId: offer.id })}
                                   className="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                                 >
-                                  Reject
+                                  {t('offers.reject')}
                                 </button>
                                 <button
                                   onClick={() => setWithdrawConfirm({ isOpen: true, offerId: offer.id })}
                                   className="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md text-white bg-orange-500 hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
                                 >
-                                  Withdraw
+                                  {t('offers.withdraw')}
                                 </button>
                               </>
                             )}
@@ -317,7 +327,7 @@ export default function OffersSection({ transactionId, transactionStatus: _trans
                                 onClick={() => setDeleteConfirm({ isOpen: true, offerId: offer.id })}
                                 className="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20"
                               >
-                                Delete
+                                {t('offers.delete')}
                               </button>
                             )}
                           </div>
@@ -355,9 +365,9 @@ export default function OffersSection({ transactionId, transactionStatus: _trans
         isOpen={acceptConfirm.isOpen}
         onClose={() => setAcceptConfirm({ isOpen: false, offerId: null })}
         onConfirm={() => acceptConfirm.offerId && acceptMutation.mutate(acceptConfirm.offerId)}
-        title="Accept Offer"
-        message="Are you sure you want to accept this offer? All other active offers will be automatically rejected."
-        confirmLabel="Accept"
+        title={t('offers.confirm.acceptTitle')}
+        message={t('offers.confirm.acceptMessage')}
+        confirmLabel={t('offers.accept')}
         variant="warning"
         isLoading={acceptMutation.isPending}
       />
@@ -366,9 +376,9 @@ export default function OffersSection({ transactionId, transactionStatus: _trans
         isOpen={rejectConfirm.isOpen}
         onClose={() => setRejectConfirm({ isOpen: false, offerId: null })}
         onConfirm={() => rejectConfirm.offerId && rejectMutation.mutate(rejectConfirm.offerId)}
-        title="Reject Offer"
-        message="Are you sure you want to reject this offer?"
-        confirmLabel="Reject"
+        title={t('offers.confirm.rejectTitle')}
+        message={t('offers.confirm.rejectMessage')}
+        confirmLabel={t('offers.reject')}
         variant="danger"
         isLoading={rejectMutation.isPending}
       />
@@ -377,9 +387,9 @@ export default function OffersSection({ transactionId, transactionStatus: _trans
         isOpen={withdrawConfirm.isOpen}
         onClose={() => setWithdrawConfirm({ isOpen: false, offerId: null })}
         onConfirm={() => withdrawConfirm.offerId && withdrawMutation.mutate(withdrawConfirm.offerId)}
-        title="Withdraw Offer"
-        message="Are you sure you want to withdraw this offer?"
-        confirmLabel="Withdraw"
+        title={t('offers.confirm.withdrawTitle')}
+        message={t('offers.confirm.withdrawMessage')}
+        confirmLabel={t('offers.withdraw')}
         variant="warning"
         isLoading={withdrawMutation.isPending}
       />
@@ -388,9 +398,9 @@ export default function OffersSection({ transactionId, transactionStatus: _trans
         isOpen={deleteConfirm.isOpen}
         onClose={() => setDeleteConfirm({ isOpen: false, offerId: null })}
         onConfirm={() => deleteConfirm.offerId && deleteMutation.mutate(deleteConfirm.offerId)}
-        title="Delete Offer"
-        message="Are you sure you want to permanently delete this offer and all its revisions?"
-        confirmLabel="Delete"
+        title={t('offers.confirm.deleteTitle')}
+        message={t('offers.confirm.deleteMessage')}
+        confirmLabel={t('offers.delete')}
         variant="danger"
         isLoading={deleteMutation.isPending}
       />

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { clientsApi, type CreateClientRequest } from '../api/clients.api'
 import { parseApiError, isSessionExpired, type ParsedError } from '../utils/apiError'
 
@@ -12,6 +13,7 @@ interface CreateClientModalProps {
 type TabType = 'basic' | 'address' | 'phones'
 
 export default function CreateClientModal({ isOpen, onClose }: CreateClientModalProps) {
+  const { t } = useTranslation()
   const [activeTab, setActiveTab] = useState<TabType>('basic')
   const [formData, setFormData] = useState<CreateClientRequest>({
     firstName: '',
@@ -41,8 +43,8 @@ export default function CreateClientModal({ isOpen, onClose }: CreateClientModal
         resetForm()
       } else {
         setError({
-          title: 'Error',
-          message: response.error?.message || 'Failed to create client',
+          title: t('common.error'),
+          message: response.error?.message || t('clients.failedCreate'),
         })
       }
     },
@@ -85,8 +87,8 @@ export default function CreateClientModal({ isOpen, onClose }: CreateClientModal
 
     if (!formData.firstName.trim() || !formData.lastName.trim()) {
       setError({
-        title: 'Required Fields',
-        message: 'First name and last name are required.',
+        title: t('clients.requiredFields'),
+        message: t('clients.nameRequired'),
       })
       return
     }
@@ -118,9 +120,9 @@ export default function CreateClientModal({ isOpen, onClose }: CreateClientModal
   if (!isOpen) return null
 
   const tabs = [
-    { id: 'basic' as TabType, label: 'Infos de base' },
-    { id: 'address' as TabType, label: 'Adresse' },
-    { id: 'phones' as TabType, label: 'Téléphones' },
+    { id: 'basic' as TabType, label: t('clients.tabs.basic') },
+    { id: 'address' as TabType, label: t('clients.tabs.address') },
+    { id: 'phones' as TabType, label: t('clients.tabs.phones') },
   ]
 
   return (
@@ -136,7 +138,7 @@ export default function CreateClientModal({ isOpen, onClose }: CreateClientModal
         >
           <form onSubmit={handleSubmit}>
             <div className="p-6">
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">New Client</h3>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">{t('clients.new')}</h3>
 
               {/* Error Display */}
               {error && (
@@ -160,7 +162,7 @@ export default function CreateClientModal({ isOpen, onClose }: CreateClientModal
                       onClick={() => navigate('/login')}
                       className="mt-2 text-sm font-medium text-red-800 dark:text-red-300 underline hover:text-red-900 dark:hover:text-red-200"
                     >
-                      Go to login page →
+                      {t('clients.goToLogin')}
                     </button>
                   )}
                 </div>
@@ -197,7 +199,7 @@ export default function CreateClientModal({ isOpen, onClose }: CreateClientModal
                           htmlFor="firstName"
                           className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                         >
-                          First Name <span className="text-red-500">*</span>
+                          {t('clients.firstName')} <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="text"
@@ -215,7 +217,7 @@ export default function CreateClientModal({ isOpen, onClose }: CreateClientModal
                           htmlFor="lastName"
                           className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                         >
-                          Last Name <span className="text-red-500">*</span>
+                          {t('clients.lastName')} <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="text"
@@ -235,7 +237,7 @@ export default function CreateClientModal({ isOpen, onClose }: CreateClientModal
                         htmlFor="email"
                         className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                       >
-                        Email
+                        {t('clients.email')}
                       </label>
                       <input
                         type="email"
@@ -253,7 +255,7 @@ export default function CreateClientModal({ isOpen, onClose }: CreateClientModal
                         htmlFor="phone"
                         className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                       >
-                        Phone
+                        {t('clients.phone')}
                       </label>
                       <input
                         type="tel"
@@ -271,7 +273,7 @@ export default function CreateClientModal({ isOpen, onClose }: CreateClientModal
                         htmlFor="notes"
                         className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                       >
-                        Notes
+                        {t('clients.notes')}
                       </label>
                       <textarea
                         id="notes"
@@ -294,12 +296,12 @@ export default function CreateClientModal({ isOpen, onClose }: CreateClientModal
                         htmlFor="addressLine1"
                         className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                       >
-                        Address Line 1
+                        {t('clients.address.line1')}
                       </label>
                       <input
                         type="text"
                         id="addressLine1"
-                        placeholder="Street address"
+                        placeholder={t('clients.address.line1Placeholder')}
                         value={formData.addressLine1}
                         onChange={(e) =>
                           setFormData({ ...formData, addressLine1: e.target.value })
@@ -312,12 +314,12 @@ export default function CreateClientModal({ isOpen, onClose }: CreateClientModal
                         htmlFor="addressLine2"
                         className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                       >
-                        Address Line 2
+                        {t('clients.address.line2')}
                       </label>
                       <input
                         type="text"
                         id="addressLine2"
-                        placeholder="Apt, suite, unit, etc. (optional)"
+                        placeholder={t('clients.address.line2Placeholder')}
                         value={formData.addressLine2}
                         onChange={(e) =>
                           setFormData({ ...formData, addressLine2: e.target.value })
@@ -331,7 +333,7 @@ export default function CreateClientModal({ isOpen, onClose }: CreateClientModal
                           htmlFor="city"
                           className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                         >
-                          City
+                          {t('clients.address.city')}
                         </label>
                         <input
                           type="text"
@@ -348,12 +350,12 @@ export default function CreateClientModal({ isOpen, onClose }: CreateClientModal
                           htmlFor="provinceState"
                           className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                         >
-                          Province/State
+                          {t('clients.address.provinceState')}
                         </label>
                         <input
                           type="text"
                           id="provinceState"
-                          placeholder="QC, ON, etc."
+                          placeholder={t('clients.address.provincePlaceholder')}
                           value={formData.provinceState}
                           onChange={(e) =>
                             setFormData({ ...formData, provinceState: e.target.value })
@@ -367,12 +369,12 @@ export default function CreateClientModal({ isOpen, onClose }: CreateClientModal
                         htmlFor="postalCode"
                         className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                       >
-                        Postal Code
+                        {t('clients.address.postalCode')}
                       </label>
                       <input
                         type="text"
                         id="postalCode"
-                        placeholder="H1A 2B3"
+                        placeholder={t('clients.address.postalPlaceholder')}
                         value={formData.postalCode}
                         onChange={(e) =>
                           setFormData({ ...formData, postalCode: e.target.value })
@@ -391,12 +393,12 @@ export default function CreateClientModal({ isOpen, onClose }: CreateClientModal
                         htmlFor="cellPhone"
                         className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                       >
-                        Cell Phone
+                        {t('clients.phones.cell')}
                       </label>
                       <input
                         type="tel"
                         id="cellPhone"
-                        placeholder="Primary mobile number"
+                        placeholder={t('clients.phones.cellPlaceholder')}
                         value={formData.cellPhone}
                         onChange={(e) =>
                           setFormData({ ...formData, cellPhone: e.target.value })
@@ -409,12 +411,12 @@ export default function CreateClientModal({ isOpen, onClose }: CreateClientModal
                         htmlFor="homePhone"
                         className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                       >
-                        Home Phone
+                        {t('clients.phones.home')}
                       </label>
                       <input
                         type="tel"
                         id="homePhone"
-                        placeholder="Residential landline"
+                        placeholder={t('clients.phones.homePlaceholder')}
                         value={formData.homePhone}
                         onChange={(e) =>
                           setFormData({ ...formData, homePhone: e.target.value })
@@ -427,12 +429,12 @@ export default function CreateClientModal({ isOpen, onClose }: CreateClientModal
                         htmlFor="workPhone"
                         className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                       >
-                        Work Phone
+                        {t('clients.phones.work')}
                       </label>
                       <input
                         type="tel"
                         id="workPhone"
-                        placeholder="Business or office number"
+                        placeholder={t('clients.phones.workPlaceholder')}
                         value={formData.workPhone}
                         onChange={(e) =>
                           setFormData({ ...formData, workPhone: e.target.value })
@@ -452,14 +454,14 @@ export default function CreateClientModal({ isOpen, onClose }: CreateClientModal
                 disabled={createMutation.isPending}
                 className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 type="submit"
                 disabled={createMutation.isPending}
                 className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
               >
-                {createMutation.isPending ? 'Creating...' : 'Create Client'}
+                {createMutation.isPending ? t('clients.creating') : t('clients.createClient')}
               </button>
             </div>
           </form>
