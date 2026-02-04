@@ -12,15 +12,23 @@ import logger from '@adonisjs/core/services/logger'
 export default class TransactionsController {
   async index({ request, response, auth }: HttpContext) {
     try {
-      const { step, q } = request.qs()
+      const { step, q, page = 1, limit = 50 } = request.qs()
       const baseQuery = Transaction.query()
       TenantScopeService.apply(baseQuery, auth.user!)
+
+      // Optimization: Use withCount instead of preload for conditions
+      // This prevents N+1 queries when listing many transactions
+      // Full conditions are loaded via GET /transactions/:id or dedicated endpoint
       const query = baseQuery
         .preload('client')
         .preload('property')
         .preload('currentStep', (sq) => sq.preload('workflowStep'))
         .preload('transactionSteps', (sq) => sq.orderBy('step_order', 'asc'))
-        .preload('conditions')
+        .withCount('conditions')
+        .withCount('conditions as pendingConditionsCount', (q) => q.where('status', 'pending'))
+        .withCount('conditions as blockingConditionsCount', (q) =>
+          q.where('status', 'pending').where('level', 'blocking')
+        )
         .preload('offers', (offerQuery) => {
           offerQuery.preload('revisions', (revQuery) =>
             revQuery.orderBy('revision_number', 'desc').limit(1)
@@ -42,11 +50,25 @@ export default class TransactionsController {
         })
       }
 
-      const transactions = await query.orderBy('created_at', 'desc')
+      // Pagination for large datasets
+      const pageNum = Math.max(1, parseInt(String(page), 10) || 1)
+      const limitNum = Math.min(100, Math.max(1, parseInt(String(limit), 10) || 50))
+
+      const transactions = await query
+        .orderBy('created_at', 'desc')
+        .paginate(pageNum, limitNum)
 
       return response.ok({
         success: true,
-        data: { transactions },
+        data: {
+          transactions: transactions.all(),
+          meta: {
+            total: transactions.total,
+            perPage: transactions.perPage,
+            currentPage: transactions.currentPage,
+            lastPage: transactions.lastPage,
+          },
+        },
       })
     } catch (error) {
       return response.internalServerError({

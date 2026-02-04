@@ -29,14 +29,26 @@ interface UserDigest {
 export class ReminderService {
   /**
    * Process daily digest job - sends summary email to each user
+   *
+   * Note: Each user's digest is built from their own transactions only
+   * (filtered by owner_user_id in buildUserDigest). This ensures tenant
+   * isolation - users only receive data about their own transactions.
    */
   static async processDailyDigest(_job: Job<DailyDigestPayload>) {
     logger.info('Processing daily digest job')
 
-    // Get all active users (users with at least one active transaction)
-    const users = await User.query()
+    // Only get users who have at least one transaction (optimization)
+    // This avoids loading users with no data to report
+    const usersWithTransactions = await User.query()
+      .whereExists((subQuery) => {
+        subQuery
+          .from('transactions')
+          .whereColumn('transactions.owner_user_id', 'users.id')
+      })
 
-    for (const user of users) {
+    logger.info({ userCount: usersWithTransactions.length }, 'Users with transactions to process')
+
+    for (const user of usersWithTransactions) {
       try {
         const digest = await this.buildUserDigest(user)
 
