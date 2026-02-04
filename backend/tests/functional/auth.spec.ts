@@ -259,3 +259,158 @@ test.group('Auth - Reset Password', (group) => {
     })
   })
 })
+
+// D40: Onboarding Tests
+test.group('Auth - Onboarding (D40)', (group) => {
+  // Helper to create authenticated request (same pattern as other test files)
+  function withAuth(request: any, userId: number) {
+    const sessionId = cuid()
+    return request
+      .withCookie('adonis-session', sessionId)
+      .withEncryptedCookie(sessionId, { auth_web: userId })
+  }
+
+  group.each.setup(async () => {
+    await truncateAll()
+  })
+
+  test('GET /api/me returns onboardingCompleted=false for new user', async ({ client }) => {
+    const user = await createUser({ email: 'newuser@test.com', onboardingCompleted: false })
+
+    const response = await withAuth(client.get('/api/me'), user.id)
+
+    response.assertStatus(200)
+    response.assertBodyContains({
+      success: true,
+      data: {
+        user: {
+          onboardingCompleted: false,
+        },
+      },
+    })
+  })
+
+  test('GET /api/me returns onboardingCompleted=true after onboarding', async ({ client }) => {
+    const user = await createUser({
+      email: 'onboarded@test.com',
+      onboardingCompleted: true,
+      practiceType: 'solo',
+      propertyContexts: ['urban_suburban'],
+      annualVolume: 'established',
+    })
+
+    const response = await withAuth(client.get('/api/me'), user.id)
+
+    response.assertStatus(200)
+    response.assertBodyContains({
+      success: true,
+      data: {
+        user: {
+          onboardingCompleted: true,
+          practiceType: 'solo',
+          annualVolume: 'established',
+        },
+      },
+    })
+  })
+
+  test('PUT /api/me/onboarding saves profile and marks completed', async ({ client, assert }) => {
+    const user = await createUser({ email: 'onboard@test.com', onboardingCompleted: false })
+
+    const response = await withAuth(client.put('/api/me/onboarding'), user.id).json({
+      language: 'fr',
+      practiceType: 'small_team',
+      propertyContexts: ['rural', 'land'],
+      annualVolume: 'beginner',
+      preferAutoConditions: true,
+    })
+
+    response.assertStatus(200)
+    response.assertBodyContains({
+      success: true,
+      data: {
+        profile: {
+          practiceType: 'small_team',
+          annualVolume: 'beginner',
+          onboardingCompleted: true,
+        },
+      },
+    })
+
+    // Verify user was updated in DB
+    await user.refresh()
+    assert.equal(user.language, 'fr')
+    assert.equal(user.practiceType, 'small_team')
+    assert.deepEqual(user.propertyContexts, ['rural', 'land'])
+    assert.equal(user.annualVolume, 'beginner')
+    assert.equal(user.onboardingCompleted, true)
+    assert.isNotNull(user.onboardingCompletedAt)
+  })
+
+  test('PUT /api/me/onboarding fails with invalid practiceType', async ({ client }) => {
+    const user = await createUser({ email: 'invalid@test.com' })
+
+    const response = await withAuth(client.put('/api/me/onboarding'), user.id).json({
+      language: 'fr',
+      practiceType: 'invalid_type',
+      propertyContexts: ['urban_suburban'],
+      annualVolume: 'beginner',
+      preferAutoConditions: true,
+    })
+
+    response.assertStatus(422)
+  })
+
+  test('PUT /api/me/onboarding fails with empty propertyContexts', async ({ client }) => {
+    const user = await createUser({ email: 'empty@test.com' })
+
+    const response = await withAuth(client.put('/api/me/onboarding'), user.id).json({
+      language: 'en',
+      practiceType: 'solo',
+      propertyContexts: [],
+      annualVolume: 'beginner',
+      preferAutoConditions: false,
+    })
+
+    response.assertStatus(422)
+  })
+
+  test('POST /api/me/onboarding/skip marks skipped and completed', async ({ client, assert }) => {
+    const user = await createUser({ email: 'skip@test.com', onboardingCompleted: false })
+
+    const response = await withAuth(client.post('/api/me/onboarding/skip'), user.id)
+
+    response.assertStatus(200)
+    response.assertBodyContains({
+      success: true,
+      data: {
+        message: 'Onboarding skipped',
+      },
+    })
+
+    // Verify user was updated
+    await user.refresh()
+    assert.equal(user.onboardingSkipped, true)
+    assert.equal(user.onboardingCompleted, true)
+  })
+
+  test('GET /api/me returns language after onboarding', async ({ client }) => {
+    const user = await createUser({
+      email: 'lang@test.com',
+      language: 'fr',
+      onboardingCompleted: true,
+    })
+
+    const response = await withAuth(client.get('/api/me'), user.id)
+
+    response.assertStatus(200)
+    response.assertBodyContains({
+      success: true,
+      data: {
+        user: {
+          language: 'fr',
+        },
+      },
+    })
+  })
+})
