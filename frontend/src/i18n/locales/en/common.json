@@ -1,7 +1,7 @@
 {
   "app": {
     "name": "OFRA",
-    "tagline": "Real Estate Transaction Management"
+    "tagline": "Zero oversights. Zero stress."
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -9,6 +9,76 @@
     "clients": "Clients",
     "settings": "Settings",
     "logout": "Logout"
+  },
+  "dashboard": {
+    "error": "Failed to load dashboard",
+    "greeting": "Hello, {{name}} \ud83d\udc4b",
+    "subtitle": "Here's your transaction overview.",
+    "transactions": "Transactions",
+    "thisWeek": "This Week",
+    "dueSoon": "due soon",
+    "active": "active",
+    "monthRevenue": "Revenue this month",
+    "totalRevenue": "Total revenue",
+    "kpi": {
+      "active": "Active Transactions",
+      "completed": "Completed",
+      "conversion": "Conversion Rate",
+      "overdue": "Overdue Conditions"
+    },
+    "footer": {
+      "totalTransactions": "Total Transactions",
+      "dueSoon": "Due Soon (7 days)",
+      "monthRevenue": "Month Revenue",
+      "totalRevenue": "Total Revenue"
+    },
+    "charts": {
+      "pipeline": "Pipeline",
+      "activeTransactions": "{{count}} active transactions",
+      "activeTransactionsSingular": "{{count}} active transaction",
+      "noActiveTransactions": "No active transactions",
+      "transaction": "transaction",
+      "transactions": "transactions",
+      "count": "Count",
+      "commissions": "Commissions",
+      "last6Months": "Last 6 months",
+      "thisMonth": "this month",
+      "noCommissionData": "No commission data yet",
+      "commission": "Commission",
+      "totalEarned": "Total earned",
+      "recentActivity": "Recent Activity",
+      "noRecentActivity": "No recent activity",
+      "upcomingDeadlines": "Upcoming Deadlines",
+      "noUpcomingDeadlines": "No upcoming deadlines",
+      "overdue": "Overdue",
+      "dueToday": "Due today",
+      "tomorrow": "Tomorrow",
+      "days": "{{count}} days",
+      "noDate": "No date",
+      "blocking": "Blocking",
+      "priority": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High"
+      },
+      "activity": {
+        "transaction_created": "Transaction created",
+        "step_entered": "Step entered",
+        "step_completed": "Step completed",
+        "step_skipped": "Step skipped",
+        "condition_created": "Condition added",
+        "condition_completed": "Condition completed",
+        "condition_deleted": "Condition removed",
+        "offer_created": "Offer created",
+        "offer_accepted": "Offer accepted",
+        "offer_rejected": "Offer rejected",
+        "offer_withdrawn": "Offer withdrawn",
+        "note_added": "Note added",
+        "enteredStep": "Entered step: {{step}}",
+        "completedStep": "Completed step: {{step}}",
+        "conditionCompleted": "Condition completed: {{condition}}"
+      }
+    }
   },
   "workflow": {
     "steps": {
@@ -34,12 +104,34 @@
       "skipConfirm": "Skip step \"{{step}}\"? Incomplete conditions will be ignored. This cannot be undone.",
       "advancedTo": "Advanced to: {{step}}",
       "stepSkipped": "Step skipped"
+    },
+    "skipConfirmModal": {
+      "title": "Confirmation Required",
+      "warningBlocking": "You are about to skip step \"{{step}}\" with {{count}} unresolved blocking condition(s). This action cannot be undone.",
+      "warningRequired": "You are about to skip step \"{{step}}\" with {{count}} unresolved required condition(s). This action cannot be undone.",
+      "warningMixed": "You are about to skip step \"{{step}}\" with {{blockingCount}} blocking and {{requiredCount}} required unresolved condition(s). This action cannot be undone.",
+      "warningRecommended": "Are you sure you want to skip step \"{{step}}\"?",
+      "warningRecommendedHint": "{{count}} recommended condition(s) will be automatically archived.",
+      "typePhrase": "To confirm, type the following phrase:",
+      "confirmPhrase": "I still want to skip this step",
+      "termsLabel": "I understand this action cannot be undone and I accept the",
+      "termsLink": "terms of service",
+      "inputPlaceholder": "Type the phrase above...",
+      "confirm": "Confirm and Skip Step",
+      "confirmSimple": "Yes, skip step",
+      "reasonLabel": "Reason for skipping",
+      "reasonPlaceholder": "Explain why you are skipping this step...",
+      "reasonMinLength": "{{count}} more character(s) required"
     }
   },
   "actionZone": {
     "blockingCount": "{{count}} blocking condition(s)",
+    "requiredCount": "{{count}} required condition(s)",
     "readyToAdvance": "Ready to advance",
-    "deadline": "Deadline"
+    "deadline": "Deadline",
+    "blocking": "blocking",
+    "required": "required",
+    "recommended": "recommended"
   },
   "blocking": {
     "modalTitle": "Advancement Blocked",
@@ -51,6 +143,23 @@
   },
   "conditions": {
     "blocking": "Blocking",
+    "filteringBy": "Filtering by",
+    "allSteps": "All steps",
+    "sourceType": {
+      "legal": "Legal",
+      "government": "Gov.",
+      "industry": "Industry",
+      "best_practice": "Best practice"
+    },
+    "debugInfo": "{{count}} templates | Step {{step}} | Profile: {{status}}",
+    "debugProfileAbsent": "absent",
+    "debugProfileIncomplete": "incomplete",
+    "debugProfileComplete": "complete",
+    "stepLabel": "Step {{step}}",
+    "emptyState": {
+      "title": "No conditions required at this step",
+      "description": "You can add custom conditions if needed."
+    },
     "types": {
       "financing": "Financing",
       "deposit": "Deposit",
@@ -62,7 +171,102 @@
       "documents": "Documents",
       "repairs": "Repairs",
       "other": "Other"
-    }
+    },
+    "levels": {
+      "blocking": "Blocking",
+      "required": "Required",
+      "recommended": "Recommended"
+    },
+    "form": {
+      "title": "New Condition",
+      "suggestions": "Suggestions",
+      "custom": "Custom",
+      "suggestionsForStep": "Suggestions for this step",
+      "otherSteps": "Other steps",
+      "searchPlaceholder": "Search conditions...",
+      "noSuggestions": "No suggestions for this profile",
+      "createCustom": "Create a custom condition",
+      "noProfile": "Transaction profile missing",
+      "noProfileHint": "Create a profile to see suggestions tailored to your transaction.",
+      "profileIncomplete": "Profile incomplete",
+      "profileIncompleteHint": "Complete the profile to see all relevant suggestions.",
+      "nothingToFilter": "Nothing to filter",
+      "allSuggestionsUsed": "All suggestions have been added",
+      "allSuggestionsUsedHint": "You can create a custom condition if needed.",
+      "titleLabel": "Title",
+      "dueDate": "Due Date",
+      "description": "Description",
+      "requiredFields": "Title and due date are required.",
+      "level": "Importance Level",
+      "levelHint": {
+        "blocking": "Blocks advancement — must be completed before moving to next step",
+        "required": "Requires explicit resolution — you'll need to choose how to handle it",
+        "recommended": "Recommended — will be auto-archived if not addressed"
+      }
+    },
+    "editModal": {
+      "title": "Edit condition",
+      "notePlaceholder": "Add a note or details..."
+    },
+    "updateSuccess": "Condition updated",
+    "updateError": "Failed to update",
+    "archivedError": "This condition is archived and cannot be modified",
+    "lockedTooltip": "Locked after validation"
+  },
+  "resolution": {
+    "modalTitle": "Resolution Required",
+    "modalDescription": "The following conditions require explicit resolution before advancing to the next step.",
+    "blockingWarning": "These blocking conditions must be completed before you can advance:",
+    "requiredConditions": "Conditions requiring resolution",
+    "completed": "Completed",
+    "waived": "Waived",
+    "notApplicable": "N/A",
+    "skippedWithRisk": "Skip (Risk)",
+    "noteRequired": "Reason",
+    "notePlaceholder": "Explain why this condition is being resolved this way...",
+    "resolving": "Resolving...",
+    "confirmAndAdvance": "Resolve & Advance",
+    "success": "Conditions resolved successfully",
+    "error": "Failed to resolve conditions"
+  },
+  "validation": {
+    "modalTitle": "Validate Condition",
+    "modalTitleBlocking": "Blocking Condition",
+    "modalTitleRequired": "Required Condition",
+    "uploadEvidence": "Upload Evidence",
+    "uploadHint": "Drag and drop a file or click to select",
+    "uploadFormats": "PDF, images, Office documents accepted (max 10 MB)",
+    "noEvidence": "I don't have evidence",
+    "addNote": "Add a note (optional)",
+    "notePlaceholder": "Additional details or context...",
+    "validate": "Validate",
+    "validating": "Validating...",
+    "escapeModal": {
+      "title": "Confirm without evidence",
+      "warning": "You are about to validate a blocking condition without attached evidence.",
+      "legalDisclaimer": "This action may be reviewed in case of audit or dispute.",
+      "reasonLabel": "Reason (required)",
+      "reasonPlaceholder": "Explain why you're validating without evidence...",
+      "reasonMinLength": "{{count}} more character(s) required (min 10)",
+      "checkbox": "I understand this is a critical condition and I'm validating it without documented evidence",
+      "confirmPhrase": "I confirm without evidence",
+      "typePhrase": "Type the phrase to confirm:",
+      "confirm": "Confirm without evidence"
+    },
+    "evidence": {
+      "attached": "{{count}} evidence attached",
+      "noEvidence": "No evidence",
+      "escapedBadge": "Validated without evidence",
+      "escapedReason": "Reason",
+      "viewEvidence": "View evidence",
+      "type": {
+        "file": "File",
+        "link": "Link",
+        "note": "Note"
+      }
+    },
+    "success": "Condition validated",
+    "error": "Validation failed"
   },
   "common": {
     "save": "Save",
@@ -87,20 +291,26 @@
     "all": "All",
     "required": "Required",
     "optional": "Optional",
+    "default": "Default",
+    "recommended": "Recommended",
     "retry": "Retry",
     "error": "An error occurred",
     "success": "Success",
     "skipToContent": "Skip to main content",
     "openMenu": "Open main menu",
+    "closeMenu": "Close menu",
     "notifications": "Notifications",
     "poweredBy": "Powered by",
     "breadcrumb": "Breadcrumb",
     "goBack": "Go back",
-    "mainNavigation": "Main navigation"
+    "mainNavigation": "Main navigation",
+    "tabNavigation": "Tab navigation",
+    "user": "User"
   },
   "auth": {
     "logout": "Logout",
     "loggingOut": "Logging out...",
+    "login": "Sign in",
     "createAccount": "Create your account",
     "fullName": "Full name",
     "email": "Email address",
@@ -109,6 +319,11 @@
     "register": "Create account",
     "creatingAccount": "Creating account...",
     "alreadyHaveAccount": "Already have an account? Sign in",
+    "noAccountYet": "Don't have an account?",
+    "createAccountLink": "Create an account",
+    "forgotPasswordLink": "Forgot password?",
+    "invalidCredentials": "Invalid email or password.",
+    "loginFailed": "Login failed. Please try again.",
     "registrationFailed": "Registration failed. Please try again.",
     "networkError": "Network error. Please check your connection.",
     "fillAllFields": "Please fill in all fields.",
@@ -139,6 +354,7 @@
     "price": "Price",
     "client": "Client",
     "step": "Step",
+    "template": "Template",
     "dueDate": "Due Date",
     "progress": "Progress",
     "purchase": "Purchase",
@@ -146,7 +362,78 @@
     "new": "New Transaction",
     "empty": "No transactions yet",
     "emptyDescription": "Create your first transaction to get started",
-    "emptyCta": "Create my first transaction"
+    "emptyCta": "Create my first transaction",
+    "status": {
+      "active": "Active",
+      "cancelled": "Cancelled"
+    },
+    "actions": {
+      "cancel": "Cancel Transaction",
+      "delete": "Delete Permanently",
+      "moreActions": "More actions"
+    },
+    "cancelModal": {
+      "title": "Cancel Transaction",
+      "description": "This transaction will be marked as cancelled. Data will be preserved for history.",
+      "reason": "Cancellation Reason",
+      "reasonPlaceholder": "Select a reason...",
+      "reasons": {
+        "offer_rejected": "Offer rejected",
+        "buyer_withdrew": "Buyer withdrew",
+        "financing_refused": "Financing refused",
+        "inspection_issues": "Inspection issues",
+        "seller_withdrew": "Seller withdrew",
+        "other": "Other"
+      },
+      "confirm": "Confirm Cancellation",
+      "success": "Transaction cancelled successfully"
+    },
+    "deleteModal": {
+      "title": "Delete Permanently",
+      "warning": "You are about to permanently delete the transaction \"{{client}}\". This action cannot be undone and all data will be lost.",
+      "typePhrase": "To confirm, type the following phrase:",
+      "confirmPhrase": "permanently delete",
+      "termsLabel": "I understand this action cannot be undone and I accept the",
+      "termsLink": "terms of service",
+      "inputPlaceholder": "Type the phrase above...",
+      "confirm": "Delete Permanently",
+      "success": "Transaction deleted"
+    },
+    "filter": {
+      "showCancelled": "Show cancelled",
+      "hideCancelled": "Hide cancelled"
+    },
+    "profile": {
+      "title": "Property Profile",
+      "hint": "This profile enables tailored condition suggestions.",
+      "propertyType": "Property Type",
+      "house": "House",
+      "condo": "Condo",
+      "land": "Land",
+      "propertyContext": "Context",
+      "urban": "Urban",
+      "suburban": "Suburban",
+      "rural": "Rural",
+      "isFinanced": "Financing",
+      "financed": "Financed",
+      "cash": "Cash",
+      "ruralDetails": "Rural Details",
+      "hasWell": "Well",
+      "hasSeptic": "Septic Tank",
+      "accessType": "Access Type",
+      "accessPublic": "Public",
+      "accessPrivate": "Private",
+      "accessRightOfWay": "Right of Way",
+      "appraisalRequired": "Appraisal Required"
+    },
+    "conditionPack": {
+      "title": "Starting Conditions",
+      "hint": "Choose how to initialize transaction conditions.",
+      "loadPack": "Load recommended pack",
+      "loadPackDesc": "Pre-configured conditions based on profile",
+      "manual": "I'll manage myself",
+      "manualDesc": "Empty transaction, manual setup"
+    }
   },
   "returnBanner": {
     "message": "Welcome back! Here's what changed since your last visit.",
@@ -162,5 +449,484 @@
     "overdue": "{{count}} overdue",
     "thisWeek": "{{count}} this week",
     "allClear": "All clear this week"
+  },
+  "client": {
+    "new": "New client",
+    "empty": "No clients yet",
+    "emptyDescription": "Add your first client to get started",
+    "emptyCta": "Add my first client",
+    "noEmail": "No email",
+    "noPhone": "No phone",
+    "transactions": "{{count}} transaction(s)"
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Customize the appearance and behavior of the application",
+    "appearance": {
+      "title": "Appearance",
+      "darkMode": "Dark mode",
+      "darkModeDescription": "Enable dark theme to reduce eye strain",
+      "theme": {
+        "light": "Light",
+        "dark": "Dark",
+        "system": "System"
+      }
+    },
+    "language": {
+      "title": "Language",
+      "description": "Choose the interface language",
+      "french": "Français",
+      "english": "English"
+    },
+    "regional": {
+      "title": "Regional preferences",
+      "dateFormat": "Date format",
+      "timezone": "Timezone"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "emailNotifications": "Email notifications",
+      "emailDescription": "Receive reminders and updates by email"
+    },
+    "update": "Update",
+    "updating": "Updating...",
+    "updateSuccess": "Updated successfully",
+    "updateError": "Failed to update"
+  },
+  "account": {
+    "title": "My Account",
+    "subtitle": "Manage your personal information and security",
+    "tabs": {
+      "profile": "Profile",
+      "security": "Security"
+    },
+    "profile": {
+      "title": "Profile Information",
+      "photo": "Profile photo",
+      "photoHint": "Click to change your photo",
+      "fullName": "Full name",
+      "email": "Email address",
+      "phone": "Phone",
+      "agency": "Agency",
+      "licenseNumber": "License number",
+      "emailSignature": "Email signature",
+      "signatureHint": "Appears in automated emails sent to clients.",
+      "signaturePlaceholder": "Best regards,\nJohn Doe\nReal Estate Broker\nPhone: 555-1234"
+    },
+    "security": {
+      "title": "Account Security",
+      "changePassword": "Change password",
+      "currentPassword": "Current password",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm password",
+      "passwordHint": "Minimum 8 characters",
+      "changeEmail": "Change email",
+      "newEmail": "New email",
+      "logoutAll": "Sign out of all devices",
+      "logoutAllDescription": "You will be signed out of all your devices and sessions, including this one.",
+      "logoutAllButton": "Sign out everywhere",
+      "loggingOut": "Signing out..."
+    },
+    "save": "Save changes",
+    "saving": "Saving..."
+  },
+  "onboarding": {
+    "welcome": "Welcome to Ofra!",
+    "subtitle": "A few questions to personalize your experience",
+    "skip": "Skip",
+    "back": "Back",
+    "continue": "Continue",
+    "finish": "Finish",
+    "stepOf": "Step {{current}} of {{total}}",
+    "steps": {
+      "language": {
+        "title": "Choose your language",
+        "subtitle": "Select your interface language"
+      },
+      "practice": {
+        "title": "How do you work?",
+        "subtitle": "This helps us tailor your experience",
+        "solo": "I work alone",
+        "soloDesc": "Independent broker",
+        "smallTeam": "Small team",
+        "smallTeamDesc": "2 to 5 people",
+        "agency": "Agency",
+        "agencyDesc": "More than 5 people"
+      },
+      "contexts": {
+        "title": "Your transaction types",
+        "subtitle": "Select all that apply",
+        "hint": "This determines which conditions will be suggested",
+        "urbanSuburban": "Residential",
+        "urbanSuburbanDesc": "Urban / Suburban",
+        "rural": "Rural",
+        "ruralDesc": "Well, septic system",
+        "condo": "Condos",
+        "condoDesc": "Condominiums",
+        "land": "Land",
+        "landDesc": "Vacant lots"
+      },
+      "volume": {
+        "title": "Your annual volume",
+        "subtitle": "How many transactions per year?",
+        "beginner": "Beginner",
+        "beginnerDesc": "Less than 10 transactions / year",
+        "established": "Established",
+        "establishedDesc": "10 to 30 transactions / year",
+        "high": "High volume",
+        "highDesc": "More than 30 transactions / year"
+      },
+      "preference": {
+        "title": "Your work style",
+        "subtitle": "How do you prefer to manage your conditions?",
+        "guided": "Guide me",
+        "guidedDesc": "Ofra automatically loads relevant conditions based on your profile. You can always modify them.",
+        "guidedTag": "Recommended",
+        "manual": "I prefer full control",
+        "manualDesc": "You manually add each condition. Suggestions remain available at each step."
+      }
+    },
+    "success": {
+      "title": "You're all set!",
+      "subtitle": "Your Ofra experience is now personalized.",
+      "profileTitle": "Your profile:",
+      "language": "Language",
+      "practice": "Practice",
+      "contexts": "Contexts",
+      "volume": "Volume",
+      "style": "Style",
+      "editHint": "You can change these preferences anytime in settings.",
+      "cta": "Go to my dashboard"
+    }
+  },
+  "landing": {
+    "nav": {
+      "pricing": "Pricing",
+      "login": "Sign in",
+      "getStarted": "Get Started"
+    },
+    "hero": {
+      "title": "Manage your real estate transactions with confidence",
+      "subtitle": "Ofra guides you through every step of the transaction, from offer to keys. Never miss a deadline again.",
+      "cta": "Start for free",
+      "pricing": "See pricing",
+      "badge1": "No credit card required",
+      "badge2": "14-day free trial",
+      "badge3": "Cancel anytime"
+    },
+    "features": {
+      "title": "Everything you need to close more deals",
+      "subtitle": "Powerful tools designed specifically for New Brunswick real estate professionals",
+      "workflow": {
+        "title": "Guided Workflow",
+        "desc": "8-step process from consultation to post-closing, tailored for NB transactions"
+      },
+      "reminders": {
+        "title": "Smart Reminders",
+        "desc": "Never miss a deadline with automatic alerts for conditions and key dates"
+      },
+      "blocking": {
+        "title": "Protection System",
+        "desc": "Blocking conditions prevent costly oversights before advancing steps"
+      },
+      "clients": {
+        "title": "Client Management",
+        "desc": "Keep all your clients organized with transaction history and contact info"
+      },
+      "timeline": {
+        "title": "Activity Timeline",
+        "desc": "Track every action and change throughout the transaction lifecycle"
+      },
+      "fast": {
+        "title": "Lightning Fast",
+        "desc": "Modern interface designed for speed and efficiency on desktop and mobile"
+      }
+    },
+    "stats": {
+      "agents": "Real estate agents",
+      "transactions": "Transactions managed",
+      "uptime": "Uptime",
+      "rating": "Average rating"
+    },
+    "testimonials": {
+      "title": "Trusted by top agents in New Brunswick",
+      "1": "Ofra has transformed how I manage my transactions. I never miss a deadline anymore!",
+      "2": "The blocking conditions feature saved me from a costly mistake. Worth every penny.",
+      "3": "Finally, a tool that understands how we work in New Brunswick. Highly recommended!"
+    },
+    "cta": {
+      "title": "Ready to streamline your transactions?",
+      "subtitle": "Join hundreds of agents already using Ofra to close more deals.",
+      "button": "Start your free trial"
+    },
+    "footer": {
+      "tagline": "Zero oversights. Zero stress.",
+      "product": "Product",
+      "legal": "Legal",
+      "contact": "Contact",
+      "signup": "Sign up",
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service",
+      "contactUs": "Contact Us",
+      "rights": "All rights reserved."
+    }
+  },
+  "legal": {
+    "privacy": {
+      "title": "Privacy Policy",
+      "lastUpdated": "Last updated",
+      "sections": {
+        "collection": {
+          "title": "Information We Collect",
+          "content": "We collect information you provide directly, including your name, email address, and transaction data. We also automatically collect usage data to improve our services."
+        },
+        "usage": {
+          "title": "How We Use Your Information",
+          "content": "We use your information to provide and improve Ofra services, communicate with you about your account, and send important updates about your transactions."
+        },
+        "storage": {
+          "title": "Data Storage & Security",
+          "content": "Your data is stored securely on servers located in Canada. We use industry-standard encryption and security measures to protect your information."
+        },
+        "rights": {
+          "title": "Your Rights",
+          "content": "You have the right to access, correct, or delete your personal data. You can also request a copy of your data or restrict certain processing activities."
+        },
+        "contact": {
+          "title": "Contact Us",
+          "content": "For privacy-related inquiries, contact us at privacy@ofra.ca or write to: Ofra, Moncton, New Brunswick, Canada."
+        }
+      }
+    },
+    "terms": {
+      "title": "Terms of Service",
+      "lastUpdated": "Last updated",
+      "sections": {
+        "acceptance": {
+          "title": "Acceptance of Terms",
+          "content": "By accessing or using Ofra, you agree to be bound by these Terms of Service and our Privacy Policy. If you do not agree, please do not use our services."
+        },
+        "services": {
+          "title": "Our Services",
+          "content": "Ofra provides real estate transaction management tools for professionals. We reserve the right to modify, suspend, or discontinue any part of our services at any time."
+        },
+        "account": {
+          "title": "Your Account",
+          "content": "You are responsible for maintaining the confidentiality of your account credentials and for all activities under your account. Notify us immediately of any unauthorized use."
+        },
+        "payment": {
+          "title": "Payment Terms",
+          "content": "Paid plans are billed monthly or annually. Prices are in Canadian dollars and subject to applicable taxes. Refunds are provided according to our refund policy."
+        },
+        "termination": {
+          "title": "Termination",
+          "content": "You may cancel your account at any time. We may terminate or suspend your account for violations of these terms or for any other reason at our discretion."
+        },
+        "liability": {
+          "title": "Limitation of Liability",
+          "content": "Ofra is provided 'as is' without warranties. We are not liable for any indirect, incidental, or consequential damages arising from your use of our services."
+        }
+      }
+    }
+  },
+  "offers": {
+    "title": "Offers",
+    "new": "New Offer",
+    "newButton": "+ New offer",
+    "loading": "Loading offers...",
+    "empty": "No offers yet.",
+    "revisionHistory": "Revision History",
+    "deposit": "Deposit",
+    "financing": "Financing",
+    "expires": "Expires",
+    "accept": "Accept",
+    "counter": "Counter",
+    "reject": "Reject",
+    "withdraw": "Withdraw",
+    "delete": "Delete",
+    "status": {
+      "received": "Received",
+      "countered": "Countered",
+      "accepted": "Accepted",
+      "rejected": "Rejected",
+      "expired": "Expired",
+      "withdrawn": "Withdrawn"
+    },
+    "direction": {
+      "buyerToSellerShort": "B→S",
+      "sellerToBuyerShort": "S→B",
+      "buyerToSeller": "Buyer → Seller",
+      "sellerToBuyer": "Seller → Buyer"
+    },
+    "confirm": {
+      "acceptTitle": "Accept Offer",
+      "acceptMessage": "Are you sure you want to accept this offer? All other active offers will be automatically rejected.",
+      "rejectTitle": "Reject Offer",
+      "rejectMessage": "Are you sure you want to reject this offer?",
+      "withdrawTitle": "Withdraw Offer",
+      "withdrawMessage": "Are you sure you want to withdraw this offer?",
+      "deleteTitle": "Delete Offer",
+      "deleteMessage": "Are you sure you want to permanently delete this offer and all its revisions?"
+    },
+    "errors": {
+      "acceptFailed": "Failed to accept offer",
+      "rejectFailed": "Failed to reject offer",
+      "withdrawFailed": "Failed to withdraw offer",
+      "deleteFailed": "Failed to delete offer"
+    },
+    "counterOffer": "Counter-Offer",
+    "price": "Price (CAD)",
+    "deposit": "Deposit (CAD)",
+    "financingAmount": "Financing Amount (CAD)",
+    "expiryDate": "Expiry Date",
+    "direction": "Direction",
+    "notes": "Notes",
+    "notesPlaceholder": "Additional notes...",
+    "counterNotesPlaceholder": "Counter-offer notes...",
+    "buyerToSeller": "Buyer → Seller",
+    "sellerToBuyer": "Seller → Buyer",
+    "creating": "Creating...",
+    "submitting": "Submitting...",
+    "createOffer": "Create Offer",
+    "submitCounterOffer": "Submit Counter-Offer",
+    "requiredFields": "Required Fields",
+    "validPriceRequired": "A valid price is required.",
+    "failedCreate": "Failed to create offer",
+    "failedCounter": "Failed to submit counter-offer"
+  },
+  "clients": {
+    "new": "New Client",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "email": "Email",
+    "phone": "Phone",
+    "notes": "Notes",
+    "tabs": {
+      "basic": "Basic Info",
+      "address": "Address",
+      "phones": "Phones"
+    },
+    "address": {
+      "line1": "Address Line 1",
+      "line2": "Address Line 2",
+      "line1Placeholder": "Street address",
+      "line2Placeholder": "Apt, suite, unit, etc. (optional)",
+      "city": "City",
+      "provinceState": "Province/State",
+      "provincePlaceholder": "NB, QC, ON, etc.",
+      "postalCode": "Postal Code",
+      "postalPlaceholder": "E1A 2B3"
+    },
+    "phones": {
+      "cell": "Cell Phone",
+      "cellPlaceholder": "Primary mobile number",
+      "home": "Home Phone",
+      "homePlaceholder": "Residential landline",
+      "work": "Work Phone",
+      "workPlaceholder": "Business or office number"
+    },
+    "requiredFields": "Required Fields",
+    "nameRequired": "First name and last name are required.",
+    "creating": "Creating...",
+    "createClient": "Create Client",
+    "saving": "Saving...",
+    "saveChanges": "Save Changes",
+    "failedCreate": "Failed to create client",
+    "goToLogin": "Go to login page →",
+    "details": {
+      "notFound": "Client not found",
+      "backToClients": "Back to Clients",
+      "deleteClient": "Delete Client",
+      "contactInfo": "Contact Information",
+      "transactionsHistory": "Transactions & History",
+      "transactionNumber": "Transaction #{{id}}",
+      "viewDetails": "View details →",
+      "noTransactions": "No transactions for this client.",
+      "deleteConfirmTitle": "Delete Client",
+      "deleteConfirmMessage": "Are you sure you want to delete {{name}}? This action cannot be undone.",
+      "deleteBlockedMessage": "Cannot delete this client because they have {{count}} transaction(s). Please delete or reassign the transactions first.",
+      "address": "Address"
+    }
+  },
+  "contact": {
+    "title": "Contact our sales team",
+    "subtitle": "Interested in Ofra Enterprise? Let's discuss how we can help your team.",
+    "form": {
+      "name": "Full name",
+      "namePlaceholder": "John Doe",
+      "email": "Email address",
+      "emailPlaceholder": "john@company.com",
+      "company": "Company name",
+      "companyPlaceholder": "Your brokerage",
+      "teamSize": "Team size",
+      "selectTeamSize": "Select team size",
+      "message": "Message",
+      "messagePlaceholder": "Tell us about your needs...",
+      "submit": "Send message",
+      "sending": "Sending..."
+    },
+    "success": {
+      "title": "Message sent!",
+      "message": "Thank you for your interest. Our team will contact you within 24-48 hours."
+    }
+  },
+  "pricing": {
+    "title": "Simple, transparent pricing",
+    "subtitle": "Choose the plan that fits your business. All prices in CAD, no hidden fees.",
+    "perMonth": "/month",
+    "popular": "Most Popular",
+    "plans": {
+      "essentiel": {
+        "name": "Essentiel",
+        "desc": "For independent agents getting started",
+        "cta": "Start with Essentiel"
+      },
+      "pro": {
+        "name": "Pro",
+        "desc": "For growing agents who need more",
+        "cta": "Start with Pro"
+      },
+      "agence": {
+        "name": "Agence",
+        "desc": "For teams and brokerages",
+        "cta": "Start with Agence"
+      }
+    },
+    "features": {
+      "users": "Users",
+      "transactions": "Transactions",
+      "storage": "Storage",
+      "fileSize": "Max file size",
+      "workflow": "Guided workflow",
+      "conditions": "Condition tracking",
+      "customWorkflows": "Custom workflows",
+      "reminders": "Smart reminders",
+      "csvImport": "CSV import",
+      "reports": "Reports",
+      "advancedReports": "Advanced reports",
+      "api": "API access",
+      "onboarding": "Dedicated onboarding",
+      "support": "Support"
+    },
+    "comparison": {
+      "title": "Compare all features",
+      "feature": "Feature"
+    },
+    "faq": {
+      "title": "Frequently asked questions",
+      "q1": "Can I try Ofra before paying?",
+      "a1": "Yes! Join our Founder Program for 3 months free with the Pro plan. Limited to 25 spots.",
+      "q2": "Can I cancel anytime?",
+      "a2": "Absolutely. There are no long-term contracts. Cancel your subscription anytime from your account settings.",
+      "q3": "Is my data secure?",
+      "a3": "Yes, we use industry-standard encryption and security practices. Your data is stored securely in Canada.",
+      "q4": "Do you offer discounts for teams?",
+      "a4": "Founders get 25% off for life after the trial. Contact us for custom Agence pricing for larger teams."
+    },
+    "cta": {
+      "title": "Ready to get started?",
+      "subtitle": "Join our Founder Program: 3 months free, then 25% off for life.",
+      "button": "Join Founder Program"
+    }
   }
 }

@@ -57,7 +57,8 @@ describe('StepperBottomSheet', () => {
     )
 
     expect(screen.getByTestId('stepper-sheet-list')).toBeInTheDocument()
-    const items = screen.getAllByRole('listitem')
+    // D32: Steps are now buttons for clickability
+    const items = screen.getAllByTestId(/^sheet-step-/)
     expect(items).toHaveLength(3)
   })
 
@@ -113,7 +114,7 @@ describe('StepperBottomSheet', () => {
   })
 
   it('has no WCAG 2.1 AA accessibility violations when open', async () => {
-    const { container } = renderWithProviders(
+    renderWithProviders(
       <StepperBottomSheet
         isOpen={true}
         onClose={vi.fn()}

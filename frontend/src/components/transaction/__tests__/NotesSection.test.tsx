@@ -3,8 +3,7 @@ import { screen, waitFor, fireEvent } from '@testing-library/react'
 import { axe } from 'vitest-axe'
 import { renderWithProviders } from '../../../test/helpers'
 import NotesSection from '../NotesSection'
-import { notesApi, type Note } from '../../../api/notes.api'
-import { authApi } from '../../../api/auth.api'
+import type { Note } from '../../../api/notes.api'
 
 const mockList = vi.fn()
 const mockCreate = vi.fn()

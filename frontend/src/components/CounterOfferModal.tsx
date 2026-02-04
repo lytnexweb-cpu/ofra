@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { offersApi, type AddRevisionRequest } from '../api/offers.api'
 import type { OfferRevision } from '../api/transactions.api'
 import { parseApiError, isSessionExpired, type ParsedError } from '../utils/apiError'
@@ -20,6 +21,7 @@ export default function CounterOfferModal({
   transactionId,
   lastRevision,
 }: CounterOfferModalProps) {
+  const { t } = useTranslation()
   const invertedDirection: AddRevisionRequest['direction'] =
     lastRevision.direction === 'buyer_to_seller' ? 'seller_to_buyer' : 'buyer_to_seller'
 
@@ -64,8 +66,8 @@ export default function CounterOfferModal({
         onClose()
       } else {
         setError({
-          title: 'Error',
-          message: response.error?.message || 'Failed to submit counter-offer',
+          title: t('common.error'),
+          message: response.error?.message || t('offers.failedCounter'),
         })
       }
     },
@@ -88,8 +90,8 @@ export default function CounterOfferModal({
     const price = parseFloat(formData.price)
     if (!formData.price || isNaN(price) || price <= 0) {
       setError({
-        title: 'Required Fields',
-        message: 'A valid price is required.',
+        title: t('offers.requiredFields'),
+        message: t('offers.validPriceRequired'),
       })
       return
     }
@@ -124,7 +126,7 @@ export default function CounterOfferModal({
           <form onSubmit={handleSubmit}>
             <div className="p-6">
               <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
-                Counter-Offer
+                {t('offers.counterOffer')}
               </h3>
 
               {error && (
@@ -139,7 +141,7 @@ export default function CounterOfferModal({
               <div className="space-y-4">
                 <div>
                   <label htmlFor="counter-price" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Price (CAD) <span className="text-red-500">*</span>
+                    {t('offers.price')} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="number"
@@ -156,7 +158,7 @@ export default function CounterOfferModal({
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label htmlFor="counter-deposit" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Deposit (CAD)
+                      {t('offers.deposit')}
                     </label>
                     <input
                       type="number"
@@ -170,7 +172,7 @@ export default function CounterOfferModal({
                   </div>
                   <div>
                     <label htmlFor="counter-financing" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Financing Amount (CAD)
+                      {t('offers.financingAmount')}
                     </label>
                     <input
                       type="number"
@@ -187,7 +189,7 @@ export default function CounterOfferModal({
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label htmlFor="counter-expiry" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Expiry Date
+                      {t('offers.expiryDate')}
                     </label>
                     <input
                       type="datetime-local"
@@ -199,7 +201,7 @@ export default function CounterOfferModal({
                   </div>
                   <div>
                     <label htmlFor="counter-direction" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Direction
+                      {t('offers.direction')}
                     </label>
                     <select
                       id="counter-direction"
@@ -209,15 +211,15 @@ export default function CounterOfferModal({
                       }
                       className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white"
                     >
-                      <option value="buyer_to_seller">Buyer → Seller</option>
-                      <option value="seller_to_buyer">Seller → Buyer</option>
+                      <option value="buyer_to_seller">{t('offers.buyerToSeller')}</option>
+                      <option value="seller_to_buyer">{t('offers.sellerToBuyer')}</option>
                     </select>
                   </div>
                 </div>
 
                 <div>
                   <label htmlFor="counter-notes" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Notes
+                    {t('offers.notes')}
                   </label>
                   <textarea
                     id="counter-notes"
@@ -225,7 +227,7 @@ export default function CounterOfferModal({
                     value={formData.notes}
                     onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                     className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white"
-                    placeholder="Counter-offer notes..."
+                    placeholder={t('offers.counterNotesPlaceholder')}
                   />
                 </div>
               </div>
@@ -238,14 +240,14 @@ export default function CounterOfferModal({
                 disabled={counterMutation.isPending}
                 className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md hover:bg-gray-50 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 type="submit"
                 disabled={counterMutation.isPending}
                 className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
               >
-                {counterMutation.isPending ? 'Submitting...' : 'Submit Counter-Offer'}
+                {counterMutation.isPending ? t('offers.submitting') : t('offers.submitCounterOffer')}
               </button>
             </div>
           </form>

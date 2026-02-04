@@ -8,6 +8,8 @@ interface StepperBottomSheetProps {
   onClose: () => void
   steps: TransactionStep[]
   currentStepId: number | null
+  selectedStepId?: number | null
+  onStepClick?: (stepId: number | null) => void
 }
 
 export default function StepperBottomSheet({
@@ -15,10 +17,20 @@ export default function StepperBottomSheet({
   onClose,
   steps,
   currentStepId,
+  selectedStepId,
+  onStepClick,
 }: StepperBottomSheetProps) {
   const { t } = useTranslation()
 
   const sorted = [...steps].sort((a, b) => a.stepOrder - b.stepOrder)
+  const isClickable = !!onStepClick
+
+  const handleStepClick = (stepId: number) => {
+    if (!onStepClick) return
+    // Toggle: if already selected, deselect (show all)
+    onStepClick(selectedStepId === stepId ? null : stepId)
+    onClose() // Close sheet after selection on mobile
+  }
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -27,30 +39,42 @@ export default function StepperBottomSheet({
           <SheetTitle>{t('transaction.progress')}</SheetTitle>
         </SheetHeader>
 
-        <div className="py-4 space-y-1" role="list" data-testid="stepper-sheet-list">
+        <div className="py-4 space-y-1" data-testid="stepper-sheet-list">
           {sorted.map((step) => {
             const isDone = step.status === 'completed'
             const isActive = step.id === currentStepId
             const isSkipped = step.status === 'skipped'
+            const isSelected = selectedStepId === step.id
             const slug = step.workflowStep?.slug ?? ''
             const label = slug
               ? t(`workflow.steps.${slug}`, { defaultValue: step.workflowStep?.name ?? '' })
               : step.workflowStep?.name ?? `Step ${step.stepOrder}`
 
             return (
-              <div
+              <button
                 key={step.id}
-                role="listitem"
+                type="button"
+                onClick={() => handleStepClick(step.id)}
+                disabled={!isClickable}
                 className={[
-                  'flex items-center gap-3 rounded-lg px-3 py-2.5',
-                  isActive ? 'bg-primary/10 border border-primary/20' : '',
+                  'flex items-center gap-3 rounded-lg px-3 py-2.5 w-full text-left transition-all',
+                  isClickable ? 'cursor-pointer hover:bg-muted/50' : 'cursor-default',
+                  isSelected
+                    ? 'bg-primary/20 border-2 border-primary'
+                    : isActive
+                      ? 'bg-primary/10 border border-primary/20'
+                      : '',
                 ].join(' ')}
                 data-testid={`sheet-step-${step.stepOrder}`}
+                aria-current={isSelected ? 'step' : undefined}
               >
                 {/* Status icon */}
                 <div
                   className={[
                     'w-7 h-7 rounded-full flex items-center justify-center shrink-0',
+                    isSelected
+                      ? 'ring-2 ring-offset-1 ring-primary'
+                      : '',
                     isDone
                       ? 'bg-success text-white'
                       : isActive
@@ -74,14 +98,17 @@ export default function StepperBottomSheet({
                   <p
                     className={[
                       'text-sm truncate',
-                      isActive
-                        ? 'font-semibold text-primary'
-                        : isDone
-                          ? 'text-success'
-                          : 'text-muted-foreground',
+                      isSelected
+                        ? 'font-bold text-primary'
+                        : isActive
+                          ? 'font-semibold text-primary'
+                          : isDone
+                            ? 'text-success'
+                            : 'text-muted-foreground',
                     ].join(' ')}
                   >
                     {label}
+                    {isSelected && ' ●'}
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {isDone
@@ -93,7 +120,7 @@ export default function StepperBottomSheet({
                           : t('workflow.status.pending')}
                   </p>
                 </div>
-              </div>
+              </button>
             )
           })}
         </div>

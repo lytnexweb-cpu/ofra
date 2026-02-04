@@ -38,29 +38,29 @@ export default function WeeklySummary({ transactions }: WeeklySummaryProps) {
 
   return (
     <div
-      className="mb-4 rounded-lg border border-border bg-card px-4 py-3"
+      className="mb-4 rounded-xl border border-stone-200 bg-white px-4 py-3 shadow-sm"
       data-testid="weekly-summary"
     >
       {hasUrgency ? (
         <div className="flex items-center gap-4 text-sm">
           {overdueCount > 0 && (
-            <span className="flex items-center gap-1.5 text-destructive font-medium">
+            <span className="flex items-center gap-1.5 text-red-600 font-medium">
               <AlertTriangle className="w-4 h-4" />
               {t('summary.overdue', { count: overdueCount })}
             </span>
           )}
           {overdueCount > 0 && thisWeekCount > 0 && (
-            <span className="text-muted-foreground">·</span>
+            <span className="text-stone-300">·</span>
           )}
           {thisWeekCount > 0 && (
-            <span className="flex items-center gap-1.5 text-warning font-medium">
+            <span className="flex items-center gap-1.5 font-medium" style={{ color: '#D97706' }}>
               <Clock className="w-4 h-4" />
               {t('summary.thisWeek', { count: thisWeekCount })}
             </span>
           )}
         </div>
       ) : (
-        <div className="flex items-center gap-1.5 text-sm text-success font-medium">
+        <div className="flex items-center gap-1.5 text-sm text-emerald-600 font-medium">
           <CheckCircle className="w-4 h-4" />
           {t('summary.allClear')}
         </div>

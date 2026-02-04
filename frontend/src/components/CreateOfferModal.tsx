@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { offersApi, type CreateOfferRequest } from '../api/offers.api'
 import { parseApiError, isSessionExpired, type ParsedError } from '../utils/apiError'
 
@@ -15,6 +16,7 @@ export default function CreateOfferModal({
   onClose,
   transactionId,
 }: CreateOfferModalProps) {
+  const { t } = useTranslation()
   const [formData, setFormData] = useState({
     price: '',
     deposit: '',
@@ -40,8 +42,8 @@ export default function CreateOfferModal({
         resetForm()
       } else {
         setError({
-          title: 'Error',
-          message: response.error?.message || 'Failed to create offer',
+          title: t('common.error'),
+          message: response.error?.message || t('offers.failedCreate'),
         })
       }
     },
@@ -76,8 +78,8 @@ export default function CreateOfferModal({
     const price = parseFloat(formData.price)
     if (!formData.price || isNaN(price) || price <= 0) {
       setError({
-        title: 'Required Fields',
-        message: 'A valid price is required.',
+        title: t('offers.requiredFields'),
+        message: t('offers.validPriceRequired'),
       })
       return
     }
@@ -113,7 +115,7 @@ export default function CreateOfferModal({
           <form onSubmit={handleSubmit}>
             <div className="p-6">
               <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
-                New Offer
+                {t('offers.new')}
               </h3>
 
               {error && (
@@ -137,7 +139,7 @@ export default function CreateOfferModal({
               <div className="space-y-4">
                 <div>
                   <label htmlFor="offer-price" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Price (CAD) <span className="text-red-500">*</span>
+                    {t('offers.price')} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="number"
@@ -155,7 +157,7 @@ export default function CreateOfferModal({
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label htmlFor="offer-deposit" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Deposit (CAD)
+                      {t('offers.deposit')}
                     </label>
                     <input
                       type="number"
@@ -170,7 +172,7 @@ export default function CreateOfferModal({
                   </div>
                   <div>
                     <label htmlFor="offer-financing" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Financing Amount (CAD)
+                      {t('offers.financingAmount')}
                     </label>
                     <input
                       type="number"
@@ -188,7 +190,7 @@ export default function CreateOfferModal({
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label htmlFor="offer-expiry" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Expiry Date
+                      {t('offers.expiryDate')}
                     </label>
                     <input
                       type="datetime-local"
@@ -200,7 +202,7 @@ export default function CreateOfferModal({
                   </div>
                   <div>
                     <label htmlFor="offer-direction" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Direction
+                      {t('offers.direction')}
                     </label>
                     <select
                       id="offer-direction"
@@ -210,15 +212,15 @@ export default function CreateOfferModal({
                       }
                       className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white"
                     >
-                      <option value="buyer_to_seller">Buyer → Seller</option>
-                      <option value="seller_to_buyer">Seller → Buyer</option>
+                      <option value="buyer_to_seller">{t('offers.buyerToSeller')}</option>
+                      <option value="seller_to_buyer">{t('offers.sellerToBuyer')}</option>
                     </select>
                   </div>
                 </div>
 
                 <div>
                   <label htmlFor="offer-notes" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Notes
+                    {t('offers.notes')}
                   </label>
                   <textarea
                     id="offer-notes"
@@ -226,7 +228,7 @@ export default function CreateOfferModal({
                     value={formData.notes}
                     onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                     className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white"
-                    placeholder="Additional notes..."
+                    placeholder={t('offers.notesPlaceholder')}
                   />
                 </div>
               </div>
@@ -239,14 +241,14 @@ export default function CreateOfferModal({
                 disabled={createMutation.isPending}
                 className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md hover:bg-gray-50 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 type="submit"
                 disabled={createMutation.isPending}
                 className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
               >
-                {createMutation.isPending ? 'Creating...' : 'Create Offer'}
+                {createMutation.isPending ? t('offers.creating') : t('offers.createOffer')}
               </button>
             </div>
           </form>

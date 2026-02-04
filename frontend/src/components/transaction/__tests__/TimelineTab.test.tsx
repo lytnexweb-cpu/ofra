@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { screen, waitFor, fireEvent } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import { axe } from 'vitest-axe'
 import { renderWithProviders } from '../../../test/helpers'
 import TimelineTab from '../TimelineTab'

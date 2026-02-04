@@ -2,9 +2,9 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { authApi } from '../api/auth.api'
-import { BRAND } from '../config/brand'
 import { useTranslation } from 'react-i18next'
 import { Eye, EyeOff } from 'lucide-react'
+import { OfraLogoFull } from '../components/OfraLogo'
 
 export default function RegisterPage() {
   const { t } = useTranslation()
@@ -23,7 +23,6 @@ export default function RegisterPage() {
     mutationFn: authApi.register,
     onSuccess: async (data) => {
       if (data.success) {
-        // Auto-login after successful registration
         setIsLoggingIn(true)
         try {
           const loginResult = await authApi.login({ email: email.trim(), password })
@@ -31,7 +30,6 @@ export default function RegisterPage() {
             queryClient.clear()
             setTimeout(() => navigate('/'), 100)
           } else {
-            // Fallback to login page if auto-login fails
             navigate('/login', { state: { registered: true } })
           }
         } catch {
@@ -94,30 +92,29 @@ export default function RegisterPage() {
     password === confirmPassword
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8 transition-colors">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
-            {BRAND.name}
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
-            {t('auth.createAccount')}
-          </p>
-        </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+    <div className="min-h-screen flex items-center justify-center bg-stone-50 dark:bg-stone-900 py-12 px-4 sm:px-6 lg:px-8 transition-colors">
+      <div className="w-full max-w-md">
+        {/* Card */}
+        <div className="bg-white dark:bg-stone-800 rounded-2xl shadow-xl p-10">
+          {/* Logo + Tagline */}
+          <OfraLogoFull className="mb-8" />
+
+          {/* Error Message */}
           {error && (
-            <div className="rounded-md bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 p-4">
-              <p className="text-sm font-medium text-red-800 dark:text-red-300">{error}</p>
+            <div className="mb-6 rounded-lg bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 p-4">
+              <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
             </div>
           )}
-          <div className="rounded-md shadow-sm space-y-3">
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <input
                 type="text"
                 required
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                className="appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-800 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                className="w-full px-4 py-3 rounded-lg border border-stone-200 dark:border-stone-600 bg-white dark:bg-stone-700 text-stone-900 dark:text-white placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-shadow"
                 placeholder={t('auth.fullName')}
               />
             </div>
@@ -127,7 +124,7 @@ export default function RegisterPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-800 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                className="w-full px-4 py-3 rounded-lg border border-stone-200 dark:border-stone-600 bg-white dark:bg-stone-700 text-stone-900 dark:text-white placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-shadow"
                 placeholder={t('auth.email')}
               />
             </div>
@@ -137,16 +134,16 @@ export default function RegisterPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="appearance-none relative block w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-800 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                className="w-full px-4 py-3 pr-12 rounded-lg border border-stone-200 dark:border-stone-600 bg-white dark:bg-stone-700 text-stone-900 dark:text-white placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-shadow"
                 placeholder={t('auth.password')}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                className="absolute inset-y-0 right-0 flex items-center pr-4 text-stone-400 hover:text-stone-600 dark:hover:text-stone-300"
                 tabIndex={-1}
               >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
               </button>
             </div>
             <div className="relative">
@@ -155,37 +152,48 @@ export default function RegisterPage() {
                 required
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="appearance-none relative block w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-800 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                className="w-full px-4 py-3 pr-12 rounded-lg border border-stone-200 dark:border-stone-600 bg-white dark:bg-stone-700 text-stone-900 dark:text-white placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-shadow"
                 placeholder={t('auth.confirmPassword')}
               />
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                className="absolute inset-y-0 right-0 flex items-center pr-4 text-stone-400 hover:text-stone-600 dark:hover:text-stone-300"
                 tabIndex={-1}
               >
-                {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
               </button>
             </div>
-          </div>
-          <div>
+
             <button
               type="submit"
               disabled={isPending || !isFormValid}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+              className="w-full py-3 px-4 rounded-lg text-white font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:translate-y-[-1px] hover:shadow-lg active:translate-y-0 bg-primary hover:bg-primary/90"
             >
-              {isPending ? (isLoggingIn ? t('auth.loggingIn') : t('auth.creatingAccount')) : t('auth.register')}
+              {isPending ? (
+                <span className="flex items-center justify-center gap-2">
+                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                  </svg>
+                  {isLoggingIn ? t('auth.loggingIn') : t('auth.creatingAccount')}
+                </span>
+              ) : (
+                t('auth.register')
+              )}
             </button>
-          </div>
-          <div className="text-center">
+          </form>
+
+          {/* Link */}
+          <div className="mt-6 text-center">
             <Link
               to="/login"
-              className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-500"
+              className="text-sm text-primary hover:underline"
             >
               {t('auth.alreadyHaveAccount')}
             </Link>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   )

@@ -1,17 +1,27 @@
 import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { authApi } from '../api/auth.api'
 import { profileApi, type UpdateProfileInfoRequest } from '../api/profile.api'
-import ChangePasswordForm from '../components/ChangePasswordForm'
-import ChangeEmailForm from '../components/ChangeEmailForm'
+import { useTheme } from '../contexts/ThemeContext'
+import { Button } from '../components/ui/Button'
+import {
+  Sun,
+  Moon,
+  Monitor,
+  Globe,
+  Calendar,
+  Clock,
+  Check,
+  AlertCircle,
+} from 'lucide-react'
 
-type TabType = 'password' | 'email' | 'profile' | 'signature'
+type ThemeMode = 'light' | 'dark' | 'system'
 
 export default function SettingsPage() {
-  const navigate = useNavigate()
+  const { t, i18n } = useTranslation()
   const queryClient = useQueryClient()
-  const [activeTab, setActiveTab] = useState<TabType>('password')
+  const { theme, setTheme } = useTheme()
 
   // Get current user data
   const { data: userData } = useQuery({
@@ -20,353 +30,238 @@ export default function SettingsPage() {
   })
 
   const user = userData?.data?.user
-  const currentEmail = user?.email || ''
 
-  // Profile form state
-  const [profileForm, setProfileForm] = useState({
-    fullName: user?.fullName || '',
-    phone: user?.phone || '',
-    agency: user?.agency || '',
-    licenseNumber: user?.licenseNumber || '',
-    dateFormat: (user?.dateFormat as 'DD/MM/YYYY' | 'MM/DD/YYYY') || 'DD/MM/YYYY',
-    timezone: user?.timezone || 'America/Toronto',
-  })
+  // Language state
+  const [language, setLanguage] = useState(i18n.language?.substring(0, 2) || 'fr')
 
-  // Signature form state
-  const [signatureForm, setSignatureForm] = useState({
-    emailSignature: user?.emailSignature || '',
-  })
+  // Regional preferences
+  const [dateFormat, setDateFormat] = useState<'DD/MM/YYYY' | 'MM/DD/YYYY'>('DD/MM/YYYY')
+  const [timezone, setTimezone] = useState('America/Moncton')
 
   const [successMessage, setSuccessMessage] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
 
-  // Update profile mutation
+  // Update state when user data loads
+  useEffect(() => {
+    if (user) {
+      setDateFormat((user.dateFormat as 'DD/MM/YYYY' | 'MM/DD/YYYY') || 'DD/MM/YYYY')
+      setTimezone(user.timezone || 'America/Moncton')
+    }
+  }, [user])
+
+  // Update language with backend persistence (Murat's risk mitigation: optimistic UI with rollback)
+  const handleLanguageChange = async (lang: string) => {
+    const previousLanguage = language
+
+    // Optimistic update for instant UX
+    setLanguage(lang)
+    i18n.changeLanguage(lang)
+    localStorage.setItem('i18nextLng', lang)
+
+    try {
+      // Persist to backend
+      const response = await profileApi.updateProfileInfo({ language: lang as 'fr' | 'en' })
+      if (response.success) {
+        setSuccessMessage(t('settings.updateSuccess'))
+        setTimeout(() => setSuccessMessage(''), 3000)
+        queryClient.invalidateQueries({ queryKey: ['auth', 'me'] })
+      } else {
+        throw new Error('API returned failure')
+      }
+    } catch {
+      // Rollback on failure (Murat's recommendation)
+      setLanguage(previousLanguage)
+      i18n.changeLanguage(previousLanguage)
+      localStorage.setItem('i18nextLng', previousLanguage)
+      setErrorMessage(t('settings.updateError'))
+      setTimeout(() => setErrorMessage(''), 5000)
+    }
+  }
+
+  // Update profile mutation for regional settings
   const updateProfileMutation = useMutation({
     mutationFn: profileApi.updateProfileInfo,
     onSuccess: (response) => {
       if (response.success && response.data) {
-        setSuccessMessage(response.data.message)
+        setSuccessMessage(t('settings.updateSuccess'))
         setErrorMessage('')
         queryClient.invalidateQueries({ queryKey: ['auth', 'me'] })
-        // Clear message after 3 seconds
         setTimeout(() => setSuccessMessage(''), 3000)
       }
     },
-    onError: (error: any) => {
-      setErrorMessage(error.response?.data?.error?.message || 'Failed to update profile')
+    onError: () => {
+      setErrorMessage(t('settings.updateError'))
       setSuccessMessage('')
     },
   })
 
-  // Logout all mutation
-  const logoutAllMutation = useMutation({
-    mutationFn: profileApi.logoutAll,
-    onSuccess: () => {
-      navigate('/login')
-    },
-  })
-
-  const handleLogoutAll = () => {
-    if (
-      window.confirm(
-        'Are you sure you want to sign out from all devices? You will be redirected to the login page.'
-      )
-    ) {
-      logoutAllMutation.mutate()
-    }
-  }
-
-  const handleProfileSubmit = (e: React.FormEvent) => {
+  const handleRegionalSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     const data: UpdateProfileInfoRequest = {
-      fullName: profileForm.fullName || undefined,
-      phone: profileForm.phone || undefined,
-      agency: profileForm.agency || undefined,
-      licenseNumber: profileForm.licenseNumber || undefined,
-      dateFormat: profileForm.dateFormat,
-      timezone: profileForm.timezone,
+      dateFormat,
+      timezone,
     }
     updateProfileMutation.mutate(data)
   }
 
-  const handleSignatureSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    const data: UpdateProfileInfoRequest = {
-      emailSignature: signatureForm.emailSignature || undefined,
-    }
-    updateProfileMutation.mutate(data)
-  }
-
-  // Update form state when user data loads
-  useEffect(() => {
-    if (user) {
-      setProfileForm({
-        fullName: user.fullName || '',
-        phone: user.phone || '',
-        agency: user.agency || '',
-        licenseNumber: user.licenseNumber || '',
-        dateFormat: (user.dateFormat as 'DD/MM/YYYY' | 'MM/DD/YYYY') || 'DD/MM/YYYY',
-        timezone: user.timezone || 'America/Toronto',
-      })
-      setSignatureForm({
-        emailSignature: user.emailSignature || '',
-      })
-    }
-  }, [user])
+  const themeOptions = [
+    { value: 'light', label: t('settings.appearance.theme.light'), icon: Sun },
+    { value: 'dark', label: t('settings.appearance.theme.dark'), icon: Moon },
+    { value: 'system', label: t('settings.appearance.theme.system'), icon: Monitor },
+  ]
 
   return (
-    <div>
+    <div data-testid="settings-page">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Settings</h1>
-        <p className="mt-2 text-gray-600 dark:text-gray-400">Manage your account settings and preferences</p>
+      <div className="mb-8">
+        <h1
+          className="text-2xl font-bold text-stone-900 dark:text-stone-100"
+          style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}
+        >
+          {t('settings.title')}
+        </h1>
+        <p className="mt-1 text-stone-500 dark:text-stone-400">{t('settings.subtitle')}</p>
       </div>
 
-      {/* Tabs */}
-      <div className="border-b border-gray-200 dark:border-gray-700 mb-6">
-        <nav className="-mb-px flex space-x-8 overflow-x-auto">
-          <button
-            onClick={() => setActiveTab('password')}
-            className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
-              activeTab === 'password'
-                ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-600'
-            }`}
-          >
-            🔒 Password
-          </button>
-          <button
-            onClick={() => setActiveTab('email')}
-            className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
-              activeTab === 'email'
-                ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-600'
-            }`}
-          >
-            ✉️ Email
-          </button>
-          <button
-            onClick={() => setActiveTab('profile')}
-            className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
-              activeTab === 'profile'
-                ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-600'
-            }`}
-          >
-            👤 Profile
-          </button>
-          <button
-            onClick={() => setActiveTab('signature')}
-            className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
-              activeTab === 'signature'
-                ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-600'
-            }`}
-          >
-            ✍️ Email Signature
-          </button>
-        </nav>
-      </div>
+      {/* Success/Error Messages */}
+      {successMessage && (
+        <div className="mb-6 flex items-center gap-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border-l-4 border-emerald-500 p-4">
+          <Check className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+          <p className="text-sm text-emerald-700 dark:text-emerald-300">{successMessage}</p>
+        </div>
+      )}
+      {errorMessage && (
+        <div className="mb-6 flex items-center gap-3 rounded-lg bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 p-4">
+          <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
+          <p className="text-sm text-red-700 dark:text-red-300">{errorMessage}</p>
+        </div>
+      )}
 
-      {/* Tab Content */}
-      <div className="max-w-2xl">
-        {activeTab === 'password' && (
-          <div className="space-y-6">
-            <ChangePasswordForm />
+      <div className="max-w-2xl space-y-6">
+        {/* Appearance Section */}
+        <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm p-6">
+          <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100 mb-2 flex items-center gap-2">
+            <Sun className="w-5 h-5 text-stone-400" />
+            {t('settings.appearance.title')}
+          </h2>
+          <p className="text-sm text-stone-500 dark:text-stone-400 mb-6">{t('settings.appearance.darkModeDescription')}</p>
 
-            {/* Logout All Section */}
-            <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Sign Out Everywhere</h2>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">
-                Sign out from all devices and sessions. You will be redirected to the login page.
-              </p>
-              <button
-                onClick={handleLogoutAll}
-                disabled={logoutAllMutation.isPending}
-                className="bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          <div className="grid grid-cols-3 gap-3">
+            {themeOptions.map((option) => {
+              const Icon = option.icon
+              const isActive = theme === option.value
+              return (
+                <button
+                  key={option.value}
+                  onClick={() => setTheme(option.value as ThemeMode)}
+                  className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
+                    isActive
+                      ? 'border-primary bg-primary/5'
+                      : 'border-stone-200 dark:border-stone-600 hover:border-stone-300 dark:hover:border-stone-500'
+                  }`}
+                >
+                  <Icon className={`w-6 h-6 ${isActive ? 'text-primary' : 'text-stone-400'}`} />
+                  <span className={`text-sm font-medium ${isActive ? 'text-primary' : 'text-stone-600 dark:text-stone-400'}`}>
+                    {option.label}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Language Section */}
+        <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm p-6">
+          <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100 mb-2 flex items-center gap-2">
+            <Globe className="w-5 h-5 text-stone-400" />
+            {t('settings.language.title')}
+          </h2>
+          <p className="text-sm text-stone-500 dark:text-stone-400 mb-6">{t('settings.language.description')}</p>
+
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={() => handleLanguageChange('fr')}
+              className={`flex items-center justify-center gap-2 p-4 rounded-xl border-2 transition-all ${
+                language === 'fr'
+                  ? 'border-primary bg-primary/5'
+                  : 'border-stone-200 dark:border-stone-600 hover:border-stone-300 dark:hover:border-stone-500'
+              }`}
+            >
+              <span className="text-xl">🇫🇷</span>
+              <span className={`font-medium ${language === 'fr' ? 'text-primary' : 'text-stone-600 dark:text-stone-400'}`}>
+                {t('settings.language.french')}
+              </span>
+            </button>
+            <button
+              onClick={() => handleLanguageChange('en')}
+              className={`flex items-center justify-center gap-2 p-4 rounded-xl border-2 transition-all ${
+                language === 'en'
+                  ? 'border-primary bg-primary/5'
+                  : 'border-stone-200 dark:border-stone-600 hover:border-stone-300 dark:hover:border-stone-500'
+              }`}
+            >
+              <span className="text-xl">🇬🇧</span>
+              <span className={`font-medium ${language === 'en' ? 'text-primary' : 'text-stone-600 dark:text-stone-400'}`}>
+                {t('settings.language.english')}
+              </span>
+            </button>
+          </div>
+        </div>
+
+        {/* Regional Settings Section */}
+        <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm p-6">
+          <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100 mb-6 flex items-center gap-2">
+            <Calendar className="w-5 h-5 text-stone-400" />
+            {t('settings.regional.title')}
+          </h2>
+
+          <form onSubmit={handleRegionalSubmit} className="space-y-5">
+            {/* Date Format */}
+            <div>
+              <label className="flex items-center gap-2 text-sm font-medium text-stone-700 dark:text-stone-300 mb-2">
+                <Calendar className="w-4 h-4 text-stone-400" />
+                {t('settings.regional.dateFormat')}
+              </label>
+              <select
+                value={dateFormat}
+                onChange={(e) => setDateFormat(e.target.value as 'DD/MM/YYYY' | 'MM/DD/YYYY')}
+                className="w-full px-4 py-3 rounded-lg border border-stone-200 dark:border-stone-600 bg-white dark:bg-stone-700 text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-shadow"
               >
-                {logoutAllMutation.isPending ? 'Signing out...' : 'Sign Out Everywhere'}
-              </button>
+                <option value="DD/MM/YYYY">DD/MM/YYYY (25/12/2026)</option>
+                <option value="MM/DD/YYYY">MM/DD/YYYY (12/25/2026)</option>
+              </select>
             </div>
-          </div>
-        )}
 
-        {activeTab === 'email' && <ChangeEmailForm currentEmail={currentEmail} />}
-
-        {activeTab === 'profile' && (
-          <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Profile Information</h2>
-
-            {successMessage && (
-              <div className="mb-4 rounded-md bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 p-4">
-                <p className="text-sm text-green-800 dark:text-green-300">{successMessage}</p>
-              </div>
-            )}
-
-            {errorMessage && (
-              <div className="mb-4 rounded-md bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 p-4">
-                <p className="text-sm text-red-800 dark:text-red-300">{errorMessage}</p>
-              </div>
-            )}
-
-            <form onSubmit={handleProfileSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Full Name</label>
-                <input
-                  type="text"
-                  value={profileForm.fullName}
-                  onChange={(e) => setProfileForm({ ...profileForm, fullName: e.target.value })}
-                  className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  placeholder="John Doe"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Phone</label>
-                <input
-                  type="tel"
-                  value={profileForm.phone}
-                  onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
-                  className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  placeholder="555-1234"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Agency</label>
-                <input
-                  type="text"
-                  value={profileForm.agency}
-                  onChange={(e) => setProfileForm({ ...profileForm, agency: e.target.value })}
-                  className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  placeholder="Your Real Estate Agency"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  License Number
-                </label>
-                <input
-                  type="text"
-                  value={profileForm.licenseNumber}
-                  onChange={(e) =>
-                    setProfileForm({ ...profileForm, licenseNumber: e.target.value })
-                  }
-                  className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  placeholder="ABC-12345"
-                />
-              </div>
-
-              <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-                <h3 className="text-base font-medium text-gray-900 dark:text-white mb-4">
-                  Regional Settings
-                </h3>
-
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Date Format
-                    </label>
-                    <select
-                      value={profileForm.dateFormat}
-                      onChange={(e) =>
-                        setProfileForm({
-                          ...profileForm,
-                          dateFormat: e.target.value as 'DD/MM/YYYY' | 'MM/DD/YYYY',
-                        })
-                      }
-                      className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                    >
-                      <option value="DD/MM/YYYY">DD/MM/YYYY (25/12/2025)</option>
-                      <option value="MM/DD/YYYY">MM/DD/YYYY (12/25/2025)</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Timezone
-                    </label>
-                    <select
-                      value={profileForm.timezone}
-                      onChange={(e) =>
-                        setProfileForm({ ...profileForm, timezone: e.target.value })
-                      }
-                      className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                    >
-                      <option value="America/Toronto">America/Toronto (EST/EDT)</option>
-                      <option value="America/Montreal">America/Montreal (EST/EDT)</option>
-                      <option value="America/Vancouver">America/Vancouver (PST/PDT)</option>
-                      <option value="America/Edmonton">America/Edmonton (MST/MDT)</option>
-                      <option value="America/Winnipeg">America/Winnipeg (CST/CDT)</option>
-                      <option value="America/Halifax">America/Halifax (AST/ADT)</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={updateProfileMutation.isPending}
-                className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            {/* Timezone */}
+            <div>
+              <label className="flex items-center gap-2 text-sm font-medium text-stone-700 dark:text-stone-300 mb-2">
+                <Clock className="w-4 h-4 text-stone-400" />
+                {t('settings.regional.timezone')}
+              </label>
+              <select
+                value={timezone}
+                onChange={(e) => setTimezone(e.target.value)}
+                className="w-full px-4 py-3 rounded-lg border border-stone-200 dark:border-stone-600 bg-white dark:bg-stone-700 text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-shadow"
               >
-                {updateProfileMutation.isPending ? 'Updating...' : 'Update Profile'}
-              </button>
-            </form>
-          </div>
-        )}
+                <option value="America/Moncton">America/Moncton (AST/ADT)</option>
+                <option value="America/Halifax">America/Halifax (AST/ADT)</option>
+                <option value="America/Toronto">America/Toronto (EST/EDT)</option>
+                <option value="America/Montreal">America/Montreal (EST/EDT)</option>
+                <option value="America/Winnipeg">America/Winnipeg (CST/CDT)</option>
+                <option value="America/Edmonton">America/Edmonton (MST/MDT)</option>
+                <option value="America/Vancouver">America/Vancouver (PST/PDT)</option>
+              </select>
+            </div>
 
-        {activeTab === 'signature' && (
-          <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-              Email Signature
-            </h2>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-              Customize the signature that appears in automated emails sent to clients.
-            </p>
-
-            {successMessage && (
-              <div className="mb-4 rounded-md bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 p-4">
-                <p className="text-sm text-green-800 dark:text-green-300">{successMessage}</p>
-              </div>
-            )}
-
-            {errorMessage && (
-              <div className="mb-4 rounded-md bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 p-4">
-                <p className="text-sm text-red-800 dark:text-red-300">{errorMessage}</p>
-              </div>
-            )}
-
-            <form onSubmit={handleSignatureSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Custom Signature
-                </label>
-                <textarea
-                  rows={5}
-                  value={signatureForm.emailSignature}
-                  onChange={(e) =>
-                    setSignatureForm({ ...signatureForm, emailSignature: e.target.value })
-                  }
-                  className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  placeholder="Best regards,&#10;John Doe&#10;Real Estate Broker&#10;Phone: 555-1234&#10;www.mybroker.com"
-                />
-                <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                  If empty, a default signature with your name will be used.
-                </p>
-              </div>
-
-              <button
-                type="submit"
-                disabled={updateProfileMutation.isPending}
-                className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {updateProfileMutation.isPending ? 'Updating...' : 'Update Signature'}
-              </button>
-            </form>
-          </div>
-        )}
-
+            <Button
+              type="submit"
+              disabled={updateProfileMutation.isPending}
+              className="w-full bg-primary hover:bg-primary/90"
+            >
+              {updateProfileMutation.isPending ? t('settings.updating') : t('settings.update')}
+            </Button>
+          </form>
+        </div>
       </div>
     </div>
   )

@@ -16,6 +16,7 @@ function makeCondition(overrides: Partial<Condition> = {}): Condition {
     type: 'financing',
     priority: 'high',
     isBlocking: true,
+    level: 'blocking',
     documentUrl: null,
     documentLabel: null,
     dueDate: '2026-02-15T12:00:00.000Z',
@@ -23,7 +24,7 @@ function makeCondition(overrides: Partial<Condition> = {}): Condition {
     createdAt: '2025-01-01T12:00:00.000Z',
     updatedAt: '2025-01-01T12:00:00.000Z',
     ...overrides,
-  }
+  } as Condition
 }
 
 describe('ConditionCard (read-only)', () => {
@@ -172,9 +173,16 @@ describe('ConditionCard (interactive)', () => {
   })
 
   it('shows check icon when completed (AC3)', () => {
+    // D41: Use 'recommended' level so toggle remains visible when completed
+    // (blocking/required conditions are locked when completed)
     renderWithProviders(
       <ConditionCard
-        condition={makeCondition({ status: 'completed', completedAt: '2026-01-20T12:00:00.000Z' })}
+        condition={makeCondition({
+          status: 'completed',
+          completedAt: '2026-01-20T12:00:00.000Z',
+          level: 'recommended',
+          isBlocking: false,
+        })}
         interactive
         onToggle={vi.fn()}
       />
@@ -215,9 +223,16 @@ describe('ConditionCard (interactive)', () => {
   })
 
   it('aria-label reflects completed status (AC6)', () => {
+    // D41: Use 'recommended' level so toggle remains visible when completed
+    // (blocking/required conditions are locked when completed)
     renderWithProviders(
       <ConditionCard
-        condition={makeCondition({ status: 'completed', completedAt: '2026-01-20T12:00:00.000Z' })}
+        condition={makeCondition({
+          status: 'completed',
+          completedAt: '2026-01-20T12:00:00.000Z',
+          level: 'recommended',
+          isBlocking: false,
+        })}
         interactive
         onToggle={vi.fn()}
       />
@@ -233,5 +248,155 @@ describe('ConditionCard (interactive)', () => {
     )
     const results = await axe(container)
     expect(results).toHaveNoViolations()
+  })
+})
+
+// D41: Locked condition tests (Garde-fous validation)
+describe('ConditionCard (D41 - locked state)', () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    vi.setSystemTime(new Date(2026, 0, 27, 12, 0, 0))
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('shows lock icon for completed blocking condition', () => {
+    renderWithProviders(
+      <ConditionCard
+        condition={makeCondition({
+          status: 'completed',
+          level: 'blocking',
+          completedAt: '2026-01-20T12:00:00.000Z',
+        })}
+        interactive
+        onToggle={vi.fn()}
+      />
+    )
+
+    const card = screen.getByTestId('condition-card-42')
+    // Lock icon should be present (via lucide Lock component)
+    expect(card.querySelector('svg.lucide-lock')).toBeInTheDocument()
+  })
+
+  it('shows lock icon for completed required condition', () => {
+    renderWithProviders(
+      <ConditionCard
+        condition={makeCondition({
+          status: 'completed',
+          level: 'required',
+          completedAt: '2026-01-20T12:00:00.000Z',
+        })}
+        interactive
+        onToggle={vi.fn()}
+      />
+    )
+
+    const card = screen.getByTestId('condition-card-42')
+    expect(card.querySelector('svg.lucide-lock')).toBeInTheDocument()
+  })
+
+  it('does NOT show lock icon for completed recommended condition', () => {
+    renderWithProviders(
+      <ConditionCard
+        condition={makeCondition({
+          status: 'completed',
+          level: 'recommended',
+          completedAt: '2026-01-20T12:00:00.000Z',
+        })}
+        interactive
+        onToggle={vi.fn()}
+      />
+    )
+
+    const card = screen.getByTestId('condition-card-42')
+    expect(card.querySelector('svg.lucide-lock')).not.toBeInTheDocument()
+  })
+
+  it('does NOT show toggle button for locked blocking condition', () => {
+    renderWithProviders(
+      <ConditionCard
+        condition={makeCondition({
+          status: 'completed',
+          level: 'blocking',
+          completedAt: '2026-01-20T12:00:00.000Z',
+        })}
+        interactive
+        onToggle={vi.fn()}
+      />
+    )
+
+    // No toggle button should exist for locked conditions
+    expect(screen.queryByTestId('toggle-condition-42')).not.toBeInTheDocument()
+  })
+
+  it('does NOT show toggle button for locked required condition', () => {
+    renderWithProviders(
+      <ConditionCard
+        condition={makeCondition({
+          status: 'completed',
+          level: 'required',
+          completedAt: '2026-01-20T12:00:00.000Z',
+        })}
+        interactive
+        onToggle={vi.fn()}
+      />
+    )
+
+    expect(screen.queryByTestId('toggle-condition-42')).not.toBeInTheDocument()
+  })
+
+  it('DOES show toggle button for completed recommended condition (not locked)', () => {
+    renderWithProviders(
+      <ConditionCard
+        condition={makeCondition({
+          status: 'completed',
+          level: 'recommended',
+          completedAt: '2026-01-20T12:00:00.000Z',
+        })}
+        interactive
+        onToggle={vi.fn()}
+      />
+    )
+
+    // Recommended conditions can still be toggled
+    expect(screen.getByTestId('toggle-condition-42')).toBeInTheDocument()
+  })
+
+  it('shows toggle button for pending blocking condition (not yet locked)', () => {
+    renderWithProviders(
+      <ConditionCard
+        condition={makeCondition({
+          status: 'pending',
+          level: 'blocking',
+        })}
+        interactive
+        onToggle={vi.fn()}
+      />
+    )
+
+    // Pending conditions can be toggled (to complete them)
+    expect(screen.getByTestId('toggle-condition-42')).toBeInTheDocument()
+  })
+
+  it('fallback to isBlocking=true for legacy conditions without level', () => {
+    renderWithProviders(
+      <ConditionCard
+        condition={makeCondition({
+          status: 'completed',
+          isBlocking: true,
+          level: undefined,
+          completedAt: '2026-01-20T12:00:00.000Z',
+        })}
+        interactive
+        onToggle={vi.fn()}
+      />
+    )
+
+    // Legacy blocking condition should also be locked
+    const card = screen.getByTestId('condition-card-42')
+    expect(card.querySelector('svg.lucide-lock')).toBeInTheDocument()
+    expect(screen.queryByTestId('toggle-condition-42')).not.toBeInTheDocument()
   })
 })

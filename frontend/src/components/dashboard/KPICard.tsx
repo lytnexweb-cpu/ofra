@@ -4,7 +4,7 @@ interface KPICardProps {
   title: string
   value: number
   icon: React.ReactNode
-  color: 'blue' | 'green' | 'purple' | 'red' | 'yellow' | 'indigo'
+  color: 'primary' | 'accent' | 'blue' | 'green' | 'purple' | 'red' | 'yellow' | 'indigo'
   prefix?: string
   suffix?: string
   trend?: {
@@ -14,15 +14,26 @@ interface KPICardProps {
 }
 
 const colorClasses = {
+  // Brand colors
+  primary: {
+    bg: 'bg-[#EEF2F7] dark:bg-[#1E3A5F]/20',
+    text: 'text-[#1E3A5F] dark:text-[#A9BBCF]',
+    icon: 'bg-[#D4DDE8] dark:bg-[#1E3A5F]/50 text-[#1E3A5F] dark:text-[#A9BBCF]',
+  },
+  accent: {
+    bg: 'bg-amber-50 dark:bg-amber-900/20',
+    text: 'text-amber-600 dark:text-amber-400',
+    icon: 'bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400',
+  },
   blue: {
-    bg: 'bg-blue-50 dark:bg-blue-900/20',
-    text: 'text-blue-600 dark:text-blue-400',
-    icon: 'bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400',
+    bg: 'bg-[#EEF2F7] dark:bg-[#1E3A5F]/20',
+    text: 'text-[#1E3A5F] dark:text-[#A9BBCF]',
+    icon: 'bg-[#D4DDE8] dark:bg-[#1E3A5F]/50 text-[#1E3A5F] dark:text-[#A9BBCF]',
   },
   green: {
-    bg: 'bg-green-50 dark:bg-green-900/20',
-    text: 'text-green-600 dark:text-green-400',
-    icon: 'bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400',
+    bg: 'bg-emerald-50 dark:bg-emerald-900/20',
+    text: 'text-emerald-600 dark:text-emerald-400',
+    icon: 'bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400',
   },
   purple: {
     bg: 'bg-purple-50 dark:bg-purple-900/20',
@@ -84,13 +95,13 @@ export default function KPICard({ title, value, icon, color, prefix, suffix, tre
   const colors = colorClasses[color]
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 hover:shadow-md transition-shadow">
+    <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-stone-100 dark:border-stone-700 p-6">
       <div className="flex items-center justify-between">
         <div className={`p-3 rounded-lg ${colors.icon}`}>
           {icon}
         </div>
         {trend && (
-          <div className={`flex items-center text-sm ${trend.isPositive ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+          <div className={`flex items-center text-sm ${trend.isPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
             {trend.isPositive ? (
               <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
@@ -105,7 +116,7 @@ export default function KPICard({ title, value, icon, color, prefix, suffix, tre
         )}
       </div>
       <div className="mt-4">
-        <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">{title}</h3>
+        <h3 className="text-sm font-medium text-stone-500 dark:text-stone-400">{title}</h3>
         <p className={`text-3xl font-bold ${colors.text} mt-1`}>
           <AnimatedNumber value={value} prefix={prefix} suffix={suffix} />
         </p>

@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { authApi } from '../api/auth.api'
-import { BRAND } from '../config/brand'
 import { Eye, EyeOff } from 'lucide-react'
+import { OfraLogoFull } from '../components/OfraLogo'
 
 export default function LoginPage() {
+  const { t } = useTranslation()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -18,29 +20,26 @@ export default function LoginPage() {
     mutationFn: authApi.login,
     onSuccess: (data) => {
       if (data.success) {
-        // Clear all queries and force refresh
         queryClient.clear()
-        // Small delay to ensure cookies are set
         setTimeout(() => {
           navigate('/')
         }, 100)
       } else {
-        // Better error messages based on error code
         if (data.error?.code === 'E_INVALID_CREDENTIALS') {
-          setError('Invalid email or password. Please try again.')
+          setError(t('auth.invalidCredentials', 'Courriel ou mot de passe invalide.'))
         } else if (data.error?.code === 'E_VALIDATION_FAILED') {
-          setError('Please enter a valid email and password.')
+          setError(t('auth.fillAllFields'))
         } else if (data.error?.code === 'E_RATE_LIMIT') {
           const retryAfter = data.error?.retryAfter || 300
           const minutes = Math.ceil(retryAfter / 60)
-          setError(`Too many attempts. Please wait ${minutes} minute(s) before trying again.`)
+          setError(t('auth.rateLimitError', { minutes }))
         } else {
-          setError(data.error?.message || 'Login failed. Please try again.')
+          setError(data.error?.message || t('auth.loginFailed', 'Échec de connexion.'))
         }
       }
     },
     onError: () => {
-      setError('Network error. Please check your connection and try again.')
+      setError(t('auth.networkError'))
     },
   })
 
@@ -54,14 +53,13 @@ export default function LoginPage() {
     setError('')
     setValidationError('')
 
-    // Basic validation only
     if (!email.trim() || !password.trim()) {
-      setValidationError('Please fill in all fields.')
+      setValidationError(t('auth.fillAllFields'))
       return
     }
 
     if (!validateEmail(email.trim())) {
-      setValidationError('Please enter a valid email address.')
+      setValidationError(t('auth.enterEmail'))
       return
     }
 
@@ -71,42 +69,42 @@ export default function LoginPage() {
   const isFormValid = email.trim().length > 0 && password.trim().length > 0
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8 transition-colors">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
-            {BRAND.name}
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
-            Sign in to your account
-          </p>
-        </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+    <div className="min-h-screen flex items-center justify-center bg-stone-50 dark:bg-stone-900 py-12 px-4 sm:px-6 lg:px-8 transition-colors">
+      <div className="w-full max-w-md">
+        {/* Card */}
+        <div className="bg-white dark:bg-stone-800 rounded-2xl shadow-xl p-10">
+          {/* Logo + Tagline */}
+          <OfraLogoFull className="mb-8" />
+
+          {/* Error Message */}
           {(error || validationError) && (
-            <div className="rounded-md bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 p-4">
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                  </svg>
+            <div className="mb-6 rounded-lg bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 p-4">
+              <p className="text-sm text-red-700 dark:text-red-300">
+                {validationError || error}
+              </p>
+              {error && !validationError && (
+                <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+                  <Link to="/register" className="text-red-600 dark:text-red-400 hover:underline font-medium">
+                    {t('auth.noAccountYet')} {t('auth.createAccountLink')} →
+                  </Link>
+                  <Link to="/forgot-password" className="text-red-600 dark:text-red-400 hover:underline">
+                    {t('auth.forgotPasswordLink')}
+                  </Link>
                 </div>
-                <div className="ml-3">
-                  <p className="text-sm font-medium text-red-800 dark:text-red-300">
-                    {validationError || error}
-                  </p>
-                </div>
-              </div>
+              )}
             </div>
           )}
-          <div className="rounded-md shadow-sm -space-y-px">
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-800 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Email address"
+                className="w-full px-4 py-3 rounded-lg border border-stone-200 dark:border-stone-600 bg-white dark:bg-stone-700 text-stone-900 dark:text-white placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-shadow"
+                placeholder={t('auth.email')}
               />
             </div>
             <div className="relative">
@@ -115,58 +113,55 @@ export default function LoginPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="appearance-none rounded-none relative block w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-800 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Password"
+                className="w-full px-4 py-3 pr-12 rounded-lg border border-stone-200 dark:border-stone-600 bg-white dark:bg-stone-700 text-stone-900 dark:text-white placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-shadow"
+                placeholder={t('auth.password')}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                className="absolute inset-y-0 right-0 flex items-center pr-4 text-stone-400 hover:text-stone-600 dark:hover:text-stone-300"
                 tabIndex={-1}
               >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
               </button>
             </div>
-          </div>
-          <div>
+
             <button
               type="submit"
               disabled={loginMutation.isPending || !isFormValid}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+              className="w-full py-3 px-4 rounded-lg text-white font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:translate-y-[-1px] hover:shadow-lg active:translate-y-0 bg-primary hover:bg-primary/90"
             >
               {loginMutation.isPending ? (
-                <span className="flex items-center">
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                <span className="flex items-center justify-center gap-2">
+                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
                   </svg>
-                  Signing in...
+                  {t('auth.loggingIn')}
                 </span>
               ) : (
-                'Sign in'
+                t('auth.login')
               )}
             </button>
-          </div>
-          <div className="flex items-center justify-between">
+          </form>
+
+          {/* Links */}
+          <div className="mt-6 flex items-center justify-center gap-2 text-sm">
             <Link
               to="/forgot-password"
-              className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-500"
+              className="text-primary hover:underline"
             >
-              Forgot password?
+              {t('auth.forgotPasswordLink')}
             </Link>
-          </div>
-          <div className="text-center">
-            <span className="text-sm text-gray-600 dark:text-gray-400">
-              Don't have an account?{' '}
-            </span>
+            <span className="text-stone-300">•</span>
             <Link
               to="/register"
-              className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-500 font-medium"
+              className="text-primary hover:underline font-medium"
             >
-              Create one
+              {t('auth.createAccountLink')}
             </Link>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   )

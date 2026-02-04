@@ -2,6 +2,7 @@ import { http } from './http'
 import type { Client } from './clients.api'
 
 export type TransactionType = 'purchase' | 'sale'
+export type TransactionStatus = 'active' | 'cancelled'
 export type TransactionStepStatus = 'pending' | 'active' | 'completed' | 'skipped'
 
 export interface OfferRevision {
@@ -58,6 +59,7 @@ export interface Transaction {
   clientId: number
   propertyId: number | null
   type: TransactionType
+  status: TransactionStatus
   workflowTemplateId: number | null
   currentStepId: number | null
   organizationId: number | null
@@ -66,6 +68,8 @@ export interface Transaction {
   listPrice: number | null
   commission: number | null
   folderUrl: string | null
+  cancelledAt: string | null
+  cancellationReason: string | null
   createdAt: string
   updatedAt: string
   client?: Client
@@ -110,6 +114,34 @@ export interface ActivityEntry {
   user?: { id: number; fullName: string | null; email: string }
 }
 
+// Transaction Profile types (D1: Conditions Engine Premium)
+export type PropertyType = 'house' | 'condo' | 'land'
+export type PropertyContext = 'urban' | 'suburban' | 'rural'
+export type AccessType = 'public' | 'private' | 'right_of_way'
+
+export interface TransactionProfile {
+  transactionId: number
+  propertyType: PropertyType
+  propertyContext: PropertyContext
+  isFinanced: boolean
+  hasWell?: boolean | null
+  hasSeptic?: boolean | null
+  accessType?: AccessType | null
+  condoDocsRequired?: boolean | null
+  appraisalRequired?: boolean | null
+}
+
+export interface CreateProfileRequest {
+  propertyType: PropertyType
+  propertyContext: PropertyContext
+  isFinanced: boolean
+  hasWell?: boolean
+  hasSeptic?: boolean
+  accessType?: AccessType
+  condoDocsRequired?: boolean
+  appraisalRequired?: boolean
+}
+
 export const transactionsApi = {
   list: (params?: { step?: string; q?: string }) => {
     const query = new URLSearchParams()
@@ -132,6 +164,9 @@ export const transactionsApi = {
 
   delete: (id: number) => http.delete<{}>(`/api/transactions/${id}`),
 
+  cancel: (id: number, reason?: string) =>
+    http.patch<{ transaction: Transaction }>(`/api/transactions/${id}/cancel`, { reason }),
+
   advanceStep: (id: number) =>
     http.patch<{ transaction: Transaction; newStep: TransactionStep | null }>(
       `/api/transactions/${id}/advance`,
@@ -153,5 +188,24 @@ export const transactionsApi = {
   getActivity: (id: number, page = 1, limit = 20) =>
     http.get<{ data: ActivityEntry[]; meta: { total: number; perPage: number; currentPage: number } }>(
       `/api/transactions/${id}/activity?page=${page}&limit=${limit}`
+    ),
+
+  // Transaction Profile (D1: Conditions Engine Premium)
+  getProfile: (id: number) =>
+    http.get<{ profile: TransactionProfile }>(`/api/transactions/${id}/profile`),
+
+  upsertProfile: (id: number, data: CreateProfileRequest) =>
+    http.put<{ profile: TransactionProfile; created: boolean }>(`/api/transactions/${id}/profile`, data),
+
+  getProfileStatus: (id: number) =>
+    http.get<{ exists: boolean; complete: boolean; missingFields?: string[] }>(
+      `/api/transactions/${id}/profile/status`
+    ),
+
+  // D39: Load condition pack
+  loadConditionPack: (id: number, dates?: { acceptanceDate?: string; closingDate?: string }) =>
+    http.post<{ loaded: number; byStep: Record<number, number>; message: string }>(
+      `/api/transactions/${id}/profile/load-pack`,
+      dates ?? {}
     ),
 }

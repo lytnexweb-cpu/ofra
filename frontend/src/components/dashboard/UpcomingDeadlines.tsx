@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { formatDate, differenceInDays, parseISO } from '../../lib/date'
 
 interface Deadline {
@@ -28,29 +29,35 @@ function getPriorityColor(priority: string) {
   }
 }
 
-function getDaysUntilDue(dueDate: string): { text: string; urgent: boolean } {
-  const days = differenceInDays(parseISO(dueDate), new Date())
-
-  if (days < 0) {
-    return { text: 'Overdue', urgent: true }
-  }
-  if (days === 0) {
-    return { text: 'Due today', urgent: true }
-  }
-  if (days === 1) {
-    return { text: 'Tomorrow', urgent: true }
-  }
-  if (days <= 3) {
-    return { text: `${days} days`, urgent: true }
-  }
-  return { text: `${days} days`, urgent: false }
-}
-
 export default function UpcomingDeadlines({ deadlines = [] }: UpcomingDeadlinesProps) {
+  const { t } = useTranslation()
+
+  const getDaysUntilDue = (dueDate: string): { text: string; urgent: boolean } => {
+    const days = differenceInDays(parseISO(dueDate), new Date())
+
+    if (days < 0) {
+      return { text: t('dashboard.charts.overdue'), urgent: true }
+    }
+    if (days === 0) {
+      return { text: t('dashboard.charts.dueToday'), urgent: true }
+    }
+    if (days === 1) {
+      return { text: t('dashboard.charts.tomorrow'), urgent: true }
+    }
+    if (days <= 3) {
+      return { text: t('dashboard.charts.days', { count: days }), urgent: true }
+    }
+    return { text: t('dashboard.charts.days', { count: days }), urgent: false }
+  }
+
+  const getPriorityLabel = (priority: 'low' | 'medium' | 'high'): string => {
+    return t(`dashboard.charts.priority.${priority}`)
+  }
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Upcoming Deadlines</h3>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t('dashboard.charts.upcomingDeadlines')}</h3>
         {deadlines.length > 0 && (
           <span className="px-2.5 py-0.5 text-xs font-medium bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-400 rounded-full">
             {deadlines.length}
@@ -63,14 +70,14 @@ export default function UpcomingDeadlines({ deadlines = [] }: UpcomingDeadlinesP
           <svg className="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
           </svg>
-          <p>No upcoming deadlines</p>
+          <p>{t('dashboard.charts.noUpcomingDeadlines')}</p>
         </div>
       ) : (
         <div className="space-y-3">
           {deadlines.map((deadline) => {
             const dueInfo = deadline.dueDate
               ? getDaysUntilDue(deadline.dueDate)
-              : { text: 'No date', urgent: false }
+              : { text: t('dashboard.charts.noDate'), urgent: false }
 
             return (
               <Link
@@ -86,7 +93,7 @@ export default function UpcomingDeadlines({ deadlines = [] }: UpcomingDeadlinesP
                       </p>
                       {deadline.isBlocking && (
                         <span className="flex-shrink-0 px-1.5 py-0.5 text-xs font-medium bg-red-600 text-white rounded">
-                          Blocking
+                          {t('dashboard.charts.blocking')}
                         </span>
                       )}
                     </div>
@@ -109,7 +116,7 @@ export default function UpcomingDeadlines({ deadlines = [] }: UpcomingDeadlinesP
                 </div>
                 <div className="mt-2">
                   <span className={`inline-block px-2 py-0.5 text-xs font-medium rounded ${getPriorityColor(deadline.priority)}`}>
-                    {deadline.priority}
+                    {getPriorityLabel(deadline.priority)}
                   </span>
                 </div>
               </Link>

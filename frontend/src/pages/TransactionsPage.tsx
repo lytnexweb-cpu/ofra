@@ -90,15 +90,19 @@ export default function TransactionsPage() {
   return (
     <div data-testid="transactions-page">
       {/* Header */}
-      <div className="mb-4 flex justify-between items-center">
-        <h1 className="text-2xl font-semibold text-foreground">
+      <div className="mb-6 flex justify-between items-center">
+        <h1
+          className="text-2xl font-bold text-stone-900"
+          style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}
+        >
           {t('nav.transactions')}
         </h1>
         <Button
           onClick={() => setIsCreateModalOpen(true)}
-          className="hidden sm:inline-flex"
+          className="hidden sm:inline-flex bg-primary hover:bg-primary/90"
           data-testid="create-transaction-btn"
         >
+          <Plus className="w-4 h-4" />
           {t('transaction.new')}
         </Button>
       </div>
@@ -140,7 +144,7 @@ export default function TransactionsPage() {
           <select
             value={stepFilter}
             onChange={(e) => setStepFilter(e.target.value)}
-            className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:w-56"
+            className="h-10 rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-shadow sm:w-56"
             data-testid="step-filter"
             aria-label={t('transaction.step')}
           >
@@ -216,7 +220,7 @@ export default function TransactionsPage() {
       {/* Transaction cards grid */}
       {!isLoading && !error && filtered.length > 0 && (
         <div
-          className="grid grid-cols-1 lg:grid-cols-2 gap-3"
+          className="grid grid-cols-1 lg:grid-cols-2 gap-3 stagger-children"
           data-testid="transactions-grid"
         >
           {filtered.map((transaction) => (
@@ -230,14 +234,14 @@ export default function TransactionsPage() {
         onClose={() => setIsCreateModalOpen(false)}
       />
 
-      {/* FAB for mobile (AR3 z-fab=10, AR12 Sheet bottom) */}
+      {/* FAB for mobile - positioned above fixed footer */}
       <button
         onClick={() => setIsCreateModalOpen(true)}
-        className="fixed bottom-6 right-6 z-10 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg hover:shadow-xl active:scale-95 transition-all flex items-center justify-center sm:hidden"
+        className="fixed bottom-16 right-4 z-20 w-14 h-14 rounded-full shadow-lg hover:shadow-xl active:scale-95 transition-all flex items-center justify-center sm:hidden bg-primary"
         data-testid="fab-create"
         aria-label={t('transaction.new')}
       >
-        <Plus className="w-6 h-6" />
+        <Plus className="w-6 h-6 text-white" />
       </button>
     </div>
   )

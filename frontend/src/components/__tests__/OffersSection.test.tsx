@@ -3,7 +3,6 @@ import { screen, waitFor, fireEvent } from '@testing-library/react'
 import { axe } from 'vitest-axe'
 import { renderWithProviders } from '../../test/helpers'
 import OffersSection from '../OffersSection'
-import { offersApi } from '../../api/offers.api'
 import type { Offer } from '../../api/transactions.api'
 
 const mockList = vi.fn()

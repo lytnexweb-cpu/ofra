@@ -1,7 +1,7 @@
 {
   "app": {
     "name": "OFRA",
-    "tagline": "Gestion de transactions immobilières"
+    "tagline": "Zéro oubli. Zéro stress."
   },
   "nav": {
     "dashboard": "Tableau de bord",
@@ -9,6 +9,76 @@
     "clients": "Clients",
     "settings": "Paramètres",
     "logout": "Déconnexion"
+  },
+  "dashboard": {
+    "error": "Échec du chargement du tableau de bord",
+    "greeting": "Bonjour, {{name}} \ud83d\udc4b",
+    "subtitle": "Voici l'état de vos transactions.",
+    "transactions": "Transactions",
+    "thisWeek": "Cette semaine",
+    "dueSoon": "à venir",
+    "active": "actives",
+    "monthRevenue": "Revenu ce mois",
+    "totalRevenue": "Revenu total",
+    "kpi": {
+      "active": "Actives",
+      "completed": "Complétées",
+      "conversion": "Conversion",
+      "overdue": "En retard"
+    },
+    "footer": {
+      "totalTransactions": "Transactions totales",
+      "dueSoon": "Bientôt (7 jours)",
+      "monthRevenue": "Revenu du mois",
+      "totalRevenue": "Revenu total"
+    },
+    "charts": {
+      "pipeline": "Pipeline",
+      "activeTransactions": "{{count}} transactions actives",
+      "activeTransactionsSingular": "{{count}} transaction active",
+      "noActiveTransactions": "Aucune transaction active",
+      "transaction": "transaction",
+      "transactions": "transactions",
+      "count": "Nombre",
+      "commissions": "Commissions",
+      "last6Months": "6 derniers mois",
+      "thisMonth": "ce mois-ci",
+      "noCommissionData": "Aucune donnée de commission",
+      "commission": "Commission",
+      "totalEarned": "Total gagné",
+      "recentActivity": "Activité récente",
+      "noRecentActivity": "Aucune activité récente",
+      "upcomingDeadlines": "Échéances à venir",
+      "noUpcomingDeadlines": "Aucune échéance à venir",
+      "overdue": "En retard",
+      "dueToday": "Aujourd'hui",
+      "tomorrow": "Demain",
+      "days": "{{count}} jours",
+      "noDate": "Sans date",
+      "blocking": "Bloquante",
+      "priority": {
+        "low": "Basse",
+        "medium": "Moyenne",
+        "high": "Haute"
+      },
+      "activity": {
+        "transaction_created": "Transaction créée",
+        "step_entered": "Étape commencée",
+        "step_completed": "Étape complétée",
+        "step_skipped": "Étape passée",
+        "condition_created": "Condition ajoutée",
+        "condition_completed": "Condition complétée",
+        "condition_deleted": "Condition supprimée",
+        "offer_created": "Offre créée",
+        "offer_accepted": "Offre acceptée",
+        "offer_rejected": "Offre refusée",
+        "offer_withdrawn": "Offre retirée",
+        "note_added": "Note ajoutée",
+        "enteredStep": "Étape commencée : {{step}}",
+        "completedStep": "Étape complétée : {{step}}",
+        "conditionCompleted": "Condition complétée : {{condition}}"
+      }
+    }
   },
   "workflow": {
     "steps": {
@@ -34,12 +104,34 @@
       "skipConfirm": "Passer l'étape \"{{step}}\" ? Les conditions incomplètes seront ignorées. Cette action est irréversible.",
       "advancedTo": "Avancé à : {{step}}",
       "stepSkipped": "Étape passée"
+    },
+    "skipConfirmModal": {
+      "title": "Confirmation requise",
+      "warningBlocking": "Vous êtes sur le point de passer l'étape \"{{step}}\" avec {{count}} condition(s) bloquante(s) non résolue(s). Cette action est irréversible.",
+      "warningRequired": "Vous êtes sur le point de passer l'étape \"{{step}}\" avec {{count}} condition(s) requise(s) non résolue(s). Cette action est irréversible.",
+      "warningMixed": "Vous êtes sur le point de passer l'étape \"{{step}}\" avec {{blockingCount}} condition(s) bloquante(s) et {{requiredCount}} condition(s) requise(s) non résolue(s). Cette action est irréversible.",
+      "warningRecommended": "Êtes-vous sûr de vouloir passer l'étape \"{{step}}\" ?",
+      "warningRecommendedHint": "{{count}} condition(s) recommandée(s) seront automatiquement archivée(s).",
+      "typePhrase": "Pour confirmer, tapez la phrase suivante :",
+      "confirmPhrase": "je veux quand même passer cette étape",
+      "termsLabel": "Je comprends que cette action ne peut pas être annulée et j'accepte les",
+      "termsLink": "conditions d'utilisation",
+      "inputPlaceholder": "Tapez la phrase ci-dessus...",
+      "confirm": "Confirmer et passer l'étape",
+      "confirmSimple": "Oui, passer l'étape",
+      "reasonLabel": "Raison du saut",
+      "reasonPlaceholder": "Expliquez pourquoi vous passez cette étape...",
+      "reasonMinLength": "Encore {{count}} caractère(s) requis"
     }
   },
   "actionZone": {
     "blockingCount": "{{count}} condition(s) bloquante(s)",
+    "requiredCount": "{{count}} condition(s) requise(s)",
     "readyToAdvance": "Prêt à avancer",
-    "deadline": "Échéance"
+    "deadline": "Échéance",
+    "blocking": "bloquante(s)",
+    "required": "requise(s)",
+    "recommended": "recommandée(s)"
   },
   "blocking": {
     "modalTitle": "Avancement bloqué",
@@ -51,6 +143,23 @@
   },
   "conditions": {
     "blocking": "Bloquante",
+    "filteringBy": "Filtré par",
+    "allSteps": "Toutes les étapes",
+    "sourceType": {
+      "legal": "Légal",
+      "government": "Gouv.",
+      "industry": "Industrie",
+      "best_practice": "Bonne pratique"
+    },
+    "debugInfo": "{{count}} templates | Étape {{step}} | Profil: {{status}}",
+    "debugProfileAbsent": "absent",
+    "debugProfileIncomplete": "incomplet",
+    "debugProfileComplete": "complet",
+    "stepLabel": "Étape {{step}}",
+    "emptyState": {
+      "title": "Aucune condition requise à cette étape",
+      "description": "Vous pouvez ajouter des conditions personnalisées si nécessaire."
+    },
     "types": {
       "financing": "Financement",
       "deposit": "Dépôt",
@@ -62,7 +171,102 @@
       "documents": "Documents",
       "repairs": "Réparations",
       "other": "Autre"
-    }
+    },
+    "levels": {
+      "blocking": "Bloquante",
+      "required": "Requise",
+      "recommended": "Recommandée"
+    },
+    "form": {
+      "title": "Nouvelle condition",
+      "suggestions": "Suggestions",
+      "custom": "Personnalisée",
+      "suggestionsForStep": "Suggestions pour cette étape",
+      "otherSteps": "Autres étapes",
+      "searchPlaceholder": "Rechercher une condition...",
+      "noSuggestions": "Aucune suggestion pour ce profil",
+      "createCustom": "Créer une condition personnalisée",
+      "noProfile": "Profil de transaction manquant",
+      "noProfileHint": "Créez un profil pour voir les suggestions adaptées à votre transaction.",
+      "profileIncomplete": "Profil incomplet",
+      "profileIncompleteHint": "Complétez le profil pour voir toutes les suggestions pertinentes.",
+      "nothingToFilter": "Rien à filtrer",
+      "allSuggestionsUsed": "Toutes les suggestions ont été ajoutées",
+      "allSuggestionsUsedHint": "Vous pouvez créer une condition personnalisée si nécessaire.",
+      "titleLabel": "Titre",
+      "dueDate": "Date d'échéance",
+      "description": "Description",
+      "requiredFields": "Le titre et la date d'échéance sont obligatoires.",
+      "level": "Niveau d'importance",
+      "levelHint": {
+        "blocking": "Bloque l'avancement — doit être complétée avant de passer à l'étape suivante",
+        "required": "Requiert une résolution explicite — vous devrez choisir comment la traiter",
+        "recommended": "Recommandée — sera automatiquement archivée si non traitée"
+      }
+    },
+    "editModal": {
+      "title": "Modifier la condition",
+      "notePlaceholder": "Ajoutez une note ou des détails..."
+    },
+    "updateSuccess": "Condition mise à jour",
+    "updateError": "Échec de la mise à jour",
+    "archivedError": "Cette condition est archivée et ne peut plus être modifiée",
+    "lockedTooltip": "Verrouillé après validation"
+  },
+  "resolution": {
+    "modalTitle": "Résolution requise",
+    "modalDescription": "Les conditions suivantes nécessitent une résolution explicite avant de passer à l'étape suivante.",
+    "blockingWarning": "Ces conditions bloquantes doivent être complétées avant d'avancer :",
+    "requiredConditions": "Conditions à résoudre",
+    "completed": "Complétée",
+    "waived": "Renoncée",
+    "notApplicable": "N/A",
+    "skippedWithRisk": "Ignorer (Risque)",
+    "noteRequired": "Raison",
+    "notePlaceholder": "Expliquez pourquoi cette condition est résolue de cette façon...",
+    "resolving": "Résolution...",
+    "confirmAndAdvance": "Résoudre et avancer",
+    "success": "Conditions résolues avec succès",
+    "error": "Échec de la résolution des conditions"
+  },
+  "validation": {
+    "modalTitle": "Valider la condition",
+    "modalTitleBlocking": "Condition bloquante",
+    "modalTitleRequired": "Condition requise",
+    "uploadEvidence": "Téléverser une preuve",
+    "uploadHint": "Glissez-déposez un fichier ou cliquez pour sélectionner",
+    "uploadFormats": "PDF, images, documents Office acceptés (max 10 Mo)",
+    "noEvidence": "Je n'ai pas de preuve",
+    "addNote": "Ajouter une note (optionnel)",
+    "notePlaceholder": "Détails ou contexte supplémentaire...",
+    "validate": "Valider",
+    "validating": "Validation...",
+    "escapeModal": {
+      "title": "Confirmer sans preuve",
+      "warning": "Vous êtes sur le point de valider une condition bloquante sans preuve jointe.",
+      "legalDisclaimer": "Cette action peut être consultée en cas de vérification ou de litige.",
+      "reasonLabel": "Raison (obligatoire)",
+      "reasonPlaceholder": "Expliquez pourquoi vous validez sans preuve...",
+      "reasonMinLength": "Encore {{count}} caractère(s) requis (min 10)",
+      "checkbox": "Je comprends que cette condition est critique et que je la valide sans preuve documentée",
+      "confirmPhrase": "je confirme sans preuve",
+      "typePhrase": "Tapez la phrase pour confirmer :",
+      "confirm": "Confirmer sans preuve"
+    },
+    "evidence": {
+      "attached": "{{count}} preuve(s) attachée(s)",
+      "noEvidence": "Sans preuve",
+      "escapedBadge": "Validé sans preuve",
+      "escapedReason": "Raison",
+      "viewEvidence": "Voir les preuves",
+      "type": {
+        "file": "Fichier",
+        "link": "Lien",
+        "note": "Note"
+      }
+    },
+    "success": "Condition validée",
+    "error": "Échec de la validation"
   },
   "common": {
     "save": "Enregistrer",
@@ -87,20 +291,26 @@
     "all": "Tous",
     "required": "Obligatoire",
     "optional": "Facultatif",
+    "default": "Défaut",
+    "recommended": "Recommandé",
     "retry": "Réessayer",
     "error": "Une erreur est survenue",
     "success": "Succès",
     "skipToContent": "Aller au contenu principal",
     "openMenu": "Ouvrir le menu principal",
+    "closeMenu": "Fermer le menu",
     "notifications": "Notifications",
     "poweredBy": "Propulsé par",
     "breadcrumb": "Fil d'Ariane",
     "goBack": "Retour",
-    "mainNavigation": "Navigation principale"
+    "mainNavigation": "Navigation principale",
+    "tabNavigation": "Navigation par onglets",
+    "user": "Utilisateur"
   },
   "auth": {
     "logout": "Déconnexion",
     "loggingOut": "Déconnexion en cours...",
+    "login": "Se connecter",
     "createAccount": "Créer votre compte",
     "fullName": "Nom complet",
     "email": "Adresse courriel",
@@ -109,6 +319,11 @@
     "register": "Créer un compte",
     "creatingAccount": "Création en cours...",
     "alreadyHaveAccount": "Déjà un compte ? Connectez-vous",
+    "noAccountYet": "Pas encore de compte ?",
+    "createAccountLink": "Créer un compte",
+    "forgotPasswordLink": "Mot de passe oublié ?",
+    "invalidCredentials": "Courriel ou mot de passe invalide.",
+    "loginFailed": "Échec de la connexion. Veuillez réessayer.",
     "registrationFailed": "Échec de l'inscription. Veuillez réessayer.",
     "networkError": "Erreur réseau. Vérifiez votre connexion.",
     "fillAllFields": "Veuillez remplir tous les champs.",
@@ -139,6 +354,7 @@
     "price": "Prix",
     "client": "Client",
     "step": "Étape",
+    "template": "Modèle",
     "dueDate": "Date d'échéance",
     "progress": "Progrès",
     "purchase": "Achat",
@@ -146,7 +362,78 @@
     "new": "Nouvelle transaction",
     "empty": "Aucune transaction",
     "emptyDescription": "Créez votre première transaction pour commencer",
-    "emptyCta": "Créer ma première transaction"
+    "emptyCta": "Créer ma première transaction",
+    "status": {
+      "active": "Active",
+      "cancelled": "Annulée"
+    },
+    "actions": {
+      "cancel": "Annuler la transaction",
+      "delete": "Supprimer définitivement",
+      "moreActions": "Plus d'actions"
+    },
+    "cancelModal": {
+      "title": "Annuler la transaction",
+      "description": "Cette transaction sera marquée comme annulée. Les données seront conservées pour l'historique.",
+      "reason": "Raison de l'annulation",
+      "reasonPlaceholder": "Sélectionnez une raison...",
+      "reasons": {
+        "offer_rejected": "Offre refusée",
+        "buyer_withdrew": "Acheteur retiré",
+        "financing_refused": "Financement refusé",
+        "inspection_issues": "Problèmes d'inspection",
+        "seller_withdrew": "Vendeur retiré",
+        "other": "Autre"
+      },
+      "confirm": "Confirmer l'annulation",
+      "success": "Transaction annulée avec succès"
+    },
+    "deleteModal": {
+      "title": "Supprimer définitivement",
+      "warning": "Vous êtes sur le point de supprimer définitivement la transaction \"{{client}}\". Cette action est irréversible et toutes les données seront perdues.",
+      "typePhrase": "Pour confirmer, tapez la phrase suivante :",
+      "confirmPhrase": "supprimer définitivement",
+      "termsLabel": "Je comprends que cette action ne peut pas être annulée et j'accepte les",
+      "termsLink": "conditions d'utilisation",
+      "inputPlaceholder": "Tapez la phrase ci-dessus...",
+      "confirm": "Supprimer définitivement",
+      "success": "Transaction supprimée"
+    },
+    "filter": {
+      "showCancelled": "Afficher les annulées",
+      "hideCancelled": "Masquer les annulées"
+    },
+    "profile": {
+      "title": "Profil de la propriété",
+      "hint": "Ce profil permet des suggestions de conditions adaptées.",
+      "propertyType": "Type de propriété",
+      "house": "Maison",
+      "condo": "Condo",
+      "land": "Terrain",
+      "propertyContext": "Contexte",
+      "urban": "Urbain",
+      "suburban": "Banlieue",
+      "rural": "Rural",
+      "isFinanced": "Financement",
+      "financed": "Financé",
+      "cash": "Comptant",
+      "ruralDetails": "Détails ruraux",
+      "hasWell": "Puits",
+      "hasSeptic": "Fosse septique",
+      "accessType": "Type d'accès",
+      "accessPublic": "Public",
+      "accessPrivate": "Privé",
+      "accessRightOfWay": "Servitude",
+      "appraisalRequired": "Évaluation requise"
+    },
+    "conditionPack": {
+      "title": "Conditions de départ",
+      "hint": "Choisissez comment initialiser les conditions de la transaction.",
+      "loadPack": "Charger le pack recommandé",
+      "loadPackDesc": "Conditions pré-configurées selon le profil",
+      "manual": "Je gère moi-même",
+      "manualDesc": "Transaction vide, ajout manuel"
+    }
   },
   "returnBanner": {
     "message": "Bienvenue ! Voici ce qui a changé depuis votre dernière visite.",
@@ -162,5 +449,484 @@
     "overdue": "{{count}} en retard",
     "thisWeek": "{{count}} cette semaine",
     "allClear": "Tout est en ordre cette semaine"
+  },
+  "client": {
+    "new": "Nouveau client",
+    "empty": "Aucun client",
+    "emptyDescription": "Ajoutez votre premier client pour commencer",
+    "emptyCta": "Ajouter mon premier client",
+    "noEmail": "Aucun courriel",
+    "noPhone": "Aucun téléphone",
+    "transactions": "{{count}} transaction(s)"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "subtitle": "Personnalisez l'apparence et le comportement de l'application",
+    "appearance": {
+      "title": "Apparence",
+      "darkMode": "Mode sombre",
+      "darkModeDescription": "Activer le thème sombre pour réduire la fatigue oculaire",
+      "theme": {
+        "light": "Clair",
+        "dark": "Sombre",
+        "system": "Système"
+      }
+    },
+    "language": {
+      "title": "Langue",
+      "description": "Choisissez la langue de l'interface",
+      "french": "Français",
+      "english": "English"
+    },
+    "regional": {
+      "title": "Préférences régionales",
+      "dateFormat": "Format de date",
+      "timezone": "Fuseau horaire"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "emailNotifications": "Notifications par courriel",
+      "emailDescription": "Recevez des rappels et mises à jour par courriel"
+    },
+    "update": "Mettre à jour",
+    "updating": "Mise à jour...",
+    "updateSuccess": "Mis à jour avec succès",
+    "updateError": "Échec de la mise à jour"
+  },
+  "account": {
+    "title": "Mon compte",
+    "subtitle": "Gérez vos informations personnelles et la sécurité",
+    "tabs": {
+      "profile": "Profil",
+      "security": "Sécurité"
+    },
+    "profile": {
+      "title": "Informations du profil",
+      "photo": "Photo de profil",
+      "photoHint": "Cliquez pour changer votre photo",
+      "fullName": "Nom complet",
+      "email": "Adresse courriel",
+      "phone": "Téléphone",
+      "agency": "Agence",
+      "licenseNumber": "Numéro de licence",
+      "emailSignature": "Signature courriel",
+      "signatureHint": "Apparaît dans les courriels automatiques envoyés aux clients.",
+      "signaturePlaceholder": "Cordialement,\nJean Dupont\nCourtier immobilier\nTél: 555-1234"
+    },
+    "security": {
+      "title": "Sécurité du compte",
+      "changePassword": "Changer le mot de passe",
+      "currentPassword": "Mot de passe actuel",
+      "newPassword": "Nouveau mot de passe",
+      "confirmPassword": "Confirmer le mot de passe",
+      "passwordHint": "Minimum 8 caractères",
+      "changeEmail": "Changer le courriel",
+      "newEmail": "Nouveau courriel",
+      "logoutAll": "Déconnexion de tous les appareils",
+      "logoutAllDescription": "Vous serez déconnecté de tous vos appareils et sessions, y compris celui-ci.",
+      "logoutAllButton": "Se déconnecter partout",
+      "loggingOut": "Déconnexion..."
+    },
+    "save": "Enregistrer les modifications",
+    "saving": "Enregistrement..."
+  },
+  "onboarding": {
+    "welcome": "Bienvenue sur Ofra !",
+    "subtitle": "Quelques questions pour personnaliser votre expérience",
+    "skip": "Passer",
+    "back": "Retour",
+    "continue": "Continuer",
+    "finish": "Terminer",
+    "stepOf": "Étape {{current}} sur {{total}}",
+    "steps": {
+      "language": {
+        "title": "Choisissez votre langue",
+        "subtitle": "Sélectionnez la langue de votre interface"
+      },
+      "practice": {
+        "title": "Comment travaillez-vous ?",
+        "subtitle": "Cela nous aide à adapter votre expérience",
+        "solo": "Je travaille seul(e)",
+        "soloDesc": "Courtier indépendant",
+        "smallTeam": "Petite équipe",
+        "smallTeamDesc": "2 à 5 personnes",
+        "agency": "Agence",
+        "agencyDesc": "Plus de 5 personnes"
+      },
+      "contexts": {
+        "title": "Vos types de transactions",
+        "subtitle": "Sélectionnez tous ceux qui s'appliquent",
+        "hint": "Cela détermine quelles conditions seront suggérées",
+        "urbanSuburban": "Résidentiel",
+        "urbanSuburbanDesc": "Urbain / Banlieue",
+        "rural": "Rural",
+        "ruralDesc": "Puits, fosse septique",
+        "condo": "Condos",
+        "condoDesc": "Copropriétés",
+        "land": "Terrains",
+        "landDesc": "Lots vacants"
+      },
+      "volume": {
+        "title": "Votre volume annuel",
+        "subtitle": "Combien de transactions par année ?",
+        "beginner": "Débutant",
+        "beginnerDesc": "Moins de 10 transactions / an",
+        "established": "Établi",
+        "establishedDesc": "10 à 30 transactions / an",
+        "high": "Volume élevé",
+        "highDesc": "Plus de 30 transactions / an"
+      },
+      "preference": {
+        "title": "Votre style de travail",
+        "subtitle": "Comment préférez-vous gérer vos conditions ?",
+        "guided": "Guidez-moi",
+        "guidedDesc": "Ofra charge automatiquement les conditions pertinentes selon votre profil. Vous pouvez toujours les modifier.",
+        "guidedTag": "Recommandé",
+        "manual": "Je préfère tout contrôler",
+        "manualDesc": "Vous ajoutez manuellement chaque condition. Des suggestions restent disponibles à chaque étape."
+      }
+    },
+    "success": {
+      "title": "Vous êtes prêt !",
+      "subtitle": "Votre expérience Ofra est maintenant personnalisée.",
+      "profileTitle": "Votre profil :",
+      "language": "Langue",
+      "practice": "Pratique",
+      "contexts": "Contextes",
+      "volume": "Volume",
+      "style": "Style",
+      "editHint": "Vous pouvez modifier ces préférences à tout moment dans les paramètres.",
+      "cta": "Accéder à mon tableau de bord"
+    }
+  },
+  "landing": {
+    "nav": {
+      "pricing": "Tarifs",
+      "login": "Connexion",
+      "getStarted": "Commencer"
+    },
+    "hero": {
+      "title": "Gérez vos transactions immobilières en toute confiance",
+      "subtitle": "Ofra vous guide à chaque étape de la transaction, de l'offre jusqu'aux clés. Ne manquez plus jamais une échéance.",
+      "cta": "Commencer gratuitement",
+      "pricing": "Voir les tarifs",
+      "badge1": "Sans carte de crédit",
+      "badge2": "Essai gratuit 14 jours",
+      "badge3": "Annulez à tout moment"
+    },
+    "features": {
+      "title": "Tout ce qu'il faut pour conclure plus de ventes",
+      "subtitle": "Des outils puissants conçus spécifiquement pour les professionnels de l'immobilier au Nouveau-Brunswick",
+      "workflow": {
+        "title": "Flux de travail guidé",
+        "desc": "Processus en 8 étapes de la consultation à la post-clôture, adapté aux transactions du N.-B."
+      },
+      "reminders": {
+        "title": "Rappels intelligents",
+        "desc": "Ne manquez plus jamais une échéance grâce aux alertes automatiques"
+      },
+      "blocking": {
+        "title": "Système de protection",
+        "desc": "Les conditions bloquantes préviennent les oublis coûteux avant d'avancer"
+      },
+      "clients": {
+        "title": "Gestion des clients",
+        "desc": "Gardez tous vos clients organisés avec l'historique des transactions"
+      },
+      "timeline": {
+        "title": "Historique d'activité",
+        "desc": "Suivez chaque action et changement tout au long du cycle de la transaction"
+      },
+      "fast": {
+        "title": "Ultra rapide",
+        "desc": "Interface moderne conçue pour la vitesse et l'efficacité sur bureau et mobile"
+      }
+    },
+    "stats": {
+      "agents": "Courtiers immobiliers",
+      "transactions": "Transactions gérées",
+      "uptime": "Disponibilité",
+      "rating": "Note moyenne"
+    },
+    "testimonials": {
+      "title": "Adopté par les meilleurs courtiers du Nouveau-Brunswick",
+      "1": "Ofra a transformé ma façon de gérer mes transactions. Je ne manque plus jamais une échéance!",
+      "2": "La fonction de conditions bloquantes m'a évité une erreur coûteuse. Ça vaut chaque sou.",
+      "3": "Enfin, un outil qui comprend comment on travaille au Nouveau-Brunswick. Hautement recommandé!"
+    },
+    "cta": {
+      "title": "Prêt à simplifier vos transactions?",
+      "subtitle": "Rejoignez des centaines de courtiers qui utilisent déjà Ofra pour conclure plus de ventes.",
+      "button": "Commencer l'essai gratuit"
+    },
+    "footer": {
+      "tagline": "Zéro oubli. Zéro stress.",
+      "product": "Produit",
+      "legal": "Légal",
+      "contact": "Contact",
+      "signup": "Inscription",
+      "privacy": "Politique de confidentialité",
+      "terms": "Conditions d'utilisation",
+      "contactUs": "Nous contacter",
+      "rights": "Tous droits réservés."
+    }
+  },
+  "legal": {
+    "privacy": {
+      "title": "Politique de confidentialité",
+      "lastUpdated": "Dernière mise à jour",
+      "sections": {
+        "collection": {
+          "title": "Informations collectées",
+          "content": "Nous collectons les informations que vous fournissez directement, y compris votre nom, adresse courriel et données de transaction. Nous collectons également automatiquement des données d'utilisation pour améliorer nos services."
+        },
+        "usage": {
+          "title": "Utilisation de vos informations",
+          "content": "Nous utilisons vos informations pour fournir et améliorer les services Ofra, communiquer avec vous au sujet de votre compte et envoyer des mises à jour importantes sur vos transactions."
+        },
+        "storage": {
+          "title": "Stockage et sécurité des données",
+          "content": "Vos données sont stockées en toute sécurité sur des serveurs situés au Canada. Nous utilisons le chiffrement et les mesures de sécurité standard de l'industrie pour protéger vos informations."
+        },
+        "rights": {
+          "title": "Vos droits",
+          "content": "Vous avez le droit d'accéder, de corriger ou de supprimer vos données personnelles. Vous pouvez également demander une copie de vos données ou restreindre certaines activités de traitement."
+        },
+        "contact": {
+          "title": "Nous contacter",
+          "content": "Pour les demandes liées à la confidentialité, contactez-nous à privacy@ofra.ca ou écrivez à : Ofra, Moncton, Nouveau-Brunswick, Canada."
+        }
+      }
+    },
+    "terms": {
+      "title": "Conditions d'utilisation",
+      "lastUpdated": "Dernière mise à jour",
+      "sections": {
+        "acceptance": {
+          "title": "Acceptation des conditions",
+          "content": "En accédant ou en utilisant Ofra, vous acceptez d'être lié par ces conditions d'utilisation et notre politique de confidentialité. Si vous n'acceptez pas, veuillez ne pas utiliser nos services."
+        },
+        "services": {
+          "title": "Nos services",
+          "content": "Ofra fournit des outils de gestion de transactions immobilières pour les professionnels. Nous nous réservons le droit de modifier, suspendre ou interrompre toute partie de nos services à tout moment."
+        },
+        "account": {
+          "title": "Votre compte",
+          "content": "Vous êtes responsable de maintenir la confidentialité de vos identifiants de compte et de toutes les activités sous votre compte. Informez-nous immédiatement de toute utilisation non autorisée."
+        },
+        "payment": {
+          "title": "Conditions de paiement",
+          "content": "Les forfaits payants sont facturés mensuellement ou annuellement. Les prix sont en dollars canadiens et soumis aux taxes applicables. Les remboursements sont fournis selon notre politique de remboursement."
+        },
+        "termination": {
+          "title": "Résiliation",
+          "content": "Vous pouvez annuler votre compte à tout moment. Nous pouvons résilier ou suspendre votre compte pour violation de ces conditions ou pour toute autre raison à notre discrétion."
+        },
+        "liability": {
+          "title": "Limitation de responsabilité",
+          "content": "Ofra est fourni « tel quel » sans garanties. Nous ne sommes pas responsables des dommages indirects, accessoires ou consécutifs découlant de votre utilisation de nos services."
+        }
+      }
+    }
+  },
+  "offers": {
+    "title": "Offres",
+    "new": "Nouvelle offre",
+    "newButton": "+ Nouvelle offre",
+    "loading": "Chargement des offres...",
+    "empty": "Aucune offre pour le moment.",
+    "revisionHistory": "Historique des révisions",
+    "deposit": "Dépôt",
+    "financing": "Financement",
+    "expires": "Expire",
+    "accept": "Accepter",
+    "counter": "Contre-offre",
+    "reject": "Refuser",
+    "withdraw": "Retirer",
+    "delete": "Supprimer",
+    "status": {
+      "received": "Reçue",
+      "countered": "Contre-offre",
+      "accepted": "Acceptée",
+      "rejected": "Refusée",
+      "expired": "Expirée",
+      "withdrawn": "Retirée"
+    },
+    "direction": {
+      "buyerToSellerShort": "A→V",
+      "sellerToBuyerShort": "V→A",
+      "buyerToSeller": "Acheteur → Vendeur",
+      "sellerToBuyer": "Vendeur → Acheteur"
+    },
+    "confirm": {
+      "acceptTitle": "Accepter l'offre",
+      "acceptMessage": "Êtes-vous sûr de vouloir accepter cette offre ? Toutes les autres offres actives seront automatiquement refusées.",
+      "rejectTitle": "Refuser l'offre",
+      "rejectMessage": "Êtes-vous sûr de vouloir refuser cette offre ?",
+      "withdrawTitle": "Retirer l'offre",
+      "withdrawMessage": "Êtes-vous sûr de vouloir retirer cette offre ?",
+      "deleteTitle": "Supprimer l'offre",
+      "deleteMessage": "Êtes-vous sûr de vouloir supprimer définitivement cette offre et toutes ses révisions ?"
+    },
+    "errors": {
+      "acceptFailed": "Échec de l'acceptation de l'offre",
+      "rejectFailed": "Échec du refus de l'offre",
+      "withdrawFailed": "Échec du retrait de l'offre",
+      "deleteFailed": "Échec de la suppression de l'offre"
+    },
+    "counterOffer": "Contre-offre",
+    "price": "Prix (CAD)",
+    "deposit": "Dépôt (CAD)",
+    "financingAmount": "Montant financement (CAD)",
+    "expiryDate": "Date d'expiration",
+    "direction": "Direction",
+    "notes": "Notes",
+    "notesPlaceholder": "Notes additionnelles...",
+    "counterNotesPlaceholder": "Notes de contre-offre...",
+    "buyerToSeller": "Acheteur → Vendeur",
+    "sellerToBuyer": "Vendeur → Acheteur",
+    "creating": "Création...",
+    "submitting": "Envoi...",
+    "createOffer": "Créer l'offre",
+    "submitCounterOffer": "Soumettre la contre-offre",
+    "requiredFields": "Champs obligatoires",
+    "validPriceRequired": "Un prix valide est requis.",
+    "failedCreate": "Échec de la création de l'offre",
+    "failedCounter": "Échec de la soumission de la contre-offre"
+  },
+  "clients": {
+    "new": "Nouveau client",
+    "firstName": "Prénom",
+    "lastName": "Nom",
+    "email": "Courriel",
+    "phone": "Téléphone",
+    "notes": "Notes",
+    "tabs": {
+      "basic": "Infos de base",
+      "address": "Adresse",
+      "phones": "Téléphones"
+    },
+    "address": {
+      "line1": "Adresse ligne 1",
+      "line2": "Adresse ligne 2",
+      "line1Placeholder": "Adresse civique",
+      "line2Placeholder": "App., suite, unité, etc. (optionnel)",
+      "city": "Ville",
+      "provinceState": "Province",
+      "provincePlaceholder": "N.-B., QC, ON, etc.",
+      "postalCode": "Code postal",
+      "postalPlaceholder": "E1A 2B3"
+    },
+    "phones": {
+      "cell": "Cellulaire",
+      "cellPlaceholder": "Numéro principal",
+      "home": "Domicile",
+      "homePlaceholder": "Ligne fixe résidentielle",
+      "work": "Travail",
+      "workPlaceholder": "Numéro de bureau"
+    },
+    "requiredFields": "Champs obligatoires",
+    "nameRequired": "Le prénom et le nom sont obligatoires.",
+    "creating": "Création...",
+    "createClient": "Créer le client",
+    "saving": "Enregistrement...",
+    "saveChanges": "Enregistrer",
+    "failedCreate": "Échec de la création du client",
+    "goToLogin": "Aller à la connexion →",
+    "details": {
+      "notFound": "Client introuvable",
+      "backToClients": "Retour aux clients",
+      "deleteClient": "Supprimer le client",
+      "contactInfo": "Coordonnées",
+      "transactionsHistory": "Transactions et historique",
+      "transactionNumber": "Transaction #{{id}}",
+      "viewDetails": "Voir les détails →",
+      "noTransactions": "Aucune transaction pour ce client.",
+      "deleteConfirmTitle": "Supprimer le client",
+      "deleteConfirmMessage": "Êtes-vous sûr de vouloir supprimer {{name}} ? Cette action est irréversible.",
+      "deleteBlockedMessage": "Impossible de supprimer ce client car il a {{count}} transaction(s). Veuillez d'abord supprimer ou réaffecter les transactions.",
+      "address": "Adresse"
+    }
+  },
+  "contact": {
+    "title": "Contactez notre équipe de vente",
+    "subtitle": "Intéressé par Ofra Entreprise ? Discutons de comment nous pouvons aider votre équipe.",
+    "form": {
+      "name": "Nom complet",
+      "namePlaceholder": "Jean Dupont",
+      "email": "Adresse courriel",
+      "emailPlaceholder": "jean@entreprise.com",
+      "company": "Nom de l'entreprise",
+      "companyPlaceholder": "Votre agence",
+      "teamSize": "Taille de l'équipe",
+      "selectTeamSize": "Sélectionner la taille",
+      "message": "Message",
+      "messagePlaceholder": "Parlez-nous de vos besoins...",
+      "submit": "Envoyer le message",
+      "sending": "Envoi..."
+    },
+    "success": {
+      "title": "Message envoyé !",
+      "message": "Merci de votre intérêt. Notre équipe vous contactera dans les 24 à 48 heures."
+    }
+  },
+  "pricing": {
+    "title": "Tarification simple et transparente",
+    "subtitle": "Choisissez le forfait qui convient à votre entreprise. Prix en CAD, sans frais cachés.",
+    "perMonth": "/mois",
+    "popular": "Le plus populaire",
+    "plans": {
+      "essentiel": {
+        "name": "Essentiel",
+        "desc": "Pour les agents indépendants qui débutent",
+        "cta": "Commencer avec Essentiel"
+      },
+      "pro": {
+        "name": "Pro",
+        "desc": "Pour les agents en croissance",
+        "cta": "Commencer avec Pro"
+      },
+      "agence": {
+        "name": "Agence",
+        "desc": "Pour les équipes et courtages",
+        "cta": "Commencer avec Agence"
+      }
+    },
+    "features": {
+      "users": "Utilisateurs",
+      "transactions": "Transactions",
+      "storage": "Stockage",
+      "fileSize": "Taille max fichier",
+      "workflow": "Flux de travail guidé",
+      "conditions": "Suivi des conditions",
+      "customWorkflows": "Workflows personnalisés",
+      "reminders": "Rappels intelligents",
+      "csvImport": "Import CSV",
+      "reports": "Rapports",
+      "advancedReports": "Rapports avancés",
+      "api": "Accès API",
+      "onboarding": "Onboarding dédié",
+      "support": "Support"
+    },
+    "comparison": {
+      "title": "Comparer toutes les fonctionnalités",
+      "feature": "Fonctionnalité"
+    },
+    "faq": {
+      "title": "Questions fréquentes",
+      "q1": "Puis-je essayer Ofra avant de payer?",
+      "a1": "Oui! Rejoignez le Programme Fondateur pour 3 mois gratuits avec le forfait Pro. Limité à 25 places.",
+      "q2": "Puis-je annuler à tout moment?",
+      "a2": "Absolument. Il n'y a pas de contrat à long terme. Annulez votre abonnement à tout moment depuis vos paramètres.",
+      "q3": "Mes données sont-elles sécurisées?",
+      "a3": "Oui, nous utilisons le cryptage et les pratiques de sécurité standard de l'industrie. Vos données sont stockées au Canada.",
+      "q4": "Offrez-vous des rabais pour les équipes?",
+      "a4": "Les Fondateurs bénéficient de 25% de rabais à vie après l'essai. Contactez-nous pour une tarification Agence personnalisée."
+    },
+    "cta": {
+      "title": "Prêt à commencer?",
+      "subtitle": "Programme Fondateur: 3 mois gratuits, puis 25% de rabais à vie.",
+      "button": "Rejoindre le Programme Fondateur"
+    }
   }
 }

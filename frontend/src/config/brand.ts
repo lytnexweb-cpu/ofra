@@ -5,17 +5,19 @@
 export const BRAND = {
   // Core identity
   name: 'Ofra',
-  tagline: "De l'offre aux cles",
-  taglineEn: 'From offer to keys',
+  tagline: 'Zéro oubli. Zéro stress.',
+  taglineEn: 'Zero oversights. Zero stress.',
 
   // Contact & links
   domain: 'ofra.ca',
   supportEmail: 'support@ofra.ca',
 
-  // Visual identity
+  // Visual identity — Ofra palette
   colors: {
-    primary: '#2563EB',    // Blue - professional
-    secondary: '#059669',  // Green - trust
+    primary: '#1E3A5F',    // Bleu marine - professional
+    accent: '#D97706',     // Or/ambre - accent (amber-600)
+    success: '#10B981',    // Émeraude - trust
+    destructive: '#EF4444', // Rouge - errors
   },
 
   // Legal

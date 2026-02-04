@@ -5,6 +5,9 @@ import { I18nextProvider } from 'react-i18next'
 import i18n from '../i18n'
 import type { ReactElement } from 'react'
 
+// Ensure tests always run in English
+i18n.changeLanguage('en')
+
 interface RenderWithProvidersOptions extends Omit<RenderOptions, 'wrapper'> {
   initialRoute?: string
 }

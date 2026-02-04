@@ -3,6 +3,7 @@ import {
   formatDistanceToNow as fnsFormatDistanceToNow,
   differenceInDays as fnsDifferenceInDays,
   parseISO as fnsParseISO,
+  type Locale,
 } from 'date-fns'
 import { enCA } from 'date-fns/locale/en-CA'
 import { fr } from 'date-fns/locale/fr'
