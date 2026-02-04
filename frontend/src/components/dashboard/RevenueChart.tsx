@@ -7,6 +7,8 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from 'recharts'
+import { useTranslation } from 'react-i18next'
+import { useTheme } from '../../contexts/ThemeContext'
 
 interface RevenueData {
   month: string
@@ -31,7 +33,9 @@ function formatCurrency(value: number | undefined | null): string {
 }
 
 export default function RevenueChart({ data = [], totalRevenue = 0, monthRevenue = 0 }: RevenueChartProps) {
-  const isDark = false
+  const { t } = useTranslation()
+  const { resolvedTheme } = useTheme()
+  const isDark = resolvedTheme === 'dark'
 
   // Theme-aware colors
   const axisTickColor = isDark ? '#9CA3AF' : '#6B7280'
@@ -45,12 +49,12 @@ export default function RevenueChart({ data = [], totalRevenue = 0, monthRevenue
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Commissions</h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Last 6 months</p>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t('dashboard.charts.commissions')}</h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t('dashboard.charts.last6Months')}</p>
         </div>
         <div className="text-right">
           <p className="text-2xl font-bold text-green-600 dark:text-green-400">{formatCurrency(monthRevenue)}</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">this month</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">{t('dashboard.charts.thisMonth')}</p>
         </div>
       </div>
 
@@ -60,7 +64,7 @@ export default function RevenueChart({ data = [], totalRevenue = 0, monthRevenue
             <svg className="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <p>No commission data yet</p>
+            <p>{t('dashboard.charts.noCommissionData')}</p>
           </div>
         </div>
       ) : (
@@ -96,7 +100,7 @@ export default function RevenueChart({ data = [], totalRevenue = 0, monthRevenue
                     boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
                     color: isDark ? '#F3F4F6' : '#111827',
                   }}
-                  formatter={(value) => [`$${Number(value).toLocaleString()}`, 'Commission']}
+                  formatter={(value) => [`$${Number(value).toLocaleString()}`, t('dashboard.charts.commission')]}
                 />
                 <Area
                   type="monotone"
@@ -111,7 +115,7 @@ export default function RevenueChart({ data = [], totalRevenue = 0, monthRevenue
 
           <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
             <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-500 dark:text-gray-400">Total earned</span>
+              <span className="text-sm text-gray-500 dark:text-gray-400">{t('dashboard.charts.totalEarned')}</span>
               <span className="text-lg font-semibold text-gray-900 dark:text-white">
                 {formatCurrency(totalRevenue)}
               </span>

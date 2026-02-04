@@ -1,14 +1,20 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { ChevronDown, ChevronRight } from 'lucide-react'
+import { ChevronDown, ChevronRight, Plus } from 'lucide-react'
 import type { Transaction } from '../../api/transactions.api'
 import { conditionsApi, type Condition } from '../../api/conditions.api'
 import { toast } from '../../hooks/use-toast'
+import { Button } from '../ui/Button'
 import ConditionCard from './ConditionCard'
+import CreateConditionModal from '../CreateConditionModal'
+import EditConditionModal from './EditConditionModal'
+import ConditionValidationModal from './ConditionValidationModal'
 
 interface ConditionsTabProps {
   transaction: Transaction
+  /** D32: Filter conditions to show only those from a specific step */
+  filterStepId?: number | null
 }
 
 interface StepGroup {
@@ -20,16 +26,34 @@ interface StepGroup {
   conditions: Condition[]
 }
 
-export default function ConditionsTab({ transaction }: ConditionsTabProps) {
+export default function ConditionsTab({ transaction, filterStepId }: ConditionsTabProps) {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
   const [showPastSteps, setShowPastSteps] = useState(false)
   const [togglingId, setTogglingId] = useState<number | null>(null)
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [editingCondition, setEditingCondition] = useState<Condition | null>(null)
+  // D41: Validation modal for blocking/required conditions
+  const [validatingCondition, setValidatingCondition] = useState<Condition | null>(null)
 
-  const conditions = (transaction.conditions ?? []) as Condition[]
+  // D32: Filter conditions by step if filterStepId is provided
+  const allConditions = (transaction.conditions ?? []) as Condition[]
+  const conditions = filterStepId != null
+    ? allConditions.filter((c) => c.transactionStepId === filterStepId)
+    : allConditions
   const steps = transaction.transactionSteps ?? []
   const currentStepId = transaction.currentStepId
   const transactionKey = ['transaction', transaction.id]
+
+  // D32: Get selected step name for display
+  const selectedStep = filterStepId != null
+    ? steps.find((s) => s.id === filterStepId)
+    : null
+  const selectedStepName = selectedStep
+    ? (selectedStep.workflowStep?.slug
+        ? t(`workflow.steps.${selectedStep.workflowStep.slug}`, { defaultValue: selectedStep.workflowStep?.name ?? '' })
+        : selectedStep.workflowStep?.name ?? `Step ${selectedStep.stepOrder}`)
+    : null
 
   // Optimistic toggle mutation
   const toggleMutation = useMutation({
@@ -79,12 +103,38 @@ export default function ConditionsTab({ transaction }: ConditionsTabProps) {
       queryClient.invalidateQueries({ queryKey: transactionKey })
       queryClient.invalidateQueries({ queryKey: ['transactions'] })
       queryClient.invalidateQueries({ queryKey: ['dashboard'] })
+      queryClient.invalidateQueries({ queryKey: ['advance-check', transaction.id] })
     },
   })
 
-  const handleToggle = (condition: Condition) => {
+  // D41: Graduated friction - check condition level before toggling
+  const handleToggle = useCallback((condition: Condition) => {
     if (togglingId) return
+
+    const level = condition.level || (condition.isBlocking ? 'blocking' : 'recommended')
+    const isCompleting = condition.status !== 'completed'
+    const isUncompleting = condition.status === 'completed'
+
+    // D41: Prevent unchecking blocking/required conditions (audit trail protection)
+    if (isUncompleting && (level === 'blocking' || level === 'required')) {
+      // Silently ignore - these conditions are locked once completed
+      // User can see the condition is completed but can't undo it
+      return
+    }
+
+    // D41: For blocking/required conditions being completed, show validation modal
+    if (isCompleting && (level === 'blocking' || level === 'required')) {
+      setValidatingCondition(condition)
+      return
+    }
+
+    // For recommended conditions (both directions), use direct toggle
     toggleMutation.mutate(condition)
+  }, [togglingId, toggleMutation])
+
+  // D38: Handle edit condition
+  const handleEdit = (condition: Condition) => {
+    setEditingCondition(condition)
   }
 
   const groups = useMemo(() => {
@@ -146,22 +196,65 @@ export default function ConditionsTab({ transaction }: ConditionsTabProps) {
 
   if (conditions.length === 0) {
     return (
-      <div className="py-8 text-center text-sm text-muted-foreground" data-testid="conditions-empty">
-        {t('common.noResults')}
+      <div className="py-8 text-center" data-testid="conditions-empty">
+        <div className="max-w-sm mx-auto">
+          <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
+            <Plus className="w-6 h-6 text-muted-foreground" />
+          </div>
+          <p className="text-sm text-muted-foreground mb-2">
+            {t('conditions.emptyState.title', 'Aucune condition requise à cette étape')}
+          </p>
+          <p className="text-xs text-muted-foreground/70 mb-4">
+            {t('conditions.emptyState.description', 'Vous pouvez ajouter des conditions personnalisées si nécessaire.')}
+          </p>
+          <Button onClick={() => setIsCreateModalOpen(true)} className="gap-2">
+            <Plus className="w-4 h-4" />
+            {t('conditions.form.custom', 'Ajouter une condition')}
+          </Button>
+        </div>
+        <CreateConditionModal
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          transactionId={transaction.id}
+          currentStepOrder={transaction.currentStep?.stepOrder}
+        />
       </div>
     )
   }
 
   return (
     <div className="py-4 space-y-6" data-testid="conditions-tab">
+      {/* D32: Step filter indicator + Header with Add button */}
+      <div className="flex items-center justify-between gap-4">
+        {selectedStepName ? (
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-muted-foreground">{t('conditions.filteringBy', 'Filtré par')}:</span>
+            <span className="font-semibold text-primary">{selectedStepName}</span>
+            <span className="text-muted-foreground">({conditions.length})</span>
+          </div>
+        ) : (
+          <div className="text-sm text-muted-foreground">
+            {t('conditions.allSteps', 'Toutes les étapes')} ({conditions.length})
+          </div>
+        )}
+        <Button
+          onClick={() => setIsCreateModalOpen(true)}
+          size="sm"
+          className="gap-2"
+          data-testid="add-condition-btn"
+        >
+          <Plus className="w-4 h-4" />
+          {t('common.add')}
+        </Button>
+      </div>
       {currentGroups.map((group) => (
-        <StepSection key={group.stepId} group={group} togglingId={togglingId} onToggle={handleToggle} />
+        <StepSection key={group.stepId} group={group} togglingId={togglingId} onToggle={handleToggle} onEdit={handleEdit} />
       ))}
       {futureGroups.map((group) => (
-        <StepSection key={group.stepId} group={group} togglingId={togglingId} onToggle={handleToggle} />
+        <StepSection key={group.stepId} group={group} togglingId={togglingId} onToggle={handleToggle} onEdit={handleEdit} />
       ))}
       {unassignedGroups.map((group) => (
-        <StepSection key="unassigned" group={group} togglingId={togglingId} onToggle={handleToggle} />
+        <StepSection key="unassigned" group={group} togglingId={togglingId} onToggle={handleToggle} onEdit={handleEdit} />
       ))}
 
       {pastGroups.length > 0 && (
@@ -176,9 +269,42 @@ export default function ConditionsTab({ transaction }: ConditionsTabProps) {
           </button>
           {showPastSteps &&
             pastGroups.map((group) => (
-              <StepSection key={group.stepId} group={group} togglingId={togglingId} onToggle={handleToggle} />
+              <StepSection key={group.stepId} group={group} togglingId={togglingId} onToggle={handleToggle} onEdit={handleEdit} />
             ))}
         </div>
+      )}
+
+      {/* Create Condition Modal */}
+      <CreateConditionModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        transactionId={transaction.id}
+        currentStepOrder={transaction.currentStep?.stepOrder}
+      />
+
+      {/* D38: Edit Condition Modal */}
+      <EditConditionModal
+        condition={editingCondition}
+        transactionId={transaction.id}
+        isOpen={!!editingCondition}
+        onClose={() => setEditingCondition(null)}
+      />
+
+      {/* D41: Validation Modal for blocking/required conditions */}
+      {validatingCondition && (
+        <ConditionValidationModal
+          condition={validatingCondition}
+          transactionId={transaction.id}
+          isOpen={!!validatingCondition}
+          onClose={() => setValidatingCondition(null)}
+          onSuccess={() => {
+            // Invalidate queries after successful validation
+            queryClient.invalidateQueries({ queryKey: transactionKey })
+            queryClient.invalidateQueries({ queryKey: ['transactions'] })
+            queryClient.invalidateQueries({ queryKey: ['dashboard'] })
+            queryClient.invalidateQueries({ queryKey: ['advance-check', transaction.id] })
+          }}
+        />
       )}
     </div>
   )
@@ -188,10 +314,12 @@ function StepSection({
   group,
   togglingId,
   onToggle,
+  onEdit,
 }: {
   group: StepGroup
   togglingId: number | null
   onToggle: (c: Condition) => void
+  onEdit: (c: Condition) => void
 }) {
   return (
     <div data-testid={`step-group-${group.stepOrder}`}>
@@ -212,6 +340,7 @@ function StepSection({
             interactive
             isToggling={togglingId === condition.id}
             onToggle={onToggle}
+            onEdit={onEdit}
           />
         ))}
       </div>

@@ -1,6 +1,7 @@
 import { http } from './http'
 
-export type ConditionStatus = 'pending' | 'completed'
+// Legacy types
+export type ConditionStatus = 'pending' | 'in_progress' | 'completed'
 export type ConditionType =
   | 'financing'
   | 'deposit'
@@ -14,10 +15,16 @@ export type ConditionType =
   | 'other'
 export type ConditionPriority = 'low' | 'medium' | 'high'
 
+// Premium types (D4/D27)
+export type ConditionLevel = 'blocking' | 'required' | 'recommended'
+export type SourceType = 'legal' | 'government' | 'industry' | 'best_practice'
+export type ResolutionType = 'completed' | 'waived' | 'not_applicable' | 'skipped_with_risk'
+
 export interface Condition {
   id: number
   transactionId: number
   transactionStepId: number | null
+  templateId: number | null
   title: string
   description: string | null
   status: ConditionStatus
@@ -30,6 +37,45 @@ export interface Condition {
   completedAt: string | null
   createdAt: string
   updatedAt: string
+  // Premium fields
+  labelFr?: string | null
+  labelEn?: string | null
+  level?: ConditionLevel
+  sourceType?: SourceType | null
+  resolutionType?: ResolutionType | null
+  resolutionNote?: string | null
+  resolvedAt?: string | null
+  resolvedBy?: string | null
+  archived?: boolean
+  archivedAt?: string | null
+  archivedStep?: number | null
+  stepWhenCreated?: number | null
+  stepWhenResolved?: number | null
+  // D41: Escape tracking
+  escapedWithoutProof?: boolean
+  escapeReason?: string | null
+  escapeConfirmedAt?: string | null
+}
+
+export interface ConditionEvidence {
+  id: number
+  conditionId: number
+  type: 'file' | 'link' | 'note'
+  fileUrl?: string | null
+  url?: string | null
+  note?: string | null
+  title?: string | null
+  createdBy: number
+  createdAt: string
+}
+
+export interface ConditionEvent {
+  id: number
+  conditionId: number
+  eventType: string
+  actorId: string
+  meta: Record<string, any>
+  createdAt: string
 }
 
 export interface CreateConditionRequest {
@@ -41,8 +87,10 @@ export interface CreateConditionRequest {
   priority?: ConditionPriority
   transactionStepId?: number
   isBlocking?: boolean
+  level?: ConditionLevel
   documentUrl?: string
   documentLabel?: string
+  templateId?: number // Link to template (prevents duplicate suggestions)
 }
 
 export interface UpdateConditionRequest {
@@ -58,7 +106,54 @@ export interface UpdateConditionRequest {
   documentLabel?: string
 }
 
+export interface ResolveConditionRequest {
+  resolutionType: ResolutionType
+  note?: string
+  // D41: Evidence tracking
+  hasEvidence?: boolean
+  evidenceId?: number | null
+  evidenceFilename?: string | null
+  // D41: Escape without proof (for blocking conditions)
+  escapedWithoutProof?: boolean
+  escapeReason?: string
+}
+
+export interface ConditionResolutionInput {
+  conditionId: number
+  resolutionType: ResolutionType
+  note?: string
+}
+
+export interface AdvanceCheckResult {
+  canAdvance: boolean
+  currentStep: {
+    order: number
+    name: string
+  } | null
+  blockingConditions: Pick<Condition, 'id' | 'title' | 'labelFr' | 'labelEn'>[]
+  requiredPendingConditions: Pick<Condition, 'id' | 'title' | 'labelFr' | 'labelEn'>[]
+  recommendedPendingConditions: Pick<Condition, 'id' | 'title' | 'labelFr' | 'labelEn'>[]
+}
+
+export interface TimelineData {
+  [step: number]: {
+    id: number
+    title: string
+    labelFr?: string | null
+    labelEn?: string | null
+    level?: ConditionLevel
+    status: ConditionStatus
+    resolutionType?: ResolutionType | null
+    resolutionNote?: string | null
+    resolvedAt?: string | null
+    resolvedBy?: string | null
+    archived?: boolean
+    archivedStep?: number | null
+  }[]
+}
+
 export const conditionsApi = {
+  // Legacy endpoints
   create: (data: CreateConditionRequest) =>
     http.post<{ condition: Condition }>(
       `/api/transactions/${data.transactionId}/conditions`,
@@ -72,4 +167,42 @@ export const conditionsApi = {
     http.patch<{ condition: Condition }>(`/api/conditions/${id}/complete`, {}),
 
   delete: (id: number) => http.delete<{}>(`/api/conditions/${id}`),
+
+  // Premium endpoints (D4/D27)
+  resolve: (id: number, data: ResolveConditionRequest) =>
+    http.post<{ condition: Condition }>(`/api/conditions/${id}/resolve`, data),
+
+  getHistory: (id: number) =>
+    http.get<{ condition: Partial<Condition>; events: ConditionEvent[] }>(
+      `/api/conditions/${id}/history`
+    ),
+
+  getEvidence: (id: number) =>
+    http.get<{ evidence: ConditionEvidence[] }>(`/api/conditions/${id}/evidence`),
+
+  addEvidence: (id: number, data: { type: 'file' | 'link' | 'note'; fileUrl?: string; url?: string; note?: string; title?: string }) =>
+    http.post<{ evidence: ConditionEvidence }>(`/api/conditions/${id}/evidence`, data),
+
+  removeEvidence: (conditionId: number, evidenceId: number) =>
+    http.delete<{}>(`/api/conditions/${conditionId}/evidence/${evidenceId}`),
+
+  // Transaction-level Premium endpoints
+  getTimeline: (transactionId: number) =>
+    http.get<{ timeline: TimelineData }>(`/api/transactions/${transactionId}/conditions/timeline`),
+
+  getActive: (transactionId: number) =>
+    http.get<{
+      conditions: Condition[]
+      summary: {
+        total: number
+        blocking: number
+        required: number
+        recommended: number
+        pending: number
+        completed: number
+      }
+    }>(`/api/transactions/${transactionId}/conditions/active`),
+
+  advanceCheck: (transactionId: number) =>
+    http.get<AdvanceCheckResult>(`/api/transactions/${transactionId}/conditions/advance-check`),
 }

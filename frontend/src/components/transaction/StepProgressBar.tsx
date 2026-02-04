@@ -5,12 +5,21 @@ import type { TransactionStep } from '../../api/transactions.api'
 interface StepProgressBarProps {
   steps: TransactionStep[]
   currentStepId: number | null
+  selectedStepId?: number | null
+  onStepClick?: (stepId: number | null) => void
 }
 
-export default function StepProgressBar({ steps, currentStepId }: StepProgressBarProps) {
+export default function StepProgressBar({ steps, currentStepId, selectedStepId, onStepClick }: StepProgressBarProps) {
   const { t } = useTranslation()
 
   const sorted = [...steps].sort((a, b) => a.stepOrder - b.stepOrder)
+  const isClickable = !!onStepClick
+
+  const handleStepClick = (stepId: number) => {
+    if (!onStepClick) return
+    // Toggle: if already selected, deselect (show all)
+    onStepClick(selectedStepId === stepId ? null : stepId)
+  }
 
   return (
     <div
@@ -24,6 +33,7 @@ export default function StepProgressBar({ steps, currentStepId }: StepProgressBa
           const isDone = step.status === 'completed'
           const isActive = step.id === currentStepId
           const isSkipped = step.status === 'skipped'
+          const isSelected = selectedStepId === step.id
           const slug = step.workflowStep?.slug ?? ''
           const label = slug
             ? t(`workflow.steps.${slug}`, { defaultValue: step.workflowStep?.name ?? `Step ${step.stepOrder}` })
@@ -32,10 +42,17 @@ export default function StepProgressBar({ steps, currentStepId }: StepProgressBa
           return (
             <div key={step.id} className="flex items-start flex-1 min-w-0" role="listitem">
               <div className="flex flex-col items-center flex-1 min-w-0">
-                {/* Circle */}
-                <div
+                {/* Circle - clickable when onStepClick provided */}
+                <button
+                  type="button"
+                  onClick={() => handleStepClick(step.id)}
+                  disabled={!isClickable}
                   className={[
-                    'w-8 h-8 rounded-full flex items-center justify-center shrink-0',
+                    'w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-all',
+                    isClickable ? 'cursor-pointer hover:scale-110' : 'cursor-default',
+                    isSelected
+                      ? 'ring-2 ring-offset-2 ring-primary'
+                      : '',
                     isDone
                       ? 'bg-success text-white'
                       : isActive
@@ -44,6 +61,9 @@ export default function StepProgressBar({ steps, currentStepId }: StepProgressBa
                           ? 'bg-muted text-muted-foreground'
                           : 'bg-muted text-muted-foreground',
                   ].join(' ')}
+                  aria-pressed={isSelected}
+                  aria-label={`${label} - ${isDone ? t('workflow.status.completed') : isActive ? t('workflow.status.active') : t('workflow.status.pending')}`}
+                  data-testid={`step-${step.id}`}
                 >
                   {isDone ? (
                     <Check className="w-4 h-4" aria-hidden="true" />
@@ -52,17 +72,19 @@ export default function StepProgressBar({ steps, currentStepId }: StepProgressBa
                   ) : (
                     <span className="text-xs font-bold">{step.stepOrder}</span>
                   )}
-                </div>
+                </button>
 
                 {/* Label */}
                 <span
                   className={[
                     'mt-1.5 text-[10px] leading-tight font-medium text-center max-w-full px-1 truncate',
-                    isDone
-                      ? 'text-success'
-                      : isActive
-                        ? 'text-primary font-semibold'
-                        : 'text-muted-foreground',
+                    isSelected
+                      ? 'text-primary font-bold underline'
+                      : isDone
+                        ? 'text-success'
+                        : isActive
+                          ? 'text-primary font-semibold'
+                          : 'text-muted-foreground',
                   ].join(' ')}
                   title={label}
                 >

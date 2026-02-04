@@ -1,14 +1,30 @@
 import { useTranslation } from 'react-i18next'
-import { Check, ShieldAlert } from 'lucide-react'
+import { Check, ShieldAlert, AlertCircle, Lightbulb, CheckCircle2, Ban, SkipForward, FileWarning, Pencil, Lock } from 'lucide-react'
 import { Badge } from '../ui/Badge'
 import { CountdownBadge } from '.'
-import type { Condition } from '../../api/conditions.api'
+import EvidenceBadge from './EvidenceBadge'
+import type { Condition, ConditionLevel, ResolutionType } from '../../api/conditions.api'
 
 interface ConditionCardProps {
   condition: Condition
   interactive?: boolean
   isToggling?: boolean
   onToggle?: (condition: Condition) => void
+  onEdit?: (condition: Condition) => void
+  showResolution?: boolean
+}
+
+const LEVEL_CONFIG: Record<ConditionLevel, { icon: React.ElementType; variant: 'destructive' | 'warning' | 'success'; labelKey: string }> = {
+  blocking: { icon: ShieldAlert, variant: 'destructive', labelKey: 'conditions.levels.blocking' },
+  required: { icon: AlertCircle, variant: 'warning', labelKey: 'conditions.levels.required' },
+  recommended: { icon: Lightbulb, variant: 'success', labelKey: 'conditions.levels.recommended' },
+}
+
+const RESOLUTION_CONFIG: Record<ResolutionType, { icon: React.ElementType; colorClass: string; labelKey: string }> = {
+  completed: { icon: CheckCircle2, colorClass: 'text-success', labelKey: 'resolution.completed' },
+  waived: { icon: Ban, colorClass: 'text-warning', labelKey: 'resolution.waived' },
+  not_applicable: { icon: SkipForward, colorClass: 'text-muted-foreground', labelKey: 'resolution.notApplicable' },
+  skipped_with_risk: { icon: FileWarning, colorClass: 'text-destructive', labelKey: 'resolution.skippedWithRisk' },
 }
 
 export default function ConditionCard({
@@ -16,11 +32,27 @@ export default function ConditionCard({
   interactive = false,
   isToggling = false,
   onToggle,
+  onEdit,
+  showResolution = false,
 }: ConditionCardProps) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
 
   const isDone = condition.status === 'completed'
-  const isBlocking = condition.isBlocking && !isDone
+  const isArchived = condition.archived === true
+  const canEdit = !isArchived && onEdit
+  // Use Premium level if available, fallback to legacy isBlocking
+  const level: ConditionLevel | null = condition.level ?? (condition.isBlocking ? 'blocking' : null)
+  const isBlocking = level === 'blocking' && !isDone
+
+  // D41: Completed blocking/required conditions are locked (can't be unchecked)
+  const isLocked = isDone && (level === 'blocking' || level === 'required')
+
+  // Get localized title
+  const title = i18n.language === 'fr' && condition.labelFr
+    ? condition.labelFr
+    : i18n.language === 'en' && condition.labelEn
+      ? condition.labelEn
+      : condition.title
 
   const handleToggle = () => {
     if (!interactive || isToggling || !onToggle) return
@@ -39,7 +71,7 @@ export default function ConditionCard({
     >
       <div className="flex items-start gap-3">
         {/* Status indicator — interactive checkbox or static icon */}
-        {interactive ? (
+        {interactive && !isLocked ? (
           <button
             type="button"
             onClick={handleToggle}
@@ -62,6 +94,15 @@ export default function ConditionCard({
               {isDone && <Check className="w-3 h-3" />}
             </span>
           </button>
+        ) : isLocked ? (
+          /* D41: Locked state for completed blocking/required conditions */
+          <div
+            className="mt-0.5 w-5 h-5 rounded-full bg-success flex items-center justify-center shrink-0 relative"
+            title={t('conditions.lockedTooltip', 'Verrouillé après validation')}
+          >
+            <Check className="w-3 h-3 text-white" />
+            <Lock className="w-2.5 h-2.5 text-white absolute -bottom-0.5 -right-0.5 bg-muted-foreground rounded-full p-0.5" />
+          </div>
         ) : isDone ? (
           <div className="mt-0.5 w-5 h-5 rounded-full bg-success flex items-center justify-center shrink-0">
             <Check className="w-3 h-3 text-white" />
@@ -79,14 +120,21 @@ export default function ConditionCard({
                 isDone ? 'line-through text-muted-foreground' : 'text-foreground',
               ].join(' ')}
             >
-              {condition.title}
+              {title}
             </span>
 
-            {isBlocking && (
-              <Badge variant="destructive" className="gap-1 text-[10px] px-1.5 py-0">
-                <ShieldAlert className="w-3 h-3" />
-                {t('conditions.blocking')}
-              </Badge>
+            {/* Premium level badge */}
+            {level && !isDone && (
+              (() => {
+                const config = LEVEL_CONFIG[level]
+                const Icon = config.icon
+                return (
+                  <Badge variant={config.variant} className="gap-1 text-[10px] px-1.5 py-0">
+                    <Icon className="w-3 h-3" />
+                    {t(config.labelKey)}
+                  </Badge>
+                )
+              })()
             )}
 
             {condition.type && (
@@ -103,18 +151,60 @@ export default function ConditionCard({
             </p>
           )}
 
-          {/* Due date + countdown */}
+          {/* Due date + countdown OR resolution status */}
           <div className="mt-1.5 flex items-center gap-2">
-            {condition.dueDate && !isDone && (
+            {condition.dueDate && !isDone && !condition.resolutionType && (
               <CountdownBadge dueDate={condition.dueDate} />
             )}
-            {isDone && condition.completedAt && (
+
+            {/* Show resolution status for Premium conditions */}
+            {(showResolution || condition.archived) && condition.resolutionType && (
+              (() => {
+                const config = RESOLUTION_CONFIG[condition.resolutionType]
+                const Icon = config.icon
+                return (
+                  <span className={`flex items-center gap-1 text-xs ${config.colorClass}`}>
+                    <Icon className="w-3 h-3" />
+                    {t(config.labelKey)}
+                    {condition.resolutionNote && (
+                      <span className="text-muted-foreground ml-1">
+                        — {condition.resolutionNote.slice(0, 50)}{condition.resolutionNote.length > 50 ? '...' : ''}
+                      </span>
+                    )}
+                  </span>
+                )
+              })()
+            )}
+
+            {isDone && condition.completedAt && !condition.resolutionType && (
               <span className="text-xs text-success">
                 {t('workflow.status.completed')}
               </span>
             )}
+
+            {/* D41: Show escape badge if condition was validated without proof */}
+            {isDone && condition.escapedWithoutProof && (
+              <EvidenceBadge
+                escapedWithoutProof
+                escapeReason={condition.escapeReason}
+                compact
+              />
+            )}
           </div>
         </div>
+
+        {/* D38: Edit button */}
+        {canEdit && (
+          <button
+            type="button"
+            onClick={() => onEdit(condition)}
+            className="shrink-0 p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            aria-label={t('common.edit')}
+            data-testid={`edit-condition-${condition.id}`}
+          >
+            <Pencil className="w-4 h-4" />
+          </button>
+        )}
       </div>
     </div>
   )

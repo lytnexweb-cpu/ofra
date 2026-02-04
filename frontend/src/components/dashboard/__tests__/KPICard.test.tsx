@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { screen, act, waitFor } from '@testing-library/react'
+import { screen, act } from '@testing-library/react'
 import { axe } from 'vitest-axe'
 import { renderWithProviders } from '../../../test/helpers'
 import KPICard from '../KPICard'

@@ -1,122 +1,240 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { clientsApi } from '../api/clients.api'
+import { normalizeSearch } from '../lib/utils'
+import { Button } from '../components/ui/Button'
+import { Input } from '../components/ui/Input'
+import { Plus, Search, X, Users, Mail, Phone, ChevronRight } from 'lucide-react'
 import CreateClientModal from '../components/CreateClientModal'
 
+// Generate a consistent color based on initials
+function getAvatarColor(name: string): string {
+  const colors = [
+    '#1E3A5F', // Ofra primary
+    '#D97706', // Ofra accent
+    '#059669', // emerald
+    '#7C3AED', // violet
+    '#DB2777', // pink
+    '#0891B2', // cyan
+  ]
+  const hash = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+  return colors[hash % colors.length]
+}
+
+function getInitials(firstName: string, lastName: string): string {
+  return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase()
+}
+
+// Skeleton component for loading state
+function ClientCardSkeleton() {
+  return (
+    <div className="bg-white rounded-xl p-4 shadow-sm animate-pulse">
+      <div className="flex items-center gap-4">
+        <div className="w-12 h-12 rounded-full bg-stone-200" />
+        <div className="flex-1">
+          <div className="h-5 w-32 bg-stone-200 rounded mb-2" />
+          <div className="h-4 w-48 bg-stone-100 rounded" />
+        </div>
+        <div className="w-5 h-5 bg-stone-100 rounded" />
+      </div>
+    </div>
+  )
+}
+
+// Empty state component
+function EmptyState({ onCreateClick }: { onCreateClick: () => void }) {
+  const { t } = useTranslation()
+
+  return (
+    <div className="text-center py-16">
+      <div
+        className="mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4"
+        style={{ backgroundColor: 'rgba(30, 58, 95, 0.1)' }}
+      >
+        <Users className="w-8 h-8 text-primary" />
+      </div>
+      <h3 className="text-lg font-semibold text-stone-900 mb-2">
+        {t('client.empty')}
+      </h3>
+      <p className="text-stone-500 mb-6 max-w-sm mx-auto">
+        {t('client.emptyDescription')}
+      </p>
+      <Button onClick={onCreateClick} className="bg-primary hover:bg-primary/90">
+        <Plus className="w-4 h-4" />
+        {t('client.emptyCta')}
+      </Button>
+    </div>
+  )
+}
+
 export default function ClientsPage() {
+  const { t } = useTranslation()
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
 
   const { data, isLoading } = useQuery({
     queryKey: ['clients'],
     queryFn: () => clientsApi.list(),
   })
 
-  if (isLoading) {
-    return (
-      <div className="px-4 py-6 sm:px-0">
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        </div>
-      </div>
-    )
-  }
-
   const clients = data?.data?.clients || []
 
+  // Filter clients by search query
+  const filtered = useMemo(() => {
+    if (!searchQuery.trim()) return clients
+    const normalizedQuery = normalizeSearch(searchQuery)
+    return clients.filter((client) => {
+      const fullName = `${client.firstName} ${client.lastName}`
+      const haystack = normalizeSearch(`${fullName} ${client.email || ''} ${client.phone || ''}`)
+      return haystack.includes(normalizedQuery)
+    })
+  }, [clients, searchQuery])
+
+  const hasActiveFilters = searchQuery !== ''
+  const isFilteredEmpty = hasActiveFilters && filtered.length === 0 && clients.length > 0
+
   return (
-    <div className="px-4 py-6 sm:px-0">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Clients</h1>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+    <div data-testid="clients-page">
+      {/* Header */}
+      <div className="mb-6 flex justify-between items-center">
+        <h1
+          className="text-2xl font-bold text-stone-900"
+          style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}
         >
-          <svg className="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-          </svg>
-          New Client
-        </button>
+          {t('nav.clients')}
+        </h1>
+        <Button
+          onClick={() => setIsModalOpen(true)}
+          className="hidden sm:inline-flex bg-primary hover:bg-primary/90"
+          data-testid="create-client-btn"
+        >
+          <Plus className="w-4 h-4" />
+          {t('client.new')}
+        </Button>
       </div>
 
-      {clients.length === 0 ? (
-        <div className="text-center py-12">
-          <svg
-            className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            aria-hidden="true"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+      {/* Search bar - only show if there are clients */}
+      {!isLoading && clients.length > 0 && (
+        <div className="mb-4">
+          <div className="relative max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
+            <Input
+              type="text"
+              placeholder={t('common.search') + '...'}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 pr-9"
+              data-testid="search-input"
             />
-          </svg>
-          <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">No clients yet</h3>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Get started by creating your first client.
-          </p>
-          <div className="mt-6">
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            >
-              <svg className="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-              </svg>
-              New Client
-            </button>
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 rounded-sm text-stone-400 hover:text-stone-600"
+                aria-label={t('common.close')}
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
         </div>
-      ) : (
-        <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-md">
-          <ul className="divide-y divide-gray-200 dark:divide-gray-700">
-            {clients.map((client) => (
-              <li key={client.id}>
-                <Link
-                  to={`/clients/${client.id}`}
-                  className="block px-4 py-4 sm:px-6 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                >
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium text-blue-600 dark:text-blue-400 truncate">
-                      {client.firstName} {client.lastName}
-                    </p>
-                    <svg
-                      className="h-5 w-5 text-gray-400 dark:text-gray-500"
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
+      )}
+
+      {/* Loading state */}
+      {isLoading && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3" data-testid="clients-skeleton">
+          <ClientCardSkeleton />
+          <ClientCardSkeleton />
+          <ClientCardSkeleton />
+          <ClientCardSkeleton />
+        </div>
+      )}
+
+      {/* Empty state */}
+      {!isLoading && clients.length === 0 && (
+        <EmptyState onCreateClick={() => setIsModalOpen(true)} />
+      )}
+
+      {/* Empty filter results */}
+      {isFilteredEmpty && (
+        <div className="text-center py-12" data-testid="filter-empty">
+          <p className="text-sm text-stone-500 mb-2">
+            {t('common.noResults')}
+          </p>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setSearchQuery('')}
+            data-testid="clear-filters-btn"
+          >
+            {t('common.clearFilters')}
+          </Button>
+        </div>
+      )}
+
+      {/* Client cards grid */}
+      {!isLoading && filtered.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 stagger-children" data-testid="clients-grid">
+          {filtered.map((client) => {
+            const initials = getInitials(client.firstName, client.lastName)
+            const avatarColor = getAvatarColor(`${client.firstName}${client.lastName}`)
+
+            return (
+              <Link
+                key={client.id}
+                to={`/clients/${client.id}`}
+                className="group bg-white rounded-xl p-4 shadow-sm hover:shadow-lg transition-all duration-200 hover:-translate-y-1"
+                data-testid={`client-card-${client.id}`}
+              >
+                <div className="flex items-center gap-4">
+                  {/* Avatar with initials */}
+                  <div
+                    className="w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold text-sm flex-shrink-0"
+                    style={{ backgroundColor: avatarColor }}
+                  >
+                    {initials}
                   </div>
-                  <div className="mt-2 sm:flex sm:justify-between">
-                    <div className="sm:flex">
-                      <p className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-                        {client.email || 'No email'}
-                      </p>
+
+                  {/* Client info */}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-stone-900 truncate group-hover:text-primary transition-colors">
+                      {client.firstName} {client.lastName}
+                    </h3>
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-sm text-stone-500">
+                      <span className="flex items-center gap-1 truncate">
+                        <Mail className="w-3.5 h-3.5 flex-shrink-0" />
+                        <span className="truncate">{client.email || t('client.noEmail')}</span>
+                      </span>
                       {client.phone && (
-                        <p className="mt-2 flex items-center text-sm text-gray-500 dark:text-gray-400 sm:mt-0 sm:ml-6">
+                        <span className="flex items-center gap-1">
+                          <Phone className="w-3.5 h-3.5 flex-shrink-0" />
                           {client.phone}
-                        </p>
+                        </span>
                       )}
                     </div>
                   </div>
-                </Link>
-              </li>
-            ))}
-          </ul>
+
+                  {/* Chevron */}
+                  <ChevronRight className="w-5 h-5 text-stone-300 group-hover:text-stone-400 transition-colors flex-shrink-0" />
+                </div>
+              </Link>
+            )
+          })}
         </div>
       )}
 
       <CreateClientModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+
+      {/* FAB for mobile */}
+      <button
+        onClick={() => setIsModalOpen(true)}
+        className="fixed bottom-20 right-4 z-20 w-14 h-14 rounded-full shadow-lg hover:shadow-xl active:scale-95 transition-all flex items-center justify-center sm:hidden bg-primary"
+        data-testid="fab-create"
+        aria-label={t('client.new')}
+      >
+        <Plus className="w-6 h-6 text-white" />
+      </button>
     </div>
   )
 }

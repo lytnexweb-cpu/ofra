@@ -1,11 +1,13 @@
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { clientsApi } from '../api/clients.api'
 import { useState } from 'react'
 import ConfirmDialog from '../components/ConfirmDialog'
 import TransactionTimeline from '../components/TransactionTimeline'
 
 export default function ClientDetailsPage() {
+  const { t } = useTranslation()
   const { id } = useParams<{ id: string }>()
   const clientId = Number(id)
   const navigate = useNavigate()
@@ -38,9 +40,9 @@ export default function ClientDetailsPage() {
     queryKey: ['client-transactions', clientId],
     queryFn: () => clientsApi.getTransactions(clientId),
     enabled: !!id,
-    staleTime: 0, // Always consider data stale
-    refetchOnMount: 'always', // Always refetch when component mounts
-    refetchOnWindowFocus: true, // Refetch when window regains focus
+    staleTime: 0,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
   })
 
   const deleteClientMutation = useMutation({
@@ -151,13 +153,13 @@ export default function ClientDetailsPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h3 className="text-lg font-medium text-gray-900">
-              Client not found
+              {t('clients.details.notFound')}
             </h3>
             <Link
               to="/clients"
               className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200"
             >
-              Back to Clients
+              {t('clients.details.backToClients')}
             </Link>
           </div>
         </div>
@@ -174,7 +176,7 @@ export default function ClientDetailsPage() {
             to="/clients"
             className="text-sm text-blue-600 hover:text-blue-500 mb-2 inline-block"
           >
-            ← Back to Clients
+            ← {t('clients.details.backToClients')}
           </Link>
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-semibold text-gray-900">
@@ -184,7 +186,7 @@ export default function ClientDetailsPage() {
               onClick={handleDeleteClient}
               className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
             >
-              Delete Client
+              {t('clients.details.deleteClient')}
             </button>
           </div>
         </div>
@@ -194,7 +196,7 @@ export default function ClientDetailsPage() {
           <div className="px-4 py-5 sm:p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-medium leading-6 text-gray-900">
-                Contact Information
+                {t('clients.details.contactInfo')}
               </h3>
               {!editingClient && (
                 <button
@@ -215,7 +217,7 @@ export default function ClientDetailsPage() {
                       d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
                     />
                   </svg>
-                  Edit
+                  {t('common.edit')}
                 </button>
               )}
             </div>
@@ -225,7 +227,7 @@ export default function ClientDetailsPage() {
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
                     <label htmlFor="edit-firstName" className="block text-sm font-medium text-gray-700">
-                      First Name <span className="text-red-500">*</span>
+                      {t('clients.firstName')} <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -238,7 +240,7 @@ export default function ClientDetailsPage() {
                   </div>
                   <div>
                     <label htmlFor="edit-lastName" className="block text-sm font-medium text-gray-700">
-                      Last Name <span className="text-red-500">*</span>
+                      {t('clients.lastName')} <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -254,7 +256,7 @@ export default function ClientDetailsPage() {
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
                     <label htmlFor="edit-email" className="block text-sm font-medium text-gray-700">
-                      Email
+                      {t('clients.email')}
                     </label>
                     <input
                       type="email"
@@ -266,7 +268,7 @@ export default function ClientDetailsPage() {
                   </div>
                   <div>
                     <label htmlFor="edit-phone" className="block text-sm font-medium text-gray-700">
-                      Phone
+                      {t('clients.phone')}
                     </label>
                     <input
                       type="tel"
@@ -281,7 +283,7 @@ export default function ClientDetailsPage() {
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                   <div>
                     <label htmlFor="edit-cellPhone" className="block text-sm font-medium text-gray-700">
-                      Cell Phone
+                      {t('clients.phones.cell')}
                     </label>
                     <input
                       type="tel"
@@ -293,7 +295,7 @@ export default function ClientDetailsPage() {
                   </div>
                   <div>
                     <label htmlFor="edit-homePhone" className="block text-sm font-medium text-gray-700">
-                      Home Phone
+                      {t('clients.phones.home')}
                     </label>
                     <input
                       type="tel"
@@ -305,7 +307,7 @@ export default function ClientDetailsPage() {
                   </div>
                   <div>
                     <label htmlFor="edit-workPhone" className="block text-sm font-medium text-gray-700">
-                      Work Phone
+                      {t('clients.phones.work')}
                     </label>
                     <input
                       type="tel"
@@ -319,7 +321,7 @@ export default function ClientDetailsPage() {
 
                 <div>
                   <label htmlFor="edit-addressLine1" className="block text-sm font-medium text-gray-700">
-                    Address Line 1
+                    {t('clients.address.line1')}
                   </label>
                   <input
                     type="text"
@@ -332,7 +334,7 @@ export default function ClientDetailsPage() {
 
                 <div>
                   <label htmlFor="edit-addressLine2" className="block text-sm font-medium text-gray-700">
-                    Address Line 2
+                    {t('clients.address.line2')}
                   </label>
                   <input
                     type="text"
@@ -346,7 +348,7 @@ export default function ClientDetailsPage() {
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                   <div>
                     <label htmlFor="edit-city" className="block text-sm font-medium text-gray-700">
-                      City
+                      {t('clients.address.city')}
                     </label>
                     <input
                       type="text"
@@ -358,7 +360,7 @@ export default function ClientDetailsPage() {
                   </div>
                   <div>
                     <label htmlFor="edit-provinceState" className="block text-sm font-medium text-gray-700">
-                      Province/State
+                      {t('clients.address.provinceState')}
                     </label>
                     <input
                       type="text"
@@ -370,7 +372,7 @@ export default function ClientDetailsPage() {
                   </div>
                   <div>
                     <label htmlFor="edit-postalCode" className="block text-sm font-medium text-gray-700">
-                      Postal Code
+                      {t('clients.address.postalCode')}
                     </label>
                     <input
                       type="text"
@@ -384,7 +386,7 @@ export default function ClientDetailsPage() {
 
                 <div>
                   <label htmlFor="edit-notes" className="block text-sm font-medium text-gray-700">
-                    Notes
+                    {t('clients.notes')}
                   </label>
                   <textarea
                     id="edit-notes"
@@ -402,7 +404,7 @@ export default function ClientDetailsPage() {
                     disabled={updateClientMutation.isPending}
                     className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
                   >
-                    Cancel
+                    {t('common.cancel')}
                   </button>
                   <button
                     type="button"
@@ -410,7 +412,7 @@ export default function ClientDetailsPage() {
                     disabled={updateClientMutation.isPending}
                     className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
                   >
-                    {updateClientMutation.isPending ? 'Saving...' : 'Save Changes'}
+                    {updateClientMutation.isPending ? t('clients.saving') : t('clients.saveChanges')}
                   </button>
                 </div>
               </div>
@@ -418,7 +420,7 @@ export default function ClientDetailsPage() {
               <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
               {client.email && (
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">Email</dt>
+                  <dt className="text-sm font-medium text-gray-500">{t('clients.email')}</dt>
                   <dd className="mt-1 text-sm text-gray-900">
                     <a
                       href={`mailto:${client.email}`}
@@ -431,7 +433,7 @@ export default function ClientDetailsPage() {
               )}
               {client.phone && (
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">Phone</dt>
+                  <dt className="text-sm font-medium text-gray-500">{t('clients.phone')}</dt>
                   <dd className="mt-1 text-sm text-gray-900">
                     <a
                       href={`tel:${client.phone}`}
@@ -444,7 +446,7 @@ export default function ClientDetailsPage() {
               )}
               {client.cellPhone && (
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">Cell Phone</dt>
+                  <dt className="text-sm font-medium text-gray-500">{t('clients.phones.cell')}</dt>
                   <dd className="mt-1 text-sm text-gray-900">
                     <a
                       href={`tel:${client.cellPhone}`}
@@ -457,7 +459,7 @@ export default function ClientDetailsPage() {
               )}
               {client.homePhone && (
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">Home Phone</dt>
+                  <dt className="text-sm font-medium text-gray-500">{t('clients.phones.home')}</dt>
                   <dd className="mt-1 text-sm text-gray-900">
                     <a
                       href={`tel:${client.homePhone}`}
@@ -470,7 +472,7 @@ export default function ClientDetailsPage() {
               )}
               {client.workPhone && (
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">Work Phone</dt>
+                  <dt className="text-sm font-medium text-gray-500">{t('clients.phones.work')}</dt>
                   <dd className="mt-1 text-sm text-gray-900">
                     <a
                       href={`tel:${client.workPhone}`}
@@ -483,7 +485,7 @@ export default function ClientDetailsPage() {
               )}
               {(client.addressLine1 || client.city || client.provinceState || client.postalCode) && (
                 <div className="sm:col-span-2">
-                  <dt className="text-sm font-medium text-gray-500">Address</dt>
+                  <dt className="text-sm font-medium text-gray-500">{t('clients.details.address')}</dt>
                   <dd className="mt-1 text-sm text-gray-900">
                     {client.addressLine1 && <div>{client.addressLine1}</div>}
                     {client.addressLine2 && <div>{client.addressLine2}</div>}
@@ -499,7 +501,7 @@ export default function ClientDetailsPage() {
               )}
               {client.notes && (
                 <div className="sm:col-span-2">
-                  <dt className="text-sm font-medium text-gray-500">Notes</dt>
+                  <dt className="text-sm font-medium text-gray-500">{t('clients.notes')}</dt>
                   <dd className="mt-1 text-sm text-gray-900">{client.notes}</dd>
                 </div>
               )}
@@ -512,7 +514,7 @@ export default function ClientDetailsPage() {
         <div className="bg-white shadow sm:rounded-lg">
           <div className="px-4 py-5 sm:p-6">
             <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">
-              Transactions et Historique
+              {t('clients.details.transactionsHistory')}
             </h3>
 
             {isLoadingTransactions ? (
@@ -547,13 +549,13 @@ export default function ClientDetailsPage() {
                   >
                     <div className="flex items-center justify-between mb-4">
                       <h4 className="text-md font-semibold text-gray-900">
-                        Transaction #{transaction.id}
+                        {t('clients.details.transactionNumber', { id: transaction.id })}
                       </h4>
                       <Link
                         to={`/transactions/${transaction.id}`}
                         className="text-sm text-blue-600 hover:text-blue-800 font-medium"
                       >
-                        Voir les détails →
+                        {t('clients.details.viewDetails')}
                       </Link>
                     </div>
                     <TransactionTimeline transaction={transaction} />
@@ -562,7 +564,7 @@ export default function ClientDetailsPage() {
               </div>
             ) : (
               <p className="text-sm text-gray-500">
-                Aucune transaction pour ce client.
+                {t('clients.details.noTransactions')}
               </p>
             )}
           </div>
@@ -573,13 +575,13 @@ export default function ClientDetailsPage() {
         isOpen={deleteConfirm}
         onClose={() => setDeleteConfirm(false)}
         onConfirm={confirmDeleteClient}
-        title="Delete Client"
+        title={t('clients.details.deleteConfirmTitle')}
         message={
           transactions.length > 0
-            ? `Cannot delete this client because they have ${transactions.length} transaction(s). Please delete or reassign the transactions first.`
-            : `Are you sure you want to delete ${client.firstName} ${client.lastName}? This action cannot be undone.`
+            ? t('clients.details.deleteBlockedMessage', { count: transactions.length })
+            : t('clients.details.deleteConfirmMessage', { name: `${client.firstName} ${client.lastName}` })
         }
-        confirmLabel="Delete"
+        confirmLabel={t('common.delete')}
         variant="danger"
         isLoading={deleteClientMutation.isPending}
       />
