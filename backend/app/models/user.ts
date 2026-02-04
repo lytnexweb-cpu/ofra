@@ -1,10 +1,15 @@
 import { DateTime } from 'luxon'
 import hash from '@adonisjs/core/services/hash'
 import { compose } from '@adonisjs/core/helpers'
-import { BaseModel, column, belongsTo } from '@adonisjs/lucid/orm'
+import { BaseModel, column, belongsTo, beforeSave } from '@adonisjs/lucid/orm'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import { withAuthFinder } from '@adonisjs/auth/mixins/lucid'
 import Organization from './organization.js'
+
+// D40: Onboarding profile types
+export type PracticeType = 'solo' | 'small_team' | 'agency'
+export type PropertyContext = 'urban_suburban' | 'rural' | 'condo' | 'land'
+export type AnnualVolume = 'beginner' | 'established' | 'high'
 
 const AuthFinder = withAuthFinder(() => hash.use('scrypt'), {
   uids: ['email'],
@@ -64,6 +69,43 @@ export default class User extends compose(BaseModel, AuthFinder) {
 
   @column.dateTime()
   declare passwordResetExpires: DateTime | null
+
+  // D40: Onboarding profile
+  @column()
+  declare practiceType: PracticeType | null
+
+  // D40: Property contexts - JSON array stored as string in DB
+  @column({
+    prepare: (value: PropertyContext[] | null | undefined) => {
+      return JSON.stringify(value ?? [])
+    },
+    consume: (value: string | PropertyContext[] | null | undefined) => {
+      if (!value) return []
+      if (Array.isArray(value)) return value
+      if (typeof value !== 'string' || value === '' || value === 'null') return []
+      try {
+        return JSON.parse(value)
+      } catch {
+        return []
+      }
+    },
+  })
+  declare propertyContexts: PropertyContext[]
+
+  @column()
+  declare annualVolume: AnnualVolume | null
+
+  @column()
+  declare preferAutoConditions: boolean
+
+  @column()
+  declare onboardingCompleted: boolean
+
+  @column()
+  declare onboardingSkipped: boolean
+
+  @column.dateTime()
+  declare onboardingCompletedAt: DateTime | null
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime

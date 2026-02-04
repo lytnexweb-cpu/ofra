@@ -13,6 +13,7 @@ import TransactionStep from './transaction_step.js'
 import ActivityFeed from './activity_feed.js'
 
 export type TransactionType = 'purchase' | 'sale'
+export type TransactionStatus = 'active' | 'cancelled'
 
 export default class Transaction extends BaseModel {
   @column({ isPrimary: true })
@@ -20,6 +21,9 @@ export default class Transaction extends BaseModel {
 
   @column()
   declare ownerUserId: number
+
+  @column()
+  declare status: TransactionStatus
 
   @column()
   declare clientId: number
@@ -53,6 +57,12 @@ export default class Transaction extends BaseModel {
 
   @column({ columnName: 'folder_url' })
   declare folderUrl: string | null
+
+  @column.dateTime({ columnName: 'cancelled_at' })
+  declare cancelledAt: DateTime | null
+
+  @column({ columnName: 'cancellation_reason' })
+  declare cancellationReason: string | null
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
