@@ -345,8 +345,9 @@
     "conditions": "Conditions",
     "offers": "Offres",
     "documents": "Documents",
-    "timeline": "Historique",
-    "notes": "Notes"
+    "steps": "Étapes",
+    "notes": "Notes",
+    "viewFullHistory": "Voir l'historique complet"
   },
   "transaction": {
     "type": "Type",

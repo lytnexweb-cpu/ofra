@@ -3,11 +3,11 @@ import {
   ClipboardCheck,
   DollarSign,
   FileText,
-  Clock,
+  ListOrdered,
   MessageSquare
 } from 'lucide-react'
 
-const TAB_KEYS = ['conditions', 'offers', 'documents', 'timeline', 'notes'] as const
+const TAB_KEYS = ['conditions', 'offers', 'documents', 'steps', 'notes'] as const
 type TabKey = (typeof TAB_KEYS)[number]
 
 interface TransactionBottomNavProps {
@@ -19,7 +19,7 @@ const TAB_CONFIG: Record<TabKey, { icon: typeof ClipboardCheck; labelKey: string
   conditions: { icon: ClipboardCheck, labelKey: 'tabs.conditions' },
   offers: { icon: DollarSign, labelKey: 'tabs.offers' },
   documents: { icon: FileText, labelKey: 'tabs.documents' },
-  timeline: { icon: Clock, labelKey: 'tabs.timeline' },
+  steps: { icon: ListOrdered, labelKey: 'tabs.steps' },
   notes: { icon: MessageSquare, labelKey: 'tabs.notes' },
 }
 

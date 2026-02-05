@@ -17,10 +17,10 @@ import { AlertCircle, Loader2, RefreshCw } from 'lucide-react'
 import ConditionsTab from '../components/transaction/ConditionsTab'
 import OffersSection from '../components/OffersSection'
 import DocumentsTab from '../components/transaction/DocumentsTab'
-import TimelineTab from '../components/transaction/TimelineTab'
+import WorkflowTimeline from '../components/transaction/WorkflowTimeline'
 import NotesSection from '../components/transaction/NotesSection'
 
-const TAB_KEYS = ['conditions', 'offers', 'documents', 'timeline', 'notes'] as const
+const TAB_KEYS = ['conditions', 'offers', 'documents', 'steps', 'notes'] as const
 type TabKey = (typeof TAB_KEYS)[number]
 
 export default function TransactionDetailPage() {
@@ -180,8 +180,8 @@ export default function TransactionDetailPage() {
           <DocumentsTab transaction={transaction} />
         </TabsContent>
 
-        <TabsContent value="timeline">
-          <TimelineTab transactionId={transactionId} />
+        <TabsContent value="steps">
+          <WorkflowTimeline transaction={transaction} />
         </TabsContent>
 
         <TabsContent value="notes">
