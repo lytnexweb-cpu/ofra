@@ -946,6 +946,14 @@
     "moreErrors": "and {{count}} more error(s)...",
     "importMore": "Import more",
     "uploadFailed": "Failed to upload file",
-    "invalidFormat": "Invalid format. Please use a CSV file."
+    "invalidFormat": "Invalid format. Please use a CSV file.",
+    "preview": "Preview",
+    "previewSubtitle": "First {{count}} rows",
+    "columnsDetected": "{{count}} columns detected",
+    "rowsTotal": "{{count}} rows total",
+    "changeFile": "Change file",
+    "mappedColumn": "Mapped",
+    "unmappedColumn": "Unknown",
+    "row": "Row"
   }
 }

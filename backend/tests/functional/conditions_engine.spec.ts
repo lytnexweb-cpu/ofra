@@ -1,5 +1,5 @@
 import { test } from '@japa/runner'
-import { createAuthenticatedUser } from '../helpers/auth.js'
+import { createTestUser } from '../helpers/auth.js'
 import Transaction from '#models/transaction'
 import Condition from '#models/condition'
 import TransactionProfile from '#models/transaction_profile'
@@ -21,7 +21,7 @@ test.group('Conditions Engine Premium', (group) => {
 
   group.setup(async () => {
     // Create test user
-    user = await createAuthenticatedUser()
+    user = await createTestUser()
   })
 
   group.each.setup(async () => {

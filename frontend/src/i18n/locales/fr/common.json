@@ -946,6 +946,14 @@
     "moreErrors": "et {{count}} autre(s) erreur(s)...",
     "importMore": "Importer d'autres",
     "uploadFailed": "Échec de l'envoi du fichier",
-    "invalidFormat": "Format invalide. Veuillez utiliser un fichier CSV."
+    "invalidFormat": "Format invalide. Veuillez utiliser un fichier CSV.",
+    "preview": "Aperçu",
+    "previewSubtitle": "{{count}} premières lignes",
+    "columnsDetected": "{{count}} colonnes détectées",
+    "rowsTotal": "{{count}} lignes au total",
+    "changeFile": "Changer de fichier",
+    "mappedColumn": "Reconnu",
+    "unmappedColumn": "Inconnu",
+    "row": "Ligne"
   }
 }
