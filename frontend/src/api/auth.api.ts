@@ -5,6 +5,9 @@ export type PracticeType = 'solo' | 'small_team' | 'agency'
 export type PropertyContext = 'urban_suburban' | 'rural' | 'condo' | 'land'
 export type AnnualVolume = 'beginner' | 'established' | 'high'
 
+// User roles
+export type UserRole = 'user' | 'admin' | 'superadmin'
+
 export interface User {
   id: number
   email: string
@@ -17,6 +20,7 @@ export interface User {
   language: string
   dateFormat: string
   timezone: string
+  role?: UserRole
   // D40: Onboarding profile
   onboardingCompleted?: boolean
   onboardingSkipped?: boolean

@@ -86,6 +86,10 @@ describe('i18n key parity', () => {
       'clients.address.postalPlaceholder', // "E1A 2B3" - postal code format
       'clients.details.transactionNumber', // "Transaction #{{id}}"
       'offers.directionLabel',     // "Direction" (same in both)
+      'admin.clients',             // "Clients" (same in both)
+      'admin.runtime',             // "Runtime" (technical term)
+      'admin.transactions',        // "Transactions" (same in both)
+      'nav.admin',                 // "Admin" (same in both)
     ]
 
     const suspicious: string[] = []

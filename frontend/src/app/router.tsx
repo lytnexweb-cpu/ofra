@@ -20,6 +20,13 @@ import TransactionDetailPage from '../pages/TransactionDetailPage'
 import SettingsPage from '../pages/SettingsPage'
 import AccountPage from '../pages/AccountPage'
 import Layout from '../components/Layout'
+import AdminLayout from '../components/AdminLayout'
+import {
+  AdminDashboardPage,
+  AdminSubscribersPage,
+  AdminActivityPage,
+  AdminSystemPage,
+} from '../pages/admin'
 
 // D40: Protected route that also checks for onboarding
 function ProtectedRoute({ children, skipOnboardingCheck = false }: { children: React.ReactNode; skipOnboardingCheck?: boolean }) {
@@ -55,6 +62,31 @@ function ProtectedRoute({ children, skipOnboardingCheck = false }: { children: R
   // D40: Redirect to onboarding if not completed (unless we're already on onboarding page)
   if (!skipOnboardingCheck && user && !user.onboardingCompleted && location.pathname !== '/onboarding') {
     return <Navigate to="/onboarding" replace />
+  }
+
+  return <>{children}</>
+}
+
+// Admin route - requires admin or superadmin role
+function AdminRoute({ children }: { children: React.ReactNode }) {
+  const { data, isLoading } = useQuery({
+    queryKey: ['auth', 'me'],
+    queryFn: authApi.me,
+    retry: false,
+    staleTime: 5 * 60 * 1000,
+  })
+
+  if (isLoading) {
+    return <div className="flex items-center justify-center min-h-screen">{/* Silent loading */}</div>
+  }
+
+  if (!data?.success) {
+    return <Navigate to="/login" replace />
+  }
+
+  const user = data.data?.user
+  if (!user?.role || (user.role !== 'admin' && user.role !== 'superadmin')) {
+    return <Navigate to="/" replace />
   }
 
   return <>{children}</>
@@ -137,6 +169,33 @@ export const router = createBrowserRouter([
       {
         path: 'account',
         element: <AccountPage />,
+      },
+    ],
+  },
+  // Admin routes
+  {
+    path: '/admin',
+    element: (
+      <AdminRoute>
+        <AdminLayout />
+      </AdminRoute>
+    ),
+    children: [
+      {
+        index: true,
+        element: <AdminDashboardPage />,
+      },
+      {
+        path: 'subscribers',
+        element: <AdminSubscribersPage />,
+      },
+      {
+        path: 'activity',
+        element: <AdminActivityPage />,
+      },
+      {
+        path: 'system',
+        element: <AdminSystemPage />,
       },
     ],
   },

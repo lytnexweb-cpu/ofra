@@ -113,3 +113,16 @@ router.group(() => {
   router.post('/transactions/:id/notes', '#controllers/notes_controller.store')
   router.delete('/notes/:id', '#controllers/notes_controller.destroy')
 }).prefix('/api').use(middleware.auth())
+
+// Admin routes (require admin or superadmin role)
+router.group(() => {
+  router.get('/overview', '#controllers/admin_controller.overview')
+  router.get('/subscribers', '#controllers/admin_controller.subscribers')
+  router.get('/activity', '#controllers/admin_controller.activity')
+  router.get('/system', '#controllers/admin_controller.system')
+}).prefix('/api/admin').use([middleware.auth(), middleware.admin()])
+
+// Superadmin-only routes
+router.group(() => {
+  router.patch('/subscribers/:id/role', '#controllers/admin_controller.updateRole')
+}).prefix('/api/admin').use([middleware.auth(), middleware.superadmin()])

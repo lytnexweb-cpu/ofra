@@ -15,6 +15,7 @@ import {
   MenuIcon,
   CloseIcon,
 } from './ui/Icons'
+import { ShieldCheck } from 'lucide-react'
 
 // Logout icon
 function LogoutIcon({ className }: { className?: string }) {
@@ -125,6 +126,19 @@ export default function Layout() {
             )
           })}
         </nav>
+
+        {/* Admin link - only visible for admin/superadmin */}
+        {(userData?.data?.user?.role === 'admin' || userData?.data?.user?.role === 'superadmin') && (
+          <div className="px-3 pb-2">
+            <Link
+              to="/admin"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white/70 hover:bg-white/10 hover:text-white transition-colors"
+            >
+              <ShieldCheck className="w-5 h-5" />
+              {t('nav.admin')}
+            </Link>
+          </div>
+        )}
 
         {/* User section at bottom */}
         <div className="border-t border-white/10 p-4">
