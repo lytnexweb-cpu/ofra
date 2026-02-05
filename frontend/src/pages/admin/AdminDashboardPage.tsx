@@ -2,6 +2,17 @@ import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import {
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts'
+import {
   Users,
   FileText,
   UserPlus,
@@ -9,6 +20,7 @@ import {
   TrendingUp,
   Server,
   ChevronRight,
+  UserCheck,
 } from 'lucide-react'
 import { adminApi } from '../../api/admin.api'
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card'
@@ -159,17 +171,109 @@ export default function AdminDashboardPage() {
         )}
       </div>
 
+      {/* Charts Row */}
+      {!isLoading && overview?.charts && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Signups Chart */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <UserPlus className="w-5 h-5 text-primary" />
+                {t('admin.signupsByWeek')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={overview.charts.signupsByWeek}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis
+                      dataKey="week"
+                      tickFormatter={(v) => {
+                        const date = new Date(v)
+                        return `${date.getMonth() + 1}/${date.getDate()}`
+                      }}
+                      className="text-xs"
+                    />
+                    <YAxis className="text-xs" />
+                    <Tooltip
+                      labelFormatter={(v) => new Date(v).toLocaleDateString()}
+                      contentStyle={{
+                        backgroundColor: 'hsl(var(--card))',
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '8px',
+                      }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="count"
+                      stroke="hsl(var(--primary))"
+                      strokeWidth={2}
+                      dot={{ fill: 'hsl(var(--primary))' }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Transactions Chart */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <FileText className="w-5 h-5 text-success" />
+                {t('admin.transactionsByWeek')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={overview.charts.transactionsByWeek}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis
+                      dataKey="week"
+                      tickFormatter={(v) => {
+                        const date = new Date(v)
+                        return `${date.getMonth() + 1}/${date.getDate()}`
+                      }}
+                      className="text-xs"
+                    />
+                    <YAxis className="text-xs" />
+                    <Tooltip
+                      labelFormatter={(v) => new Date(v).toLocaleDateString()}
+                      contentStyle={{
+                        backgroundColor: 'hsl(var(--card))',
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '8px',
+                      }}
+                    />
+                    <Bar
+                      dataKey="count"
+                      fill="hsl(var(--success))"
+                      radius={[4, 4, 0, 0]}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       {/* Users by Role */}
       {overview?.usersByRole && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">{t('admin.usersByRole')}</CardTitle>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <UserCheck className="w-5 h-5" />
+              {t('admin.usersByRole')}
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex gap-6">
+            <div className="flex gap-8">
               {overview.usersByRole.map((item) => (
                 <div key={item.role} className="text-center">
-                  <p className="text-2xl font-bold">{item.count}</p>
+                  <p className="text-3xl font-bold">{item.count}</p>
                   <p className="text-sm text-muted-foreground capitalize">
                     {item.role}
                   </p>

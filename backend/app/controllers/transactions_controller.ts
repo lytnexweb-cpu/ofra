@@ -71,6 +71,7 @@ export default class TransactionsController {
         },
       })
     } catch (error) {
+      logger.error({ err: error }, 'Failed to retrieve transactions')
       return response.internalServerError({
         success: false,
         error: { message: 'Failed to retrieve transactions', code: 'E_INTERNAL_ERROR' },

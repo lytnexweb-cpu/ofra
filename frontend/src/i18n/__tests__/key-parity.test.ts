@@ -89,6 +89,11 @@ describe('i18n key parity', () => {
       'admin.clients',             // "Clients" (same in both)
       'admin.runtime',             // "Runtime" (technical term)
       'admin.transactions',        // "Transactions" (same in both)
+      'admin.conditions',          // "Conditions" (same in both)
+      'admin.crm',                 // "CRM" (acronym)
+      'admin.engagement',          // "Engagement" (same in both)
+      'admin.notes',               // "Notes" (same in both)
+      'admin.txShort',             // "tx" (abbreviation)
       'nav.admin',                 // "Admin" (same in both)
     ]
 

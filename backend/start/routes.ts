@@ -116,10 +116,26 @@ router.group(() => {
 
 // Admin routes (require admin or superadmin role)
 router.group(() => {
+  // Dashboard
   router.get('/overview', '#controllers/admin_controller.overview')
-  router.get('/subscribers', '#controllers/admin_controller.subscribers')
   router.get('/activity', '#controllers/admin_controller.activity')
   router.get('/system', '#controllers/admin_controller.system')
+
+  // Subscribers CRM
+  router.get('/subscribers', '#controllers/admin_controller.subscribers')
+  router.get('/subscribers/export', '#controllers/admin_controller.exportSubscribers')
+
+  // Notes per user
+  router.get('/subscribers/:id/notes', '#controllers/admin_controller.getNotes')
+  router.post('/subscribers/:id/notes', '#controllers/admin_controller.createNote')
+  router.put('/notes/:id', '#controllers/admin_controller.updateNote')
+  router.delete('/notes/:id', '#controllers/admin_controller.deleteNote')
+
+  // Tasks per user
+  router.get('/subscribers/:id/tasks', '#controllers/admin_controller.getTasks')
+  router.post('/subscribers/:id/tasks', '#controllers/admin_controller.createTask')
+  router.patch('/tasks/:id', '#controllers/admin_controller.updateTask')
+  router.delete('/tasks/:id', '#controllers/admin_controller.deleteTask')
 }).prefix('/api/admin').use([middleware.auth(), middleware.admin()])
 
 // Superadmin-only routes
