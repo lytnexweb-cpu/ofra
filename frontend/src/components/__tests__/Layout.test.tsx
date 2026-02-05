@@ -98,12 +98,13 @@ describe('Layout', () => {
     expect(inactiveLink).toBeUndefined()
   })
 
-  it('uses z-banner class on the header nav', () => {
-    renderWithProviders(<Layout />)
+  it('navigation is contained in a sidebar with appropriate z-index', () => {
+    const { container } = renderWithProviders(<Layout />)
 
-    const nav = screen.getByRole('navigation', { name: /main navigation/i })
-    expect(nav.className).toContain('z-banner')
-    expect(nav.className).not.toContain('z-dialog')
+    // The desktop sidebar (aside) has the z-index, not the nav element itself
+    const sidebar = container.querySelector('aside')
+    expect(sidebar).toBeInTheDocument()
+    expect(sidebar?.className).toMatch(/z-4\d/)
   })
 
   it('has no WCAG 2.1 AA accessibility violations', async () => {
@@ -113,15 +114,14 @@ describe('Layout', () => {
     expect(results).toHaveNoViolations()
   })
 
-  it('renders without error in dark mode', () => {
-    document.documentElement.classList.add('dark')
-
+  it('renders without error and has dark mode classes available', () => {
     const { container } = renderWithProviders(<Layout />)
 
-    expect(document.documentElement.classList.contains('dark')).toBe(true)
+    // The component should render and contain dark-mode-ready classes
     expect(container.querySelector('nav')).toBeInTheDocument()
     expect(container.querySelector('main')).toBeInTheDocument()
-
-    document.documentElement.classList.remove('dark')
+    // Verify dark mode classes are present on elements (e.g., dark:bg-stone-900)
+    const mainContainer = container.firstChild
+    expect(mainContainer).toHaveClass('dark:bg-stone-900')
   })
 })

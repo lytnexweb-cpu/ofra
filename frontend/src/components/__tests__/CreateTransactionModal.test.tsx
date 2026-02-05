@@ -99,7 +99,7 @@ describe('CreateTransactionModal', () => {
     expect(screen.getByTestId('submit-create')).toBeDisabled()
   })
 
-  it('enables submit when client and template are selected', async () => {
+  it('enables submit when client, template and profile are filled', async () => {
     renderWithProviders(<CreateTransactionModal isOpen={true} onClose={noop} />)
 
     await waitFor(() => {
@@ -115,7 +115,12 @@ describe('CreateTransactionModal', () => {
     // Select a client
     fireEvent.change(screen.getByTestId('client-select'), { target: { value: '1' } })
 
-    // Template should auto-select the default one (NB Purchase, id=10)
+    // Fill in required profile fields (D1: Conditions Engine)
+    fireEvent.click(screen.getByTestId('property-type-house'))
+    fireEvent.click(screen.getByTestId('property-context-urban'))
+    fireEvent.click(screen.getByTestId('is-financed-true'))
+
+    // Now submit should be enabled
     await waitFor(() => {
       expect(screen.getByTestId('submit-create')).not.toBeDisabled()
     })
@@ -134,28 +139,37 @@ describe('CreateTransactionModal', () => {
       expect(templateSelect.value).not.toBe('')
     })
 
-    // Select client and wait for re-render before next change
+    // Select client
     fireEvent.change(screen.getByTestId('client-select'), { target: { value: '1' } })
+
+    // Fill in required profile fields (D1: Conditions Engine)
+    fireEvent.click(screen.getByTestId('property-type-house'))
+    fireEvent.click(screen.getByTestId('property-context-urban'))
+    fireEvent.click(screen.getByTestId('is-financed-true'))
+
+    // Wait for submit to be enabled
     await waitFor(() => {
       expect(screen.getByTestId('submit-create')).not.toBeDisabled()
     })
 
-    // Set price (after clientId state has settled)
+    // Set price
     fireEvent.change(screen.getByTestId('price-input'), { target: { value: '350000' } })
 
     fireEvent.click(screen.getByTestId('submit-create'))
 
     await waitFor(() => {
-      expect(mockCreate).toHaveBeenCalledWith(
-        expect.objectContaining({
-          clientId: 1,
-          type: 'purchase',
-          workflowTemplateId: 10,
-          salePrice: 350000,
-        }),
-        expect.anything()
-      )
+      expect(mockCreate).toHaveBeenCalled()
     })
+
+    // Verify the payload structure (salePrice is parsed as number)
+    expect(mockCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        clientId: 1,
+        type: 'purchase',
+        workflowTemplateId: 10,
+        salePrice: 350000,
+      })
+    )
   })
 
   it('has no WCAG 2.1 AA accessibility violations', async () => {

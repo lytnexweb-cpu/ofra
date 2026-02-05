@@ -149,22 +149,24 @@ describe('TransactionCard', () => {
     expect(screen.getByText('Purchase')).toBeInTheDocument()
   })
 
-  it('has red left border when blocking conditions exist', () => {
+  it('has red accent bar when blocking conditions exist', () => {
     const tx = makeTx({
       conditions: [makeCondition({ id: 1, isBlocking: true, status: 'pending' })],
     })
     const { container } = renderWithProviders(<TransactionCard transaction={tx} />)
 
-    const card = container.querySelector('[class*="border-l-destructive"]')
-    expect(card).toBeInTheDocument()
+    // The new design uses a top accent bar instead of left border
+    const accentBar = container.querySelector('[class*="bg-destructive"]')
+    expect(accentBar).toBeInTheDocument()
   })
 
-  it('has gray left border when no blocking conditions', () => {
+  it('has primary accent bar when no blocking conditions', () => {
     const tx = makeTx({ conditions: [] })
     const { container } = renderWithProviders(<TransactionCard transaction={tx} />)
 
-    const card = container.querySelector('[class*="border-l-border"]')
-    expect(card).toBeInTheDocument()
+    // The new design uses a top accent bar with primary color when no blocking
+    const accentBar = container.querySelector('.bg-primary')
+    expect(accentBar).toBeInTheDocument()
   })
 
   it('has correct data-testid', () => {
