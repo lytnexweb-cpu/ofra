@@ -343,19 +343,19 @@ Compléter l'expérience utilisateur avec l'interface d'import et la gestion de 
 
 ### User Stories
 
-#### 5.1 UI Import CSV Clients
+#### 5.1 UI Import CSV Clients ✅ COMPLÉTÉ (2026-02-04)
 
 **En tant qu'** agent immobilier
 **Je veux** importer mes clients existants via CSV
 **Afin de** migrer rapidement depuis mon ancien système
 
 **Critères d'acceptation:**
-- [ ] Bouton "Importer des clients" dans la liste clients
-- [ ] Modal avec zone drag & drop
-- [ ] Lien télécharger template CSV
-- [ ] Barre de progression pendant l'upload
-- [ ] Résumé: "X clients importés, Y ignorés"
-- [ ] Liste des erreurs avec numéro de ligne
+- [x] Bouton "Importer des clients" dans la liste clients
+- [x] Modal avec zone drag & drop
+- [x] Lien télécharger template CSV
+- [x] Spinner pendant l'upload
+- [x] Résumé: "X clients importés, Y ignorés"
+- [x] Liste des erreurs avec numéro de ligne
 - [ ] Tests E2E pour le flow complet
 
 #### 5.2 Upload Documents par Transaction

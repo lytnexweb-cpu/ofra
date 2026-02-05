@@ -929,5 +929,23 @@
       "subtitle": "Programme Fondateur: 3 mois gratuits, puis 25% de rabais à vie.",
       "button": "Rejoindre le Programme Fondateur"
     }
+  },
+  "csvImport": {
+    "button": "Importer",
+    "title": "Importer des clients",
+    "downloadTemplate": "Télécharger le modèle CSV",
+    "dropzone": "Glissez-déposez votre fichier CSV ici",
+    "dropzoneHint": "ou cliquez pour sélectionner",
+    "import": "Importer",
+    "importing": "Importation en cours...",
+    "success": "Importation réussie !",
+    "failed": "Échec de l'importation",
+    "importedCount": "{{count}} client(s) importé(s)",
+    "skippedCount": "{{count}} ignoré(s)",
+    "errors": "Erreurs rencontrées :",
+    "moreErrors": "et {{count}} autre(s) erreur(s)...",
+    "importMore": "Importer d'autres",
+    "uploadFailed": "Échec de l'envoi du fichier",
+    "invalidFormat": "Format invalide. Veuillez utiliser un fichier CSV."
   }
 }
