@@ -59,6 +59,17 @@ export interface UpdateClientRequest {
   cellPhone?: string
 }
 
+export interface CsvImportResult {
+  success: boolean
+  imported: number
+  skipped: number
+  errors: Array<{
+    row: number
+    message: string
+    data?: Record<string, string>
+  }>
+}
+
 export const clientsApi = {
   list: () => http.get<{ clients: Client[] }>('/api/clients'),
 
@@ -76,4 +87,22 @@ export const clientsApi = {
     http.put<{ client: Client }>(`/api/clients/${id}`, data),
 
   delete: (id: number) => http.delete<{}>(`/api/clients/${id}`),
+
+  // CSV Import - uses direct fetch for FormData support
+  importCsv: async (file: File): Promise<{ success: boolean; data: CsvImportResult }> => {
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const response = await fetch('/api/clients/import', {
+      method: 'POST',
+      body: formData,
+      credentials: 'include',
+      // Note: Don't set Content-Type header - browser sets it with boundary for FormData
+    })
+
+    const result = await response.json()
+    return result
+  },
+
+  getImportTemplate: () => '/api/clients/import/template',
 }

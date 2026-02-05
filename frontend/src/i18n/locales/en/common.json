@@ -929,5 +929,23 @@
       "subtitle": "Join our Founder Program: 3 months free, then 25% off for life.",
       "button": "Join Founder Program"
     }
+  },
+  "csvImport": {
+    "button": "Import",
+    "title": "Import clients",
+    "downloadTemplate": "Download CSV template",
+    "dropzone": "Drag and drop your CSV file here",
+    "dropzoneHint": "or click to select",
+    "import": "Import",
+    "importing": "Importing...",
+    "success": "Import successful!",
+    "failed": "Import failed",
+    "importedCount": "{{count}} client(s) imported",
+    "skippedCount": "{{count}} skipped",
+    "errors": "Errors encountered:",
+    "moreErrors": "and {{count}} more error(s)...",
+    "importMore": "Import more",
+    "uploadFailed": "Failed to upload file",
+    "invalidFormat": "Invalid format. Please use a CSV file."
   }
 }
