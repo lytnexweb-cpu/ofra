@@ -48,6 +48,44 @@ describe('i18n key parity', () => {
       'tabs.notes',                 // "Notes" = same in FR
       'transaction.type',           // "Type" = same in FR
       'transaction.client',         // "Client" = same in FR
+      // Technical terms and proper nouns that are the same in both languages
+      'clients.notes',              // "Notes"
+      'conditions.debugProfileAbsent', // "absent"
+      'conditions.form.description',// "Description"
+      'conditions.form.suggestions',// "Suggestions"
+      'contact.form.message',       // "Message"
+      'dashboard.charts.commission',// "Commission"
+      'dashboard.charts.commissions',// "Commissions"
+      'dashboard.charts.pipeline',  // "Pipeline"
+      'dashboard.charts.transaction',// "transaction"
+      'dashboard.charts.transactions',// "transactions"
+      'dashboard.transactions',     // "Transactions"
+      'landing.footer.contact',     // "Contact"
+      'offers.direction',           // "Direction"
+      'offers.notes',               // "Notes"
+      'onboarding.steps.contexts.condo', // "Condos"
+      'onboarding.steps.contexts.rural', // "Rural"
+      'onboarding.success.style',   // "Style"
+      'onboarding.success.volume',  // "Volume"
+      'pricing.features.support',   // "Support"
+      'pricing.features.transactions', // "Transactions"
+      'pricing.plans.agence.name',  // "Agence" - French brand name
+      'pricing.plans.essentiel.name', // "Essentiel" - French brand name
+      'pricing.plans.pro.name',     // "Pro"
+      'resolution.notApplicable',   // "N/A"
+      'settings.language.english',  // "English"
+      'settings.language.french',   // "Français"
+      'settings.notifications.title', // "Notifications"
+      'transaction.profile.accessPublic', // "Public"
+      'transaction.profile.condo',  // "Condo"
+      'transaction.profile.rural',  // "Rural"
+      'transaction.status.active',  // "Active"
+      'validation.evidence.type.note', // "Note"
+      // Strings with variables that are similar in both languages
+      'client.transactions',        // "{{count}} transaction(s)"
+      'clients.address.postalPlaceholder', // "E1A 2B3" - postal code format
+      'clients.details.transactionNumber', // "Transaction #{{id}}"
+      'offers.directionLabel',     // "Direction" (same in both)
     ]
 
     const suspicious: string[] = []

@@ -116,7 +116,7 @@ describe('OffersSection', () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByText('+ New Offer')).toBeInTheDocument()
+      expect(screen.getByText('+ New offer')).toBeInTheDocument()
     })
   })
 
@@ -214,7 +214,7 @@ describe('OffersSection — resilience', () => {
 
     // Should show loading, then not crash — "New Offer" button still accessible
     await waitFor(() => {
-      expect(screen.getByText('+ New Offer')).toBeInTheDocument()
+      expect(screen.getByText('+ New offer')).toBeInTheDocument()
     })
   })
 

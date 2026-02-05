@@ -780,7 +780,7 @@
     "deposit": "Dépôt (CAD)",
     "financingAmount": "Montant financement (CAD)",
     "expiryDate": "Date d'expiration",
-    "direction": "Direction",
+    "directionLabel": "Direction",
     "notes": "Notes",
     "notesPlaceholder": "Notes additionnelles...",
     "counterNotesPlaceholder": "Notes de contre-offre...",

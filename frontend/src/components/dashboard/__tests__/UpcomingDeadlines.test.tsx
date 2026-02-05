@@ -69,7 +69,7 @@ describe('UpcomingDeadlines', () => {
       <UpcomingDeadlines deadlines={[makeDeadline({ priority: 'high' })]} />
     )
 
-    expect(screen.getByText('high')).toBeInTheDocument()
+    expect(screen.getByText('High')).toBeInTheDocument()
   })
 
   it('shows days until due (AC7)', () => {

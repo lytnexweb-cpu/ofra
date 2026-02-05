@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { screen, fireEvent } from '@testing-library/react'
 import WorkflowTimeline from '../WorkflowTimeline'
-import { createTestWrapper } from '../../../test/helpers'
+import { renderWithProviders } from '../../../test/helpers'
 
 const mockTransaction = {
   id: 1,
@@ -35,9 +35,8 @@ const mockTransaction = {
 
 describe('WorkflowTimeline', () => {
   const renderComponent = (props = {}) => {
-    return render(
-      <WorkflowTimeline transaction={mockTransaction} {...props} />,
-      { wrapper: createTestWrapper() }
+    return renderWithProviders(
+      <WorkflowTimeline transaction={mockTransaction} {...props} />
     )
   }
 

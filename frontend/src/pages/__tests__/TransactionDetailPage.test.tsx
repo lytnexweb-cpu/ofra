@@ -171,7 +171,7 @@ describe('TransactionDetailPage', () => {
     expect(screen.getByTestId('tab-conditions')).toBeInTheDocument()
     expect(screen.getByTestId('tab-offers')).toBeInTheDocument()
     expect(screen.getByTestId('tab-documents')).toBeInTheDocument()
-    expect(screen.getByTestId('tab-timeline')).toBeInTheDocument()
+    expect(screen.getByTestId('tab-steps')).toBeInTheDocument()
     expect(screen.getByTestId('tab-notes')).toBeInTheDocument()
   })
 
