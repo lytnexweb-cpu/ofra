@@ -106,12 +106,12 @@ Séparation claire, pas de dette technique.
 
 ## Critères d'acceptation
 
-- [ ] 8 étapes affichées verticalement
-- [ ] Indicateurs visuels de statut (vert/orange/gris)
-- [ ] Click étape passée → conditions archivées (readonly)
-- [ ] Click étape courante → conditions actives
-- [ ] Aucun moyen de reculer le workflow
-- [ ] Responsive mobile
+- [x] 8 étapes affichées verticalement
+- [x] Indicateurs visuels de statut (vert/orange/gris)
+- [x] Click étape passée → conditions archivées (readonly)
+- [x] Click étape courante → conditions actives
+- [x] Aucun moyen de reculer le workflow
+- [x] Responsive mobile
 
 ## Tests requis
 
@@ -122,5 +122,25 @@ Séparation claire, pas de dette technique.
 
 ---
 
+## Décision d'implémentation (2026-02-04)
+
+**Débat d'équipe:** Option 1 validée (4 votes sur 6)
+
+**Nomenclature:**
+- Onglet renommé "Étapes" (FR) / "Steps" (EN)
+- Tab key: `steps` (anciennement `timeline`)
+
+**Fichiers modifiés:**
+- `frontend/src/components/transaction/WorkflowTimeline.tsx` (NOUVEAU)
+- `frontend/src/pages/TransactionDetailPage.tsx`
+- `frontend/src/components/transaction/TransactionBottomNav.tsx`
+- `frontend/src/components/transaction/index.ts`
+- `frontend/src/i18n/locales/fr/common.json`
+- `frontend/src/i18n/locales/en/common.json`
+
+**Activity Log:** Accessible via bouton "Voir l'historique complet" → ouvre drawer avec TimelineTab (inchangé)
+
+---
+
 **Validé par:** Sam (Product Owner)
-**Implémentation:** En attente
+**Implémentation:** ✅ COMPLÉTÉ (2026-02-04)
