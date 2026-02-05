@@ -11,6 +11,9 @@ export type PracticeType = 'solo' | 'small_team' | 'agency'
 export type PropertyContext = 'urban_suburban' | 'rural' | 'condo' | 'land'
 export type AnnualVolume = 'beginner' | 'established' | 'high'
 
+// User roles
+export type UserRole = 'user' | 'admin' | 'superadmin'
+
 const AuthFinder = withAuthFinder(() => hash.use('scrypt'), {
   uids: ['email'],
   passwordColumnName: 'password',
@@ -62,6 +65,10 @@ export default class User extends compose(BaseModel, AuthFinder) {
 
   @column()
   declare preferredLanguage: string
+
+  // User role for access control
+  @column()
+  declare role: UserRole
 
   // Password reset
   @column()

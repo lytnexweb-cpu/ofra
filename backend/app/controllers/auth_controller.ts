@@ -103,6 +103,7 @@ export default class AuthController {
               id: user.id,
               email: user.email,
               fullName: user.fullName,
+              role: user.role,
             },
           },
         })
@@ -170,6 +171,7 @@ export default class AuthController {
             email: user.email,
             fullName: user.fullName,
             language: user.language,
+            role: user.role,
             // D40: Onboarding profile
             onboardingCompleted: user.onboardingCompleted,
             onboardingSkipped: user.onboardingSkipped,
