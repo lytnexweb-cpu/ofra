@@ -6,8 +6,9 @@ import { clientsApi } from '../api/clients.api'
 import { normalizeSearch } from '../lib/utils'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
-import { Plus, Search, X, Users, Mail, Phone, ChevronRight } from 'lucide-react'
+import { Plus, Search, X, Users, Mail, Phone, ChevronRight, Upload } from 'lucide-react'
 import CreateClientModal from '../components/CreateClientModal'
+import ImportClientsModal from '../components/ImportClientsModal'
 
 // Generate a consistent color based on initials
 function getAvatarColor(name: string): string {
@@ -72,6 +73,7 @@ function EmptyState({ onCreateClick }: { onCreateClick: () => void }) {
 export default function ClientsPage() {
   const { t } = useTranslation()
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
 
   const { data, isLoading } = useQuery({
@@ -105,14 +107,24 @@ export default function ClientsPage() {
         >
           {t('nav.clients')}
         </h1>
-        <Button
-          onClick={() => setIsModalOpen(true)}
-          className="hidden sm:inline-flex bg-primary hover:bg-primary/90"
-          data-testid="create-client-btn"
-        >
-          <Plus className="w-4 h-4" />
-          {t('client.new')}
-        </Button>
+        <div className="hidden sm:flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setIsImportModalOpen(true)}
+            data-testid="import-clients-btn"
+          >
+            <Upload className="w-4 h-4" />
+            {t('csvImport.button')}
+          </Button>
+          <Button
+            onClick={() => setIsModalOpen(true)}
+            className="bg-primary hover:bg-primary/90"
+            data-testid="create-client-btn"
+          >
+            <Plus className="w-4 h-4" />
+            {t('client.new')}
+          </Button>
+        </div>
       </div>
 
       {/* Search bar - only show if there are clients */}
@@ -225,6 +237,7 @@ export default function ClientsPage() {
       )}
 
       <CreateClientModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      <ImportClientsModal isOpen={isImportModalOpen} onClose={() => setIsImportModalOpen(false)} />
 
       {/* FAB for mobile */}
       <button
