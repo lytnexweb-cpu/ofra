@@ -14,6 +14,7 @@ export type ConditionType =
   | 'repairs'
   | 'other'
 export type ConditionPriority = 'low' | 'medium' | 'high'
+export type ConditionLevel = 'blocking' | 'required' | 'recommended'
 
 let conditionCounter = 0
 
@@ -25,6 +26,7 @@ export async function createCondition(
     status: ConditionStatus
     type: ConditionType
     priority: ConditionPriority
+    level: ConditionLevel
     transactionStepId: number
     isBlocking: boolean
     dueDate: string
@@ -34,6 +36,9 @@ export async function createCondition(
   }> = {}
 ): Promise<Condition> {
   conditionCounter++
+  const isBlocking = overrides.isBlocking ?? true
+  const level = overrides.level ?? (isBlocking ? 'blocking' : 'recommended')
+
   return Condition.create({
     transactionId,
     title: overrides.title ?? `Test Condition ${conditionCounter}`,
@@ -41,8 +46,9 @@ export async function createCondition(
     status: overrides.status ?? 'pending',
     type: overrides.type ?? 'other',
     priority: overrides.priority ?? 'medium',
+    level,
     transactionStepId: overrides.transactionStepId ?? null,
-    isBlocking: overrides.isBlocking ?? true,
+    isBlocking,
     dueDate: overrides.dueDate ? DateTime.fromISO(overrides.dueDate) : null,
     completedAt: overrides.completedAt ? DateTime.fromISO(overrides.completedAt) : null,
     documentUrl: overrides.documentUrl ?? null,

@@ -56,8 +56,12 @@ export default class ConditionsController {
       const transactionStepId =
         payload.transactionStepId ?? transaction.currentStepId ?? undefined
 
+      // Derive level from isBlocking if not provided
+      const level = payload.level ?? (payload.isBlocking ? 'blocking' : 'recommended')
+
       const condition = await Condition.create({
         ...payload,
+        level,
         transactionId: transaction.id,
         transactionStepId: transactionStepId ?? null,
         status: 'pending',

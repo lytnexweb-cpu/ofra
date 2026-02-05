@@ -172,7 +172,7 @@ test.group('Offers Controller - CRUD', (group) => {
     })
 
     const response = await withAuth(
-      client.get(`/api/transactions/${transaction.id}/offers/${offer.id}`),
+      client.get(`/api/offers/${offer.id}`),
       user.id
     )
 
@@ -217,7 +217,7 @@ test.group('Offers Controller - CRUD', (group) => {
     })
 
     const response = await withAuth(
-      client.post(`/api/transactions/${transaction.id}/offers/${offer.id}/revisions`),
+      client.post(`/api/offers/${offer.id}/revisions`),
       user.id
     ).json({
       price: 325000,
@@ -243,7 +243,7 @@ test.group('Offers Controller - CRUD', (group) => {
     })
 
     const response = await withAuth(
-      client.patch(`/api/transactions/${transaction.id}/offers/${offer.id}/accept`),
+      client.patch(`/api/offers/${offer.id}/accept`),
       user.id
     )
 
@@ -270,7 +270,7 @@ test.group('Offers Controller - CRUD', (group) => {
     await OfferService.acceptOffer(offer.id)
 
     const response = await withAuth(
-      client.patch(`/api/transactions/${transaction.id}/offers/${offer.id}/accept`),
+      client.patch(`/api/offers/${offer.id}/accept`),
       user.id
     )
 
@@ -293,7 +293,7 @@ test.group('Offers Controller - CRUD', (group) => {
     })
 
     const response = await withAuth(
-      client.patch(`/api/transactions/${transaction.id}/offers/${offer.id}/reject`),
+      client.patch(`/api/offers/${offer.id}/reject`),
       user.id
     )
 
@@ -320,7 +320,7 @@ test.group('Offers Controller - CRUD', (group) => {
     await OfferService.acceptOffer(offer.id)
 
     const response = await withAuth(
-      client.patch(`/api/transactions/${transaction.id}/offers/${offer.id}/reject`),
+      client.patch(`/api/offers/${offer.id}/reject`),
       user.id
     )
 
@@ -341,7 +341,7 @@ test.group('Offers Controller - CRUD', (group) => {
     })
 
     const response = await withAuth(
-      client.patch(`/api/transactions/${transaction.id}/offers/${offer.id}/withdraw`),
+      client.patch(`/api/offers/${offer.id}/withdraw`),
       user.id
     )
 
@@ -372,7 +372,7 @@ test.group('Offers Controller - CRUD', (group) => {
     })
 
     const response = await withAuth(
-      client.delete(`/api/transactions/${transaction.id}/offers/${offer.id}`),
+      client.delete(`/api/offers/${offer.id}`),
       user.id
     )
 
@@ -394,7 +394,7 @@ test.group('Offers Controller - CRUD', (group) => {
     await OfferService.acceptOffer(offer.id)
 
     const response = await withAuth(
-      client.delete(`/api/transactions/${transaction.id}/offers/${offer.id}`),
+      client.delete(`/api/offers/${offer.id}`),
       user.id
     )
 
@@ -456,7 +456,7 @@ test.group('Offers Controller - Multi-tenancy', (group) => {
     })
 
     const response = await withAuth(
-      client.patch(`/api/transactions/${tx1.id}/offers/${offer.id}/accept`),
+      client.patch(`/api/offers/${offer.id}/accept`),
       user2.id
     )
 
@@ -474,7 +474,7 @@ test.group('Offers Controller - Multi-tenancy', (group) => {
     })
 
     const response = await withAuth(
-      client.delete(`/api/transactions/${tx1.id}/offers/${offer.id}`),
+      client.delete(`/api/offers/${offer.id}`),
       user2.id
     )
 
@@ -535,7 +535,7 @@ test.group('Offers Controller - Edge Cases', (group) => {
 
     // Counter offer
     await withAuth(
-      client.post(`/api/transactions/${transaction.id}/offers/${offerId}/revisions`),
+      client.post(`/api/offers/${offerId}/revisions`),
       user.id
     ).json({
       price: 325000,
@@ -544,7 +544,7 @@ test.group('Offers Controller - Edge Cases', (group) => {
 
     // Accept
     const acceptResponse = await withAuth(
-      client.patch(`/api/transactions/${transaction.id}/offers/${offerId}/accept`),
+      client.patch(`/api/offers/${offerId}/accept`),
       user.id
     )
 

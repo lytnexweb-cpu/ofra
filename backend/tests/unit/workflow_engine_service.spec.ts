@@ -143,6 +143,7 @@ test.group('WorkflowEngineService', (group) => {
       title: 'Blocking Condition',
       type: 'financing',
       priority: 'high',
+      level: 'blocking',
       isBlocking: true,
       status: 'pending',
     })
@@ -180,6 +181,7 @@ test.group('WorkflowEngineService', (group) => {
       title: 'Completed Blocking Condition',
       type: 'financing',
       priority: 'high',
+      level: 'blocking',
       isBlocking: true,
       status: 'completed',
     })
@@ -336,6 +338,7 @@ test.group('WorkflowEngineService', (group) => {
       title: 'Blocking Pending',
       type: 'financing',
       priority: 'high',
+      level: 'blocking',
       isBlocking: true,
       status: 'pending',
     })
@@ -345,6 +348,7 @@ test.group('WorkflowEngineService', (group) => {
       title: 'Blocking Completed',
       type: 'inspection',
       priority: 'high',
+      level: 'blocking',
       isBlocking: true,
       status: 'completed',
     })
@@ -354,6 +358,7 @@ test.group('WorkflowEngineService', (group) => {
       title: 'Non-Blocking Pending',
       type: 'other',
       priority: 'low',
+      level: 'recommended',
       isBlocking: false,
       status: 'pending',
     })

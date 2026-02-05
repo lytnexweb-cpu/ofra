@@ -84,6 +84,7 @@ test.group('Conditions - Workflow', (group) => {
       title: 'Test Condition',
       type: 'financing',
       priority: 'high',
+      level: 'blocking',
       isBlocking: true,
       status: 'pending',
     })
@@ -129,6 +130,7 @@ test.group('Conditions - Workflow', (group) => {
       title: 'Blocking Condition',
       type: 'financing',
       priority: 'high',
+      level: 'blocking',
       isBlocking: true,
       status: 'pending',
     })
@@ -171,6 +173,7 @@ test.group('Conditions - Workflow', (group) => {
       title: 'To Delete',
       type: 'other',
       priority: 'low',
+      level: 'recommended',
       isBlocking: false,
       status: 'pending',
     })
