@@ -25,10 +25,12 @@ export default class TransactionsController {
         .preload('currentStep', (sq) => sq.preload('workflowStep'))
         .preload('transactionSteps', (sq) => sq.orderBy('step_order', 'asc'))
         .withCount('conditions')
-        .withCount('conditions as pendingConditionsCount', (q) => q.where('status', 'pending'))
-        .withCount('conditions as blockingConditionsCount', (q) =>
-          q.where('status', 'pending').where('level', 'blocking')
-        )
+        .withCount('conditions', (q) => {
+          q.as('pendingConditionsCount').where('status', 'pending')
+        })
+        .withCount('conditions', (q) => {
+          q.as('blockingConditionsCount').where('status', 'pending').where('level', 'blocking')
+        })
         .preload('offers', (offerQuery) => {
           offerQuery.preload('revisions', (revQuery) =>
             revQuery.orderBy('revision_number', 'desc').limit(1)

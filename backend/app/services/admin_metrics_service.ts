@@ -226,8 +226,8 @@ export class AdminMetricsService {
       .select(db.raw("TO_CHAR(DATE_TRUNC('week', created_at), 'YYYY-MM-DD') as week"))
       .count('* as count')
       .where('createdAt', '>=', twelveWeeksAgo.toSQL())
-      .groupBy(db.raw("DATE_TRUNC('week', created_at)"))
-      .orderBy(db.raw("DATE_TRUNC('week', created_at)"), 'asc')
+      .groupByRaw("DATE_TRUNC('week', created_at)")
+      .orderByRaw("DATE_TRUNC('week', created_at) asc")
 
     return result.map((r) => ({
       week: r.$extras.week,
@@ -245,8 +245,8 @@ export class AdminMetricsService {
       .select(db.raw("TO_CHAR(DATE_TRUNC('week', created_at), 'YYYY-MM-DD') as week"))
       .count('* as count')
       .where('createdAt', '>=', twelveWeeksAgo.toSQL())
-      .groupBy(db.raw("DATE_TRUNC('week', created_at)"))
-      .orderBy(db.raw("DATE_TRUNC('week', created_at)"), 'asc')
+      .groupByRaw("DATE_TRUNC('week', created_at)")
+      .orderByRaw("DATE_TRUNC('week', created_at) asc")
 
     return result.map((r) => ({
       week: r.$extras.week,
@@ -280,7 +280,7 @@ export class AdminMetricsService {
       Transaction.query()
         .select(db.raw("CASE WHEN sale_price IS NOT NULL THEN 'completed' ELSE 'active' END as status"))
         .count('* as count')
-        .groupBy(db.raw("CASE WHEN sale_price IS NOT NULL THEN 'completed' ELSE 'active' END")),
+        .groupByRaw("CASE WHEN sale_price IS NOT NULL THEN 'completed' ELSE 'active' END"),
     ])
 
     return {
