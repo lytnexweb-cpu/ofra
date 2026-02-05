@@ -153,11 +153,30 @@ export class CsvImportService {
         try {
           const mappedRow = this.mapColumns(rawRow)
 
-          // Validate required fields
-          if (!mappedRow.firstName || !mappedRow.lastName) {
+          // Validate required fields with explicit error messages
+          if (!mappedRow.firstName && !mappedRow.lastName) {
             result.errors.push({
               row: rowNumber,
-              message: 'Missing required field: firstName or lastName',
+              message: 'Missing firstName and lastName',
+              data: rawRow,
+            })
+            result.skipped++
+            continue
+          }
+          if (!mappedRow.firstName) {
+            const name = mappedRow.lastName || 'Unknown'
+            result.errors.push({
+              row: rowNumber,
+              message: `Missing firstName for ${name}`,
+              data: rawRow,
+            })
+            result.skipped++
+            continue
+          }
+          if (!mappedRow.lastName) {
+            result.errors.push({
+              row: rowNumber,
+              message: `Missing lastName for ${mappedRow.firstName}`,
               data: rawRow,
             })
             result.skipped++

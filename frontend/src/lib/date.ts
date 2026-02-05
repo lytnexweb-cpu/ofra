@@ -42,3 +42,6 @@ export function formatDistanceToNow(date: Date | number | string): string {
 // Re-export utility functions for centralized imports
 export const differenceInDays = fnsDifferenceInDays
 export const parseISO = fnsParseISO
+
+// Alias for backward compatibility
+export const formatRelativeDate = formatDistanceToNow

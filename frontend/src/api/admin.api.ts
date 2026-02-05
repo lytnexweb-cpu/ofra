@@ -1,6 +1,9 @@
 import { http } from './http'
 import type { UserRole } from './auth.api'
 
+// Engagement levels
+export type EngagementLevel = 'active' | 'warm' | 'inactive'
+
 // Overview KPIs
 export interface AdminOverview {
   kpis: {
@@ -12,10 +15,13 @@ export interface AdminOverview {
   }
   usersByRole: Array<{ role: UserRole; count: number }>
   transactionsByStatus: Array<{ status: string; count: number }>
-  signupTrend: Array<{ date: string; count: number }>
+  charts: {
+    signupsByWeek: Array<{ week: string; count: number }>
+    transactionsByWeek: Array<{ week: string; count: number }>
+  }
 }
 
-// Subscriber/User info
+// Subscriber/User info with engagement
 export interface AdminUser {
   id: number
   email: string
@@ -23,11 +29,18 @@ export interface AdminUser {
   role: UserRole
   agency: string | null
   createdAt: string
+  lastActivity: string | null
   onboardingCompleted: boolean
   practiceType: string | null
   annualVolume: string | null
-  transactionCount: number
-  clientCount: number
+  engagement: {
+    level: EngagementLevel
+    transactionCount: number
+    completedConditions: number
+    daysSinceLastLogin: number | null
+  }
+  noteCount: number
+  pendingTaskCount: number
 }
 
 export interface SubscribersResponse {
@@ -40,11 +53,68 @@ export interface SubscribersResponse {
   }
 }
 
+// Admin Note
+export interface AdminNote {
+  id: number
+  content: string
+  createdAt: string
+  updatedAt: string | null
+  author: {
+    id: number
+    email: string
+    fullName: string | null
+  }
+}
+
+// Admin Task
+export interface AdminTask {
+  id: number
+  title: string
+  dueDate: string | null
+  completed: boolean
+  completedAt: string | null
+  createdAt: string
+  author: {
+    id: number
+    email: string
+    fullName: string | null
+  }
+}
+
+// At-risk user
+export interface AtRiskUser {
+  id: number
+  email: string
+  fullName: string | null
+  createdAt: string
+  daysSinceCreation: number
+  daysSinceLastLogin: number | null
+  transactionCount: number
+  reason: 'no_login_7d' | 'no_activity_7d'
+}
+
+// Overdue condition
+export interface OverdueCondition {
+  id: number
+  title: string
+  deadline: string
+  daysOverdue: number
+  transactionId: number
+  clientName: string | null
+  ownerEmail: string
+}
+
 // Activity feed
 export interface ActivityItem {
   type: 'user_registered' | 'transaction_created'
   timestamp: string
   data: Record<string, unknown>
+}
+
+export interface ActivityResponse {
+  atRiskUsers: AtRiskUser[]
+  overdueConditions: OverdueCondition[]
+  activities: ActivityItem[]
 }
 
 // System health
@@ -72,46 +142,59 @@ export interface SubscribersParams {
   limit?: number
   search?: string
   role?: UserRole | ''
-  sortBy?: 'createdAt' | 'email' | 'fullName' | 'role'
+  engagement?: EngagementLevel | ''
+  sortBy?: 'createdAt' | 'email' | 'fullName' | 'role' | 'updatedAt'
   sortOrder?: 'asc' | 'desc'
 }
 
 export const adminApi = {
-  /**
-   * GET /api/admin/overview
-   * Dashboard overview with KPIs
-   */
+  // Dashboard
   getOverview: () => http.get<AdminOverview>('/api/admin/overview'),
 
-  /**
-   * GET /api/admin/subscribers
-   * List all users with pagination and filtering
-   */
+  // Subscribers
   getSubscribers: (params?: SubscribersParams) =>
     http.get<SubscribersResponse>('/api/admin/subscribers', { params }),
 
-  /**
-   * PATCH /api/admin/subscribers/:id/role
-   * Update user role (superadmin only)
-   */
+  exportSubscribers: () => '/api/admin/subscribers/export',
+
   updateUserRole: (userId: number, role: UserRole) =>
     http.patch<{ user: { id: number; email: string; role: UserRole } }>(
       `/api/admin/subscribers/${userId}/role`,
       { role }
     ),
 
-  /**
-   * GET /api/admin/activity
-   * Recent system activity feed
-   */
+  // Notes
+  getNotes: (userId: number) =>
+    http.get<{ notes: AdminNote[] }>(`/api/admin/subscribers/${userId}/notes`),
+
+  createNote: (userId: number, content: string) =>
+    http.post<{ note: AdminNote }>(`/api/admin/subscribers/${userId}/notes`, { content }),
+
+  updateNote: (noteId: number, content: string) =>
+    http.put<{ note: AdminNote }>(`/api/admin/notes/${noteId}`, { content }),
+
+  deleteNote: (noteId: number) =>
+    http.delete<{ message: string }>(`/api/admin/notes/${noteId}`),
+
+  // Tasks
+  getTasks: (userId: number) =>
+    http.get<{ tasks: AdminTask[] }>(`/api/admin/subscribers/${userId}/tasks`),
+
+  createTask: (userId: number, title: string, dueDate?: string) =>
+    http.post<{ task: AdminTask }>(`/api/admin/subscribers/${userId}/tasks`, { title, dueDate }),
+
+  updateTask: (taskId: number, data: { title?: string; dueDate?: string | null; completed?: boolean }) =>
+    http.patch<{ task: AdminTask }>(`/api/admin/tasks/${taskId}`, data),
+
+  deleteTask: (taskId: number) =>
+    http.delete<{ message: string }>(`/api/admin/tasks/${taskId}`),
+
+  // Activity
   getActivity: (limit?: number) =>
-    http.get<{ activities: ActivityItem[] }>('/api/admin/activity', {
+    http.get<ActivityResponse>('/api/admin/activity', {
       params: limit ? { limit } : undefined,
     }),
 
-  /**
-   * GET /api/admin/system
-   * System health and status
-   */
+  // System
   getSystemHealth: () => http.get<SystemHealth>('/api/admin/system'),
 }
