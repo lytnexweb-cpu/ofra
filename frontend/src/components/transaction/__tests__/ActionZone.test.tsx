@@ -162,15 +162,25 @@ describe('ActionZone', () => {
     // Open skip dialog
     fireEvent.click(screen.getByTestId('skip-step-btn'))
 
-    // Find the confirm button inside the ConfirmDialog (not the ActionZone buttons)
+    // Wait for dialog to open
+    await waitFor(() => {
+      expect(screen.getByRole('dialog')).toBeInTheDocument()
+    })
+
+    // Fill in the required reason (minimum 10 characters)
+    const reasonInput = screen.getByPlaceholderText(/why|raison/i)
+    fireEvent.change(reasonInput, { target: { value: 'Skipping this step for testing purposes' } })
+
+    // Find and click the confirm button
     const confirmButtons = screen.getAllByRole('button')
     const skipConfirmBtn = confirmButtons.find(
       (btn) =>
-        (btn.textContent?.includes('Skip') || btn.textContent?.includes('Sauter')) &&
+        btn.textContent?.toLowerCase().includes('skip') &&
         !btn.hasAttribute('data-testid')
     )
     expect(skipConfirmBtn).toBeDefined()
     fireEvent.click(skipConfirmBtn!)
+
     await waitFor(() => {
       expect(mockSkipStep).toHaveBeenCalledWith(1)
     })

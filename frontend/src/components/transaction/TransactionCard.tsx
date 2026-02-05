@@ -81,11 +81,11 @@ export default function TransactionCard({ transaction }: TransactionCardProps) {
           {/* Header: Client name + Type badge */}
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
-              <h3
+              <p
                 className="font-semibold text-base truncate group-hover:text-primary transition-colors text-primary"
               >
                 {clientName}
-              </h3>
+              </p>
               {propertyAddress && (
                 <div className="flex items-center gap-1.5 mt-1 text-muted-foreground">
                   <MapPin className="w-3.5 h-3.5 shrink-0" />

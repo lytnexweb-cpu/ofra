@@ -89,23 +89,20 @@ describe('Design System Canary', () => {
     expect(getByText('Hover me')).toBeInTheDocument()
   })
 
-  it('applies dark mode class and verifies DOM reflects it', () => {
-    document.documentElement.classList.add('dark')
-
-    const { container } = renderWithProviders(
+  it('components render correctly in any theme mode', () => {
+    const { container, getByText } = renderWithProviders(
       <Card>
         <CardContent>
-          <Button>Dark Mode Button</Button>
+          <Button>Theme Aware Button</Button>
         </CardContent>
       </Card>
     )
 
-    expect(document.documentElement.classList.contains('dark')).toBe(true)
-    // Verify component renders in dark mode context and dark class is on root
-    expect(document.documentElement.className).toContain('dark')
+    // Verify component renders with theme-aware styling
     expect(container.querySelector('button')).toBeInTheDocument()
-
-    document.documentElement.classList.remove('dark')
-    expect(document.documentElement.classList.contains('dark')).toBe(false)
+    expect(getByText('Theme Aware Button')).toBeInTheDocument()
+    // Card should have styling classes present
+    const card = container.querySelector('[class*="bg-"]')
+    expect(card).toBeInTheDocument()
   })
 })

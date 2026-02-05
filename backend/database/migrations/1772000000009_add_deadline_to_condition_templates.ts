@@ -11,20 +11,28 @@ export default class extends BaseSchema {
   protected tableName = 'condition_templates'
 
   async up() {
-    this.schema.alterTable(this.tableName, (table) => {
-      // Reference point for deadline calculation
-      // 'acceptance' = from offer acceptance date
-      // 'closing' = from closing date (countdown)
-      // 'step_start' = from when the step starts
-      table
-        .enum('deadline_reference', ['acceptance', 'closing', 'step_start'])
-        .nullable()
-        .defaultTo(null)
+    // Check if columns already exist (idempotent migration)
+    const hasDeadlineRef = await this.db.rawQuery(
+      `SELECT column_name FROM information_schema.columns
+       WHERE table_name = 'condition_templates' AND column_name = 'deadline_reference'`
+    )
 
-      // Number of days from reference point
-      // Positive = after reference, Negative = before (for closing countdown)
-      table.integer('default_deadline_days').nullable().defaultTo(null)
-    })
+    if (hasDeadlineRef.rows.length === 0) {
+      this.schema.alterTable(this.tableName, (table) => {
+        // Reference point for deadline calculation
+        // 'acceptance' = from offer acceptance date
+        // 'closing' = from closing date (countdown)
+        // 'step_start' = from when the step starts
+        table
+          .enum('deadline_reference', ['acceptance', 'closing', 'step_start'])
+          .nullable()
+          .defaultTo(null)
+
+        // Number of days from reference point
+        // Positive = after reference, Negative = before (for closing countdown)
+        table.integer('default_deadline_days').nullable().defaultTo(null)
+      })
+    }
   }
 
   async down() {
