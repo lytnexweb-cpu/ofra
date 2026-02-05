@@ -46,34 +46,37 @@ COMPLÉTÉ ✓
 
 ## 🚨 Priorités Immédiates (Post-Audit)
 
-### P0 - AUJOURD'HUI (Critique)
+### P0 - COMPLÉTÉ ✅ (2026-02-04)
 
 | Tâche | Responsable | Statut |
 |-------|-------------|--------|
-| Fixer doublon migration 1772000000006 | Dev | ⏳ |
-| Commit migrations (9 fichiers) | Dev | ⏳ |
-| Commit models & services | Dev | ⏳ |
-| Commit controllers & routes | Dev | ⏳ |
-| Commit frontend components | Dev | ⏳ |
-| Commit docs & roadmap | Dev | ⏳ |
+| Fixer doublon migration 1772000000006 | Dev | ✅ |
+| Commit migrations (9 fichiers) | Dev | ✅ |
+| Commit models & services | Dev | ✅ |
+| Commit controllers & routes | Dev | ✅ |
+| Commit frontend components | Dev | ✅ |
+| Commit docs & roadmap | Dev | ✅ |
+| Push to remote | Dev | ✅ |
 
-### P1 - Cette Semaine (Important)
+### P1 - COMPLÉTÉ ✅ (2026-02-04)
 
-| Tâche | Responsable | Bloque |
+| Tâche | Responsable | Statut |
 |-------|-------------|--------|
-| Transaction Profile UI | Amelia | Suggestions conditions |
-| Tests Notes Controller | Murat | Couverture 0% → 80% |
-| Tests Offers Controller | Murat | Couverture 40% → 80% |
-| Tenant scoping ReminderService | Winston | GDPR compliance |
-| Optimiser N+1 queries | Winston | Performance |
+| Transaction Profile UI | Amelia | ✅ (déjà implémenté) |
+| Tests Notes Controller (12 tests) | Murat | ✅ |
+| Tests Offers Controller (25 tests) | Murat | ✅ |
+| Tenant scoping ReminderService | Winston | ✅ |
+| Optimiser N+1 queries + pagination | Winston | ✅ |
 
-### P2 - Sprint Suivant
+### P2 - EN COURS (Sprint Actuel)
 
-| Tâche | Responsable | Epic |
-|-------|-------------|------|
-| Timeline UI (D32) | Sally + Amelia | Epic 9 |
-| Tests E2E Playwright | Murat | Quality Gates |
-| Exception Handler amélioré | Winston | Observabilité |
+| Tâche | Responsable | Epic | Statut |
+|-------|-------------|------|--------|
+| Timeline UI (D32) | Sally + Amelia | Epic 9 | ✅ COMPLÉTÉ |
+| Tests E2E Playwright | Murat | Quality Gates | ⏳ À FAIRE |
+| Exception Handler amélioré | Winston | Observabilité | ⏳ À FAIRE |
+| Filtre par niveau conditions | Amelia | Epic 8 | ⏳ À FAIRE |
+| Evidence/Documents sur conditions | Dev | Epic 5+8 | ⏳ À FAIRE |
 
 ---
 
@@ -110,11 +113,12 @@ Décisions requises pour débloquer le développement:
 | D40 | Onboarding personnalisé | ✅ IMPLÉMENTÉ | Onboarding | NON COMMITÉ |
 | D41 | Garde-fous validation avec preuves | ✅ IMPLÉMENTÉ | Epic 8 | NON COMMITÉ |
 
-### ⚠️ Blocage Technique Identifié
+### ✅ Blocage Résolu (2026-02-04)
 
-**Transaction Profile UI manquante** — Backend prêt, API fonctionnelle, mais pas d'interface utilisateur pour créer le profil. Sans profil, le système ne peut pas suggérer de conditions templates.
-
-**Solution:** Ajouter formulaire dans CreateTransactionModal ou onglet dédié.
+**Transaction Profile UI** — ~~Manquante~~ **DÉJÀ IMPLÉMENTÉE** dans `CreateTransactionModal.tsx` (lignes 342-628).
+- Property Type, Property Context, Is Financed
+- Champs ruraux conditionnels (puits, fosse septique, accès)
+- Chargement automatique du Pack Rural NB (D39)
 
 ---
 
@@ -187,12 +191,12 @@ Transformer le système de conditions basique en un moteur intelligent qui sugg�
 - ✅ "Étape ?" affichage (currentStepOrder propagation)
 
 ### Blocage actuel
-- ⚠️ **Transaction Profile UI manquante** — Les utilisateurs doivent créer le profil via API. Sans profil, pas de suggestions de templates.
+- ✅ ~~Transaction Profile UI manquante~~ — **RÉSOLU** (déjà dans CreateTransactionModal)
 
 ### Prochaines étapes
-1. **UI création de profil** — Formulaire dans la création de transaction OU onglet Paramètres
+1. ✅ ~~UI création de profil~~ — Déjà implémenté
 2. **Tester flow complet** — Profil → Suggestions → Créer condition
-3. **Phase 4D** — Timeline par étape
+3. **Phase 4D** — Timeline par étape (D32)
 
 ### User Stories
 
@@ -205,7 +209,7 @@ Transformer le système de conditions basique en un moteur intelligent qui sugg�
 **Critères d'acceptation:**
 - [x] 3 champs obligatoires à la création (property_type, property_context, is_financed)
 - [x] 3 champs conditionnels si rural (has_well, has_septic, access_type)
-- [ ] Progressive disclosure (champs ruraux cachés si urbain/condo) — **UI manquante**
+- [x] Progressive disclosure (champs ruraux cachés si urbain/condo) — **Implémenté**
 - [x] Sauvegarde dans transaction_profile
 - [ ] Tests E2E pour chaque combinaison
 
@@ -612,9 +616,11 @@ SPRINT 6: LAUNCH FONDATEURS
 
 ---
 
-### 2026-02-04 (Audit Technique)
+### 2026-02-04 (Audit Technique + Exécution P0/P1)
 
 **Participants:** Sam + Équipe BMAD complète (Party Mode)
+
+#### Phase 1: Audit (matin)
 
 **Audit réalisé par:**
 - 🏗️ Winston (Architecte) - Backend: 7/10
@@ -623,18 +629,72 @@ SPRINT 6: LAUNCH FONDATEURS
 - 📊 Mary (Analyst) - Git: CRITIQUE
 
 **Constats majeurs:**
-
 1. **122 fichiers non commités** = 2 semaines de travail à risque
 2. **Doublon migration** 1772000000006 (cancellation + deadline)
 3. **N+1 queries** dans TransactionsController.index()
 4. **ReminderService** sans tenant scoping (GDPR)
 5. **Notes/Offers** à 0% de couverture tests
 
-**Décisions prises:**
-- P0: Commits urgents aujourd'hui
-- P1: Transaction Profile UI cette semaine
-- P1: Tests Notes/Offers cette semaine
-- P2: Timeline UI (D32) sprint suivant
+#### Phase 2: Exécution P0/P1 (après-midi)
+
+**P0 - Commits urgents:** ✅ COMPLÉTÉ
+- Fix doublon migration → renommé en `1772000000009`
+- 8 commits créés et poussés vers `feat/d38-edit-condition-deadline-note`
+- 122 fichiers sécurisés sur remote
+
+**P1 - Tests & Optimisations:** ✅ COMPLÉTÉ
+- 🧪 Murat: Notes Controller tests (12 tests)
+- 🧪 Murat: Offers Controller tests (25 tests)
+- 🏗️ Winston: Fix N+1 queries + pagination dans TransactionsController
+- 🏗️ Winston: Optimisation ReminderService (tenant scoping)
+- Découverte: Transaction Profile UI déjà implémenté dans CreateTransactionModal!
+
+#### Phase 3: Planification D32 (soir)
+
+**Débat d'équipe sur placement WorkflowTimeline:**
+
+| Agent | Vote | Argument |
+|-------|------|----------|
+| Mary | Option 3 | GPS toujours visible |
+| Sally | Option 3 | Hybride desktop/mobile |
+| Winston | Option 1 | Pragmatique, réutilise l'existant |
+| John | Option 1 | Activity log = secondaire |
+| Barry | Option 1 | Ship fast |
+| Murat | Option 1 | Avec accès historique |
+
+**Consensus:** Option 1 - Remplacer contenu onglet Timeline par WorkflowTimeline, garder accès historique via bouton.
+
+**Composants existants découverts:**
+- `StepProgressBar.tsx` - Barre horizontale (desktop)
+- `StepperBottomSheet.tsx` - Liste verticale (mobile) - 70% de D32!
+- `TimelineTab.tsx` - Activity log (à conserver en secondaire)
+
+**Décision Sam:** Option 1 validée.
+
+#### Phase 4: Implémentation D32 (soir - suite)
+
+**Nomenclature:**
+- Onglet "Timeline" → "Étapes" (FR) / "Steps" (EN)
+- Tab key: `steps`
+
+**Fichiers créés:**
+- `frontend/src/components/transaction/WorkflowTimeline.tsx` (200 lignes)
+- `frontend/src/components/transaction/__tests__/WorkflowTimeline.test.tsx` (10 tests)
+
+**Fichiers modifiés:**
+- `frontend/src/pages/TransactionDetailPage.tsx` - tab timeline→steps
+- `frontend/src/components/transaction/TransactionBottomNav.tsx` - tab config
+- `frontend/src/components/transaction/index.ts` - export
+- `frontend/src/i18n/locales/fr/common.json` - tabs.steps
+- `frontend/src/i18n/locales/en/common.json` - tabs.steps
+- `_bmad-output/decisions/D32-timeline-interactive.md` - statut COMPLÉTÉ
+
+**Features:**
+- 8 étapes verticales avec statuts visuels (vert/orange/gris)
+- Conditions affichées sous l'étape courante (expanded par défaut)
+- Étapes passées: conditions readonly + icône cadenas
+- Bouton "Voir l'historique complet" → drawer avec TimelineTab
+- Aucun bouton retour arrière
 
 **Documents produits:**
 - `_bmad-output/audit-2026-02-04.md` - Rapport complet
@@ -642,4 +702,4 @@ SPRINT 6: LAUNCH FONDATEURS
 ---
 
 **Document validé par:** Sam (Product Owner) + Équipe BMAD
-**Prochaine révision:** Après commits P0
+**Prochaine révision:** Après implémentation D32

@@ -15,6 +15,7 @@ export { default as NotesSection } from './NotesSection'
 export { default as ActionZone } from './ActionZone'
 export { default as DocumentsTab } from './DocumentsTab'
 export { default as TimelineTab } from './TimelineTab'
+export { default as WorkflowTimeline } from './WorkflowTimeline'
 export { default as TransactionBottomNav } from './TransactionBottomNav'
 
 // D41: Condition validation components
