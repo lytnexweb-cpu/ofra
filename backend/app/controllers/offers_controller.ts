@@ -151,6 +151,8 @@ export default class OffersController {
         createdByUserId: auth.user!.id,
       })
 
+      // Refresh offer to get updated status
+      await offer.refresh()
       await offer.load('revisions', (query) => query.orderBy('revision_number', 'asc'))
 
       return response.created({

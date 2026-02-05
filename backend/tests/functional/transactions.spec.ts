@@ -155,6 +155,7 @@ test.group('Transactions - Workflow CRUD', (group) => {
       title: 'Blocking',
       type: 'financing',
       priority: 'high',
+      level: 'blocking',
       isBlocking: true,
       status: 'pending',
     })

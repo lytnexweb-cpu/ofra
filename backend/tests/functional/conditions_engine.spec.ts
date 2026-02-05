@@ -1,6 +1,15 @@
 import { test } from '@japa/runner'
 import { createTestUser } from '../helpers/auth.js'
+import {
+  truncateAll,
+  createUser,
+  createClient,
+  createWorkflowTemplate,
+  createWorkflowStep,
+} from '#tests/helpers/index'
+import { WorkflowEngineService } from '#services/workflow_engine_service'
 import Transaction from '#models/transaction'
+import TransactionStep from '#models/transaction_step'
 import Condition from '#models/condition'
 import TransactionProfile from '#models/transaction_profile'
 import ConditionTemplate from '#models/condition_template'
@@ -14,19 +23,39 @@ import { ConditionsEngineService } from '#services/conditions_engine_service'
  * Author: Murat (TEA)
  */
 
+async function setupTestTransaction() {
+  const user = await createUser({ email: `ce-${Date.now()}@test.com` })
+  const client = await createClient(user.id)
+  const template = await createWorkflowTemplate({ slug: `ce-tpl-${Date.now()}` })
+  await createWorkflowStep(template.id, { stepOrder: 1, name: 'Step 1', slug: `ce-s1-${Date.now()}` })
+  await createWorkflowStep(template.id, { stepOrder: 2, name: 'Step 2', slug: `ce-s2-${Date.now()}` })
+
+  const transaction = await WorkflowEngineService.createTransactionFromTemplate({
+    templateId: template.id,
+    ownerUserId: user.id,
+    clientId: client.id,
+    type: 'purchase',
+  })
+
+  const currentStep = await TransactionStep.query()
+    .where('transactionId', transaction.id)
+    .where('status', 'active')
+    .firstOrFail()
+
+  return { user, transaction, currentStep }
+}
+
 test.group('Conditions Engine Premium', (group) => {
   let user: any
   let transaction: Transaction
-  let profile: TransactionProfile
-
-  group.setup(async () => {
-    // Create test user
-    user = await createTestUser()
-  })
+  let currentStep: TransactionStep
 
   group.each.setup(async () => {
-    // Create a test transaction with profile for each test
-    // This would typically use a factory
+    await truncateAll()
+    const setup = await setupTestTransaction()
+    user = setup.user
+    transaction = setup.transaction
+    currentStep = setup.currentStep
   })
 
   // ============================================================
@@ -38,8 +67,8 @@ test.group('Conditions Engine Premium', (group) => {
     // And: une condition Blocking "Mortgage Commitment" en pending
 
     const blockingCondition = await Condition.create({
-      transactionId: 1, // Would use actual transaction
-      transactionStepId: 1,
+      transactionId: transaction.id,
+      transactionStepId: currentStep.id,
       title: 'Mortgage Commitment reçu',
       labelFr: 'Mortgage Commitment reçu',
       labelEn: 'Mortgage Commitment received',
@@ -54,7 +83,7 @@ test.group('Conditions Engine Premium', (group) => {
     })
 
     // When: l'agent tente d'avancer à l'étape 5
-    const check = await ConditionsEngineService.checkStepAdvancement(1, 4)
+    const check = await ConditionsEngineService.checkStepAdvancement(transaction.id, 4)
 
     // Then: erreur "Condition bloquante non résolue"
     assert.isFalse(check.canAdvance)
@@ -67,8 +96,8 @@ test.group('Conditions Engine Premium', (group) => {
 
   test('blocking condition cannot be skipped with risk', async ({ assert }) => {
     const blockingCondition = await Condition.create({
-      transactionId: 1,
-      transactionStepId: 1,
+      transactionId: transaction.id,
+      transactionStepId: currentStep.id,
       title: 'Test Blocking',
       labelFr: 'Test Blocking',
       labelEn: 'Test Blocking',
@@ -100,8 +129,8 @@ test.group('Conditions Engine Premium', (group) => {
     // And: une condition Required "Test puits" en pending
 
     const requiredCondition = await Condition.create({
-      transactionId: 1,
-      transactionStepId: 1,
+      transactionId: transaction.id,
+      transactionStepId: currentStep.id,
       title: 'Test de puits',
       labelFr: 'Test de puits',
       labelEn: 'Well test',
@@ -142,8 +171,8 @@ test.group('Conditions Engine Premium', (group) => {
 
   test('required condition allows completion without note', async ({ assert }) => {
     const requiredCondition = await Condition.create({
-      transactionId: 1,
-      transactionStepId: 1,
+      transactionId: transaction.id,
+      transactionStepId: currentStep.id,
       title: 'Test Required',
       labelFr: 'Test Required',
       labelEn: 'Test Required',
@@ -174,8 +203,8 @@ test.group('Conditions Engine Premium', (group) => {
     // And: une condition Recommended "Visite pré-fermeture" en pending
 
     const recommendedCondition = await Condition.create({
-      transactionId: 1,
-      transactionStepId: 1,
+      transactionId: transaction.id,
+      transactionStepId: currentStep.id,
       title: 'Visite pré-fermeture',
       labelFr: 'Visite pré-fermeture complétée',
       labelEn: 'Pre-closing walkthrough completed',
@@ -190,7 +219,7 @@ test.group('Conditions Engine Premium', (group) => {
     })
 
     // When: l'agent avance à l'étape 5
-    await ConditionsEngineService.archiveConditionsOnStepChange(1, 4, 5, user.id)
+    await ConditionsEngineService.archiveConditionsOnStepChange(transaction.id, 4, 5, user.id)
 
     await recommendedCondition.refresh()
 
@@ -212,8 +241,8 @@ test.group('Conditions Engine Premium', (group) => {
 
   test('condition events are logged correctly', async ({ assert }) => {
     const condition = await Condition.create({
-      transactionId: 1,
-      transactionStepId: 1,
+      transactionId: transaction.id,
+      transactionStepId: currentStep.id,
       title: 'Test Audit',
       labelFr: 'Test Audit',
       labelEn: 'Test Audit',
@@ -296,7 +325,7 @@ test.group('Conditions Engine Premium', (group) => {
 
     // Create rural profile
     const ruralProfile = await TransactionProfile.create({
-      transactionId: 1,
+      transactionId: transaction.id,
       propertyType: 'house',
       propertyContext: 'rural',
       isFinanced: true,
@@ -322,8 +351,8 @@ test.group('Conditions Engine Premium', (group) => {
   test('conditions are grouped by step for timeline display', async ({ assert }) => {
     // Create conditions at different steps
     await Condition.create({
-      transactionId: 1,
-      transactionStepId: 1,
+      transactionId: transaction.id,
+      transactionStepId: currentStep.id,
       title: 'Step 3 Condition',
       labelFr: 'Condition Étape 3',
       labelEn: 'Step 3 Condition',
@@ -339,8 +368,8 @@ test.group('Conditions Engine Premium', (group) => {
     })
 
     await Condition.create({
-      transactionId: 1,
-      transactionStepId: 2,
+      transactionId: transaction.id,
+      transactionStepId: currentStep.id,
       title: 'Step 4 Condition 1',
       labelFr: 'Condition Étape 4 - 1',
       labelEn: 'Step 4 Condition 1',
@@ -356,8 +385,8 @@ test.group('Conditions Engine Premium', (group) => {
     })
 
     await Condition.create({
-      transactionId: 1,
-      transactionStepId: 2,
+      transactionId: transaction.id,
+      transactionStepId: currentStep.id,
       title: 'Step 4 Condition 2',
       labelFr: 'Condition Étape 4 - 2',
       labelEn: 'Step 4 Condition 2',
@@ -374,7 +403,7 @@ test.group('Conditions Engine Premium', (group) => {
     })
 
     // Get grouped conditions
-    const grouped = await ConditionsEngineService.getConditionsGroupedByStep(1)
+    const grouped = await ConditionsEngineService.getConditionsGroupedByStep(transaction.id)
 
     // Verify grouping
     assert.isTrue(grouped.has(3))
@@ -388,11 +417,21 @@ test.group('Conditions Engine Premium', (group) => {
   })
 })
 
-test.group('Conditions Engine - Edge Cases', () => {
+test.group('Conditions Engine - Edge Cases', (group) => {
+  let transaction: Transaction
+  let currentStep: TransactionStep
+
+  group.each.setup(async () => {
+    await truncateAll()
+    const setup = await setupTestTransaction()
+    transaction = setup.transaction
+    currentStep = setup.currentStep
+  })
+
   test('cannot archive condition with pending blocking', async ({ assert }) => {
     const blockingCondition = await Condition.create({
-      transactionId: 2,
-      transactionStepId: 1,
+      transactionId: transaction.id,
+      transactionStepId: currentStep.id,
       title: 'Blocking Test',
       labelFr: 'Blocking Test',
       labelEn: 'Blocking Test',
@@ -408,7 +447,7 @@ test.group('Conditions Engine - Edge Cases', () => {
 
     await assert.rejects(
       async () => {
-        await ConditionsEngineService.archiveConditionsOnStepChange(2, 4, 5, 'user-1')
+        await ConditionsEngineService.archiveConditionsOnStepChange(transaction.id, 4, 5, 'user-1')
       },
       /Blocking condition .* is still pending/
     )
@@ -416,8 +455,8 @@ test.group('Conditions Engine - Edge Cases', () => {
 
   test('cannot archive required without explicit resolution', async ({ assert }) => {
     await Condition.create({
-      transactionId: 3,
-      transactionStepId: 1,
+      transactionId: transaction.id,
+      transactionStepId: currentStep.id,
       title: 'Required Test',
       labelFr: 'Required Test',
       labelEn: 'Required Test',
@@ -433,7 +472,7 @@ test.group('Conditions Engine - Edge Cases', () => {
 
     await assert.rejects(
       async () => {
-        await ConditionsEngineService.archiveConditionsOnStepChange(3, 4, 5, 'user-1')
+        await ConditionsEngineService.archiveConditionsOnStepChange(transaction.id, 4, 5, 'user-1')
       },
       /Required condition .* must be explicitly resolved/
     )

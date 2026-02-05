@@ -215,7 +215,7 @@ test.group('Notes Controller - CRUD', (group) => {
     })
 
     const response = await withAuth(
-      client.delete(`/api/transactions/${transaction.id}/notes/${note.id}`),
+      client.delete(`/api/notes/${note.id}`),
       user.id
     )
 
@@ -232,7 +232,7 @@ test.group('Notes Controller - CRUD', (group) => {
     const { user, transaction } = await setupTransaction()
 
     const response = await withAuth(
-      client.delete(`/api/transactions/${transaction.id}/notes/99999`),
+      client.delete(`/api/notes/99999`),
       user.id
     )
 
@@ -253,7 +253,7 @@ test.group('Notes Controller - CRUD', (group) => {
     })
 
     const response = await withAuth(
-      client.delete(`/api/transactions/${transaction.id}/notes/${note.id}`),
+      client.delete(`/api/notes/${note.id}`),
       otherUser.id
     )
 
@@ -317,7 +317,7 @@ test.group('Notes Controller - Multi-tenancy', (group) => {
     })
 
     const response = await withAuth(
-      client.delete(`/api/transactions/${tx1.id}/notes/${note.id}`),
+      client.delete(`/api/notes/${note.id}`),
       user2.id
     )
 

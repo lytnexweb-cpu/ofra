@@ -256,7 +256,7 @@ export class ConditionsEngineService {
     const conditions = await Condition.query()
       .where('transactionId', transactionId)
       .orderBy('stepWhenCreated', 'asc')
-      .orderBy('level', 'desc') // blocking first
+      .orderByRaw("CASE level WHEN 'blocking' THEN 1 WHEN 'required' THEN 2 WHEN 'recommended' THEN 3 ELSE 4 END")
       .orderBy('createdAt', 'asc')
 
     const grouped = new Map<number, Condition[]>()

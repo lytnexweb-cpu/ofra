@@ -585,6 +585,7 @@ export class WorkflowEngineService {
         description: tplCond.description,
         type: tplCond.conditionType as any,
         priority: tplCond.priority,
+        level: tplCond.isBlockingDefault ? 'blocking' : 'recommended',
         isBlocking: tplCond.isBlockingDefault,
         status: 'pending',
         dueDate,
