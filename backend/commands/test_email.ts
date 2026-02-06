@@ -1,7 +1,6 @@
-import { BaseCommand, args } from '@adonisjs/core/ace'
+import { BaseCommand, args, flags } from '@adonisjs/core/ace'
 import { CommandOptions } from '@adonisjs/core/types/ace'
 import mail from '@adonisjs/mail/services/main'
-import env from '#start/env'
 import WelcomeMail from '#mails/welcome_mail'
 import PasswordResetMail from '#mails/password_reset_mail'
 import DailyDigestMail from '#mails/daily_digest_mail'
@@ -16,7 +15,13 @@ export default class TestEmail extends BaseCommand {
   static commandName = 'test:email'
   static description = 'Send test emails to verify templates'
 
-  @args.string({ description: 'Template to test: all, welcome, reset, digest, deadline, offer, firm, celebration, fintrac, review', required: false })
+  @args.string({ description: 'Email address to send to', required: true })
+  declare email: string
+
+  @flags.string({ alias: 'l', description: 'Language: fr or en (default: fr)' })
+  declare lang: string
+
+  @flags.string({ alias: 't', description: 'Template: all, welcome, reset, digest, deadline, offer, firm, celebration, fintrac, review' })
   declare template: string
 
   static options: CommandOptions = {
@@ -24,47 +29,47 @@ export default class TestEmail extends BaseCommand {
   }
 
   async run() {
-    const recipient = 'samir.ouridjel@gmail.com'
+    const recipient = this.email
+    const lang = (this.lang === 'en' ? 'en' : 'fr') as 'fr' | 'en'
     const template = this.template || 'all'
 
-    this.logger.info(`Sending test email(s) to ${recipient}...`)
+    this.logger.info(`📬 Envoi des emails de test à ${recipient} (${lang.toUpperCase()})...`)
 
     try {
       if (template === 'all' || template === 'welcome') {
-        await this.sendWelcome(recipient, 'fr')
-        await this.sendWelcome(recipient, 'en')
+        await this.sendWelcome(recipient, lang)
       }
 
       if (template === 'all' || template === 'reset') {
-        await this.sendPasswordReset(recipient, 'fr')
+        await this.sendPasswordReset(recipient, lang)
       }
 
       if (template === 'all' || template === 'digest') {
-        await this.sendDailyDigest(recipient, 'fr')
+        await this.sendDailyDigest(recipient, lang)
       }
 
       if (template === 'all' || template === 'deadline') {
-        await this.sendDeadlineWarning(recipient, 'fr')
+        await this.sendDeadlineWarning(recipient, lang)
       }
 
       if (template === 'all' || template === 'offer') {
-        await this.sendOfferAccepted(recipient, 'fr')
+        await this.sendOfferAccepted(recipient, lang)
       }
 
       if (template === 'all' || template === 'firm') {
-        await this.sendFirmConfirmed(recipient, 'fr')
+        await this.sendFirmConfirmed(recipient, lang)
       }
 
       if (template === 'all' || template === 'celebration') {
-        await this.sendCelebration(recipient, 'fr')
+        await this.sendCelebration(recipient, lang)
       }
 
       if (template === 'all' || template === 'fintrac') {
-        await this.sendFintracReminder(recipient, 'fr')
+        await this.sendFintracReminder(recipient, lang)
       }
 
       if (template === 'all' || template === 'review') {
-        await this.sendGoogleReview(recipient, 'fr')
+        await this.sendGoogleReview(recipient, lang)
       }
 
       this.logger.success('✅ Tous les emails ont été envoyés!')
@@ -100,7 +105,7 @@ export default class TestEmail extends BaseCommand {
       userName: 'Sam',
       overdue: [
         {
-          title: 'Inspection pré-achat',
+          title: lang === 'fr' ? 'Inspection pré-achat' : 'Pre-purchase inspection',
           clientName: 'Marie Dupont',
           propertyAddress: '123 Rue Principale, Moncton',
           dueDate: '2026-02-01',
@@ -110,7 +115,7 @@ export default class TestEmail extends BaseCommand {
       ],
       upcoming: [
         {
-          title: 'Financement confirmé',
+          title: lang === 'fr' ? 'Financement confirmé' : 'Financing confirmed',
           clientName: 'Jean Tremblay',
           propertyAddress: '456 Ave Acadie, Dieppe',
           dueDate: '2026-02-08',
@@ -118,7 +123,7 @@ export default class TestEmail extends BaseCommand {
           transactionUrl: 'https://ofra.ca/transactions/2',
         },
         {
-          title: 'Documents notaire',
+          title: lang === 'fr' ? 'Documents notaire' : 'Notary documents',
           clientName: 'Sophie Martin',
           propertyAddress: null,
           dueDate: '2026-02-10',
@@ -136,10 +141,10 @@ export default class TestEmail extends BaseCommand {
     await mail.send(new DeadlineWarningMail({
       to,
       userName: 'Sam',
-      conditionTitle: 'Confirmation de financement',
+      conditionTitle: lang === 'fr' ? 'Confirmation de financement' : 'Financing confirmation',
       clientName: 'Pierre Leblanc',
       propertyAddress: '789 Boul Champlain, Saint John',
-      dueDate: '7 février 2026',
+      dueDate: lang === 'fr' ? '7 février 2026' : 'February 7, 2026',
       transactionUrl: 'https://ofra.ca/transactions/4',
       language: lang,
     }))

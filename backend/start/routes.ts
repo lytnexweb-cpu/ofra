@@ -140,5 +140,8 @@ router.group(() => {
 
 // Superadmin-only routes
 router.group(() => {
+  // Role changes disabled for security - returns 403
   router.patch('/subscribers/:id/role', '#controllers/admin_controller.updateRole')
+  // Subscription status management
+  router.patch('/subscribers/:id/subscription', '#controllers/admin_controller.updateSubscription')
 }).prefix('/api/admin').use([middleware.auth(), middleware.superadmin()])

@@ -4,6 +4,9 @@ import type { UserRole } from './auth.api'
 // Engagement levels
 export type EngagementLevel = 'active' | 'warm' | 'inactive'
 
+// Subscription status
+export type SubscriptionStatus = 'trial' | 'active' | 'past_due' | 'cancelled' | 'expired'
+
 // Overview KPIs
 export interface AdminOverview {
   kpis: {
@@ -33,6 +36,9 @@ export interface AdminUser {
   onboardingCompleted: boolean
   practiceType: string | null
   annualVolume: string | null
+  subscriptionStatus: SubscriptionStatus
+  subscriptionStartedAt: string | null
+  subscriptionEndsAt: string | null
   engagement: {
     level: EngagementLevel
     transactionCount: number
@@ -142,6 +148,7 @@ export interface SubscribersParams {
   limit?: number
   search?: string
   role?: UserRole | ''
+  subscription?: SubscriptionStatus | ''
   engagement?: EngagementLevel | ''
   sortBy?: 'createdAt' | 'email' | 'fullName' | 'role' | 'updatedAt'
   sortOrder?: 'asc' | 'desc'
@@ -157,11 +164,22 @@ export const adminApi = {
 
   exportSubscribers: () => '/api/admin/subscribers/export',
 
-  updateUserRole: (userId: number, role: UserRole) =>
-    http.patch<{ user: { id: number; email: string; role: UserRole } }>(
-      `/api/admin/subscribers/${userId}/role`,
-      { role }
-    ),
+  // Role changes disabled for security - use updateSubscriptionStatus instead
+  updateUserRole: (_userId: number, _role: UserRole) => {
+    console.warn('updateUserRole is disabled for security reasons')
+    return Promise.resolve({ success: false, error: { message: 'Role changes disabled' } })
+  },
+
+  updateSubscriptionStatus: (userId: number, subscriptionStatus: SubscriptionStatus) =>
+    http.patch<{
+      user: {
+        id: number
+        email: string
+        subscriptionStatus: SubscriptionStatus
+        subscriptionStartedAt: string | null
+        subscriptionEndsAt: string | null
+      }
+    }>(`/api/admin/subscribers/${userId}/subscription`, { subscriptionStatus }),
 
   // Notes
   getNotes: (userId: number) =>

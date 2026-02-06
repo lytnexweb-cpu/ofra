@@ -44,6 +44,7 @@ export default class AdminController {
     const limit = request.input('limit', 20)
     const search = request.input('search', '')
     const role = request.input('role', '')
+    const subscription = request.input('subscription', '') // trial, active, past_due, cancelled, expired
     const engagement = request.input('engagement', '') // active, warm, inactive
     const sortBy = request.input('sortBy', 'createdAt')
     const sortOrder = request.input('sortOrder', 'desc')
@@ -60,6 +61,9 @@ export default class AdminController {
         'onboardingCompleted',
         'practiceType',
         'annualVolume',
+        'subscriptionStatus',
+        'subscriptionStartedAt',
+        'subscriptionEndsAt',
       ])
 
     // Search filter
@@ -74,6 +78,11 @@ export default class AdminController {
     // Role filter
     if (role) {
       query = query.where('role', role)
+    }
+
+    // Subscription filter
+    if (subscription) {
+      query = query.where('subscriptionStatus', subscription)
     }
 
     // Sorting
@@ -131,6 +140,9 @@ export default class AdminController {
             onboardingCompleted: u.onboardingCompleted,
             practiceType: u.practiceType,
             annualVolume: u.annualVolume,
+            subscriptionStatus: u.subscriptionStatus || 'trial',
+            subscriptionStartedAt: u.subscriptionStartedAt,
+            subscriptionEndsAt: u.subscriptionEndsAt,
             engagement: {
               level: score?.level || 'inactive',
               transactionCount: score?.transactionCount || 0,
@@ -495,23 +507,32 @@ export default class AdminController {
 
   /**
    * PATCH /api/admin/subscribers/:id/role
-   * Update user role (superadmin only)
+   * DISABLED - Role changes are not allowed via UI for security reasons
+   * Only the database superadmin can promote users
    */
-  async updateRole({ params, request, response, auth }: HttpContext) {
+  async updateRole({ response }: HttpContext) {
+    return response.forbidden({
+      success: false,
+      error: {
+        message: 'Role changes are disabled for security reasons. Contact the system administrator.',
+        code: 'E_ROLE_CHANGE_DISABLED',
+      },
+    })
+  }
+
+  /**
+   * PATCH /api/admin/subscribers/:id/subscription
+   * Update user subscription status (superadmin only)
+   */
+  async updateSubscription({ params, request, response }: HttpContext) {
     const targetUserId = params.id
-    const newRole = request.input('role')
+    const newStatus = request.input('subscriptionStatus')
 
-    if (!['user', 'admin', 'superadmin'].includes(newRole)) {
+    const validStatuses = ['trial', 'active', 'past_due', 'cancelled', 'expired']
+    if (!validStatuses.includes(newStatus)) {
       return response.badRequest({
         success: false,
-        error: { message: 'Invalid role', code: 'E_INVALID_ROLE' },
-      })
-    }
-
-    if (auth.user!.id === Number(targetUserId) && newRole !== 'superadmin') {
-      return response.badRequest({
-        success: false,
-        error: { message: 'Cannot demote yourself', code: 'E_SELF_DEMOTION' },
+        error: { message: 'Invalid subscription status', code: 'E_INVALID_STATUS' },
       })
     }
 
@@ -523,12 +544,27 @@ export default class AdminController {
       })
     }
 
-    user.role = newRole
+    const previousStatus = user.subscriptionStatus
+    user.subscriptionStatus = newStatus
+
+    // Set subscription dates on activation
+    if (newStatus === 'active' && previousStatus !== 'active') {
+      user.subscriptionStartedAt = DateTime.now()
+    }
+
     await user.save()
 
     return response.ok({
       success: true,
-      data: { user: { id: user.id, email: user.email, role: user.role } },
+      data: {
+        user: {
+          id: user.id,
+          email: user.email,
+          subscriptionStatus: user.subscriptionStatus,
+          subscriptionStartedAt: user.subscriptionStartedAt,
+          subscriptionEndsAt: user.subscriptionEndsAt,
+        },
+      },
     })
   }
 

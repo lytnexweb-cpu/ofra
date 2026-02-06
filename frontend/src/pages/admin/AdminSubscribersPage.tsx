@@ -28,6 +28,7 @@ import {
   type AdminNote,
   type AdminTask,
   type EngagementLevel,
+  type SubscriptionStatus,
 } from '../../api/admin.api'
 import { authApi, type UserRole } from '../../api/auth.api'
 import { Input } from '../../components/ui/Input'
@@ -55,6 +56,25 @@ function RoleBadge({ role }: { role: UserRole }) {
     >
       <Icon className="w-3 h-3" />
       {role}
+    </span>
+  )
+}
+
+function SubscriptionBadge({ status }: { status: SubscriptionStatus }) {
+  const { t } = useTranslation()
+  const config: Record<SubscriptionStatus, { color: string; label: string }> = {
+    trial: { color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300', label: t('admin.subscription.trial', 'Trial') },
+    active: { color: 'bg-success/10 text-success', label: t('admin.subscription.active', 'Active') },
+    past_due: { color: 'bg-warning/10 text-warning', label: t('admin.subscription.pastDue', 'Past Due') },
+    cancelled: { color: 'bg-muted text-muted-foreground', label: t('admin.subscription.cancelled', 'Cancelled') },
+    expired: { color: 'bg-destructive/10 text-destructive', label: t('admin.subscription.expired', 'Expired') },
+  }
+
+  const { color, label } = config[status] || config.trial
+
+  return (
+    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${color}`}>
+      {label}
     </span>
   )
 }
@@ -93,18 +113,27 @@ function EngagementBadge({ level }: { level: EngagementLevel }) {
 function UserRow({
   user,
   currentUserRole,
-  onRoleChange,
+  onSubscriptionChange,
   onSelect,
   isSelected,
 }: {
   user: AdminUser
   currentUserRole?: UserRole
-  onRoleChange: (userId: number, newRole: UserRole) => void
+  onSubscriptionChange: (userId: number, newStatus: SubscriptionStatus) => void
   onSelect: (user: AdminUser) => void
   isSelected: boolean
 }) {
   const { t } = useTranslation()
   const isSuperadmin = currentUserRole === 'superadmin'
+
+  const subscriptionStatuses: SubscriptionStatus[] = ['trial', 'active', 'past_due', 'cancelled', 'expired']
+  const statusLabels: Record<SubscriptionStatus, string> = {
+    trial: t('admin.subscription.trial', 'Trial'),
+    active: t('admin.subscription.active', 'Active'),
+    past_due: t('admin.subscription.pastDue', 'Past Due'),
+    cancelled: t('admin.subscription.cancelled', 'Cancelled'),
+    expired: t('admin.subscription.expired', 'Expired'),
+  }
 
   return (
     <tr
@@ -120,7 +149,7 @@ function UserRow({
         </div>
       </td>
       <td className="px-4 py-3">
-        <RoleBadge role={user.role} />
+        <SubscriptionBadge status={user.subscriptionStatus || 'trial'} />
       </td>
       <td className="px-4 py-3">
         <EngagementBadge level={user.engagement.level} />
@@ -172,13 +201,13 @@ function UserRow({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              {(['user', 'admin', 'superadmin'] as UserRole[]).map((role) => (
+              {subscriptionStatuses.map((status) => (
                 <DropdownMenuItem
-                  key={role}
-                  onClick={() => onRoleChange(user.id, role)}
-                  disabled={user.role === role}
+                  key={status}
+                  onClick={() => onSubscriptionChange(user.id, status)}
+                  disabled={user.subscriptionStatus === status}
                 >
-                  {t('admin.setRole', { role })}
+                  {statusLabels[status]}
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
@@ -505,7 +534,7 @@ export default function AdminSubscribersPage() {
 
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
-  const [roleFilter, setRoleFilter] = useState<UserRole | ''>('')
+  const [subscriptionFilter, setSubscriptionFilter] = useState<SubscriptionStatus | ''>('')
   const [engagementFilter, setEngagementFilter] = useState<EngagementLevel | ''>(
     ''
   )
@@ -520,21 +549,21 @@ export default function AdminSubscribersPage() {
     queryKey: [
       'admin',
       'subscribers',
-      { page, search, role: roleFilter, engagement: engagementFilter },
+      { page, search, subscription: subscriptionFilter, engagement: engagementFilter },
     ],
     queryFn: () =>
       adminApi.getSubscribers({
         page,
         limit: 20,
         search: search || undefined,
-        role: roleFilter || undefined,
+        subscription: subscriptionFilter || undefined,
         engagement: engagementFilter || undefined,
       }),
   })
 
-  const updateRoleMutation = useMutation({
-    mutationFn: ({ userId, role }: { userId: number; role: UserRole }) =>
-      adminApi.updateUserRole(userId, role),
+  const updateSubscriptionMutation = useMutation({
+    mutationFn: ({ userId, status }: { userId: number; status: SubscriptionStatus }) =>
+      adminApi.updateSubscriptionStatus(userId, status),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'subscribers'] })
     },
@@ -549,8 +578,8 @@ export default function AdminSubscribersPage() {
     setPage(1)
   }
 
-  const handleRoleChange = (userId: number, newRole: UserRole) => {
-    updateRoleMutation.mutate({ userId, role: newRole })
+  const handleSubscriptionChange = (userId: number, newStatus: SubscriptionStatus) => {
+    updateSubscriptionMutation.mutate({ userId, status: newStatus })
   }
 
   const handleExport = () => {
@@ -585,17 +614,19 @@ export default function AdminSubscribersPage() {
           />
         </div>
         <select
-          value={roleFilter}
+          value={subscriptionFilter}
           onChange={(e) => {
-            setRoleFilter(e.target.value as UserRole | '')
+            setSubscriptionFilter(e.target.value as SubscriptionStatus | '')
             setPage(1)
           }}
           className="px-3 py-2 border rounded-md bg-background text-sm"
         >
-          <option value="">{t('admin.allRoles')}</option>
-          <option value="user">User</option>
-          <option value="admin">Admin</option>
-          <option value="superadmin">Superadmin</option>
+          <option value="">{t('admin.allSubscriptions', 'All Subscriptions')}</option>
+          <option value="trial">{t('admin.subscription.trial', 'Trial')}</option>
+          <option value="active">{t('admin.subscription.active', 'Active')}</option>
+          <option value="past_due">{t('admin.subscription.pastDue', 'Past Due')}</option>
+          <option value="cancelled">{t('admin.subscription.cancelled', 'Cancelled')}</option>
+          <option value="expired">{t('admin.subscription.expired', 'Expired')}</option>
         </select>
         <select
           value={engagementFilter}
@@ -622,7 +653,7 @@ export default function AdminSubscribersPage() {
                   {t('admin.user')}
                 </th>
                 <th className="px-4 py-3 text-left font-medium">
-                  {t('admin.role')}
+                  {t('admin.subscription', 'Subscription')}
                 </th>
                 <th className="px-4 py-3 text-left font-medium">
                   {t('admin.engagement')}
@@ -663,7 +694,7 @@ export default function AdminSubscribersPage() {
                     key={user.id}
                     user={user}
                     currentUserRole={currentUser?.data?.user?.role}
-                    onRoleChange={handleRoleChange}
+                    onSubscriptionChange={handleSubscriptionChange}
                     onSelect={setSelectedUser}
                     isSelected={selectedUser?.id === user.id}
                   />
