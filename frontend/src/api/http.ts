@@ -39,8 +39,22 @@ export async function apiRequest<T = any>(
 }
 
 export const http = {
-  get: <T = any>(endpoint: string) =>
-    apiRequest<T>(endpoint, { method: 'GET' }),
+  get: <T = any>(endpoint: string, options?: { params?: Record<string, any> }) => {
+    let url = endpoint
+    if (options?.params) {
+      const searchParams = new URLSearchParams()
+      for (const [key, value] of Object.entries(options.params)) {
+        if (value !== undefined && value !== null && value !== '') {
+          searchParams.append(key, String(value))
+        }
+      }
+      const queryString = searchParams.toString()
+      if (queryString) {
+        url += (url.includes('?') ? '&' : '?') + queryString
+      }
+    }
+    return apiRequest<T>(url, { method: 'GET' })
+  },
 
   post: <T = any>(endpoint: string, data?: any) =>
     apiRequest<T>(endpoint, {

@@ -21,8 +21,11 @@ export default function LoginPage() {
     onSuccess: (data) => {
       if (data.success) {
         queryClient.clear()
+        // Superadmin goes to /admin, others go to /
+        const user = data.data?.user
+        const destination = user?.role === 'superadmin' ? '/admin' : '/'
         setTimeout(() => {
-          navigate('/')
+          navigate(destination)
         }, 100)
       } else {
         if (data.error?.code === 'E_INVALID_CREDENTIALS') {

@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon'
 import hash from '@adonisjs/core/services/hash'
 import { compose } from '@adonisjs/core/helpers'
-import { BaseModel, column, belongsTo, beforeSave } from '@adonisjs/lucid/orm'
+import { BaseModel, column, belongsTo } from '@adonisjs/lucid/orm'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import { withAuthFinder } from '@adonisjs/auth/mixins/lucid'
 import Organization from './organization.js'
@@ -13,6 +13,9 @@ export type AnnualVolume = 'beginner' | 'established' | 'high'
 
 // User roles
 export type UserRole = 'user' | 'admin' | 'superadmin'
+
+// Subscription status
+export type SubscriptionStatus = 'trial' | 'active' | 'past_due' | 'cancelled' | 'expired'
 
 const AuthFinder = withAuthFinder(() => hash.use('scrypt'), {
   uids: ['email'],
@@ -69,6 +72,16 @@ export default class User extends compose(BaseModel, AuthFinder) {
   // User role for access control
   @column()
   declare role: UserRole
+
+  // Subscription status
+  @column()
+  declare subscriptionStatus: SubscriptionStatus
+
+  @column.dateTime()
+  declare subscriptionStartedAt: DateTime | null
+
+  @column.dateTime()
+  declare subscriptionEndsAt: DateTime | null
 
   // Password reset
   @column()

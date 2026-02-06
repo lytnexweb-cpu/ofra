@@ -60,7 +60,9 @@ function ProtectedRoute({ children, skipOnboardingCheck = false }: { children: R
   }
 
   // D40: Redirect to onboarding if not completed (unless we're already on onboarding page)
-  if (!skipOnboardingCheck && user && !user.onboardingCompleted && location.pathname !== '/onboarding') {
+  // Superadmins skip onboarding - they go directly to their destination
+  const isSuperadmin = user?.role === 'superadmin'
+  if (!skipOnboardingCheck && user && !user.onboardingCompleted && !isSuperadmin && location.pathname !== '/onboarding') {
     return <Navigate to="/onboarding" replace />
   }
 
