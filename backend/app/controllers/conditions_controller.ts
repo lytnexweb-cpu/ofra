@@ -1,4 +1,6 @@
 import type { HttpContext } from '@adonisjs/core/http'
+import app from '@adonisjs/core/services/app'
+import { cuid } from '@adonisjs/core/helpers'
 import Condition from '#models/condition'
 import ConditionEvidence from '#models/condition_evidence'
 import ConditionEvent from '#models/condition_event'
@@ -467,6 +469,10 @@ export default class ConditionsController {
   /**
    * Add evidence to a condition
    * POST /api/conditions/:id/evidence
+   *
+   * Accepts either:
+   * - multipart/form-data with a "file" field (file upload)
+   * - JSON body with type/url/note/title (link or note)
    */
   async addEvidence({ params, request, response, auth }: HttpContext) {
     try {
@@ -484,6 +490,50 @@ export default class ConditionsController {
         })
       }
 
+      // Check if this is a file upload (multipart)
+      const file = request.file('file', {
+        size: '10mb',
+        extnames: ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'png', 'jpg', 'jpeg', 'gif', 'webp'],
+      })
+
+      if (file) {
+        // File upload path
+        if (!file.isValid) {
+          return response.unprocessableEntity({
+            success: false,
+            error: {
+              message: file.errors[0]?.message || 'Invalid file',
+              code: 'E_VALIDATION_FAILED',
+            },
+          })
+        }
+
+        const fileName = `${cuid()}.${file.extname}`
+        await file.move(app.makePath('storage/uploads'), { name: fileName })
+
+        const fileUrl = `/api/uploads/${fileName}`
+
+        const evidence = await ConditionEvidence.create({
+          conditionId: condition.id,
+          type: 'file',
+          fileUrl,
+          title: request.input('title') || file.clientName,
+          createdBy: auth.user!.id,
+        })
+
+        await ConditionEvent.log(condition.id, 'evidence_added', auth.user!.id, {
+          evidenceId: evidence.id,
+          type: 'file',
+          fileName: file.clientName,
+        })
+
+        return response.created({
+          success: true,
+          data: { evidence },
+        })
+      }
+
+      // JSON path (link or note)
       const payload = await request.validateUsing(addEvidenceValidator)
 
       const evidence = await ConditionEvidence.create({
@@ -496,7 +546,6 @@ export default class ConditionsController {
         createdBy: auth.user!.id,
       })
 
-      // Log event
       await ConditionEvent.log(condition.id, 'evidence_added', auth.user!.id, {
         evidenceId: evidence.id,
         type: payload.type,

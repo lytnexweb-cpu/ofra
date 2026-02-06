@@ -3,6 +3,10 @@ node_modules
 build
 tmp
 
+# Uploaded files (keep .gitkeep)
+storage/uploads/*
+!storage/uploads/.gitkeep
+
 # Secrets
 .env
 .env.local

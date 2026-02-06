@@ -8,7 +8,15 @@
 */
 
 import router from '@adonisjs/core/services/router'
+import app from '@adonisjs/core/services/app'
 import { middleware } from './kernel.js'
+
+// Serve uploaded files (authenticated)
+router.get('/api/uploads/:filename', async ({ params, response, auth }) => {
+  await auth.authenticate()
+  const filePath = app.makePath('storage/uploads', params.filename)
+  return response.download(filePath)
+}).use(middleware.auth())
 
 // Routes publiques
 router.get('/api/health', async () => {
