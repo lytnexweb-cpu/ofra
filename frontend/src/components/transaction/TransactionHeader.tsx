@@ -118,6 +118,7 @@ export default function TransactionHeader({ transaction }: TransactionHeaderProp
   })
 
   const isCancelled = transaction.status === 'cancelled'
+  const isCompleted = !transaction.currentStepId
 
   return (
     <>
@@ -146,7 +147,7 @@ export default function TransactionHeader({ transaction }: TransactionHeaderProp
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              {!isCancelled && (
+              {!isCancelled && !isCompleted && (
                 <DropdownMenuItem
                   onClick={() => setCancelModalOpen(true)}
                   className="text-amber-600 focus:text-amber-600"
