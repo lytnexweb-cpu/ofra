@@ -146,11 +146,14 @@ export default function ActionZone({ transaction }: ActionZoneProps) {
   const isCompleted = !transaction.currentStepId
 
   const invalidateAll = async () => {
+    // Use refetchQueries for the main transaction to ensure immediate data refresh
+    // This fixes the timeline not updating visually after step advancement
     await Promise.all([
-      queryClient.invalidateQueries({ queryKey: transactionKey }),
+      queryClient.refetchQueries({ queryKey: transactionKey }),
       queryClient.invalidateQueries({ queryKey: ['transactions'] }),
       queryClient.invalidateQueries({ queryKey: ['dashboard'] }),
       queryClient.invalidateQueries({ queryKey: ['advance-check', transaction.id] }),
+      queryClient.invalidateQueries({ queryKey: ['conditions', 'active', transaction.id] }),
     ])
   }
 
