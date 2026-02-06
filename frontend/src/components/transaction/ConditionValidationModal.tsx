@@ -89,13 +89,18 @@ export default function ConditionValidationModal({
       })
     },
     onSuccess: () => {
-      // Invalidate relevant queries
-      queryClient.invalidateQueries({ queryKey: ['transaction', transactionId] })
+      // Refetch transaction to ensure timeline updates immediately
+      queryClient.refetchQueries({ queryKey: ['transaction', transactionId] })
       queryClient.invalidateQueries({ queryKey: ['conditions', 'active', transactionId] })
       queryClient.invalidateQueries({ queryKey: ['conditions', 'advance-check', transactionId] })
 
       toast({ title: t('validation.success'), variant: 'success' })
-      handleClose()
+
+      // Reset state and close modal directly (bypass isLoading check)
+      setSelectedFile(null)
+      setNote('')
+      setShowEscapeModal(false)
+      onClose()
       onSuccess?.()
     },
     onError: () => {
