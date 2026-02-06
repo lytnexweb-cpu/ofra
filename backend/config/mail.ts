@@ -1,12 +1,8 @@
 import env from '#start/env'
 import { defineConfig, transports } from '@adonisjs/mail'
 
-const isDev = env.get('NODE_ENV') === 'development'
-const hasSmtpCredentials = env.get('SMTP_USERNAME', '') !== '' && env.get('SMTP_PASSWORD', '') !== ''
-
 const mailConfig = defineConfig({
-  // Use stub in dev (logs to console) unless SMTP credentials are configured
-  default: isDev && !hasSmtpCredentials ? 'stub' : 'smtp',
+  default: 'smtp',
 
   mailers: {
     smtp: transports.smtp({
@@ -21,9 +17,6 @@ const mailConfig = defineConfig({
         rejectUnauthorized: false,
       },
     }),
-
-    // Stub mailer for development - logs emails to console instead of sending
-    stub: transports.stub(),
   },
 })
 
