@@ -1,39 +1,65 @@
 import { BaseMail } from '@adonisjs/mail'
 import env from '#start/env'
+import { wrapEmailContent, OFRA_COLORS } from './partials/email_layout.js'
+import { getTranslation, getCommonTranslation, normalizeLanguage, type EmailLanguage } from './partials/email_translations.js'
 
 export default class PasswordResetMail extends BaseMail {
   subject: string
   userName: string
   resetUrl: string
+  lang: EmailLanguage
 
-  constructor(opts: { to: string; subject?: string; userName: string; resetUrl: string }) {
+  constructor(opts: {
+    to: string
+    userName: string
+    resetUrl: string
+    language?: string | null
+  }) {
     super()
     this.message.to(opts.to)
-    this.subject = opts.subject ?? 'Reset Your Password'
+    this.lang = normalizeLanguage(opts.language)
     this.userName = opts.userName
     this.resetUrl = opts.resetUrl
+
+    const t = getTranslation('passwordReset', this.lang)
+    this.subject = t.subject
   }
 
   prepare() {
-    const fromAddress = env.get('MAIL_FROM_ADDRESS', 'noreply@ofra.app')
-    const fromName = env.get('MAIL_FROM_NAME', 'Ofra CRM')
+    const fromAddress = env.get('MAIL_FROM_ADDRESS', 'noreply@ofra.ca')
+    const fromName = env.get('MAIL_FROM_NAME', 'Ofra')
 
     this.message
       .from(fromAddress, fromName)
       .subject(this.subject)
-      .html(
-        `<h1>Password Reset Request</h1>` +
-          `<p>Hello ${this.userName},</p>` +
-          `<p>We received a request to reset your password. Click the button below to create a new password:</p>` +
-          `<p style="margin: 24px 0;">` +
-          `<a href="${this.resetUrl}" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">Reset Password</a>` +
-          `</p>` +
-          `<p>This link will expire in 1 hour.</p>` +
-          `<p>If you didn't request this, you can safely ignore this email. Your password won't be changed.</p>` +
-          `<p style="color: #6b7280; font-size: 12px; margin-top: 32px;">` +
-          `If the button doesn't work, copy and paste this link into your browser:<br/>` +
-          `<a href="${this.resetUrl}">${this.resetUrl}</a>` +
-          `</p>`
-      )
+      .html(this.buildHtml())
+  }
+
+  private buildHtml(): string {
+    const t = getTranslation('passwordReset', this.lang)
+    const common = getCommonTranslation(this.lang)
+
+    const body = `
+      <h1>${t.title}</h1>
+      <p>${common.greeting} ${this.userName},</p>
+      <p>${t.intro}</p>
+
+      <div class="text-center">
+        <a href="${this.resetUrl}" class="cta-button">${t.cta}</a>
+      </div>
+
+      <div class="info-box warning-box">
+        <p style="margin: 0;"><strong>⏱️ ${t.expiryWarning}</strong></p>
+      </div>
+
+      <p>${t.ignoreNotice}</p>
+
+      <p class="text-small text-muted mt-4">
+        ${t.linkFallback}<br>
+        <a href="${this.resetUrl}" style="color: ${OFRA_COLORS.accent}; word-break: break-all;">${this.resetUrl}</a>
+      </p>
+    `
+
+    return wrapEmailContent(body, this.lang)
   }
 }

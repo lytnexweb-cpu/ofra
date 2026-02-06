@@ -1,35 +1,72 @@
 import { BaseMail } from '@adonisjs/mail'
 import env from '#start/env'
+import { wrapEmailContent } from './partials/email_layout.js'
+import { getTranslation, normalizeLanguage, type EmailLanguage } from './partials/email_translations.js'
 
 export default class FirmConfirmedMail extends BaseMail {
   subject: string
   clientName: string
   propertyAddress: string | null
+  lang: EmailLanguage
 
   constructor(opts: {
     to: string
-    subject?: string
     clientName: string
     propertyAddress?: string | null
+    language?: string | null
   }) {
     super()
     this.message.to(opts.to)
-    this.subject = opts.subject ?? 'Your Transaction is Now Firm!'
+    this.lang = normalizeLanguage(opts.language)
     this.clientName = opts.clientName
     this.propertyAddress = opts.propertyAddress ?? null
+
+    const t = getTranslation('firmConfirmed', this.lang)
+    this.subject = t.subject
   }
 
   prepare() {
-    const fromAddress = env.get('MAIL_FROM_ADDRESS', 'noreply@ofra.app')
-    const fromName = env.get('MAIL_FROM_NAME', 'Ofra CRM')
+    const fromAddress = env.get('MAIL_FROM_ADDRESS', 'noreply@ofra.ca')
+    const fromName = env.get('MAIL_FROM_NAME', 'Ofra')
 
     this.message
       .from(fromAddress, fromName)
       .subject(this.subject)
-      .html(
-        `<h1>Great News, ${this.clientName}!</h1>` +
-          `<p>Your transaction${this.propertyAddress ? ` for <strong>${this.propertyAddress}</strong>` : ''} is now firm.</p>` +
-          `<p>All conditions have been met. Your agent will guide you through the final steps to closing.</p>`
-      )
+      .html(this.buildHtml())
+  }
+
+  private buildHtml(): string {
+    const t = getTranslation('firmConfirmed', this.lang)
+
+    const propertyText = this.propertyAddress
+      ? ` ${t.forProperty} <strong>${this.propertyAddress}</strong>`
+      : ''
+
+    const body = `
+      <div class="text-center" style="margin-bottom: 24px;">
+        <div style="font-size: 48px;">✅</div>
+      </div>
+
+      <h1 style="text-align: center;">${t.title}, ${this.clientName}!</h1>
+
+      <div class="info-box success-box">
+        <p style="margin: 0; font-size: 18px;">
+          ${this.lang === 'fr' ? 'Votre transaction' : 'Your transaction'}${propertyText} ${t.transactionFirm} <strong>${t.firmText}</strong>.
+        </p>
+      </div>
+
+      <p>${t.conditionsMet}</p>
+
+      <h2>${t.nextStepsTitle}</h2>
+      <ul>
+        ${t.nextStepsItems.map((item) => `<li>${item}</li>`).join('')}
+      </ul>
+
+      <p class="text-muted">
+        ${t.closingText}
+      </p>
+    `
+
+    return wrapEmailContent(body, this.lang)
   }
 }

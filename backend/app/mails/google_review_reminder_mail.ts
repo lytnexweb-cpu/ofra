@@ -1,44 +1,78 @@
 import { BaseMail } from '@adonisjs/mail'
 import env from '#start/env'
+import { wrapEmailContent } from './partials/email_layout.js'
+import { getTranslation, normalizeLanguage, type EmailLanguage } from './partials/email_translations.js'
 
 export default class GoogleReviewReminderMail extends BaseMail {
   subject: string
   clientName: string
   agentName: string
   reviewUrl: string | null
+  lang: EmailLanguage
 
   constructor(opts: {
     to: string
-    subject?: string
     clientName: string
     agentName?: string
     reviewUrl?: string | null
+    language?: string | null
   }) {
     super()
     this.message.to(opts.to)
-    this.subject = opts.subject ?? 'How was your experience?'
+    this.lang = normalizeLanguage(opts.language)
     this.clientName = opts.clientName
-    this.agentName = opts.agentName ?? 'your agent'
+    this.agentName = opts.agentName ?? (this.lang === 'fr' ? 'votre courtier' : 'your agent')
     this.reviewUrl = opts.reviewUrl ?? null
+
+    const t = getTranslation('googleReview', this.lang)
+    this.subject = t.subject
   }
 
   prepare() {
-    const fromAddress = env.get('MAIL_FROM_ADDRESS', 'noreply@ofra.app')
-    const fromName = env.get('MAIL_FROM_NAME', 'Ofra CRM')
-
-    const reviewLink = this.reviewUrl
-      ? `<p><a href="${this.reviewUrl}" style="background-color: #4285f4; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">Leave a Google Review</a></p>`
-      : ''
+    const fromAddress = env.get('MAIL_FROM_ADDRESS', 'noreply@ofra.ca')
+    const fromName = env.get('MAIL_FROM_NAME', 'Ofra')
 
     this.message
       .from(fromAddress, fromName)
       .subject(this.subject)
-      .html(
-        `<h1>Thank you, ${this.clientName}!</h1>` +
-          `<p>We hope you're settling in well! Now that your transaction is complete, we'd love to hear about your experience.</p>` +
-          `<p>If ${this.agentName} provided you with excellent service, a Google review would mean the world to us. It helps other buyers and sellers find trusted professionals.</p>` +
-          reviewLink +
-          `<p>Thank you for your time and your trust!</p>`
-      )
+      .html(this.buildHtml())
+  }
+
+  private buildHtml(): string {
+    const t = getTranslation('googleReview', this.lang)
+
+    const reviewButton = this.reviewUrl
+      ? `
+        <div class="text-center">
+          <a href="${this.reviewUrl}" class="cta-button" style="background-color: #4285F4;">
+            ⭐ ${t.cta}
+          </a>
+        </div>
+      `
+      : ''
+
+    const body = `
+      <div class="text-center" style="margin-bottom: 24px;">
+        <div style="font-size: 48px;">⭐</div>
+      </div>
+
+      <h1 style="text-align: center;">${t.title}, ${this.clientName}!</h1>
+
+      <p>${t.settledIn}</p>
+
+      <div class="info-box">
+        <p style="margin: 0;">
+          ${t.ifAgent} ${this.agentName} ${t.reviewRequest}
+        </p>
+      </div>
+
+      ${reviewButton}
+
+      <p class="text-muted mt-4">
+        ${t.thankYou}
+      </p>
+    `
+
+    return wrapEmailContent(body, this.lang)
   }
 }
