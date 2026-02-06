@@ -49,7 +49,7 @@ export default function WorkflowTimeline({ transaction, onConditionClick }: Work
       case 'skipped':
         return 'bg-muted text-muted-foreground'
       default:
-        return 'bg-muted text-muted-foreground'
+        return 'bg-muted text-foreground/60'
     }
   }
 
@@ -122,7 +122,7 @@ export default function WorkflowTimeline({ transaction, onConditionClick }: Work
                       ? 'font-semibold text-primary'
                       : isPast
                       ? 'text-success'
-                      : 'text-muted-foreground'
+                      : 'text-foreground'
                   }`}
                 >
                   {label}
