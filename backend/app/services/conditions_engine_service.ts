@@ -74,9 +74,32 @@ export class ConditionsEngineService {
     }
 
     const templates = await this.getApplicableTemplates(profile, stepNumber)
+
+    // Guard: fetch existing conditions to prevent duplicates (by templateId AND by title+step)
+    const existingConditions = await Condition.query()
+      .where('transactionId', transactionId)
+      .select('templateId', 'title', 'transactionStepId')
+    const existingTemplateIds = new Set(
+      existingConditions.filter((c) => c.templateId).map((c) => c.templateId)
+    )
+    const existingTitleKeys = new Set(
+      existingConditions.map((c) => `${c.title}|${c.transactionStepId}`)
+    )
+
     const conditions: Condition[] = []
 
     for (const template of templates) {
+      if (existingTemplateIds.has(template.id)) {
+        logger.debug({ transactionId, templateId: template.id }, 'Skipping duplicate template condition')
+        continue
+      }
+
+      const titleKey = `${template.labelFr}|${transactionStepId}`
+      if (existingTitleKeys.has(titleKey)) {
+        logger.debug({ transactionId, title: template.labelFr }, 'Skipping duplicate title condition')
+        continue
+      }
+
       const condition = await Condition.create({
         transactionId,
         transactionStepId,
@@ -94,6 +117,9 @@ export class ConditionsEngineService {
         stepWhenCreated: stepNumber,
         archived: false,
       })
+
+      existingTemplateIds.add(template.id)
+      existingTitleKeys.add(titleKey)
 
       // Log event
       await ConditionEvent.log(condition.id, 'created', userId, {
@@ -329,15 +355,42 @@ export class ConditionsEngineService {
 
     const applicableTemplates = templates.filter((t) => t.appliesTo(profileData))
 
+    // Guard: fetch existing conditions to prevent duplicates (by templateId AND by title+step)
+    const existingConditions = await Condition.query()
+      .where('transactionId', transactionId)
+      .select('templateId', 'title', 'transactionStepId')
+    const existingTemplateIds = new Set(
+      existingConditions.filter((c) => c.templateId).map((c) => c.templateId)
+    )
+    const existingTitleKeys = new Set(
+      existingConditions.map((c) => `${c.title}|${c.transactionStepId}`)
+    )
+
     const byStep: Record<number, number> = {}
     let loaded = 0
+    let skipped = 0
 
     for (const template of applicableTemplates) {
+      // Skip if this template already generated a condition for this transaction
+      if (existingTemplateIds.has(template.id)) {
+        skipped++
+        continue
+      }
+
       // Find matching transaction step
       const stepNumber = template.step ?? 1
       const transactionStep = transaction.transactionSteps.find(
         (ts) => ts.stepOrder === stepNumber
       )
+
+      // Skip if a condition with same title already exists on this step
+      if (transactionStep) {
+        const titleKey = `${template.labelFr}|${transactionStep.id}`
+        if (existingTitleKeys.has(titleKey)) {
+          skipped++
+          continue
+        }
+      }
 
       if (!transactionStep) {
         logger.warn(
@@ -381,6 +434,9 @@ export class ConditionsEngineService {
         archived: false,
       })
 
+      existingTemplateIds.add(template.id)
+      existingTitleKeys.add(`${template.labelFr}|${transactionStep.id}`)
+
       // Log event
       await ConditionEvent.log(condition.id, 'created', userId, {
         template_id: template.id,
@@ -392,6 +448,10 @@ export class ConditionsEngineService {
 
       loaded++
       byStep[stepNumber] = (byStep[stepNumber] ?? 0) + 1
+    }
+
+    if (skipped > 0) {
+      logger.info({ transactionId, skipped }, 'D39: Skipped duplicate template conditions')
     }
 
     logger.info(
