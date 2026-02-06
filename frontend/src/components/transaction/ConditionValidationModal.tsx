@@ -55,17 +55,10 @@ export default function ConditionValidationModal({
   const config = LEVEL_CONFIG[level]
   const Icon = config.icon
 
-  // Add evidence mutation
+  // Add evidence mutation — uploads actual file
   const addEvidenceMutation = useMutation({
     mutationFn: async (file: File) => {
-      // For now, we'll create a note-type evidence with the filename
-      // In a real implementation, this would upload the file first
-      // and then create the evidence with the file URL
-      return conditionsApi.addEvidence(condition.id, {
-        type: 'note',
-        title: file.name,
-        note: `File: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`,
-      })
+      return conditionsApi.uploadEvidence(condition.id, file)
     },
   })
 

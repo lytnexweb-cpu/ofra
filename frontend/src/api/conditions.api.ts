@@ -183,6 +183,21 @@ export const conditionsApi = {
   addEvidence: (id: number, data: { type: 'file' | 'link' | 'note'; fileUrl?: string; url?: string; note?: string; title?: string }) =>
     http.post<{ evidence: ConditionEvidence }>(`/api/conditions/${id}/evidence`, data),
 
+  uploadEvidence: async (id: number, file: File, title?: string): Promise<{ success: boolean; data?: { evidence: ConditionEvidence }; error?: { message: string } }> => {
+    const formData = new FormData()
+    formData.append('file', file)
+    if (title) formData.append('title', title)
+
+    const API_URL = import.meta.env.VITE_API_URL || ''
+    const response = await fetch(`${API_URL}/api/conditions/${id}/evidence`, {
+      method: 'POST',
+      credentials: 'include',
+      body: formData,
+      // No Content-Type header — browser sets multipart boundary automatically
+    })
+    return response.json()
+  },
+
   removeEvidence: (conditionId: number, evidenceId: number) =>
     http.delete<{}>(`/api/conditions/${conditionId}/evidence/${evidenceId}`),
 
