@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Home, Building2, Mountain, Trees, Building, Package, Wrench } from 'lucide-react'
@@ -16,6 +16,8 @@ import {
   workflowTemplatesApi,
   type WorkflowTemplate,
 } from '../api/workflow-templates.api'
+import type { User } from '../api/auth.api'
+import type { ApiResponse } from '../api/http'
 import { toast } from '../hooks/use-toast'
 import { useMediaQuery } from '../hooks/useMediaQuery'
 import {
@@ -54,6 +56,29 @@ export default function CreateTransactionModal({
   const isDesktop = useMediaQuery('(min-width: 640px)')
   const queryClient = useQueryClient()
 
+  // Read user preferences from auth cache (D40: onboarding → workflow connection)
+  const userDefaults = useMemo(() => {
+    const cached = queryClient.getQueryData<ApiResponse<{ user: User }>>(['auth', 'me'])
+    const user = cached?.data?.user
+    const autoConditions = user?.preferAutoConditions ?? true
+
+    // Map onboarding propertyContexts to transaction profile defaults
+    // Onboarding contexts mix property types and contexts:
+    //   condo/land → propertyType, urban_suburban/rural → propertyContext
+    let propertyType = '' as PropertyType | ''
+    let propertyContext = '' as PropertyContext | ''
+    const contexts = user?.propertyContexts ?? []
+    if (contexts.length > 0) {
+      const first = contexts[0]
+      if (first === 'condo') propertyType = 'condo'
+      else if (first === 'land') propertyType = 'land'
+      else if (first === 'urban_suburban') propertyContext = 'urban'
+      else if (first === 'rural') propertyContext = 'rural'
+    }
+
+    return { autoConditions, propertyType, propertyContext }
+  }, [])
+
   const [formData, setFormData] = useState({
     clientId: 0,
     type: 'purchase' as TransactionType,
@@ -64,10 +89,10 @@ export default function CreateTransactionModal({
     null
   )
 
-  // Profile fields (D1: Conditions Engine Premium)
+  // Profile fields (D1: Conditions Engine Premium) — pre-filled from onboarding (D40)
   const [profileData, setProfileData] = useState({
-    propertyType: '' as PropertyType | '',
-    propertyContext: '' as PropertyContext | '',
+    propertyType: userDefaults.propertyType,
+    propertyContext: userDefaults.propertyContext,
     isFinanced: null as boolean | null,
     // Rural-specific
     hasWell: null as boolean | null,
@@ -77,8 +102,8 @@ export default function CreateTransactionModal({
     appraisalRequired: false,
   })
 
-  // D39: Pack conditions optionnel
-  const [loadConditionPack, setLoadConditionPack] = useState(true) // Default: load pack
+  // D39: Pack conditions optionnel — default from onboarding preference (D40)
+  const [loadConditionPack, setLoadConditionPack] = useState(userDefaults.autoConditions)
 
   const { data: clientsData } = useQuery({
     queryKey: ['clients'],
@@ -196,15 +221,15 @@ export default function CreateTransactionModal({
     })
     setSelectedTemplateId(null)
     setProfileData({
-      propertyType: '',
-      propertyContext: '',
+      propertyType: userDefaults.propertyType,
+      propertyContext: userDefaults.propertyContext,
       isFinanced: null,
       hasWell: null,
       hasSeptic: null,
       accessType: '',
       appraisalRequired: false,
     })
-    setLoadConditionPack(true) // D39: Reset to default
+    setLoadConditionPack(userDefaults.autoConditions) // D39+D40: Reset to user preference
   }
 
   const handleClose = () => {
