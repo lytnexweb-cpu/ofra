@@ -154,6 +154,48 @@ export interface SubscribersParams {
   sortOrder?: 'asc' | 'desc'
 }
 
+// Plan types (G2)
+export interface AdminPlan {
+  id: number
+  name: string
+  slug: string
+  monthlyPrice: number
+  annualPrice: number
+  maxTransactions: number | null // null = unlimited
+  maxStorageGb: number
+  historyMonths: number | null // null = unlimited
+  isActive: boolean
+  displayOrder: number
+  subscriberCount: number
+  founderCount: number
+  createdAt: string
+  updatedAt: string
+}
+
+export interface PlanChangeLog {
+  id: number
+  planId: number
+  planName: string
+  adminName: string
+  fieldChanged: string
+  oldValue: string | null
+  newValue: string | null
+  reason: string
+  createdAt: string
+}
+
+export interface UpdatePlanRequest {
+  name?: string
+  monthlyPrice?: number
+  annualPrice?: number
+  maxTransactions?: number | null
+  maxStorageGb?: number
+  historyMonths?: number | null
+  isActive?: boolean
+  displayOrder?: number
+  reason: string
+}
+
 export const adminApi = {
   // Dashboard
   getOverview: () => http.get<AdminOverview>('/api/admin/overview'),
@@ -215,4 +257,14 @@ export const adminApi = {
 
   // System
   getSystemHealth: () => http.get<SystemHealth>('/api/admin/system'),
+
+  // Plans (G2)
+  getPlans: () =>
+    http.get<{ plans: AdminPlan[]; changeLogs: PlanChangeLog[] }>('/api/admin/plans'),
+
+  updatePlan: (planId: number, data: UpdatePlanRequest) =>
+    http.put<{ plan: AdminPlan; changes: { field: string; oldValue: string | null; newValue: string | null }[] }>(
+      `/api/admin/plans/${planId}`,
+      data
+    ),
 }

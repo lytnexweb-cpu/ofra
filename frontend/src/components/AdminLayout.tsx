@@ -8,6 +8,7 @@ import {
   Users,
   Activity,
   Server,
+  CreditCard,
   LogOut,
   ArrowLeft,
   ShieldCheck,
@@ -37,6 +38,7 @@ export default function AdminLayout() {
     { to: '/admin/subscribers', label: t('admin.subscribers'), icon: Users },
     { to: '/admin/activity', label: t('admin.activity'), icon: Activity },
     { to: '/admin/system', label: t('admin.system'), icon: Server },
+    { to: '/admin/plans', label: t('admin.plans.title', 'Plans'), icon: CreditCard },
   ]
 
   const isActive = (path: string, exact?: boolean) => {

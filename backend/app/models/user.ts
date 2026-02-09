@@ -5,6 +5,7 @@ import { BaseModel, column, belongsTo } from '@adonisjs/lucid/orm'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import { withAuthFinder } from '@adonisjs/auth/mixins/lucid'
 import Organization from './organization.js'
+import Plan from './plan.js'
 
 // D40: Onboarding profile types
 export type PracticeType = 'solo' | 'small_team' | 'agency'
@@ -16,6 +17,9 @@ export type UserRole = 'user' | 'admin' | 'superadmin'
 
 // Subscription status
 export type SubscriptionStatus = 'trial' | 'active' | 'past_due' | 'cancelled' | 'expired'
+
+// Billing cycle
+export type BillingCycle = 'monthly' | 'annual'
 
 const AuthFinder = withAuthFinder(() => hash.use('scrypt'), {
   uids: ['email'],
@@ -127,6 +131,19 @@ export default class User extends compose(BaseModel, AuthFinder) {
   @column.dateTime()
   declare onboardingCompletedAt: DateTime | null
 
+  // Plan & billing
+  @column()
+  declare planId: number | null
+
+  @column()
+  declare isFounder: boolean
+
+  @column()
+  declare billingCycle: BillingCycle
+
+  @column()
+  declare planLockedPrice: number | null
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 
@@ -135,4 +152,7 @@ export default class User extends compose(BaseModel, AuthFinder) {
 
   @belongsTo(() => Organization, { foreignKey: 'organizationId' })
   declare organization: BelongsTo<typeof Organization>
+
+  @belongsTo(() => Plan, { foreignKey: 'planId' })
+  declare plan: BelongsTo<typeof Plan>
 }

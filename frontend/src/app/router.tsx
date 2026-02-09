@@ -26,6 +26,7 @@ import {
   AdminSubscribersPage,
   AdminActivityPage,
   AdminSystemPage,
+  AdminPlansPage,
 } from '../pages/admin'
 
 // D40: Protected route that also checks for onboarding
@@ -198,6 +199,10 @@ export const router = createBrowserRouter([
       {
         path: 'system',
         element: <AdminSystemPage />,
+      },
+      {
+        path: 'plans',
+        element: <AdminPlansPage />,
       },
     ],
   },
