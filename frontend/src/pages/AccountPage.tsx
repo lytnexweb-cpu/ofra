@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { authApi } from '../api/auth.api'
 import { profileApi, type UpdateProfileInfoRequest } from '../api/profile.api'
+import { subscriptionApi } from '../api/subscription.api'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
 import {
@@ -20,9 +21,13 @@ import {
   Mail,
   Eye,
   EyeOff,
+  CreditCard,
+  HardHat,
+  Infinity,
+  Loader2,
 } from 'lucide-react'
 
-type TabType = 'profile' | 'security'
+type TabType = 'profile' | 'security' | 'subscription'
 
 export default function AccountPage() {
   const { t } = useTranslation()
@@ -156,9 +161,18 @@ export default function AccountPage() {
     }
   }, [user])
 
+  // K2: Subscription data
+  const { data: subData, isLoading: subLoading } = useQuery({
+    queryKey: ['subscription'],
+    queryFn: subscriptionApi.get,
+    staleTime: 2 * 60 * 1000,
+  })
+  const sub = subData?.data
+
   const tabs = [
     { id: 'profile' as const, label: t('account.tabs.profile'), icon: User },
     { id: 'security' as const, label: t('account.tabs.security'), icon: Shield },
+    { id: 'subscription' as const, label: t('account.tabs.subscription'), icon: CreditCard },
   ]
 
   // Get initials for avatar
@@ -450,6 +464,140 @@ export default function AccountPage() {
                   : t('account.security.logoutAllButton')}
               </Button>
             </div>
+          </div>
+        )}
+
+        {/* Subscription Tab */}
+        {activeTab === 'subscription' && (
+          <div className="space-y-6">
+            {subLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-6 h-6 animate-spin text-primary" />
+              </div>
+            ) : sub ? (
+              <>
+                {/* Current Plan */}
+                <div className="bg-white rounded-xl shadow-sm p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-semibold text-stone-900 flex items-center gap-2">
+                      <CreditCard className="w-5 h-5 text-stone-400" />
+                      {t('account.subscription.currentPlan')}
+                    </h2>
+                    {sub.billing.isFounder && (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-semibold">
+                        <HardHat className="w-3.5 h-3.5" />
+                        {t('account.subscription.founder')}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex items-baseline gap-2 mb-1">
+                    <span className="text-2xl font-bold text-primary">
+                      {sub.plan?.name ?? t('account.subscription.noPlan')}
+                    </span>
+                    <span className="text-sm text-stone-500 capitalize">
+                      ({t(`account.subscription.${sub.billing.cycle}`)})
+                    </span>
+                  </div>
+                  <p className="text-xs text-stone-400 mb-4">
+                    {t(`account.subscription.status.${sub.billing.subscriptionStatus}`)}
+                  </p>
+
+                  <Link to="/pricing">
+                    <Button variant="outline" size="sm">
+                      {t('account.subscription.changePlan')}
+                    </Button>
+                  </Link>
+                </div>
+
+                {/* Usage */}
+                <div className="bg-white rounded-xl shadow-sm p-6">
+                  <h2 className="text-lg font-semibold text-stone-900 mb-4">
+                    {t('account.subscription.usage')}
+                  </h2>
+
+                  <div className="space-y-4">
+                    {/* Transactions usage */}
+                    <div>
+                      <div className="flex items-center justify-between text-sm mb-1.5">
+                        <span className="text-stone-600">
+                          {t('account.subscription.activeTransactions')}
+                        </span>
+                        <span className="font-medium text-stone-900">
+                          {sub.usage.activeTransactions}
+                          {sub.usage.maxTransactions !== null
+                            ? ` / ${sub.usage.maxTransactions}`
+                            : <span className="inline-flex items-center gap-0.5 ml-1 text-stone-400">/ <Infinity className="w-3.5 h-3.5" /></span>
+                          }
+                        </span>
+                      </div>
+                      {sub.usage.maxTransactions !== null && (
+                        <div className="w-full bg-stone-100 rounded-full h-2">
+                          <div
+                            className={`h-2 rounded-full transition-all ${
+                              sub.usage.activeTransactions > sub.usage.maxTransactions
+                                ? 'bg-red-500'
+                                : sub.usage.activeTransactions >= sub.usage.maxTransactions * 0.8
+                                  ? 'bg-amber-500'
+                                  : 'bg-emerald-500'
+                            }`}
+                            style={{
+                              width: `${Math.min(100, (sub.usage.activeTransactions / sub.usage.maxTransactions) * 100)}%`,
+                            }}
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Storage usage */}
+                    <div>
+                      <div className="flex items-center justify-between text-sm mb-1.5">
+                        <span className="text-stone-600">
+                          {t('account.subscription.storage')}
+                        </span>
+                        <span className="font-medium text-stone-900">
+                          {sub.usage.storageUsedGb.toFixed(1)} / {sub.usage.maxStorageGb} Go
+                        </span>
+                      </div>
+                      <div className="w-full bg-stone-100 rounded-full h-2">
+                        <div
+                          className={`h-2 rounded-full transition-all ${
+                            sub.usage.maxStorageGb > 0 && sub.usage.storageUsedGb / sub.usage.maxStorageGb > 0.8
+                              ? 'bg-amber-500'
+                              : 'bg-emerald-500'
+                          }`}
+                          style={{
+                            width: `${sub.usage.maxStorageGb > 0 ? Math.min(100, (sub.usage.storageUsedGb / sub.usage.maxStorageGb) * 100) : 0}%`,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Grace Period Warning */}
+                {sub.grace.active && (
+                  <div className={`rounded-xl p-4 border ${
+                    (sub.grace.daysRemaining ?? 0) <= 0
+                      ? 'bg-red-50 border-red-200'
+                      : 'bg-amber-50 border-amber-200'
+                  }`}>
+                    <p className={`text-sm font-medium ${
+                      (sub.grace.daysRemaining ?? 0) <= 0 ? 'text-red-700' : 'text-amber-700'
+                    }`}>
+                      {(sub.grace.daysRemaining ?? 0) <= 0
+                        ? t('account.subscription.graceExpired')
+                        : t('account.subscription.graceWarning', { days: sub.grace.daysRemaining })
+                      }
+                    </p>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="bg-white rounded-xl shadow-sm p-6 text-center text-stone-500">
+                {t('account.subscription.noPlan')}
+              </div>
+            )}
           </div>
         )}
       </div>

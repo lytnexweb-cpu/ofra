@@ -163,6 +163,9 @@ export default class AuthController {
         })
       }
 
+      // Load plan for subscription info
+      await user.load('plan')
+
       return response.ok({
         success: true,
         data: {
@@ -179,6 +182,12 @@ export default class AuthController {
             propertyContexts: user.propertyContexts,
             annualVolume: user.annualVolume,
             preferAutoConditions: user.preferAutoConditions,
+            // K2: Subscription info
+            isFounder: user.isFounder,
+            planSlug: user.plan?.slug ?? null,
+            planName: user.plan?.name ?? null,
+            billingCycle: user.billingCycle,
+            gracePeriodStart: user.gracePeriodStart?.toISO() ?? null,
           },
         },
       })

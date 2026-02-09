@@ -47,4 +47,5 @@ export const middleware = router.named({
   admin: () => import('#middleware/admin_middleware'),
   superadmin: () => import('#middleware/superadmin_middleware'),
   rateLimit: () => import('#middleware/rate_limit_middleware'),
+  planLimit: () => import('#middleware/plan_limit_middleware'),
 })

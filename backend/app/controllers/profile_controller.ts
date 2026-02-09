@@ -1,6 +1,7 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import hash from '@adonisjs/core/services/hash'
 import User from '#models/user'
+import Transaction from '#models/transaction'
 import {
   changePasswordValidator,
   updateProfileValidator,
@@ -291,6 +292,67 @@ export default class ProfileController {
       success: true,
       data: {
         message: 'Onboarding skipped',
+      },
+    })
+  }
+
+  /**
+   * K2: Get subscription info + usage stats
+   * GET /api/me/subscription
+   */
+  async subscription({ response, auth }: HttpContext) {
+    const user = auth.user!
+    await user.load('plan')
+
+    // Count active transactions
+    const activeResult = await Transaction.query()
+      .where('userId', user.id)
+      .where('status', 'active')
+      .count('* as total')
+      .first()
+    const activeTransactions = Number(activeResult?.$extras?.total ?? 0)
+
+    // Grace period info
+    let graceDaysRemaining: number | null = null
+    if (user.gracePeriodStart) {
+      const elapsed = DateTime.now().diff(user.gracePeriodStart, 'days').days
+      graceDaysRemaining = Math.max(0, Math.round(7 - elapsed))
+    }
+
+    const plan = user.plan
+
+    return response.ok({
+      success: true,
+      data: {
+        plan: plan
+          ? {
+              id: plan.id,
+              name: plan.name,
+              slug: plan.slug,
+              maxTransactions: plan.maxTransactions,
+              maxStorageGb: plan.maxStorageGb,
+              historyMonths: plan.historyMonths,
+            }
+          : null,
+        billing: {
+          cycle: user.billingCycle,
+          isFounder: user.isFounder,
+          lockedPrice: user.planLockedPrice,
+          subscriptionStatus: user.subscriptionStatus,
+          subscriptionStartedAt: user.subscriptionStartedAt?.toISO() ?? null,
+          subscriptionEndsAt: user.subscriptionEndsAt?.toISO() ?? null,
+        },
+        usage: {
+          activeTransactions,
+          maxTransactions: plan?.maxTransactions ?? null,
+          storageUsedGb: 0, // TODO: implement storage tracking
+          maxStorageGb: plan?.maxStorageGb ?? 0,
+        },
+        grace: {
+          active: user.gracePeriodStart !== null,
+          startedAt: user.gracePeriodStart?.toISO() ?? null,
+          daysRemaining: graceDaysRemaining,
+        },
       },
     })
   }

@@ -144,6 +144,9 @@ export default class User extends compose(BaseModel, AuthFinder) {
   @column()
   declare planLockedPrice: number | null
 
+  @column.dateTime()
+  declare gracePeriodStart: DateTime | null
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 

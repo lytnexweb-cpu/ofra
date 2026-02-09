@@ -555,7 +555,28 @@
     "subtitle": "Manage your personal information and security",
     "tabs": {
       "profile": "Profile",
-      "security": "Security"
+      "security": "Security",
+      "subscription": "Subscription"
+    },
+    "subscription": {
+      "currentPlan": "Current plan",
+      "noPlan": "No plan",
+      "founder": "Founder",
+      "monthly": "monthly",
+      "annual": "annual",
+      "changePlan": "Change plan",
+      "usage": "Usage",
+      "activeTransactions": "Active transactions",
+      "storage": "Storage",
+      "graceWarning": "You have exceeded your limit. You have {{days}} day(s) left to upgrade.",
+      "graceExpired": "Grace period expired. Please upgrade your plan to create new transactions.",
+      "status": {
+        "trial": "Trial",
+        "active": "Active",
+        "past_due": "Past due",
+        "cancelled": "Cancelled",
+        "expired": "Expired"
+      }
     },
     "profile": {
       "title": "Profile Information",
@@ -1137,6 +1158,14 @@
       "saveError": "Error saving changes",
       "warning": "Changes apply to new subscribers only.",
       "desktopOnly": "Full editing on Desktop"
+    }
+  },
+  "subscription": {
+    "banner": {
+      "warning": "You have {{active}}/{{max}} active transactions. {{days}} day(s) left to upgrade.",
+      "expired": "Transaction limit of {{max}} reached ({{active}} active). Please upgrade to continue.",
+      "upgrade": "Upgrade",
+      "viewTransactions": "View transactions"
     }
   }
 }

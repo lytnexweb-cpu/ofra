@@ -16,6 +16,7 @@ import {
   CloseIcon,
 } from './ui/Icons'
 import { ShieldCheck } from 'lucide-react'
+import SoftLimitBanner from './SoftLimitBanner'
 
 // Logout icon
 function LogoutIcon({ className }: { className?: string }) {
@@ -228,6 +229,9 @@ export default function Layout() {
             <BellIcon className="w-5 h-5" />
           </button>
         </header>
+
+        {/* K2: Soft limit banner */}
+        <SoftLimitBanner />
 
         {/* Page Content - scrollable on mobile, normal flow on desktop */}
         <main id="main" className="flex-1 overflow-y-auto lg:overflow-visible p-4 sm:p-6 lg:p-8 pt-20 lg:pt-6 pb-20 lg:pb-8 overflow-x-hidden">

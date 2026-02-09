@@ -555,7 +555,28 @@
     "subtitle": "Gérez vos informations personnelles et la sécurité",
     "tabs": {
       "profile": "Profil",
-      "security": "Sécurité"
+      "security": "Sécurité",
+      "subscription": "Abonnement"
+    },
+    "subscription": {
+      "currentPlan": "Forfait actuel",
+      "noPlan": "Aucun forfait",
+      "founder": "Fondateur",
+      "monthly": "mensuel",
+      "annual": "annuel",
+      "changePlan": "Changer de forfait",
+      "usage": "Utilisation",
+      "activeTransactions": "Transactions actives",
+      "storage": "Stockage",
+      "graceWarning": "Vous avez dépassé votre limite. Il vous reste {{days}} jour(s) pour mettre à niveau.",
+      "graceExpired": "Période de grâce expirée. Veuillez mettre à niveau votre forfait pour créer de nouvelles transactions.",
+      "status": {
+        "trial": "Essai",
+        "active": "Actif",
+        "past_due": "En retard",
+        "cancelled": "Annulé",
+        "expired": "Expiré"
+      }
     },
     "profile": {
       "title": "Informations du profil",
@@ -1137,6 +1158,14 @@
       "saveError": "Erreur lors de la sauvegarde",
       "warning": "Les changements s'appliquent aux nouveaux abonnés uniquement.",
       "desktopOnly": "Édition complète sur Desktop"
+    }
+  },
+  "subscription": {
+    "banner": {
+      "warning": "Vous avez {{active}}/{{max}} transactions actives. Il vous reste {{days}} jour(s) pour mettre à niveau.",
+      "expired": "Limite de {{max}} transactions atteinte ({{active}} actives). Veuillez mettre à niveau pour continuer.",
+      "upgrade": "Mettre à niveau",
+      "viewTransactions": "Voir les transactions"
     }
   }
 }

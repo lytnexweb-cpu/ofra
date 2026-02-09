@@ -45,6 +45,9 @@ router.group(() => {
   router.put('/me/onboarding', '#controllers/profile_controller.saveOnboarding')
   router.post('/me/onboarding/skip', '#controllers/profile_controller.skipOnboarding')
 
+  // K2: Subscription
+  router.get('/me/subscription', '#controllers/profile_controller.subscription')
+
   // Dashboard
   router.get('/dashboard/summary', '#controllers/dashboard_controller.summary')
   router.get('/dashboard/urgencies', '#controllers/dashboard_controller.urgencies')
@@ -68,7 +71,7 @@ router.group(() => {
 
   // Transactions
   router.get('/transactions', '#controllers/transactions_controller.index')
-  router.post('/transactions', '#controllers/transactions_controller.store')
+  router.post('/transactions', '#controllers/transactions_controller.store').use(middleware.planLimit())
   router.get('/transactions/:id', '#controllers/transactions_controller.show')
   router.put('/transactions/:id', '#controllers/transactions_controller.update')
   router.patch('/transactions/:id/advance', '#controllers/transactions_controller.advanceStep')
