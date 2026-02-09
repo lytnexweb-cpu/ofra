@@ -1,5 +1,6 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Transaction from '#models/transaction'
+import Property from '#models/property'
 import {
   createTransactionValidator,
   updateTransactionValidator,
@@ -85,12 +86,24 @@ export default class TransactionsController {
     try {
       const payload = await request.validateUsing(createTransactionValidator)
 
+      // E1: If address is provided without propertyId, auto-create a Property
+      let propertyId = payload.propertyId ?? null
+      if (!propertyId && payload.address) {
+        const property = await Property.create({
+          ownerUserId: auth.user!.id,
+          address: payload.address,
+          city: '',
+          postalCode: '',
+        })
+        propertyId = property.id
+      }
+
       const transaction = await WorkflowEngineService.createTransactionFromTemplate({
         templateId: payload.workflowTemplateId,
         ownerUserId: auth.user!.id,
         organizationId: TenantScopeService.getOrganizationId(auth.user!),
         clientId: payload.clientId,
-        propertyId: payload.propertyId ?? null,
+        propertyId,
         type: payload.type,
         salePrice: payload.salePrice ?? null,
         listPrice: payload.listPrice ?? null,

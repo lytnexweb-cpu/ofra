@@ -91,6 +91,7 @@ export interface CreateTransactionRequest {
   listPrice?: number
   commission?: number
   folderUrl?: string
+  address?: string
 }
 
 export interface UpdateTransactionRequest {

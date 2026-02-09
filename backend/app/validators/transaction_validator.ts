@@ -11,6 +11,7 @@ export const createTransactionValidator = vine.compile(
     listPrice: vine.number().min(0).optional(),
     commission: vine.number().min(0).optional(),
     folderUrl: vine.string().trim().maxLength(2048).optional(),
+    address: vine.string().trim().maxLength(500).optional(),
   })
 )
 

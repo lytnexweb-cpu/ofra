@@ -152,6 +152,30 @@ export interface TimelineData {
   }[]
 }
 
+export interface ConditionTemplate {
+  id: number
+  labelFr: string
+  labelEn: string
+  descriptionFr: string | null
+  descriptionEn: string | null
+  level: ConditionLevel
+  sourceType: SourceType | null
+  step: number | null
+  pack: string | null
+  category: string | null
+  defaultDeadlineDays: number | null
+  deadlineReference: string | null
+}
+
+export interface ApplicableTemplatesData {
+  templates: ConditionTemplate[]
+  profile: {
+    propertyType: string
+    propertyContext: string
+    isFinanced: boolean
+  }
+}
+
 export const conditionsApi = {
   // Legacy endpoints
   create: (data: CreateConditionRequest) =>
@@ -220,4 +244,10 @@ export const conditionsApi = {
 
   advanceCheck: (transactionId: number) =>
     http.get<AdvanceCheckResult>(`/api/transactions/${transactionId}/conditions/advance-check`),
+
+  // D44: Applicable templates for suggestions panel
+  getApplicableTemplates: (transactionId: number, step?: number) =>
+    http.get<ApplicableTemplatesData>(
+      `/api/transactions/${transactionId}/applicable-templates${step ? `?step=${step}` : ''}`
+    ),
 }
