@@ -980,10 +980,29 @@
       "q4": "Do you offer discounts for teams?",
       "a4": "Founders get 25% off for life after the trial. Contact us for custom Agence pricing for larger teams."
     },
+    "month": "month",
+    "monthly": "Monthly",
+    "annual": "Annual",
+    "activeTransactions": "active",
+    "unlimited": "unlimited",
+    "storage": "storage",
+    "history": "History",
+    "months": "months",
+    "conditionsEngine": "Conditions engine",
+    "guidedWorkflow": "Guided workflow",
+    "comingSoon": "Coming soon",
+    "trust": "30-day money-back guarantee · 100% Canada 🍁 · FR/EN · No contract",
+    "founder": {
+      "title": "FOUNDER OFFER",
+      "spots": "19/25 spots remaining",
+      "desc": "1 month free + -20% for life (all plans) · -30% if annual",
+      "cta": "Become a founder"
+    },
     "cta": {
       "title": "Ready to get started?",
-      "subtitle": "Join our Founder Program: 3 months free, then 25% off for life.",
-      "button": "Join Founder Program"
+      "subtitle": "Try for free. No commitment, cancel anytime.",
+      "button": "Create my free account",
+      "start": "Start"
     }
   },
   "csvImport": {

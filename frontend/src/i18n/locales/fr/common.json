@@ -980,10 +980,29 @@
       "q4": "Offrez-vous des rabais pour les équipes?",
       "a4": "Les Fondateurs bénéficient de 25% de rabais à vie après l'essai. Contactez-nous pour une tarification Agence personnalisée."
     },
+    "month": "mois",
+    "monthly": "Mensuel",
+    "annual": "Annuel",
+    "activeTransactions": "actives",
+    "unlimited": "illimité",
+    "storage": "stockage",
+    "history": "Historique",
+    "months": "mois",
+    "conditionsEngine": "Moteur de conditions",
+    "guidedWorkflow": "Workflow guidé",
+    "comingSoon": "Bientôt disponible",
+    "trust": "Garantie 30j remboursé · 100% Canada 🍁 · FR/EN · Sans contrat",
+    "founder": {
+      "title": "OFFRE FONDATEUR",
+      "spots": "19/25 places restantes",
+      "desc": "1 mois gratuit + -20% à vie (tous plans) · -30% si annuel",
+      "cta": "Devenir fondateur"
+    },
     "cta": {
       "title": "Prêt à commencer?",
-      "subtitle": "Programme Fondateur: 3 mois gratuits, puis 25% de rabais à vie.",
-      "button": "Rejoindre le Programme Fondateur"
+      "subtitle": "Essayez gratuitement. Aucun engagement, annulez en tout temps.",
+      "button": "Créer mon compte gratuitement",
+      "start": "Commencer"
     }
   },
   "csvImport": {

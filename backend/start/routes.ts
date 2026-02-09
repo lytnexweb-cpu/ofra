@@ -23,6 +23,7 @@ router.get('/api/health', async () => {
   return { success: true, data: { status: 'ok', timestamp: new Date().toISOString() } }
 })
 
+router.get('/api/plans', '#controllers/plans_controller.index')
 router.post('/api/register', '#controllers/auth_controller.register').use(middleware.rateLimit())
 router.post('/api/login', '#controllers/auth_controller.login').use(middleware.rateLimit())
 router.post('/api/forgot-password', '#controllers/auth_controller.forgotPassword').use(middleware.rateLimit())
