@@ -4,6 +4,183 @@ import { DateTime } from 'luxon'
 import db from '@adonisjs/lucid/services/db'
 
 export default class DashboardController {
+  /**
+   * GET /api/dashboard/urgencies
+   * D42: Dashboard urgences — conditions pending triées par criticité
+   */
+  async urgencies({ response, auth }: HttpContext) {
+    try {
+      const userId = auth.user!.id
+      const today = DateTime.now()
+
+      // Count active transactions for this user
+      const activeCountResult = await Transaction.query()
+        .where('owner_user_id', userId)
+        .where('status', 'active')
+        .whereNotNull('current_step_id')
+        .count('* as total')
+      const totalActiveTransactions = Number(activeCountResult[0].$extras.total) || 0
+
+      // Count total transactions (including completed)
+      const totalCountResult = await Transaction.query()
+        .where('owner_user_id', userId)
+        .count('* as total')
+      const totalTransactions = Number(totalCountResult[0].$extras.total) || 0
+
+      // If no transactions at all, return empty state (A3)
+      if (totalTransactions === 0) {
+        return response.ok({
+          success: true,
+          data: {
+            state: 'empty',
+            urgencies: [],
+            totalActiveTransactions: 0,
+            totalTransactions: 0,
+            urgencyCount: 0,
+            greenCount: 0,
+            nextDeadlineDays: null,
+          },
+        })
+      }
+
+      // Fetch all pending conditions with due_date for user's active transactions
+      const conditionsRaw = await db
+        .from('conditions as c')
+        .join('transactions as t', 'c.transaction_id', 't.id')
+        .join('clients as cl', 't.client_id', 'cl.id')
+        .leftJoin('properties as p', 't.property_id', 'p.id')
+        .leftJoin('transaction_steps as ts', 't.current_step_id', 'ts.id')
+        .leftJoin('workflow_steps as ws', 'ts.workflow_step_id', 'ws.id')
+        .where('t.owner_user_id', userId)
+        .where('t.status', 'active')
+        .whereNotNull('t.current_step_id')
+        .where('c.status', 'pending')
+        .where('c.archived', false)
+        .whereNotNull('c.due_date')
+        .select(
+          'c.id as conditionId',
+          'c.title as conditionTitle',
+          'c.label_fr as labelFr',
+          'c.label_en as labelEn',
+          'c.level',
+          'c.due_date as dueDate',
+          'c.type as conditionType',
+          't.id as transactionId',
+          't.type as transactionType',
+          't.sale_price as salePrice',
+          'cl.first_name as clientFirstName',
+          'cl.last_name as clientLastName',
+          'p.address as propertyAddress',
+          'p.city as propertyCity',
+          'ts.step_order as stepOrder',
+          'ws.name as stepName'
+        )
+        .orderBy('c.due_date', 'asc')
+
+      // Classify and build urgency items
+      const urgencies: Array<{
+        conditionId: number
+        conditionTitle: string
+        labelFr: string | null
+        labelEn: string | null
+        level: string
+        dueDate: string
+        daysRemaining: number
+        criticality: 'overdue' | 'urgent' | 'this_week' | 'ok'
+        transactionId: number
+        transactionType: string
+        clientName: string
+        address: string | null
+        stepOrder: number | null
+        stepName: string | null
+      }> = []
+
+      for (const row of conditionsRaw) {
+        const dueDate = DateTime.fromJSDate(new Date(row.dueDate))
+        const daysRemaining = Math.ceil(dueDate.diff(today, 'days').days)
+
+        let criticality: 'overdue' | 'urgent' | 'this_week' | 'ok'
+        if (daysRemaining < 0) {
+          criticality = 'overdue'
+        } else if (daysRemaining <= 2) {
+          criticality = 'urgent'
+        } else if (daysRemaining <= 7) {
+          criticality = 'this_week'
+        } else {
+          criticality = 'ok'
+        }
+
+        const address = row.propertyAddress
+          ? `${row.propertyAddress}${row.propertyCity ? ', ' + row.propertyCity : ''}`
+          : null
+
+        urgencies.push({
+          conditionId: row.conditionId,
+          conditionTitle: row.conditionTitle,
+          labelFr: row.labelFr,
+          labelEn: row.labelEn,
+          level: row.level,
+          dueDate: row.dueDate,
+          daysRemaining,
+          criticality,
+          transactionId: row.transactionId,
+          transactionType: row.transactionType,
+          clientName: `${row.clientFirstName} ${row.clientLastName}`,
+          address,
+          stepOrder: row.stepOrder,
+          stepName: row.stepName,
+        })
+      }
+
+      // Sort: overdue first (most overdue), then urgent, then this_week, then ok
+      const criticalityOrder = { overdue: 0, urgent: 1, this_week: 2, ok: 3 }
+      urgencies.sort((a, b) => {
+        const critDiff = criticalityOrder[a.criticality] - criticalityOrder[b.criticality]
+        if (critDiff !== 0) return critDiff
+        return a.daysRemaining - b.daysRemaining
+      })
+
+      // Split into burning (red + yellow) and ok (green)
+      const burning = urgencies.filter((u) => u.criticality !== 'ok')
+      const green = urgencies.filter((u) => u.criticality === 'ok')
+
+      // Determine state
+      const state = burning.length > 0 ? 'urgencies' : 'all_clear'
+
+      // Next deadline for green transactions (for "tout roule" message)
+      const nextDeadlineDays = green.length > 0 ? green[0].daysRemaining : null
+
+      // Active transactions with no pending conditions at all = part of green count
+      const txWithPendingConditions = new Set(urgencies.map((u) => u.transactionId))
+      const txWithoutUrgencies = totalActiveTransactions - txWithPendingConditions.size
+      const greenTxCount = new Set(green.map((u) => u.transactionId)).size + txWithoutUrgencies
+
+      return response.ok({
+        success: true,
+        data: {
+          state,
+          urgencies: burning.slice(0, 10),
+          hasMore: burning.length > 10,
+          moreCount: burning.length > 10 ? burning.length - 10 : 0,
+          totalActiveTransactions,
+          totalTransactions,
+          urgencyCount: burning.length,
+          greenCount: greenTxCount,
+          nextDeadlineDays,
+        },
+      })
+    } catch (error) {
+      console.error('[Dashboard] Urgencies error:', error)
+      return response.internalServerError({
+        success: false,
+        error: {
+          message: 'Failed to retrieve urgencies',
+          code: 'E_INTERNAL_ERROR',
+        },
+      })
+    }
+  }
+
   async summary({ response, auth }: HttpContext) {
     try {
       const userId = auth.user!.id

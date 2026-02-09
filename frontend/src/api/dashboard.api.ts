@@ -51,6 +51,39 @@ export interface DashboardSummary {
   upcomingDeadlines: UpcomingDeadline[]
 }
 
+// D42: Dashboard Urgencies
+export type UrgencyCriticality = 'overdue' | 'urgent' | 'this_week' | 'ok'
+
+export interface UrgencyItem {
+  conditionId: number
+  conditionTitle: string
+  labelFr: string | null
+  labelEn: string | null
+  level: 'blocking' | 'required' | 'recommended'
+  dueDate: string
+  daysRemaining: number
+  criticality: UrgencyCriticality
+  transactionId: number
+  transactionType: string
+  clientName: string
+  address: string | null
+  stepOrder: number | null
+  stepName: string | null
+}
+
+export interface DashboardUrgenciesData {
+  state: 'empty' | 'all_clear' | 'urgencies'
+  urgencies: UrgencyItem[]
+  hasMore?: boolean
+  moreCount?: number
+  totalActiveTransactions: number
+  totalTransactions: number
+  urgencyCount: number
+  greenCount: number
+  nextDeadlineDays: number | null
+}
+
 export const dashboardApi = {
   getSummary: () => http.get<DashboardSummary>('/api/dashboard/summary'),
+  getUrgencies: () => http.get<DashboardUrgenciesData>('/api/dashboard/urgencies'),
 }

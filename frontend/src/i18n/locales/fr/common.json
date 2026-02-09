@@ -21,6 +21,38 @@
     "active": "actives",
     "monthRevenue": "Revenu ce mois",
     "totalRevenue": "Revenu total",
+    "urgencies": {
+      "title": "{{count}} urgence(s) aujourd'hui",
+      "titleZero": "Aucune urgence",
+      "burning": "Ce qui brûle",
+      "overdue": "En retard",
+      "urgent48h": "Urgent (48h)",
+      "thisWeek": "Cette semaine",
+      "allClear": "Tout roule",
+      "allClearMessage": "Prochaine deadline dans {{days}} jours.",
+      "allClearNoDeadline": "Aucune deadline en vue.",
+      "greenCount": "{{count}} transaction(s)",
+      "empty": {
+        "welcome": "Bienvenue !",
+        "message": "Votre tableau \"Urgences\" apparaîtra ici dès votre 1ère transaction.",
+        "step1": "Créez une transaction (2 min)",
+        "step2": "Ajoutez/validez vos conditions",
+        "step3": "Ofra vous alerte avant les deadlines",
+        "cta": "Créer ma première transaction",
+        "csvHint": "Astuce : import CSV clients disponible (optionnel)"
+      },
+      "card": {
+        "open": "Ouvrir",
+        "daysOverdue": "{{count}}j en retard",
+        "tomorrow": "Demain",
+        "daysLeft": "{{count}} jours",
+        "today": "Aujourd'hui",
+        "step": "Étape {{order}}"
+      },
+      "seeMore": "Voir les {{count}} autres",
+      "newTx": "Nouvelle TX",
+      "viewAll": "Voir toutes les transactions"
+    },
     "kpi": {
       "active": "Actives",
       "completed": "Complétées",
@@ -351,10 +383,21 @@
     "notes": "Notes",
     "viewFullHistory": "Voir l'historique complet"
   },
+  "timeline": {
+    "sinceDays": "depuis {{count}} jour(s)",
+    "readOnly": "Lecture seule — conditions archivées",
+    "noConditions": "Aucune condition à cette étape",
+    "addCondition": "Ajouter une condition",
+    "transactionCompleted": "Transaction complétée !"
+  },
   "transaction": {
     "type": "Type",
     "address": "Adresse",
+    "addressPlaceholder": "123 rue Exemple, Montréal",
     "price": "Prix",
+    "closingDate": "Date de clôture prévue",
+    "suggestConditions": "Me proposer des suggestions de conditions",
+    "suggestConditionsHint": "Un panneau de suggestions s'ouvrira après la création",
     "client": "Client",
     "step": "Étape",
     "template": "Modèle",
@@ -437,6 +480,17 @@
       "manual": "Je gère moi-même",
       "manualDesc": "Transaction vide, ajout manuel"
     }
+  },
+  "suggestions": {
+    "title": "Suggestions",
+    "basedOn": "Basé sur",
+    "empty": "Aucune suggestion disponible pour cette transaction.",
+    "selectedCount": "{{count}} sélectionnée(s)",
+    "noneSelected": "Aucune sélectionnée",
+    "add": "Ajouter",
+    "added": "{{count}} condition(s) ajoutée(s)",
+    "addError": "Erreur lors de l'ajout des conditions",
+    "openPanel": "Suggestions"
   },
   "returnBanner": {
     "message": "Bienvenue ! Voici ce qui a changé depuis votre dernière visite.",
@@ -1040,6 +1094,30 @@
     "riskNoActivity": "Aucune activité depuis 7 jours",
     "signedUp": "Inscrit",
     "txShort": "tx",
-    "overdueByDays": "{{count}} jour(s) de retard"
+    "overdueByDays": "{{count}} jour(s) de retard",
+    "plans": {
+      "title": "Plans & Pricing",
+      "subtitle": "Modifier les prix et limites sans coder.",
+      "active": "Actif",
+      "inactive": "Inactif",
+      "subscribers": "Abonnés",
+      "founders": "fondateurs",
+      "monthly": "Mensuel",
+      "annual": "Annuel",
+      "storage": "Stockage",
+      "history": "Historique",
+      "months": "mois",
+      "pricePreview": "Aperçu des prix",
+      "founderMonthly": "Fondateur mensuel",
+      "annualDiscount": "Annuel",
+      "founderAnnual": "Fondateur + annuel",
+      "reason": "Raison du changement",
+      "reasonPlaceholder": "Ex: Ajustement pricing v2",
+      "changeLog": "Historique des changements",
+      "saved": "{{count}} champ(s) modifié(s)",
+      "saveError": "Erreur lors de la sauvegarde",
+      "warning": "Les changements s'appliquent aux nouveaux abonnés uniquement.",
+      "desktopOnly": "Édition complète sur Desktop"
+    }
   }
 }

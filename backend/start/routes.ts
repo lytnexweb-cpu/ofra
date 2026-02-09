@@ -46,6 +46,7 @@ router.group(() => {
 
   // Dashboard
   router.get('/dashboard/summary', '#controllers/dashboard_controller.summary')
+  router.get('/dashboard/urgencies', '#controllers/dashboard_controller.urgencies')
 
   // Clients
   router.get('/clients', '#controllers/clients_controller.index')
@@ -144,6 +145,10 @@ router.group(() => {
   router.post('/subscribers/:id/tasks', '#controllers/admin_controller.createTask')
   router.patch('/tasks/:id', '#controllers/admin_controller.updateTask')
   router.delete('/tasks/:id', '#controllers/admin_controller.deleteTask')
+
+  // Plans management (G2)
+  router.get('/plans', '#controllers/admin_plans_controller.index')
+  router.put('/plans/:id', '#controllers/admin_plans_controller.update')
 }).prefix('/api/admin').use([middleware.auth(), middleware.admin()])
 
 // Superadmin-only routes
