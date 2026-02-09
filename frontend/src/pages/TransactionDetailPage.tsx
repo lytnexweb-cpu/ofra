@@ -3,48 +3,32 @@ import { useParams, Link, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { transactionsApi } from '../api/transactions.api'
-import {
-  TransactionHeader,
-  StepProgressBar,
-  StepperPill,
-  StepperBottomSheet,
-  ActionZone,
-  TransactionBottomNav,
-} from '../components/transaction'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/Tabs'
+import { TransactionHeader, SuggestionsPanel } from '../components/transaction'
 import { Button } from '../components/ui/Button'
 import { AlertCircle, Loader2, RefreshCw } from 'lucide-react'
-import ConditionsTab from '../components/transaction/ConditionsTab'
-import OffersSection from '../components/OffersSection'
-import DocumentsTab from '../components/transaction/DocumentsTab'
-import WorkflowTimeline from '../components/transaction/WorkflowTimeline'
-import NotesSection from '../components/transaction/NotesSection'
-
-const TAB_KEYS = ['conditions', 'offers', 'documents', 'steps', 'notes'] as const
-type TabKey = (typeof TAB_KEYS)[number]
+import VerticalTimeline from '../components/transaction/VerticalTimeline'
 
 export default function TransactionDetailPage() {
   const { t } = useTranslation()
   const { id } = useParams<{ id: string }>()
   const transactionId = Number(id)
   const [searchParams, setSearchParams] = useSearchParams()
-
-  const tabParam = searchParams.get('tab') as TabKey | null
-  const activeTab = TAB_KEYS.includes(tabParam as TabKey) ? tabParam! : 'conditions'
   const highlightId = searchParams.get('highlight')
 
-  const [isStepperOpen, setIsStepperOpen] = useState(false)
-  // D32: Selected step for filtering conditions
-  const [selectedStepId, setSelectedStepId] = useState<number | null>(null)
+  // E1 → C1: Auto-open suggestions panel from creation modal
+  const [suggestionsOpen, setSuggestionsOpen] = useState(false)
+  const closingDate = searchParams.get('closingDate')
 
-  // D32: When a step is clicked, switch to conditions tab and filter
-  const handleStepClick = (stepId: number | null) => {
-    setSelectedStepId(stepId)
-    // If selecting a step (not deselecting), switch to conditions tab
-    if (stepId !== null && activeTab !== 'conditions') {
-      handleTabChange('conditions')
+  useEffect(() => {
+    if (searchParams.get('suggestions') === 'open') {
+      setSuggestionsOpen(true)
+      // Clean URL params after reading
+      const next = new URLSearchParams(searchParams)
+      next.delete('suggestions')
+      next.delete('closingDate')
+      setSearchParams(next, { replace: true })
     }
-  }
+  }, [])
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['transaction', transactionId],
@@ -54,27 +38,6 @@ export default function TransactionDetailPage() {
   })
 
   const transaction = data?.data?.transaction
-  const steps = transaction?.transactionSteps ?? []
-
-  // Scroll to highlighted condition when tab + highlight params are set
-  useEffect(() => {
-    if (highlightId && activeTab === 'conditions') {
-      const el = document.querySelector(`[data-condition-id="${highlightId}"]`)
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-        el.classList.add('ring-2', 'ring-primary')
-        const timeout = setTimeout(() => el.classList.remove('ring-2', 'ring-primary'), 3000)
-        return () => clearTimeout(timeout)
-      }
-    }
-  }, [highlightId, activeTab, transaction])
-
-  const handleTabChange = (value: string) => {
-    const params = new URLSearchParams(searchParams)
-    params.set('tab', value)
-    params.delete('highlight')
-    setSearchParams(params, { replace: true })
-  }
 
   // Loading
   if (isLoading) {
@@ -112,87 +75,18 @@ export default function TransactionDetailPage() {
   }
 
   return (
-    <div data-testid="transaction-detail-page" className="overflow-x-hidden pb-20 lg:pb-0">
+    <div data-testid="transaction-detail-page" className="pb-8">
       <TransactionHeader transaction={transaction} />
-
-      {/* Stepper — desktop: horizontal bar, mobile: pill + sheet */}
-      {/* D32: Steps are clickable to filter conditions */}
-      {steps.length > 0 && (
-        <>
-          <StepProgressBar
-            steps={steps}
-            currentStepId={transaction.currentStepId}
-            selectedStepId={selectedStepId}
-            onStepClick={handleStepClick}
-          />
-          <StepperPill
-            steps={steps}
-            currentStepId={transaction.currentStepId}
-            onClick={() => setIsStepperOpen(true)}
-          />
-          <StepperBottomSheet
-            isOpen={isStepperOpen}
-            onClose={() => setIsStepperOpen(false)}
-            steps={steps}
-            currentStepId={transaction.currentStepId}
-            selectedStepId={selectedStepId}
-            onStepClick={handleStepClick}
-          />
-        </>
-      )}
-
-      {/* Action Zone — between stepper and tabs */}
-      <ActionZone transaction={transaction} />
-
-      {/* Tabs - Desktop only: horizontal tabs, Mobile: content only (nav at bottom) */}
-      <Tabs value={activeTab} onValueChange={handleTabChange}>
-        {/* Desktop tabs header */}
-        <div className="hidden lg:block w-full">
-          <TabsList className="w-full flex overflow-x-auto" data-testid="detail-tabs">
-            {TAB_KEYS.map((key) => (
-              <TabsTrigger key={key} value={key} data-testid={`tab-${key}`} className="flex-1 min-w-0 whitespace-nowrap">
-                {t(`tabs.${key}`)}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </div>
-
-        {/* Mobile: Section title */}
-        <div className="lg:hidden flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-primary">
-            {t(`tabs.${activeTab}`)}
-          </h2>
-        </div>
-
-        <TabsContent value="conditions">
-          {/* D32: Pass selectedStepId to filter conditions by step */}
-          <ConditionsTab transaction={transaction} filterStepId={selectedStepId} />
-        </TabsContent>
-
-        <TabsContent value="offers">
-          <OffersSection
-            transactionId={transactionId}
-            transactionStatus={transaction.currentStep?.workflowStep?.name || 'Completed'}
-          />
-        </TabsContent>
-
-        <TabsContent value="documents">
-          <DocumentsTab transaction={transaction} />
-        </TabsContent>
-
-        <TabsContent value="steps">
-          <WorkflowTimeline transaction={transaction} />
-        </TabsContent>
-
-        <TabsContent value="notes">
-          <NotesSection transactionId={transactionId} />
-        </TabsContent>
-      </Tabs>
-
-      {/* Mobile Bottom Navigation */}
-      <TransactionBottomNav
-        activeTab={activeTab}
-        onTabChange={(tab) => handleTabChange(tab)}
+      <VerticalTimeline
+        transaction={transaction}
+        highlightConditionId={highlightId}
+        onOpenSuggestions={() => setSuggestionsOpen(true)}
+      />
+      <SuggestionsPanel
+        isOpen={suggestionsOpen}
+        onClose={() => setSuggestionsOpen(false)}
+        transaction={transaction}
+        closingDate={closingDate}
       />
     </div>
   )

@@ -16,7 +16,11 @@ export { default as ActionZone } from './ActionZone'
 export { default as DocumentsTab } from './DocumentsTab'
 export { default as TimelineTab } from './TimelineTab'
 export { default as WorkflowTimeline } from './WorkflowTimeline'
+export { default as VerticalTimeline } from './VerticalTimeline'
 export { default as TransactionBottomNav } from './TransactionBottomNav'
+
+// D44: Suggestions Panel (Mode Assisté)
+export { default as SuggestionsPanel } from './SuggestionsPanel'
 
 // D41: Condition validation components
 export { default as ConditionValidationModal } from './ConditionValidationModal'
