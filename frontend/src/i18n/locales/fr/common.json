@@ -466,7 +466,12 @@
       "successTitle": "Transaction annulée",
       "successHint": "Archivez cette transaction pour la retirer de votre liste active.",
       "archiveNow": "Archiver maintenant",
-      "backToTransaction": "Retour transaction"
+      "backToTransaction": "Retour transaction",
+      "successCard1": "Statut mis à jour : Annulée",
+      "successCard2": "Actions (offres, conditions) bloquées",
+      "successCard3": "Historique conservé en lecture seule",
+      "successCard4": "Notification envoyée aux destinataires",
+      "recommendedAction": "Action recommandée"
     },
     "deleteModal": {
       "title": "Supprimer définitivement",
@@ -510,7 +515,10 @@
         "restorable": "Restaurable à tout moment depuis les archives"
       },
       "confirmLabel": "Je comprends que cette transaction sera masquée des transactions actives",
-      "successTitle": "Transaction archivée"
+      "successTitle": "Transaction archivée",
+      "successCard1": "Retirée des transactions actives",
+      "successCard2": "Historique et documents conservés",
+      "successCard3": "Restaurable via : Transactions → Filtre « Archivées »"
     },
     "restoreModal": {
       "title": "Restaurer la transaction",

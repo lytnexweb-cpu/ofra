@@ -466,7 +466,12 @@
       "successTitle": "Transaction cancelled",
       "successHint": "Archive this transaction to remove it from your active list.",
       "archiveNow": "Archive now",
-      "backToTransaction": "Back to transaction"
+      "backToTransaction": "Back to transaction",
+      "successCard1": "Status updated: Cancelled",
+      "successCard2": "Actions (offers, conditions) locked",
+      "successCard3": "History preserved as read-only",
+      "successCard4": "Notification sent to recipients",
+      "recommendedAction": "Recommended action"
     },
     "deleteModal": {
       "title": "Delete Permanently",
@@ -510,7 +515,10 @@
         "restorable": "Restorable at any time from the archives"
       },
       "confirmLabel": "I understand this transaction will be hidden from active transactions",
-      "successTitle": "Transaction archived"
+      "successTitle": "Transaction archived",
+      "successCard1": "Removed from active transactions",
+      "successCard2": "History and documents preserved",
+      "successCard3": "Restorable via: Transactions → \"Archived\" filter"
     },
     "restoreModal": {
       "title": "Restore Transaction",

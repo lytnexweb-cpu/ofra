@@ -18,8 +18,10 @@ import {
   ArrowRight,
   Check,
   CheckCircle2,
-  Clock,
+  Lock,
+  Mail,
   RotateCw,
+  Zap,
 } from 'lucide-react'
 import { transactionsApi, type Transaction } from '../../api/transactions.api'
 import { toast } from '../../hooks/use-toast'
@@ -235,7 +237,7 @@ export default function TransactionHeader({ transaction, onOpenEdit, onOpenMembe
                 <span className="sr-only">{t('transaction.actions.moreActions')}</span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-72 p-0">
+            <DropdownMenuContent align="end" className="w-64 p-0">
               <DropdownMenuLabel className="px-3 py-2 text-[10px] uppercase tracking-wider text-stone-400 font-semibold">
                 {t('transaction.actions.dropdownTitle')}
               </DropdownMenuLabel>
@@ -385,7 +387,7 @@ export default function TransactionHeader({ transaction, onOpenEdit, onOpenMembe
           Cancel Modal — État D
           ═══════════════════════════════════════════════════════ */}
       <Dialog open={cancelModalOpen} onOpenChange={(open) => !open && handleCancelModalClose()}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
@@ -435,35 +437,63 @@ export default function TransactionHeader({ transaction, onOpenEdit, onOpenMembe
                 className={`${inputClass} min-h-[70px] resize-none`}
               />
               {cancelReason === 'other' && !cancelNote.trim() && (
-                <p className="text-xs text-red-500">{t('transaction.cancelModal.noteHint')}</p>
+                <div className="flex items-center gap-1 mt-1 text-xs text-amber-600">
+                  <AlertTriangle className="w-3 h-3 shrink-0" />
+                  {t('transaction.cancelModal.noteHint')}
+                </div>
               )}
             </div>
 
             {/* Impact section */}
-            <div className="rounded-lg border border-amber-200 bg-amber-50/50 p-3 space-y-2">
-              <p className="text-xs font-semibold text-amber-700">{t('transaction.cancelModal.impact.title')}</p>
-              <div className="space-y-1.5">
-                {(['status', 'locked', 'history'] as const).map((key) => (
-                  <div key={key} className="flex items-start gap-2">
-                    <ArrowRight className="w-3 h-3 text-amber-500 mt-0.5 shrink-0" />
-                    <span className="text-xs text-amber-700">{t(`transaction.cancelModal.impact.${key}`)}</span>
-                  </div>
-                ))}
+            <div className="rounded-lg border border-amber-200 bg-amber-50/50 p-3 sm:p-4 space-y-2">
+              <h3 className="text-xs font-semibold text-amber-800 flex items-center gap-1.5">
+                <AlertTriangle className="w-3.5 h-3.5" />
+                {t('transaction.cancelModal.impact.title')}
+              </h3>
+              <div className="space-y-2">
+                <div className="flex items-start gap-2">
+                  <Ban className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
+                  <span className="text-xs text-stone-700">{t('transaction.cancelModal.impact.status')}</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Lock className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
+                  <span className="text-xs text-stone-700">{t('transaction.cancelModal.impact.locked')}</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Check className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
+                  <span className="text-xs text-stone-700">{t('transaction.cancelModal.impact.history')}</span>
+                </div>
               </div>
             </div>
 
-            {/* Email toggle */}
-            <div className="flex items-center justify-between py-2">
-              <span className="text-sm text-stone-700">{t('transaction.cancelModal.emailToggle')}</span>
-              <button
-                type="button"
-                onClick={() => setCancelEmailNotify(!cancelEmailNotify)}
-                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${cancelEmailNotify ? 'bg-primary' : 'bg-stone-300'}`}
-              >
-                <span
-                  className={`inline-block h-3.5 w-3.5 rounded-full bg-white transition-transform ${cancelEmailNotify ? 'translate-x-[18px]' : 'translate-x-[3px]'}`}
-                />
-              </button>
+            {/* Email toggle with recipients */}
+            <div className="rounded-lg border border-stone-200 bg-white overflow-hidden">
+              <div className="flex items-center justify-between px-3 py-2.5">
+                <div className="flex items-center gap-2">
+                  <Mail className="w-4 h-4 text-stone-500" />
+                  <span className="text-xs font-medium text-stone-700">{t('transaction.cancelModal.emailToggle')}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setCancelEmailNotify(!cancelEmailNotify)}
+                  className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${cancelEmailNotify ? 'bg-primary' : 'bg-stone-300'}`}
+                >
+                  <span
+                    className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${cancelEmailNotify ? 'translate-x-4' : 'translate-x-0.5'}`}
+                  />
+                </button>
+              </div>
+              {cancelEmailNotify && (
+                <div className="px-3 pb-3 space-y-2 border-t border-stone-100 pt-2">
+                  <div className="text-xs text-stone-500">{t('transaction.cancelModal.emailToggle')} :</div>
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                      <span className="text-xs text-stone-700">{clientName}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Confirmation checkbox */}
@@ -473,7 +503,7 @@ export default function TransactionHeader({ transaction, onOpenEdit, onOpenMembe
                 onCheckedChange={(checked) => setCancelConfirmed(checked === true)}
                 className="mt-0.5"
               />
-              <span className="text-sm text-stone-600">{t('transaction.cancelModal.confirmLabel')}</span>
+              <span className="text-xs text-stone-700 font-medium">{t('transaction.cancelModal.confirmLabel')}</span>
             </label>
           </div>
 
@@ -500,35 +530,43 @@ export default function TransactionHeader({ transaction, onOpenEdit, onOpenMembe
           Cancel Success Modal — État E
           ═══════════════════════════════════════════════════════ */}
       <Dialog open={cancelSuccessOpen} onOpenChange={(open) => !open && setCancelSuccessOpen(false)}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-lg">
           <div className="flex flex-col items-center text-center py-4 space-y-4">
             <div className="w-14 h-14 rounded-full bg-amber-100 flex items-center justify-center">
               <Ban className="w-7 h-7 text-amber-600" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-stone-900">{t('transaction.cancelModal.successTitle')}</h3>
-              <p className="text-sm text-muted-foreground mt-1">{t('transaction.cancelModal.success')}</p>
+              <h3 className="text-base sm:text-lg font-bold text-stone-900">{t('transaction.cancelModal.successTitle')}</h3>
+              <p className="text-sm text-stone-500 mt-1">{clientName}</p>
             </div>
 
-            {/* Status cards */}
-            <div className="w-full grid grid-cols-3 gap-2">
-              <div className="rounded-lg bg-amber-50 border border-amber-200 p-2.5 text-center">
-                <Ban className="w-4 h-4 text-amber-500 mx-auto mb-1" />
-                <p className="text-[10px] font-medium text-amber-700">{t('transaction.status.cancelled')}</p>
+            {/* Status cards — 4 items like mockup */}
+            <div className="w-full space-y-2">
+              <div className="flex items-center gap-2 p-2.5 rounded-lg bg-amber-50 border border-amber-100">
+                <Ban className="w-4 h-4 text-amber-500 shrink-0" />
+                <span className="text-xs text-amber-800">{t('transaction.cancelModal.successCard1')}</span>
               </div>
-              <div className="rounded-lg bg-stone-50 border border-stone-200 p-2.5 text-center">
-                <Clock className="w-4 h-4 text-stone-400 mx-auto mb-1" />
-                <p className="text-[10px] font-medium text-stone-500">{t('transaction.cancelModal.impact.locked').substring(0, 20)}...</p>
+              <div className="flex items-center gap-2 p-2.5 rounded-lg bg-stone-50 border border-stone-200">
+                <Lock className="w-4 h-4 text-stone-500 shrink-0" />
+                <span className="text-xs text-stone-600">{t('transaction.cancelModal.successCard2')}</span>
               </div>
-              <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-2.5 text-center">
-                <Check className="w-4 h-4 text-emerald-500 mx-auto mb-1" />
-                <p className="text-[10px] font-medium text-emerald-700">{t('transaction.cancelModal.impact.history').substring(0, 20)}...</p>
+              <div className="flex items-center gap-2 p-2.5 rounded-lg bg-emerald-50 border border-emerald-100">
+                <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span className="text-xs text-emerald-800">{t('transaction.cancelModal.successCard3')}</span>
+              </div>
+              <div className="flex items-center gap-2 p-2.5 rounded-lg bg-stone-50 border border-stone-200">
+                <Mail className="w-4 h-4 text-stone-500 shrink-0" />
+                <span className="text-xs text-stone-600">{t('transaction.cancelModal.successCard4')}</span>
               </div>
             </div>
 
             {/* Hint: archive */}
             <div className="w-full rounded-lg border border-indigo-200 bg-indigo-50/50 p-3">
-              <p className="text-xs text-indigo-700">{t('transaction.cancelModal.successHint')}</p>
+              <h3 className="text-xs font-semibold text-indigo-800 flex items-center gap-1.5 mb-1">
+                <Zap className="w-3.5 h-3.5" />
+                {t('transaction.cancelModal.recommendedAction')}
+              </h3>
+              <p className="text-xs text-stone-600">{t('transaction.cancelModal.successHint')}</p>
             </div>
           </div>
 
@@ -558,7 +596,7 @@ export default function TransactionHeader({ transaction, onOpenEdit, onOpenMembe
           Archive Modal — État B
           ═══════════════════════════════════════════════════════ */}
       <Dialog open={archiveModalOpen} onOpenChange={(open) => !open && handleArchiveModalClose()}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
@@ -575,55 +613,68 @@ export default function TransactionHeader({ transaction, onOpenEdit, onOpenMembe
 
           <div className="space-y-4 py-2">
             {/* Transaction summary card */}
-            <div className="rounded-lg border border-stone-200 bg-stone-50 p-3">
+            <div className="rounded-lg border border-stone-200 bg-stone-50 p-3 sm:p-4">
               <div className="grid grid-cols-2 gap-3 text-xs">
                 <div>
                   <span className="text-stone-400">{t('transaction.client')}</span>
-                  <p className="font-medium text-stone-800 truncate">{clientName}</p>
+                  <p className="font-semibold text-stone-800 truncate">{clientName}</p>
                 </div>
                 <div>
                   <span className="text-stone-400">{t('transaction.type')}</span>
-                  <p className="font-medium text-stone-800">{transaction.type === 'purchase' ? t('transaction.types.purchase') : t('transaction.types.sale')}</p>
+                  <p className="font-semibold text-stone-800">{transaction.type === 'purchase' ? t('transaction.types.purchase') : t('transaction.types.sale')}</p>
                 </div>
                 {propertyAddress && (
-                  <div className="col-span-2">
+                  <div>
                     <span className="text-stone-400">{t('transaction.editModal.property')}</span>
-                    <p className="font-medium text-stone-800 truncate">{propertyAddress}</p>
+                    <p className="font-semibold text-stone-800 truncate">{propertyAddress}</p>
+                  </div>
+                )}
+                {transaction.salePrice && (
+                  <div>
+                    <span className="text-stone-400">{t('transaction.editModal.salePrice')}</span>
+                    <p className="font-semibold text-stone-800">{Number(transaction.salePrice).toLocaleString()} $</p>
                   </div>
                 )}
               </div>
-            </div>
-
-            {/* Reason */}
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium">{t('transaction.archiveModal.reason')}</label>
-              <textarea
-                value={archiveReason}
-                onChange={(e) => setArchiveReason(e.target.value)}
-                placeholder={t('transaction.archiveModal.reasonPlaceholder')}
-                className={`${inputClass} min-h-[70px] resize-none`}
-              />
+              {(transaction.closingDate || transaction.currentStep) && (
+                <div className="mt-2 pt-2 border-t border-stone-200 flex items-center gap-2 text-xs">
+                  {transaction.closingDate && (
+                    <>
+                      <span className="text-stone-500">{t('transaction.editModal.offerExpiry')} : <strong>{new Date(transaction.closingDate).toLocaleDateString()}</strong></span>
+                    </>
+                  )}
+                  {transaction.currentStep && transaction.transactionSteps && (
+                    <>
+                      {transaction.closingDate && <span className="text-stone-400">|</span>}
+                      <span className="text-stone-500">{t('transaction.step')} <strong>{transaction.currentStep.stepOrder} / {transaction.transactionSteps.length}</strong></span>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Impact section */}
-            <div className="rounded-lg border border-indigo-200 bg-indigo-50/50 p-3 space-y-2">
-              <p className="text-xs font-semibold text-indigo-700">{t('transaction.archiveModal.impact.title')}</p>
-              <div className="space-y-1.5">
+            <div className="rounded-lg border border-indigo-200 bg-indigo-50/50 p-3 sm:p-4 space-y-2">
+              <h3 className="text-xs font-semibold text-indigo-800 flex items-center gap-1.5">
+                <Info className="w-3.5 h-3.5" />
+                {t('transaction.archiveModal.impact.title')}
+              </h3>
+              <div className="space-y-2">
                 <div className="flex items-start gap-2">
-                  <ArrowRight className="w-3 h-3 text-indigo-500 mt-0.5 shrink-0" />
-                  <span className="text-xs text-indigo-700">{t('transaction.archiveModal.impact.hidden')}</span>
+                  <ArrowRight className="w-4 h-4 text-indigo-400 mt-0.5 shrink-0" />
+                  <span className="text-xs text-stone-700">{t('transaction.archiveModal.impact.hidden')}</span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <Check className="w-3 h-3 text-indigo-500 mt-0.5 shrink-0" />
-                  <span className="text-xs text-indigo-700">{t('transaction.archiveModal.impact.readable')}</span>
+                  <Check className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
+                  <span className="text-xs text-stone-700">{t('transaction.archiveModal.impact.readable')}</span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <Check className="w-3 h-3 text-indigo-500 mt-0.5 shrink-0" />
-                  <span className="text-xs text-indigo-700">{t('transaction.archiveModal.impact.preserved')}</span>
+                  <Check className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
+                  <span className="text-xs text-stone-700">{t('transaction.archiveModal.impact.preserved')}</span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <RotateCw className="w-3 h-3 text-indigo-500 mt-0.5 shrink-0" />
-                  <span className="text-xs text-indigo-700">{t('transaction.archiveModal.impact.restorable')}</span>
+                  <RotateCw className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
+                  <span className="text-xs text-stone-700">{t('transaction.archiveModal.impact.restorable')}</span>
                 </div>
               </div>
             </div>
@@ -635,7 +686,7 @@ export default function TransactionHeader({ transaction, onOpenEdit, onOpenMembe
                 onCheckedChange={(checked) => setArchiveConfirmed(checked === true)}
                 className="mt-0.5"
               />
-              <span className="text-sm text-stone-600">{t('transaction.archiveModal.confirmLabel')}</span>
+              <span className="text-xs text-stone-700 font-medium">{t('transaction.archiveModal.confirmLabel')}</span>
             </label>
           </div>
 
@@ -662,35 +713,35 @@ export default function TransactionHeader({ transaction, onOpenEdit, onOpenMembe
           Archive Success Modal — État C
           ═══════════════════════════════════════════════════════ */}
       <Dialog open={archiveSuccessOpen} onOpenChange={(open) => !open && setArchiveSuccessOpen(false)}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-lg">
           {/* Header banner */}
-          <div className="flex items-center gap-2 px-4 py-3 -mx-6 -mt-6 mb-2 bg-indigo-50 border-b border-indigo-100 rounded-t-lg">
-            <Archive className="w-4 h-4 text-indigo-600" />
-            <span className="text-sm font-medium text-indigo-700">{t('transaction.archiveModal.successTitle')}</span>
+          <div className="flex items-center gap-2 px-5 sm:px-6 py-2.5 -mx-6 -mt-6 mb-2 bg-indigo-50 border-b border-indigo-100 rounded-t-lg">
+            <Archive className="w-4 h-4 text-indigo-500" />
+            <span className="text-xs font-semibold text-indigo-700">{t('transaction.archiveModal.successTitle')}</span>
           </div>
 
           <div className="flex flex-col items-center text-center py-2 space-y-4">
             <div className="w-14 h-14 rounded-full bg-emerald-100 flex items-center justify-center">
-              <CheckCircle2 className="w-7 h-7 text-emerald-600" />
+              <Check className="w-7 h-7 text-emerald-600" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-stone-900">{t('transaction.archiveModal.success')}</h3>
-              <p className="text-sm text-muted-foreground mt-1">{t('transaction.archiveModal.description')}</p>
+              <h3 className="text-base sm:text-lg font-bold text-stone-900">{t('transaction.archiveModal.success')}</h3>
+              <p className="text-sm text-stone-500 mt-1">{clientName}{propertyAddress ? ` — ${propertyAddress}` : ''}</p>
             </div>
 
             {/* Status cards */}
-            <div className="w-full grid grid-cols-3 gap-2">
-              <div className="rounded-lg bg-indigo-50 border border-indigo-200 p-2.5 text-center">
-                <Archive className="w-4 h-4 text-indigo-500 mx-auto mb-1" />
-                <p className="text-[10px] font-medium text-indigo-700">{t('transaction.status.archived')}</p>
+            <div className="w-full space-y-2">
+              <div className="flex items-center gap-2 p-2.5 rounded-lg bg-indigo-50 border border-indigo-100">
+                <Archive className="w-4 h-4 text-indigo-500 shrink-0" />
+                <span className="text-xs text-indigo-800">{t('transaction.archiveModal.successCard1')}</span>
               </div>
-              <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-2.5 text-center">
-                <Check className="w-4 h-4 text-emerald-500 mx-auto mb-1" />
-                <p className="text-[10px] font-medium text-emerald-700 truncate">{t('transaction.archiveModal.impact.preserved').substring(0, 22)}...</p>
+              <div className="flex items-center gap-2 p-2.5 rounded-lg bg-emerald-50 border border-emerald-100">
+                <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span className="text-xs text-emerald-800">{t('transaction.archiveModal.successCard2')}</span>
               </div>
-              <div className="rounded-lg bg-stone-50 border border-stone-200 p-2.5 text-center">
-                <RotateCw className="w-4 h-4 text-stone-400 mx-auto mb-1" />
-                <p className="text-[10px] font-medium text-stone-500 truncate">{t('transaction.archiveModal.impact.restorable').substring(0, 22)}...</p>
+              <div className="flex items-center gap-2 p-2.5 rounded-lg bg-stone-50 border border-stone-200">
+                <RotateCw className="w-4 h-4 text-stone-500 shrink-0" />
+                <span className="text-xs text-stone-600">{t('transaction.archiveModal.successCard3')}</span>
               </div>
             </div>
           </div>
@@ -764,7 +815,7 @@ export default function TransactionHeader({ transaction, onOpenEdit, onOpenMembe
           Delete Modal — État F
           ═══════════════════════════════════════════════════════ */}
       <Dialog open={deleteModalOpen} onOpenChange={(open) => !open && handleDeleteModalClose()}>
-        <DialogContent className="sm:max-w-md border-2 border-red-200">
+        <DialogContent className="sm:max-w-lg border-2 border-red-200">
           {/* Danger banner */}
           <div className="flex items-center gap-2 px-4 py-2.5 -mx-6 -mt-6 mb-2 bg-red-50 border-b border-red-200 rounded-t-lg">
             <AlertTriangle className="w-4 h-4 text-red-600" />
@@ -802,41 +853,41 @@ export default function TransactionHeader({ transaction, onOpenEdit, onOpenMembe
             </div>
 
             {/* Type to confirm */}
-            <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-stone-600 uppercase tracking-wide">
                 {t('transaction.deleteModal.typeLabel')}{' '}
-                <span className="font-mono font-bold text-red-600 bg-red-50 px-1.5 py-0.5 rounded">{deleteTypeWord}</span>
-              </p>
+                <span className="font-mono text-red-600 bg-red-50 px-1.5 py-0.5 rounded normal-case">{deleteTypeWord}</span>
+              </label>
               <input
                 type="text"
                 value={deleteConfirmInput}
                 onChange={(e) => setDeleteConfirmInput(e.target.value)}
                 placeholder={t('transaction.deleteModal.typePlaceholder')}
-                className="w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500/50 bg-background font-mono"
+                className="w-full px-3 py-2.5 text-sm border border-red-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-300/50 bg-background font-mono"
                 autoComplete="off"
                 spellCheck="false"
               />
             </div>
 
-            {/* Checkbox 1 */}
-            <label className="flex items-start gap-2.5 px-3 py-2.5 rounded-lg border border-stone-200 bg-white cursor-pointer">
-              <Checkbox
-                checked={deleteCheck1}
-                onCheckedChange={(checked) => setDeleteCheck1(checked === true)}
-                className="mt-0.5 border-red-300 data-[state=checked]:bg-red-600 data-[state=checked]:border-red-600"
-              />
-              <span className="text-sm text-stone-600">{t('transaction.deleteModal.check1')}</span>
-            </label>
-
-            {/* Checkbox 2 */}
-            <label className="flex items-start gap-2.5 px-3 py-2.5 rounded-lg border border-stone-200 bg-white cursor-pointer">
-              <Checkbox
-                checked={deleteCheck2}
-                onCheckedChange={(checked) => setDeleteCheck2(checked === true)}
-                className="mt-0.5 border-red-300 data-[state=checked]:bg-red-600 data-[state=checked]:border-red-600"
-              />
-              <span className="text-sm text-stone-600">{t('transaction.deleteModal.check2')}</span>
-            </label>
+            {/* Checkboxes */}
+            <div className="space-y-2">
+              <label className="flex items-start gap-2.5 px-3 py-2.5 rounded-lg border border-red-100 bg-red-50/50 cursor-pointer">
+                <Checkbox
+                  checked={deleteCheck1}
+                  onCheckedChange={(checked) => setDeleteCheck1(checked === true)}
+                  className="mt-0.5 border-red-300 data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500"
+                />
+                <span className="text-xs text-red-800 font-medium">{t('transaction.deleteModal.check1')}</span>
+              </label>
+              <label className="flex items-start gap-2.5 px-3 py-2.5 rounded-lg border border-red-100 bg-red-50/50 cursor-pointer">
+                <Checkbox
+                  checked={deleteCheck2}
+                  onCheckedChange={(checked) => setDeleteCheck2(checked === true)}
+                  className="mt-0.5 border-red-300 data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500"
+                />
+                <span className="text-xs text-red-800 font-medium">{t('transaction.deleteModal.check2')}</span>
+              </label>
+            </div>
           </div>
 
           <DialogFooter className="gap-2 sm:gap-0">
