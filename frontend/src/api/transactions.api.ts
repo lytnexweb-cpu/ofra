@@ -2,7 +2,7 @@ import { http } from './http'
 import type { Client } from './clients.api'
 
 export type TransactionType = 'purchase' | 'sale'
-export type TransactionStatus = 'active' | 'cancelled'
+export type TransactionStatus = 'active' | 'cancelled' | 'archived'
 export type TransactionStepStatus = 'pending' | 'active' | 'completed' | 'skipped'
 
 export interface OfferRevision {
@@ -68,8 +68,17 @@ export interface Transaction {
   listPrice: number | null
   commission: number | null
   folderUrl: string | null
+  closingDate: string | null
+  offerExpiryDate: string | null
+  inspectionDeadline: string | null
+  financingDeadline: string | null
+  tags: string[] | null
+  language: string | null
+  cancellationCategory: string | null
   cancelledAt: string | null
   cancellationReason: string | null
+  archivedAt: string | null
+  archivedReason: string | null
   createdAt: string
   updatedAt: string
   client?: Client
@@ -103,6 +112,18 @@ export interface UpdateTransactionRequest {
   listPrice?: number
   commission?: number
   folderUrl?: string
+  closingDate?: string | null
+  offerExpiryDate?: string | null
+  inspectionDeadline?: string | null
+  financingDeadline?: string | null
+  tags?: string[]
+  language?: string
+  cancellationCategory?: string
+  address?: string
+  city?: string
+  postalCode?: string
+  province?: string
+  mlsNumber?: string
 }
 
 export interface ActivityEntry {
@@ -209,4 +230,10 @@ export const transactionsApi = {
       `/api/transactions/${id}/profile/load-pack`,
       dates ?? {}
     ),
+
+  archive: (id: number, reason?: string) =>
+    http.patch<{ transaction: Transaction }>(`/api/transactions/${id}/archive`, { reason }),
+
+  restore: (id: number) =>
+    http.patch<{ transaction: Transaction }>(`/api/transactions/${id}/restore`, {}),
 }

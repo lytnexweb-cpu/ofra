@@ -3,7 +3,13 @@ import { useParams, Link, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { transactionsApi } from '../api/transactions.api'
-import { TransactionHeader, SuggestionsPanel } from '../components/transaction'
+import {
+  TransactionHeader,
+  SuggestionsPanel,
+  EditTransactionModal,
+  MembersPanel,
+  ExportSharePanel,
+} from '../components/transaction'
 import { Button } from '../components/ui/Button'
 import { AlertCircle, Loader2, RefreshCw } from 'lucide-react'
 import VerticalTimeline from '../components/transaction/VerticalTimeline'
@@ -18,6 +24,11 @@ export default function TransactionDetailPage() {
   // E1 → C1: Auto-open suggestions panel from creation modal
   const [suggestionsOpen, setSuggestionsOpen] = useState(false)
   const closingDate = searchParams.get('closingDate')
+
+  // D34: Maquettes 07-12 panel states
+  const [editModalOpen, setEditModalOpen] = useState(false)
+  const [membersOpen, setMembersOpen] = useState(false)
+  const [exportOpen, setExportOpen] = useState(false)
 
   useEffect(() => {
     if (searchParams.get('suggestions') === 'open') {
@@ -76,7 +87,12 @@ export default function TransactionDetailPage() {
 
   return (
     <div data-testid="transaction-detail-page" className="pb-8">
-      <TransactionHeader transaction={transaction} />
+      <TransactionHeader
+        transaction={transaction}
+        onOpenEdit={() => setEditModalOpen(true)}
+        onOpenMembers={() => setMembersOpen(true)}
+        onOpenExport={() => setExportOpen(true)}
+      />
       <VerticalTimeline
         transaction={transaction}
         highlightConditionId={highlightId}
@@ -87,6 +103,22 @@ export default function TransactionDetailPage() {
         onClose={() => setSuggestionsOpen(false)}
         transaction={transaction}
         closingDate={closingDate}
+      />
+      <EditTransactionModal
+        isOpen={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        transaction={transaction}
+      />
+      <MembersPanel
+        isOpen={membersOpen}
+        onClose={() => setMembersOpen(false)}
+        transactionId={transaction.id}
+        ownerUserId={transaction.ownerUserId}
+      />
+      <ExportSharePanel
+        isOpen={exportOpen}
+        onClose={() => setExportOpen(false)}
+        transactionId={transaction.id}
       />
     </div>
   )

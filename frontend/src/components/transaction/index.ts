@@ -27,3 +27,9 @@ export { default as ConditionValidationModal } from './ConditionValidationModal'
 export { default as EscapeConfirmationModal } from './EscapeConfirmationModal'
 export { default as EvidenceUploader } from './EvidenceUploader'
 export { default as EvidenceBadge } from './EvidenceBadge'
+
+// D34: Maquettes 07-12
+export { default as EditTransactionModal } from './EditTransactionModal'
+export { default as DocumentsSection } from './DocumentsSection'
+export { default as MembersPanel } from './MembersPanel'
+export { default as ExportSharePanel } from './ExportSharePanel'

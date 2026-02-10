@@ -411,12 +411,29 @@
     "emptyCta": "Créer ma première transaction",
     "status": {
       "active": "Active",
-      "cancelled": "Annulée"
+      "cancelled": "Annulée",
+      "archived": "Archivée"
     },
     "actions": {
       "cancel": "Annuler la transaction",
       "delete": "Supprimer définitivement",
-      "moreActions": "Plus d'actions"
+      "archive": "Archiver",
+      "restore": "Restaurer",
+      "edit": "Modifier la transaction",
+      "members": "Permissions",
+      "export": "Exporter / Partager",
+      "moreActions": "Plus d'actions",
+      "dropdownTitle": "Actions transaction",
+      "dropdownInfo": "Les actions ci-dessous impactent l'historique de la transaction.",
+      "editDescription": "Modifier les informations de cette transaction",
+      "membersDescription": "Gérer les accès et permissions des collaborateurs",
+      "exportDescription": "Télécharger en PDF ou partager un lien",
+      "archiveDescription": "Masquer des transactions actives (réversible)",
+      "cancelDescription": "Statut « Annulée » — raison obligatoire",
+      "deleteDescription": "Irréversible — transactions test/erreur uniquement",
+      "adminRequired": "Admin requis",
+      "backToList": "Retour liste",
+      "viewTransaction": "Voir la transaction"
     },
     "cancelModal": {
       "title": "Annuler la transaction",
@@ -432,7 +449,24 @@
         "other": "Autre"
       },
       "confirm": "Confirmer l'annulation",
-      "success": "Transaction annulée avec succès"
+      "success": "Transaction annulée avec succès",
+      "note": "Note",
+      "noteOptional": "(optionnel)",
+      "noteRequired": "(obligatoire)",
+      "noteHint": "Note obligatoire pour « Autre »",
+      "notePlaceholder": "Ajoutez des détails sur l'annulation...",
+      "impact": {
+        "title": "Impact de l'annulation",
+        "status": "Le statut passera à « Annulée »",
+        "locked": "Les actions (offres, conditions) seront bloquées",
+        "history": "Historique conservé en lecture seule"
+      },
+      "emailToggle": "Notifier les parties par email",
+      "confirmLabel": "Je confirme vouloir annuler cette transaction",
+      "successTitle": "Transaction annulée",
+      "successHint": "Archivez cette transaction pour la retirer de votre liste active.",
+      "archiveNow": "Archiver maintenant",
+      "backToTransaction": "Retour transaction"
     },
     "deleteModal": {
       "title": "Supprimer définitivement",
@@ -443,7 +477,70 @@
       "termsLink": "conditions d'utilisation",
       "inputPlaceholder": "Tapez la phrase ci-dessus...",
       "confirm": "Supprimer définitivement",
-      "success": "Transaction supprimée"
+      "success": "Transaction supprimée",
+      "dangerBanner": "ACTION IRRÉVERSIBLE",
+      "warningTitle": "Cette action est irréversible",
+      "warningText": "La transaction et tout son historique seront supprimés définitivement :",
+      "warningItems": {
+        "offers": "Offres, conditions, notes",
+        "documents": "Documents attachés et pièces justificatives",
+        "history": "Journal d'activité et historique de modifications"
+      },
+      "warningFooter": "Aucune restauration possible après suppression.",
+      "recommendation": "Recommandé uniquement pour les transactions test, draft ou créées par erreur. Sinon, préférez Archiver ou Annuler.",
+      "typeLabel": "Confirmez en tapant",
+      "typeWord": "SUPPRIMER",
+      "typePlaceholder": "Tapez SUPPRIMER ici...",
+      "check1": "Je comprends que cette action est irréversible et que toutes les données seront perdues",
+      "check2": "Je confirme que c'est une transaction test / créée par erreur",
+      "successMessage": "La transaction et son historique ont été supprimés définitivement."
+    },
+    "archiveModal": {
+      "title": "Archiver la transaction",
+      "description": "La transaction sera archivée et masquée de la liste active. Vous pourrez la restaurer à tout moment.",
+      "reason": "Raison (optionnelle)",
+      "reasonPlaceholder": "Pourquoi archivez-vous cette transaction ?",
+      "confirm": "Archiver",
+      "success": "Transaction archivée",
+      "impact": {
+        "title": "Ce qui va se passer",
+        "hidden": "Disparaît de la liste des transactions actives",
+        "readable": "Reste consultable via le filtre « Archivées »",
+        "preserved": "Historique complet conservé (offres, conditions, notes)",
+        "restorable": "Restaurable à tout moment depuis les archives"
+      },
+      "confirmLabel": "Je comprends que cette transaction sera masquée des transactions actives",
+      "successTitle": "Transaction archivée"
+    },
+    "restoreModal": {
+      "title": "Restaurer la transaction",
+      "description": "La transaction sera restaurée et apparaîtra de nouveau dans votre liste active.",
+      "confirm": "Restaurer",
+      "success": "Transaction restaurée"
+    },
+    "editModal": {
+      "title": "Modifier la transaction",
+      "description": "Modifiez les informations de la transaction.",
+      "generalInfo": "Informations générales",
+      "salePrice": "Prix de vente",
+      "listPrice": "Prix demandé",
+      "commission": "Commission (%)",
+      "keyDates": "Dates clés",
+      "offerExpiry": "Expiration de l'offre",
+      "inspectionDeadline": "Échéance inspection",
+      "financingDeadline": "Échéance financement",
+      "property": "Propriété",
+      "city": "Ville",
+      "postalCode": "Code postal",
+      "province": "Province",
+      "mlsNumber": "Numéro MLS",
+      "other": "Autres",
+      "tags": "Étiquettes",
+      "tagsPlaceholder": "ex: urgente, VIP, premier achat",
+      "tagsHint": "Séparez les étiquettes par des virgules",
+      "language": "Langue du dossier",
+      "folderUrl": "URL du dossier",
+      "success": "Transaction mise à jour"
     },
     "filter": {
       "showCancelled": "Afficher les annulées",
@@ -870,7 +967,27 @@
     "requiredFields": "Champs obligatoires",
     "validPriceRequired": "Un prix valide est requis.",
     "failedCreate": "Échec de la création de l'offre",
-    "failedCounter": "Échec de la soumission de la contre-offre"
+    "failedCounter": "Échec de la soumission de la contre-offre",
+    "createModal": {
+      "vsListPrice": "vs prix demandé",
+      "depositDeadline": "Date limite dépôt",
+      "closingDate": "Date de clôture",
+      "financingToggle": "Financement hypothécaire",
+      "inspectionToggle": "Inspection requise",
+      "inspectionDelay": "Délai d'inspection (jours)",
+      "inspectionDelayHint": "Nombre de jours ouvrables après acceptation",
+      "inclusions": "Inclusions",
+      "inclusionsPlaceholder": "Électroménagers, rideaux, etc.",
+      "message": "Message à l'autre partie",
+      "messagePlaceholder": "Message accompagnant l'offre..."
+    },
+    "packs": {
+      "title": "Packs de conditions",
+      "description": "Sélectionnez un pack pour pré-charger les conditions pertinentes.",
+      "loaded": "Pack chargé",
+      "conditionsCount": "condition(s)",
+      "noTemplates": "Aucun modèle disponible pour ce pack."
+    }
   },
   "clients": {
     "new": "Nouveau client",
@@ -1167,5 +1284,108 @@
       "upgrade": "Mettre à niveau",
       "viewTransactions": "Voir les transactions"
     }
+  },
+  "documents": {
+    "title": "Documents",
+    "add": "Ajouter",
+    "empty": "Aucun document pour le moment.",
+    "categories": {
+      "offer": "Offre",
+      "inspection": "Inspection",
+      "financing": "Financement",
+      "identity": "Identité",
+      "legal": "Légal",
+      "other": "Autre"
+    },
+    "status": {
+      "missing": "Manquant",
+      "uploaded": "Téléversé",
+      "validated": "Validé",
+      "rejected": "Rejeté"
+    },
+    "validate": "Valider",
+    "reject": "Rejeter",
+    "validated": "Document validé",
+    "rejected": "Document rejeté",
+    "deleted": "Document supprimé",
+    "addSuccess": "Document ajouté",
+    "addModal": {
+      "title": "Ajouter un document",
+      "description": "Ajoutez un document ou un lien vers un fichier.",
+      "name": "Nom du document",
+      "namePlaceholder": "ex: Certificat de localisation",
+      "category": "Catégorie",
+      "fileUrl": "URL du fichier"
+    },
+    "rejectModal": {
+      "title": "Rejeter le document",
+      "description": "Indiquez la raison du rejet.",
+      "reason": "Raison du rejet",
+      "reasonPlaceholder": "Expliquez pourquoi ce document est rejeté..."
+    }
+  },
+  "members": {
+    "title": "Permissions & Rôles",
+    "owner": "Propriétaire",
+    "ownerLabel": "Propriétaire du dossier",
+    "membersList": "Membres",
+    "empty": "Aucun membre invité pour le moment.",
+    "invite": "Inviter un membre",
+    "inviteTitle": "Inviter un nouveau membre",
+    "emailLabel": "Adresse courriel",
+    "roleLabel": "Rôle",
+    "messageLabel": "Message (optionnel)",
+    "messagePlaceholder": "Message d'invitation personnalisé...",
+    "sendInvite": "Envoyer l'invitation",
+    "inviteSuccess": "Invitation envoyée",
+    "roleUpdated": "Rôle mis à jour",
+    "revoked": "Accès révoqué",
+    "revoke": "Révoquer l'accès",
+    "roles": {
+      "viewer": "Lecteur",
+      "editor": "Éditeur",
+      "admin": "Administrateur"
+    },
+    "status": {
+      "active": "Actif",
+      "pending": "En attente",
+      "revoked": "Révoqué"
+    }
+  },
+  "export": {
+    "title": "Exporter & Partager",
+    "pdfTitle": "Export PDF",
+    "pdfDescription": "Générez un PDF récapitulatif de la transaction.",
+    "sections": "Sections à inclure",
+    "section": {
+      "offers": "Offres",
+      "conditions": "Conditions",
+      "documents": "Documents",
+      "history": "Historique"
+    },
+    "watermark": "Filigrane Ofra",
+    "language": "Langue du PDF",
+    "generatePdf": "Générer le PDF",
+    "generating": "Génération en cours...",
+    "pdfReady": "PDF prêt",
+    "pdfFailed": "Échec de la génération du PDF",
+    "emailTitle": "Récap par courriel",
+    "emailDescription": "Envoyez un récapitulatif par courriel.",
+    "emailSent": "Courriel envoyé"
+  },
+  "shareLink": {
+    "title": "Lien partageable",
+    "description": "Créez un lien de partage pour cette transaction.",
+    "create": "Créer un lien",
+    "created": "Lien créé",
+    "active": "Actif",
+    "inactive": "Inactif",
+    "copied": "Lien copié",
+    "expiresAt": "Expire le",
+    "expiryDate": "Date d'expiration",
+    "password": "Mot de passe (optionnel)",
+    "passwordPlaceholder": "Laisser vide si pas de mot de passe",
+    "passwordProtected": "Protégé",
+    "views": "vue(s)"
   }
 }

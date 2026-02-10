@@ -411,12 +411,29 @@
     "emptyCta": "Create my first transaction",
     "status": {
       "active": "Active",
-      "cancelled": "Cancelled"
+      "cancelled": "Cancelled",
+      "archived": "Archived"
     },
     "actions": {
       "cancel": "Cancel Transaction",
       "delete": "Delete Permanently",
-      "moreActions": "More actions"
+      "archive": "Archive",
+      "restore": "Restore",
+      "edit": "Edit Transaction",
+      "members": "Permissions",
+      "export": "Export / Share",
+      "moreActions": "More actions",
+      "dropdownTitle": "Transaction actions",
+      "dropdownInfo": "The actions below affect the transaction history.",
+      "editDescription": "Edit this transaction's information",
+      "membersDescription": "Manage collaborator access and permissions",
+      "exportDescription": "Download as PDF or share a link",
+      "archiveDescription": "Hide from active transactions (reversible)",
+      "cancelDescription": "Status \"Cancelled\" — reason required",
+      "deleteDescription": "Irreversible — test/error transactions only",
+      "adminRequired": "Admin required",
+      "backToList": "Back to list",
+      "viewTransaction": "View transaction"
     },
     "cancelModal": {
       "title": "Cancel Transaction",
@@ -432,7 +449,24 @@
         "other": "Other"
       },
       "confirm": "Confirm Cancellation",
-      "success": "Transaction cancelled successfully"
+      "success": "Transaction cancelled successfully",
+      "note": "Note",
+      "noteOptional": "(optional)",
+      "noteRequired": "(required)",
+      "noteHint": "Note required for \"Other\"",
+      "notePlaceholder": "Add details about the cancellation...",
+      "impact": {
+        "title": "Cancellation impact",
+        "status": "Status will change to \"Cancelled\"",
+        "locked": "Actions (offers, conditions) will be locked",
+        "history": "History preserved as read-only"
+      },
+      "emailToggle": "Notify parties by email",
+      "confirmLabel": "I confirm I want to cancel this transaction",
+      "successTitle": "Transaction cancelled",
+      "successHint": "Archive this transaction to remove it from your active list.",
+      "archiveNow": "Archive now",
+      "backToTransaction": "Back to transaction"
     },
     "deleteModal": {
       "title": "Delete Permanently",
@@ -443,7 +477,70 @@
       "termsLink": "terms of service",
       "inputPlaceholder": "Type the phrase above...",
       "confirm": "Delete Permanently",
-      "success": "Transaction deleted"
+      "success": "Transaction deleted",
+      "dangerBanner": "IRREVERSIBLE ACTION",
+      "warningTitle": "This action is irreversible",
+      "warningText": "The transaction and all its history will be permanently deleted:",
+      "warningItems": {
+        "offers": "Offers, conditions, notes",
+        "documents": "Attached documents and supporting files",
+        "history": "Activity log and modification history"
+      },
+      "warningFooter": "No recovery possible after deletion.",
+      "recommendation": "Recommended only for test, draft or mistakenly created transactions. Otherwise, prefer Archive or Cancel.",
+      "typeLabel": "Confirm by typing",
+      "typeWord": "DELETE",
+      "typePlaceholder": "Type DELETE here...",
+      "check1": "I understand this action is irreversible and all data will be lost",
+      "check2": "I confirm this is a test / mistakenly created transaction",
+      "successMessage": "The transaction and its history have been permanently deleted."
+    },
+    "archiveModal": {
+      "title": "Archive Transaction",
+      "description": "The transaction will be archived and hidden from the active list. You can restore it at any time.",
+      "reason": "Reason (optional)",
+      "reasonPlaceholder": "Why are you archiving this transaction?",
+      "confirm": "Archive",
+      "success": "Transaction archived",
+      "impact": {
+        "title": "What will happen",
+        "hidden": "Disappears from the active transactions list",
+        "readable": "Remains accessible via the \"Archived\" filter",
+        "preserved": "Full history preserved (offers, conditions, notes)",
+        "restorable": "Restorable at any time from the archives"
+      },
+      "confirmLabel": "I understand this transaction will be hidden from active transactions",
+      "successTitle": "Transaction archived"
+    },
+    "restoreModal": {
+      "title": "Restore Transaction",
+      "description": "The transaction will be restored and appear again in your active list.",
+      "confirm": "Restore",
+      "success": "Transaction restored"
+    },
+    "editModal": {
+      "title": "Edit Transaction",
+      "description": "Modify the transaction information.",
+      "generalInfo": "General Information",
+      "salePrice": "Sale Price",
+      "listPrice": "List Price",
+      "commission": "Commission (%)",
+      "keyDates": "Key Dates",
+      "offerExpiry": "Offer Expiry",
+      "inspectionDeadline": "Inspection Deadline",
+      "financingDeadline": "Financing Deadline",
+      "property": "Property",
+      "city": "City",
+      "postalCode": "Postal Code",
+      "province": "Province",
+      "mlsNumber": "MLS Number",
+      "other": "Other",
+      "tags": "Tags",
+      "tagsPlaceholder": "e.g. urgent, VIP, first-time buyer",
+      "tagsHint": "Separate tags with commas",
+      "language": "File Language",
+      "folderUrl": "Folder URL",
+      "success": "Transaction updated"
     },
     "filter": {
       "showCancelled": "Show cancelled",
@@ -870,7 +967,27 @@
     "requiredFields": "Required Fields",
     "validPriceRequired": "A valid price is required.",
     "failedCreate": "Failed to create offer",
-    "failedCounter": "Failed to submit counter-offer"
+    "failedCounter": "Failed to submit counter-offer",
+    "createModal": {
+      "vsListPrice": "vs list price",
+      "depositDeadline": "Deposit Deadline",
+      "closingDate": "Closing Date",
+      "financingToggle": "Mortgage financing",
+      "inspectionToggle": "Inspection required",
+      "inspectionDelay": "Inspection delay (days)",
+      "inspectionDelayHint": "Business days after acceptance",
+      "inclusions": "Inclusions",
+      "inclusionsPlaceholder": "Appliances, curtains, etc.",
+      "message": "Message to other party",
+      "messagePlaceholder": "Message accompanying the offer..."
+    },
+    "packs": {
+      "title": "Condition Packs",
+      "description": "Select a pack to pre-load relevant conditions.",
+      "loaded": "Pack loaded",
+      "conditionsCount": "condition(s)",
+      "noTemplates": "No templates available for this pack."
+    }
   },
   "clients": {
     "new": "New Client",
@@ -1167,5 +1284,108 @@
       "upgrade": "Upgrade",
       "viewTransactions": "View transactions"
     }
+  },
+  "documents": {
+    "title": "Documents",
+    "add": "Add",
+    "empty": "No documents yet.",
+    "categories": {
+      "offer": "Offer",
+      "inspection": "Inspection",
+      "financing": "Financing",
+      "identity": "Identity",
+      "legal": "Legal",
+      "other": "Other"
+    },
+    "status": {
+      "missing": "Missing",
+      "uploaded": "Uploaded",
+      "validated": "Validated",
+      "rejected": "Rejected"
+    },
+    "validate": "Validate",
+    "reject": "Reject",
+    "validated": "Document validated",
+    "rejected": "Document rejected",
+    "deleted": "Document deleted",
+    "addSuccess": "Document added",
+    "addModal": {
+      "title": "Add Document",
+      "description": "Add a document or a link to a file.",
+      "name": "Document name",
+      "namePlaceholder": "e.g. Location certificate",
+      "category": "Category",
+      "fileUrl": "File URL"
+    },
+    "rejectModal": {
+      "title": "Reject Document",
+      "description": "Provide the reason for rejection.",
+      "reason": "Rejection reason",
+      "reasonPlaceholder": "Explain why this document is rejected..."
+    }
+  },
+  "members": {
+    "title": "Permissions & Roles",
+    "owner": "Owner",
+    "ownerLabel": "File owner",
+    "membersList": "Members",
+    "empty": "No members invited yet.",
+    "invite": "Invite a member",
+    "inviteTitle": "Invite a new member",
+    "emailLabel": "Email address",
+    "roleLabel": "Role",
+    "messageLabel": "Message (optional)",
+    "messagePlaceholder": "Custom invitation message...",
+    "sendInvite": "Send invitation",
+    "inviteSuccess": "Invitation sent",
+    "roleUpdated": "Role updated",
+    "revoked": "Access revoked",
+    "revoke": "Revoke access",
+    "roles": {
+      "viewer": "Viewer",
+      "editor": "Editor",
+      "admin": "Admin"
+    },
+    "status": {
+      "active": "Active",
+      "pending": "Pending",
+      "revoked": "Revoked"
+    }
+  },
+  "export": {
+    "title": "Export & Share",
+    "pdfTitle": "PDF Export",
+    "pdfDescription": "Generate a PDF summary of the transaction.",
+    "sections": "Sections to include",
+    "section": {
+      "offers": "Offers",
+      "conditions": "Conditions",
+      "documents": "Documents",
+      "history": "History"
+    },
+    "watermark": "Ofra watermark",
+    "language": "PDF language",
+    "generatePdf": "Generate PDF",
+    "generating": "Generating...",
+    "pdfReady": "PDF ready",
+    "pdfFailed": "Failed to generate PDF",
+    "emailTitle": "Email recap",
+    "emailDescription": "Send a summary by email.",
+    "emailSent": "Email sent"
+  },
+  "shareLink": {
+    "title": "Shareable Link",
+    "description": "Create a sharing link for this transaction.",
+    "create": "Create link",
+    "created": "Link created",
+    "active": "Active",
+    "inactive": "Inactive",
+    "copied": "Link copied",
+    "expiresAt": "Expires",
+    "expiryDate": "Expiry date",
+    "password": "Password (optional)",
+    "passwordPlaceholder": "Leave empty for no password",
+    "passwordProtected": "Protected",
+    "views": "view(s)"
   }
 }
