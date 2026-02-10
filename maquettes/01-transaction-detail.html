@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Maquette 01 — Transaction Detail v4</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwindcss.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#1e3a5f',
+            accent: '#e07a2f',
+          },
+          fontFamily: {
+            outfit: ['Outfit', 'system-ui', 'sans-serif'],
+          },
+        },
+      },
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    .pulse-dot { animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    .section-label { font-size: 11px; letter-spacing: 0.5px; text-transform: uppercase; font-weight: 600; }
+    .new-badge {
+      background: #6366f1; color: white; font-size: 8px; font-weight: 700;
+      padding: 1px 5px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.5px;
+      opacity: 0.85;
+    }
+    .viewport-btn.active { background: #1e3a5f; color: white; }
+    .viewport-frame { transition: width 0.4s ease, max-width 0.4s ease; margin: 0 auto; }
+    .tooltip-wrapper { position: relative; }
+    .tooltip-wrapper .tooltip-text {
+      visibility: hidden; opacity: 0; position: absolute; bottom: calc(100% + 6px); left: 50%;
+      transform: translateX(-50%); background: #1e293b; color: white; padding: 4px 10px;
+      border-radius: 6px; font-size: 11px; white-space: nowrap; transition: opacity 0.2s; z-index: 50;
+    }
+    .tooltip-wrapper:hover .tooltip-text { visibility: visible; opacity: 1; }
+  </style>
+</head>
+<body class="bg-stone-200 min-h-screen">
+
+  <!-- ============================================== -->
+  <!-- VIEWPORT SWITCHER                               -->
+  <!-- ============================================== -->
+  <div class="fixed top-0 left-0 right-0 bg-stone-800 text-white z-[100] shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="text-sm font-bold font-outfit">MAQUETTE 01</span>
+        <span class="text-xs text-stone-400">Transaction Detail v4</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="setViewport('mobile')" id="btn-mobile" class="viewport-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-stone-700 hover:bg-stone-600 transition-colors flex items-center gap-1.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2" stroke-width="2"/><circle cx="12" cy="18" r="1" fill="currentColor"/></svg>
+          Mobile (375px)
+        </button>
+        <button onclick="setViewport('tablet')" id="btn-tablet" class="viewport-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-stone-700 hover:bg-stone-600 transition-colors flex items-center gap-1.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2" stroke-width="2"/><circle cx="12" cy="18" r="1" fill="currentColor"/></svg>
+          Tablette (768px)
+        </button>
+        <button onclick="setViewport('desktop')" id="btn-desktop" class="viewport-btn active px-3 py-1.5 rounded-lg text-xs font-medium bg-stone-700 hover:bg-stone-600 transition-colors flex items-center gap-1.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" stroke-width="2"/><path stroke-width="2" d="M8 21h8M12 17v4"/></svg>
+          Desktop (1280px)
+        </button>
+      </div>
+      <div class="text-xs text-stone-400">v4 — 6 ajustements</div>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- VIEWPORT FRAME                                  -->
+  <!-- ============================================== -->
+  <div class="pt-16 pb-8 px-4">
+    <div id="viewport-frame" class="viewport-frame bg-white shadow-2xl rounded-xl overflow-hidden border border-stone-300" style="width: 100%; max-width: 1280px;">
+
+      <!-- MOBILE HEADER -->
+      <div id="mobile-header" class="bg-white border-b border-stone-200" style="display: none;">
+        <div class="flex items-center justify-between px-4 h-14">
+          <span class="text-lg font-bold text-primary font-outfit">Ofra</span>
+          <div class="flex items-center gap-2">
+            <button class="p-2 rounded-lg text-stone-500">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+            </button>
+            <button class="p-2 rounded-lg text-stone-500">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex">
+        <!-- DESKTOP SIDEBAR -->
+        <aside id="sidebar" class="w-64 bg-primary min-h-screen shrink-0">
+          <div class="px-6 py-5 border-b border-white/10">
+            <span class="text-xl font-bold text-white font-outfit">Ofra</span>
+          </div>
+          <nav class="px-4 py-6 space-y-1">
+            <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg text-white/70 hover:bg-white/10 text-sm">Dashboard</a>
+            <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg bg-white/15 text-white text-sm font-medium">Transactions</a>
+            <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg text-white/70 hover:bg-white/10 text-sm">Clients</a>
+            <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg text-white/70 hover:bg-white/10 text-sm">Paramètres</a>
+          </nav>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <div class="flex-1 min-w-0 bg-stone-50">
+          <header id="desktop-topbar" class="flex items-center justify-end h-16 px-8 bg-white border-b border-stone-200"></header>
+
+          <main id="main-content" class="p-4 sm:p-6 lg:p-8">
+            <div class="max-w-4xl mx-auto">
+
+              <!-- ============================================== -->
+              <!-- HEADER                                          -->
+              <!-- ============================================== -->
+              <div class="mb-5">
+                <a href="#" class="inline-flex items-center gap-1.5 text-sm text-stone-500 hover:text-primary mb-3">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                  Transactions
+                </a>
+
+                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                  <div class="min-w-0">
+                    <h1 class="text-xl sm:text-2xl font-bold text-stone-900 font-outfit">Marie-Claire Dupont</h1>
+                    <p class="text-sm text-stone-400 mt-0.5 truncate">123 rue Principale, Moncton</p>
+                  </div>
+                  <button class="self-start p-2 rounded-lg hover:bg-stone-100 text-stone-400 shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                  </button>
+                </div>
+
+                <!-- Info pills + CONTACT RAPIDE (Appeler + Email) -->
+                <div class="flex flex-wrap items-center gap-2 mt-2">
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Achat</span>
+                  <span class="text-sm text-stone-600 font-semibold">350 000 $</span>
+                  <span class="text-xs text-emerald-600 font-medium">(offre acceptée : 340 000 $)</span>
+                  <span class="text-stone-300">|</span>
+                  <a href="tel:5065551234" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-stone-100 text-stone-600 hover:bg-primary/10 hover:text-primary transition-colors">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                    Appeler
+                  </a>
+                  <!-- AJOUT: Email -->
+                  <a href="mailto:mc.dupont@email.com" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-stone-100 text-stone-600 hover:bg-primary/10 hover:text-primary transition-colors">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                    Email
+                  </a>
+                </div>
+
+                <!-- FERMETURE PREVUE — 2 lignes -->
+                <div class="mt-3">
+                  <div class="rounded-lg bg-primary/5 border border-primary/10 overflow-hidden">
+                    <div class="flex items-center gap-3 px-3 py-2.5">
+                      <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                        <svg class="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                      </div>
+                      <div class="flex-1 min-w-0">
+                        <span class="text-xs text-stone-500">Fermeture prévue</span>
+                        <div class="flex items-baseline gap-2 flex-wrap">
+                          <span class="text-base sm:text-lg font-bold text-primary">15 mars 2026</span>
+                          <span class="text-sm font-semibold text-accent">dans 34 jours</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="flex items-center gap-3 px-3 py-2 bg-primary/[0.03] border-t border-primary/10">
+                      <div class="w-9 shrink-0"></div>
+                      <div class="flex items-center gap-2 flex-1">
+                        <span class="text-xs text-stone-500">Étape</span>
+                        <span class="text-sm font-bold text-primary" data-bind="currentStep/totalSteps">4 / 8</span>
+                        <div class="flex-1 max-w-[120px] h-1.5 bg-stone-200 rounded-full overflow-hidden">
+                          <div class="h-full bg-primary rounded-full transition-all" style="width: 50%"></div>
+                        </div>
+                        <span class="text-[10px] text-stone-400">Période conditionnelle</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ============================================== -->
+                <!-- PROCHAINES ACTIONS (cockpit)                    -->
+                <!-- Juste sous Fermeture prévue                     -->
+                <!-- ============================================== -->
+                <div class="mt-3">
+                  <div class="rounded-lg border border-amber-200 bg-amber-50/50 p-3">
+                    <h3 class="text-xs font-semibold text-amber-800 flex items-center gap-1.5 mb-2">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                      Prochaines actions
+                    </h3>
+                    <div class="space-y-1.5">
+                      <!-- Action 1: urgent -->
+                      <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-white border border-red-100">
+                        <div class="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0"></div>
+                        <span class="text-xs text-stone-700 flex-1">Financement approuvé</span>
+                        <span class="text-[10px] font-bold text-red-600">-2j</span>
+                        <button class="text-[10px] font-medium text-primary hover:underline shrink-0">Relancer</button>
+                      </div>
+                      <!-- Action 2: soon -->
+                      <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-white border border-amber-100">
+                        <div class="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></div>
+                        <span class="text-xs text-stone-700 flex-1">Inspection en bâtiment</span>
+                        <span class="text-[10px] font-medium text-amber-600">3j</span>
+                        <button class="text-[10px] font-medium text-primary hover:underline shrink-0">Planifier</button>
+                      </div>
+                      <!-- Action 3: ok -->
+                      <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-white border border-stone-100">
+                        <div class="w-1.5 h-1.5 rounded-full bg-stone-300 shrink-0"></div>
+                        <span class="text-xs text-stone-700 flex-1">Certificat de localisation</span>
+                        <span class="text-[10px] font-medium text-stone-400">11j</span>
+                        <button class="text-[10px] font-medium text-primary hover:underline shrink-0">Suivre</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ============================================== -->
+              <!-- PROFIL PROPRIETE                                -->
+              <!-- ============================================== -->
+              <div class="mb-5">
+                <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-3 sm:p-4">
+                  <div class="flex items-center justify-between mb-2">
+                    <h3 class="text-xs sm:text-sm font-semibold text-stone-700 flex items-center gap-2">
+                      <svg class="w-4 h-4 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                      Profil propriété
+                    </h3>
+                    <button class="text-xs text-primary hover:underline font-medium flex items-center gap-1">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                      Modifier
+                    </button>
+                  </div>
+                  <div class="flex flex-wrap gap-1.5">
+                    <span class="px-2 py-0.5 rounded-full bg-stone-100 text-stone-600 text-xs">Résidentiel</span>
+                    <span class="px-2 py-0.5 rounded-full bg-stone-100 text-stone-600 text-xs">Urbain / Banlieue</span>
+                    <span class="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-xs">Financé</span>
+                    <span class="px-2 py-0.5 rounded-full bg-stone-100 text-stone-600 text-xs">Pas de condo</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ============================================== -->
+              <!-- OFFRES — 3 ÉTATS (Reçue / Acceptée / Refusée)   -->
+              <!-- Actions dynamiques selon statut                  -->
+              <!-- ============================================== -->
+              <div class="mb-5">
+                <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-3 sm:p-4">
+                  <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-xs sm:text-sm font-semibold text-stone-700 flex items-center gap-2">
+                      <svg class="w-4 h-4 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                      Offres
+                      <span class="text-xs text-stone-400 font-normal">(3)</span>
+                    </h3>
+                    <button class="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-white bg-primary hover:bg-primary/90 rounded-lg">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                      <span class="hidden sm:inline">Nouvelle offre</span>
+                      <span class="sm:hidden">Offre</span>
+                    </button>
+                  </div>
+
+                  <!-- ─── OFFRE 1: REÇUE (en attente d'action) ─── -->
+                  <div class="border border-blue-200 rounded-lg mb-2 bg-blue-50/30">
+                    <div class="px-3 sm:px-4 py-3 flex items-center justify-between">
+                      <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+                        <span class="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">Reçue</span>
+                        <span class="text-sm font-semibold text-stone-900">345 000 $</span>
+                        <span class="text-xs text-stone-400 hidden sm:inline">Acheteur &rarr; Vendeur</span>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <span class="text-xs text-stone-400 hidden sm:inline">8 fév.</span>
+                        <svg class="w-4 h-4 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                      </div>
+                    </div>
+                    <div class="px-3 sm:px-4 pb-3 border-t border-blue-100">
+                      <div class="py-2 grid grid-cols-3 gap-2 text-xs">
+                        <div><span class="text-stone-400">Prix</span><p class="font-medium">345 000 $</p></div>
+                        <div><span class="text-stone-400">Dépôt</span><p class="font-medium">10 000 $</p></div>
+                        <div><span class="text-stone-400">Financement</span><p class="font-medium">280 000 $</p></div>
+                      </div>
+                      <p class="text-xs text-stone-500 italic mb-2">"Offre conditionnelle à l'inspection"</p>
+                      <!-- Mapping correct: Reçue → étape "Offre soumise / négociation" -->
+                      <div class="flex items-center gap-1.5 mb-2 px-2 py-1.5 rounded bg-indigo-50 border border-indigo-100">
+                        <svg class="w-3.5 h-3.5 text-indigo-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        <span class="text-xs text-indigo-700">Concerne étape : <strong>2. Offre soumise</strong> — en négociation</span>
+                      </div>
+                      <!-- Actions REÇUE: Accepter / Contre-offre / Refuser -->
+                      <div class="flex flex-wrap items-center gap-1.5 pt-2 border-t border-blue-100">
+                        <div class="tooltip-wrapper">
+                          <button class="px-2.5 py-1 text-xs font-medium rounded-lg bg-emerald-500 text-white hover:bg-emerald-600">Accepter</button>
+                          <span class="tooltip-text">Complétera « Offre acceptée » et démarrera la période conditionnelle</span>
+                        </div>
+                        <button class="px-2.5 py-1 text-xs font-medium rounded-lg bg-blue-500 text-white hover:bg-blue-600">Contre-offre</button>
+                        <button class="px-2.5 py-1 text-xs font-medium rounded-lg bg-red-500 text-white hover:bg-red-600">Refuser</button>
+                        <button class="px-2.5 py-1 text-xs font-medium rounded-lg text-stone-500 hover:bg-stone-100 ml-auto">Retirer</button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- ─── HISTORIQUE OFFRES (mobile: toggle / desktop: visible) ─── -->
+                  <!-- Mobile: bouton "Voir historique" → toggle -->
+                  <button onclick="document.getElementById('offers-history').classList.toggle('hidden'); this.querySelector('span').textContent = document.getElementById('offers-history').classList.contains('hidden') ? 'Voir historique (2)' : 'Masquer historique'" class="sm:hidden w-full flex items-center justify-center gap-1.5 py-2 mb-2 rounded-lg border border-dashed border-stone-200 text-xs text-stone-500 hover:bg-stone-50">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span>Voir historique (2)</span>
+                  </button>
+
+                  <!-- Desktop: toujours visible / Mobile: hidden par défaut -->
+                  <div id="offers-history" class="hidden sm:block space-y-2">
+                    <!-- ─── OFFRE 2: ACCEPTÉE ─── -->
+                    <div class="border border-emerald-200 rounded-lg bg-emerald-50/30">
+                      <div class="px-3 sm:px-4 py-3 flex items-center justify-between">
+                        <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+                          <span class="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">Acceptée</span>
+                          <span class="text-sm font-semibold text-stone-900">340 000 $</span>
+                          <span class="text-xs text-stone-400 hidden sm:inline">Acheteur &rarr; Vendeur</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                          <span class="text-xs text-stone-400 hidden sm:inline">5 fév.</span>
+                          <svg class="w-4 h-4 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                      </div>
+                      <div class="px-3 sm:px-4 pb-3 border-t border-emerald-100">
+                        <div class="py-2 grid grid-cols-3 gap-2 text-xs">
+                          <div><span class="text-stone-400">Prix</span><p class="font-medium">340 000 $</p></div>
+                          <div><span class="text-stone-400">Dépôt</span><p class="font-medium">10 000 $</p></div>
+                          <div><span class="text-stone-400">Financement</span><p class="font-medium">270 000 $</p></div>
+                        </div>
+                        <div class="flex items-center gap-1.5 mb-2 px-2 py-1.5 rounded bg-emerald-50 border border-emerald-200">
+                          <svg class="w-3.5 h-3.5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                          <span class="text-xs text-emerald-700">A déclenché : <strong>3. Offre acceptée</strong> &rarr; <strong>4. Période conditionnelle</strong></span>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-1.5 pt-2 border-t border-emerald-100">
+                          <button class="px-2.5 py-1 text-xs font-medium rounded-lg border border-stone-200 text-stone-600 hover:bg-stone-50">Voir détails</button>
+                          <button class="px-2.5 py-1 text-xs font-medium rounded-lg border border-primary/30 text-primary hover:bg-primary/5">Addenda</button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- ─── OFFRE 3: REFUSÉE (collapsed) ─── -->
+                    <div class="border border-stone-100 rounded-lg">
+                      <div class="px-3 sm:px-4 py-3 flex items-center justify-between">
+                        <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+                          <span class="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">Refusée</span>
+                          <span class="text-sm text-stone-400 line-through">330 000 $</span>
+                          <span class="text-xs text-stone-300 hidden sm:inline">Aucun impact workflow</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                          <button class="px-2 py-0.5 text-[10px] font-medium rounded text-stone-400 hover:text-stone-600 hover:bg-stone-50 hidden sm:block">Restaurer</button>
+                          <svg class="w-4 h-4 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ============================================== -->
+              <!-- VERTICAL TIMELINE — 8 STEPS                     -->
+              <!-- Source de vérité: nb_workflow_template_seeder    -->
+              <!-- ============================================== -->
+              <div class="space-y-0">
+
+                <!--
+                  WORKFLOW STEPS (8) — dynamique via config:
+                  1. Consultation acheteur/vendeur
+                  2. Offre soumise
+                  3. Offre acceptée
+                  4. Période conditionnelle       ← ACTIVE
+                  5. Fermeture en attente
+                  6. Tâches pré-clôture
+                  7. Jour de clôture / Remise des clés
+                  8. Suivi post-clôture
+                -->
+
+                <!-- STEP 1: COMPLETED -->
+                <div class="relative flex gap-3 sm:gap-4">
+                  <div class="flex flex-col items-center">
+                    <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-emerald-500 flex items-center justify-center shrink-0">
+                      <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                    </div>
+                    <div class="w-0.5 flex-1 bg-emerald-300 min-h-[20px]"></div>
+                  </div>
+                  <div class="flex-1 pb-4 sm:pb-5">
+                    <button class="w-full flex items-center justify-between text-left">
+                      <div class="flex items-center gap-2 min-w-0">
+                        <span class="text-sm font-semibold text-stone-900">1. Consultation acheteur/vendeur</span>
+                        <span class="text-xs text-stone-400 hidden sm:inline">28 jan.</span>
+                        <svg class="w-3 h-3 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                      </div>
+                      <svg class="w-4 h-4 text-stone-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div class="mt-1 text-xs text-stone-400">{N} conditions</div>
+                  </div>
+                </div>
+
+                <!-- STEP 2: COMPLETED -->
+                <div class="relative flex gap-3 sm:gap-4">
+                  <div class="flex flex-col items-center">
+                    <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-emerald-500 flex items-center justify-center shrink-0">
+                      <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                    </div>
+                    <div class="w-0.5 flex-1 bg-emerald-300 min-h-[20px]"></div>
+                  </div>
+                  <div class="flex-1 pb-4 sm:pb-5">
+                    <button class="w-full flex items-center justify-between text-left">
+                      <div class="flex items-center gap-2 min-w-0">
+                        <span class="text-sm font-semibold text-stone-900">2. Offre soumise</span>
+                        <span class="text-xs text-stone-400 hidden sm:inline">2 fev.</span>
+                        <svg class="w-3 h-3 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                      </div>
+                      <svg class="w-4 h-4 text-stone-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div class="mt-1 text-xs text-stone-400">{N} conditions</div>
+                  </div>
+                </div>
+
+                <!-- STEP 3: COMPLETED -->
+                <div class="relative flex gap-3 sm:gap-4">
+                  <div class="flex flex-col items-center">
+                    <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-emerald-500 flex items-center justify-center shrink-0">
+                      <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                    </div>
+                    <div class="w-0.5 flex-1 bg-emerald-300 min-h-[20px]"></div>
+                  </div>
+                  <div class="flex-1 pb-4 sm:pb-5">
+                    <button class="w-full flex items-center justify-between text-left">
+                      <div class="flex items-center gap-2 min-w-0">
+                        <span class="text-sm font-semibold text-stone-900">3. Offre acceptee</span>
+                        <span class="text-xs text-stone-400 hidden sm:inline">5 fev.</span>
+                        <svg class="w-3 h-3 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                      </div>
+                      <svg class="w-4 h-4 text-stone-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div class="mt-1 text-xs text-stone-400">{N} conditions</div>
+                  </div>
+                </div>
+
+                <!-- STEP 4: ACTIVE — Période conditionnelle -->
+                <div class="relative flex gap-3 sm:gap-4">
+                  <div class="flex flex-col items-center">
+                    <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary flex items-center justify-center shrink-0 ring-4 ring-primary/20">
+                      <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white pulse-dot" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <div class="w-0.5 flex-1 bg-stone-200 min-h-[20px]"></div>
+                  </div>
+                  <div class="flex-1 pb-4 sm:pb-6">
+                    <div class="mb-3">
+                      <span class="text-sm font-bold text-primary">4. Période conditionnelle</span>
+                      <span class="text-xs text-stone-400 ml-2">5 jours</span>
+                    </div>
+
+                    <!-- Conditions -->
+                    <div class="space-y-3">
+                      <!-- BLOCKING -->
+                      <div>
+                        <div class="flex items-center gap-1.5 mb-1.5">
+                          <svg class="w-3.5 h-3.5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.618 5.984A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                          <span class="section-label text-red-600">Bloquantes ({N})</span>
+                        </div>
+                        <div class="space-y-1.5 ml-5">
+                          <div class="flex items-center gap-2 p-2.5 rounded-lg bg-red-50 border border-red-100">
+                            <input type="checkbox" class="w-4 h-4 rounded border-red-300 text-red-500 shrink-0">
+                            <div class="flex-1 min-w-0">
+                              <div class="flex items-center gap-1.5 flex-wrap">
+                                <span class="text-sm text-stone-800">Inspection en batiment</span>
+                                <span class="px-1 py-0.5 rounded text-[10px] font-medium bg-indigo-100 text-indigo-700">Universal</span>
+                                <span class="px-1 py-0.5 rounded text-[10px] font-medium bg-sky-100 text-sky-700">Industry</span>
+                                <span class="px-1 py-0.5 rounded text-[10px] font-medium bg-stone-100 text-stone-400">Generee</span>
+                              </div>
+                              <p class="text-xs text-emerald-600 font-medium mt-0.5">dans 3j</p>
+                            </div>
+                          </div>
+                          <div class="flex items-center gap-2 p-2.5 rounded-lg bg-red-50 border border-red-200">
+                            <input type="checkbox" class="w-4 h-4 rounded border-red-300 text-red-500 shrink-0">
+                            <div class="flex-1 min-w-0">
+                              <div class="flex items-center gap-1.5 flex-wrap">
+                                <span class="text-sm text-stone-800">Financement approuve</span>
+                                <span class="px-1 py-0.5 rounded text-[10px] font-medium bg-indigo-100 text-indigo-700">Finance NB</span>
+                                <span class="px-1 py-0.5 rounded text-[10px] font-medium bg-sky-100 text-sky-700">Legal</span>
+                                <span class="px-1 py-0.5 rounded text-[10px] font-medium bg-stone-100 text-stone-400">Generee</span>
+                              </div>
+                              <p class="text-xs text-red-700 font-bold mt-0.5">EN RETARD -2j</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <!-- REQUIRED -->
+                      <div>
+                        <div class="flex items-center gap-1.5 mb-1.5">
+                          <svg class="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+                          <span class="section-label text-amber-600">Requises ({N})</span>
+                        </div>
+                        <div class="space-y-1.5 ml-5">
+                          <div class="flex items-center gap-2 p-2.5 rounded-lg bg-amber-50 border border-amber-100">
+                            <input type="checkbox" class="w-4 h-4 rounded border-amber-300 text-amber-500 shrink-0">
+                            <div class="flex-1 min-w-0">
+                              <div class="flex items-center gap-1.5 flex-wrap">
+                                <span class="text-sm text-stone-800">Certificat de localisation</span>
+                                <span class="px-1 py-0.5 rounded text-[10px] font-medium bg-indigo-100 text-indigo-700">Rural NB</span>
+                                <span class="px-1 py-0.5 rounded text-[10px] font-medium bg-sky-100 text-sky-700">Industry</span>
+                                <span class="px-1 py-0.5 rounded text-[10px] font-medium bg-stone-100 text-stone-400">Generee</span>
+                              </div>
+                              <p class="text-xs text-amber-600 mt-0.5">dans 11j</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <!-- RECOMMENDED -->
+                      <div>
+                        <div class="flex items-center gap-1.5 mb-1.5">
+                          <svg class="w-3.5 h-3.5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                          <span class="section-label text-stone-500">Recommandees ({N})</span>
+                        </div>
+                        <div class="space-y-1.5 ml-5">
+                          <div class="flex items-center gap-2 p-2.5 rounded-lg bg-emerald-50/50 border border-emerald-100">
+                            <input type="checkbox" checked class="w-4 h-4 rounded border-emerald-300 text-emerald-500 shrink-0">
+                            <div class="flex-1 min-w-0">
+                              <div class="flex items-center gap-1.5 flex-wrap">
+                                <span class="text-sm text-stone-400 line-through">Test de radon</span>
+                                <span class="text-xs text-emerald-600 font-medium">Fait</span>
+                                <span class="px-1 py-0.5 rounded text-[10px] font-medium bg-indigo-100 text-indigo-700">Rural NB</span>
+                                <span class="px-1 py-0.5 rounded text-[10px] font-medium bg-sky-100 text-sky-700">Best practice</span>
+                                <span class="px-1 py-0.5 rounded text-[10px] font-medium bg-stone-100 text-stone-400">Generee</span>
+                              </div>
+                            </div>
+                          </div>
+                          <!-- Auto-archivage hint -->
+                          <p class="text-[10px] text-stone-400 italic ml-1 flex items-center gap-1">
+                            <svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Non resolues = auto-archivees « non applicable » a la validation. Astuce : resolubles rapidement via toggle.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Inline actions -->
+                    <div class="mt-3 flex flex-wrap items-center gap-2">
+                      <button class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-primary hover:bg-primary/5 rounded-lg border border-stone-200">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        Condition
+                      </button>
+                      <div class="tooltip-wrapper">
+                        <button class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-accent hover:bg-accent/5 rounded-lg border border-stone-200">
+                          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+                          Pack recommande
+                        </button>
+                        <span class="tooltip-text">Charger le pack recommande (additif)</span>
+                      </div>
+                    </div>
+
+                    <!-- ================================================ -->
+                    <!-- ACTION ZONE — CTA unique "Valider l'étape"        -->
+                    <!-- "Passer" retiré du MVP (action avancée via ...)    -->
+                    <!-- ================================================ -->
+                    <div class="mt-4 p-3 sm:p-4 rounded-xl bg-white border border-stone-200 shadow-sm">
+                      <div class="flex flex-wrap items-center gap-1.5 mb-3">
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-xs font-medium">{N} Bloquantes</span>
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-xs font-medium">{N} Requises</span>
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-50 text-red-600 text-xs font-medium">-{N}j</span>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <!-- CTA unique: disabled tant que bloquantes non résolues -->
+                        <div class="tooltip-wrapper flex-1">
+                          <button disabled class="w-full px-4 py-2.5 rounded-lg bg-stone-200 text-stone-400 cursor-not-allowed text-sm font-medium flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Valider l'étape
+                          </button>
+                          <span class="tooltip-text">{N} bloquantes + {N} requises non resolues</span>
+                        </div>
+                        <!-- Menu avancé (...) -->
+                        <div class="tooltip-wrapper">
+                          <button class="p-2 rounded-lg border border-stone-200 text-stone-400 hover:bg-stone-50 hover:text-stone-600">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+                          </button>
+                          <span class="tooltip-text">Passer à l'étape suivante, Annuler...</span>
+                        </div>
+                      </div>
+                      <p class="text-[11px] text-stone-400 mt-2 flex items-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        Resolvez les conditions bloquantes et requises pour valider. Une confirmation sera demandee.
+                      </p>
+                    </div>
+
+                    <!-- NOTES -->
+                    <div class="mt-4 p-3 sm:p-4 rounded-xl bg-white border border-stone-200 shadow-sm">
+                      <h3 class="text-xs sm:text-sm font-semibold text-stone-700 flex items-center gap-2 mb-2">
+                        <svg class="w-4 h-4 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
+                        Notes
+                      </h3>
+                      <div class="space-y-2 mb-3">
+                        <div class="p-2.5 rounded-lg bg-stone-50">
+                          <p class="text-sm text-stone-700">Le vendeur demande 48h pour l'inspection.</p>
+                          <p class="text-xs text-stone-400 mt-1">Sam &middot; 7 fév.</p>
+                        </div>
+                      </div>
+                      <div class="flex gap-2">
+                        <textarea rows="2" placeholder="Ajouter une note..." class="flex-1 px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"></textarea>
+                        <button class="self-end px-3 py-2 text-sm font-medium rounded-lg bg-primary text-white hover:bg-primary/90">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                        </button>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+
+                <!-- STEP 5: FUTURE -->
+                <div class="relative flex gap-3 sm:gap-4 opacity-50">
+                  <div class="flex flex-col items-center">
+                    <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-stone-300 flex items-center justify-center shrink-0"><span class="text-xs font-semibold text-stone-400">5</span></div>
+                    <div class="w-0.5 flex-1 bg-stone-200 min-h-[16px]"></div>
+                  </div>
+                  <div class="flex-1 pb-3 sm:pb-4 pt-1"><span class="text-sm font-semibold text-stone-500">5. Fermeture en attente</span></div>
+                </div>
+                <!-- STEP 6 -->
+                <div class="relative flex gap-3 sm:gap-4 opacity-50">
+                  <div class="flex flex-col items-center">
+                    <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-stone-300 flex items-center justify-center shrink-0"><span class="text-xs font-semibold text-stone-400">6</span></div>
+                    <div class="w-0.5 flex-1 bg-stone-200 min-h-[16px]"></div>
+                  </div>
+                  <div class="flex-1 pb-3 sm:pb-4 pt-1"><span class="text-sm font-semibold text-stone-500">6. Tâches pré-clôture</span></div>
+                </div>
+                <!-- STEP 7 -->
+                <div class="relative flex gap-3 sm:gap-4 opacity-50">
+                  <div class="flex flex-col items-center">
+                    <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-stone-300 flex items-center justify-center shrink-0"><span class="text-xs font-semibold text-stone-400">7</span></div>
+                    <div class="w-0.5 flex-1 bg-stone-200 min-h-[16px]"></div>
+                  </div>
+                  <div class="flex-1 pb-3 sm:pb-4 pt-1"><span class="text-sm font-semibold text-stone-500">7. Jour de clôture / Remise des clés</span></div>
+                </div>
+                <!-- STEP 8 -->
+                <div class="relative flex gap-3 sm:gap-4 opacity-50">
+                  <div class="flex flex-col items-center">
+                    <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-stone-300 flex items-center justify-center shrink-0"><span class="text-xs font-semibold text-stone-400">8</span></div>
+                  </div>
+                  <div class="flex-1 pb-3 sm:pb-4 pt-1"><span class="text-sm font-semibold text-stone-500">8. Suivi post-clôture</span></div>
+                </div>
+
+              </div>
+
+              <!-- History -->
+              <div class="mt-4 text-center pb-8">
+                <button class="inline-flex items-center gap-2 px-4 py-2 text-sm text-stone-500 hover:text-primary hover:bg-stone-100 rounded-lg">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  Historique complet
+                </button>
+              </div>
+
+            </div>
+          </main>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- VIEWPORT SCRIPT -->
+  <script>
+    function setViewport(mode) {
+      const frame = document.getElementById('viewport-frame');
+      const sidebar = document.getElementById('sidebar');
+      const topbar = document.getElementById('desktop-topbar');
+      const mobileHeader = document.getElementById('mobile-header');
+      document.querySelectorAll('.viewport-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('btn-' + mode).classList.add('active');
+      if (mode === 'mobile') {
+        frame.style.maxWidth = '375px'; sidebar.style.display = 'none'; topbar.style.display = 'none'; mobileHeader.style.display = 'block';
+      } else if (mode === 'tablet') {
+        frame.style.maxWidth = '768px'; sidebar.style.display = 'none'; topbar.style.display = 'none'; mobileHeader.style.display = 'block';
+      } else {
+        frame.style.maxWidth = '1280px'; sidebar.style.display = 'block'; topbar.style.display = 'flex'; mobileHeader.style.display = 'none';
+      }
+    }
+  </script>
+
+</body>
+</html>

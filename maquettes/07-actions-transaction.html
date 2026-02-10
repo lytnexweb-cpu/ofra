@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Maquette 07 — Actions transaction (Archiver / Annuler / Supprimer)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwindcss.config = {
+      theme: {
+        extend: {
+          colors: { primary: '#1e3a5f', accent: '#e07a2f' },
+          fontFamily: { outfit: ['Outfit', 'system-ui', 'sans-serif'] },
+        },
+      },
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    .viewport-btn.active { background: #1e3a5f; color: white; }
+    .viewport-frame { transition: width 0.4s ease, max-width 0.4s ease; margin: 0 auto; overflow: hidden; }
+    .overlay {
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(2px);
+      overflow-y: auto;
+    }
+    .modal-enter {
+      animation: modalIn 0.2s ease-out;
+      display: flex;
+      flex-direction: column;
+      max-height: calc(100% - 2rem);
+    }
+    .modal-body {
+      overflow-y: auto;
+      flex: 1;
+      min-height: 0;
+    }
+    @keyframes modalIn { from { opacity: 0; transform: scale(0.95) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+
+    .mobile-mode { overflow-y: auto !important; }
+    .mobile-mode .overlay { align-items: flex-end; padding: 0; }
+    .mobile-mode .modal-enter {
+      max-width: 100%; border-radius: 1rem 1rem 0 0;
+      max-height: 92%; animation: sheetUp 0.25s ease-out;
+    }
+    .mobile-mode .mobile-handle { display: flex; }
+    .mobile-mode .modal-header { padding-top: 0.75rem; }
+    @keyframes sheetUp { from { opacity: 0; transform: translateY(100%); } to { opacity: 1; transform: translateY(0); } }
+
+    .state-section { display: none; }
+    .state-section.active { display: block; }
+    .state-btn.active { background: #1e3a5f; color: white; }
+
+    /* Dropdown menu */
+    .dropdown-menu { animation: dropIn 0.15s ease-out; }
+    @keyframes dropIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+    .menu-item { transition: background 0.1s; }
+    .menu-item:hover { background: #f5f5f4; }
+    .menu-item.danger:hover { background: #fef2f2; }
+    .menu-item.disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+  </style>
+</head>
+<body class="bg-stone-200 min-h-screen">
+
+  <!-- VIEWPORT SWITCHER -->
+  <div class="fixed top-0 left-0 right-0 bg-stone-800 text-white z-[100] shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="text-sm font-bold font-outfit">MAQUETTE 07</span>
+        <span class="text-xs text-stone-400">Actions transaction — Archiver / Annuler / Supprimer</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="setViewport('mobile')" id="btn-mobile" class="viewport-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-stone-700 hover:bg-stone-600 transition-colors">Mobile (375px)</button>
+        <button onclick="setViewport('tablet')" id="btn-tablet" class="viewport-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-stone-700 hover:bg-stone-600 transition-colors">Tablette (768px)</button>
+        <button onclick="setViewport('desktop')" id="btn-desktop" class="viewport-btn active px-3 py-1.5 rounded-lg text-xs font-medium bg-stone-700 hover:bg-stone-600 transition-colors">Desktop (1280px)</button>
+      </div>
+      <div class="flex items-center gap-2">
+        <label class="flex items-center gap-1.5 cursor-pointer">
+          <span class="text-xs text-stone-400">Admin</span>
+          <button id="admin-toggle" onclick="toggleAdmin()" class="relative inline-flex h-4 w-7 items-center rounded-full bg-stone-600 transition-colors">
+            <span id="admin-dot" class="inline-block h-2.5 w-2.5 transform rounded-full bg-white shadow transition-transform translate-x-0.5"></span>
+          </button>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATE SWITCHER -->
+  <div class="fixed top-[52px] left-0 right-0 bg-stone-700 text-white z-[99] border-t border-stone-600">
+    <div class="max-w-7xl mx-auto px-4 py-2 flex items-center gap-2 flex-wrap">
+      <span class="text-xs text-stone-400 font-medium">ETAT :</span>
+      <button onclick="showState('menu')" id="state-menu" class="state-btn active px-2.5 py-1 rounded-md text-xs font-medium bg-stone-600 hover:bg-stone-500 transition-colors">A — Menu</button>
+      <button onclick="showState('archive')" id="state-archive" class="state-btn px-2.5 py-1 rounded-md text-xs font-medium bg-stone-600 hover:bg-stone-500 transition-colors">B — Archiver</button>
+      <button onclick="showState('archive-ok')" id="state-archive-ok" class="state-btn px-2.5 py-1 rounded-md text-xs font-medium bg-stone-600 hover:bg-stone-500 transition-colors">C — Succes archive</button>
+      <button onclick="showState('cancel')" id="state-cancel" class="state-btn px-2.5 py-1 rounded-md text-xs font-medium bg-stone-600 hover:bg-stone-500 transition-colors">D — Annuler</button>
+      <button onclick="showState('cancel-ok')" id="state-cancel-ok" class="state-btn px-2.5 py-1 rounded-md text-xs font-medium bg-stone-600 hover:bg-stone-500 transition-colors">E — Succes annulee</button>
+      <button onclick="showState('delete')" id="state-delete" class="state-btn px-2.5 py-1 rounded-md text-xs font-medium bg-stone-600 hover:bg-stone-500 transition-colors">F — Supprimer</button>
+      <button onclick="showState('delete-ok')" id="state-delete-ok" class="state-btn px-2.5 py-1 rounded-md text-xs font-medium bg-stone-600 hover:bg-stone-500 transition-colors">G — Succes supprimee</button>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- STATE A — Menu Actions (dropdown)               -->
+  <!-- ============================================== -->
+  <div id="state-menu-section" class="state-section active pt-28 pb-8 px-4">
+    <div id="viewport-frame-a" class="viewport-frame bg-stone-100 shadow-2xl rounded-xl border border-stone-300 relative" style="width: 100%; max-width: 1280px; height: 80vh;">
+
+      <!-- Fond simule: header transaction -->
+      <div class="absolute inset-0 p-4 sm:p-8">
+        <div class="max-w-4xl mx-auto">
+          <!-- Simulated breadcrumb -->
+          <div class="h-4 bg-stone-200 rounded w-24 mb-4"></div>
+          <!-- Simulated header row -->
+          <div class="flex items-start justify-between mb-4">
+            <div>
+              <div class="h-7 bg-stone-300 rounded w-56 mb-2"></div>
+              <div class="h-4 bg-stone-200 rounded w-40"></div>
+            </div>
+            <!-- "..." button with dropdown -->
+            <div class="relative">
+              <button class="p-2 rounded-lg bg-white border border-stone-200 text-stone-500 shadow-sm">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+              </button>
+
+              <!-- Dropdown ouvert -->
+              <div class="dropdown-menu absolute right-0 top-12 w-64 bg-white rounded-xl shadow-xl border border-stone-200 overflow-hidden z-50">
+                <div class="px-3 py-2 border-b border-stone-100">
+                  <span class="text-[10px] text-stone-400 uppercase tracking-wide font-semibold">Actions transaction</span>
+                </div>
+
+                <!-- Archiver -->
+                <button class="menu-item w-full text-left px-3 py-2.5 flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0">
+                    <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
+                  </div>
+                  <div>
+                    <span class="text-sm font-medium text-stone-800">Archiver</span>
+                    <p class="text-[10px] text-stone-400">Masquer des transactions actives (reversible)</p>
+                  </div>
+                </button>
+
+                <!-- Annuler -->
+                <button class="menu-item w-full text-left px-3 py-2.5 flex items-center gap-3 border-t border-stone-50">
+                  <div class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
+                    <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                  </div>
+                  <div>
+                    <span class="text-sm font-medium text-stone-800">Annuler la transaction</span>
+                    <p class="text-[10px] text-stone-400">Statut « Annulee » — raison obligatoire</p>
+                  </div>
+                </button>
+
+                <div class="border-t border-stone-100"></div>
+
+                <!-- Supprimer (admin only) -->
+                <button id="menu-delete-btn" class="menu-item danger disabled w-full text-left px-3 py-2.5 flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
+                    <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                  </div>
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <span class="text-sm font-medium text-red-600">Supprimer definitivement</span>
+                      <span id="menu-admin-badge" class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-stone-100 text-stone-400">Admin requis</span>
+                    </div>
+                    <p class="text-[10px] text-stone-400">Irreversible — transactions test/erreur uniquement</p>
+                  </div>
+                </button>
+
+                <div class="px-3 py-2 bg-stone-50 border-t border-stone-100">
+                  <p class="text-[10px] text-stone-400 italic flex items-center gap-1">
+                    <svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Les actions ci-dessous impactent l'historique de la transaction.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Simulated content -->
+          <div class="h-32 bg-stone-200 rounded mb-4"></div>
+          <div class="h-48 bg-stone-200 rounded"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- STATE B — Modal Archiver                        -->
+  <!-- ============================================== -->
+  <div id="state-archive-section" class="state-section pt-28 pb-8 px-4">
+    <div id="viewport-frame-b" class="viewport-frame bg-stone-100 shadow-2xl rounded-xl border border-stone-300 relative" style="width: 100%; max-width: 1280px; height: 80vh;">
+      <div class="absolute inset-0 flex items-center justify-center p-4 sm:p-8">
+        <div class="w-full max-w-4xl opacity-30">
+          <div class="h-8 bg-stone-300 rounded mb-4 w-48"></div>
+          <div class="h-4 bg-stone-200 rounded mb-2 w-64"></div>
+          <div class="h-32 bg-stone-200 rounded mb-4"></div>
+          <div class="h-48 bg-stone-200 rounded"></div>
+        </div>
+      </div>
+
+      <div class="overlay absolute inset-0 z-40 flex items-center justify-center p-4">
+        <div class="modal-enter bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
+          <div class="mobile-handle hidden justify-center pt-2 pb-1">
+            <div class="w-10 h-1 rounded-full bg-stone-300"></div>
+          </div>
+
+          <div class="modal-header px-5 sm:px-6 pt-5 sm:pt-6 pb-4 border-b border-stone-100">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
+                  <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
+                </div>
+                <div>
+                  <h2 class="text-base sm:text-lg font-bold text-stone-900 font-outfit">Archiver la transaction ?</h2>
+                  <p class="text-xs text-stone-500 mt-0.5">Action reversible — restaurable a tout moment</p>
+                </div>
+              </div>
+              <button class="p-1.5 rounded-lg hover:bg-stone-100 text-stone-400 -mt-1 -mr-1">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="modal-body px-5 sm:px-6 py-4 space-y-4">
+            <!-- Resume transaction -->
+            <div class="rounded-lg bg-stone-50 border border-stone-200 p-3 sm:p-4">
+              <div class="grid grid-cols-2 gap-3 text-xs">
+                <div>
+                  <span class="text-stone-400">Client</span>
+                  <p class="font-semibold text-stone-800">Marie-Claire Dupont</p>
+                </div>
+                <div>
+                  <span class="text-stone-400">Type</span>
+                  <p class="font-semibold text-stone-800">Achat</p>
+                </div>
+                <div>
+                  <span class="text-stone-400">Adresse</span>
+                  <p class="font-semibold text-stone-800">123 rue Principale, Moncton</p>
+                </div>
+                <div>
+                  <span class="text-stone-400">Prix</span>
+                  <p class="font-semibold text-stone-800">350 000 $</p>
+                </div>
+              </div>
+              <div class="mt-2 pt-2 border-t border-stone-200 flex items-center gap-2 text-xs">
+                <svg class="w-3.5 h-3.5 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                <span class="text-stone-500">Fermeture prevue : <strong>15 mars 2026</strong></span>
+                <span class="text-stone-400">|</span>
+                <span class="text-stone-500">Etape <strong>4 / 8</strong></span>
+              </div>
+            </div>
+
+            <!-- Impact -->
+            <div class="rounded-lg border border-indigo-200 bg-indigo-50/50 p-3 sm:p-4">
+              <h3 class="text-xs font-semibold text-indigo-800 flex items-center gap-1.5 mb-2">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Ce qui va se passer
+              </h3>
+              <div class="space-y-2">
+                <div class="flex items-start gap-2">
+                  <svg class="w-4 h-4 text-indigo-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                  <span class="text-xs text-stone-700">Disparait de la liste des <strong>transactions actives</strong></span>
+                </div>
+                <div class="flex items-start gap-2">
+                  <svg class="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                  <span class="text-xs text-stone-700">Reste consultable via le filtre <strong>« Archivees »</strong></span>
+                </div>
+                <div class="flex items-start gap-2">
+                  <svg class="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                  <span class="text-xs text-stone-700"><strong>Historique complet</strong> conserve (offres, conditions, notes)</span>
+                </div>
+                <div class="flex items-start gap-2">
+                  <svg class="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                  <span class="text-xs text-stone-700"><strong>Restaurable</strong> a tout moment depuis les archives</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Checkbox confirmation -->
+            <label class="flex items-start gap-2.5 cursor-pointer px-3 py-2.5 rounded-lg border border-stone-200 bg-white">
+              <input type="checkbox" id="archive-confirm" class="mt-0.5 w-4 h-4 rounded border-stone-300 text-primary focus:ring-primary/20" onchange="updateArchiveCta()">
+              <span class="text-xs text-stone-700 font-medium">Je comprends que cette transaction sera masquee des transactions actives</span>
+            </label>
+          </div>
+
+          <div class="px-5 sm:px-6 py-4 bg-stone-50 border-t border-stone-100 flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-2 sm:justify-end">
+            <button class="px-4 py-2.5 rounded-lg border border-stone-200 text-stone-600 hover:bg-stone-100 text-sm font-medium text-center">Annuler</button>
+            <button id="cta-archive" disabled class="px-6 py-2.5 rounded-lg bg-stone-300 text-stone-500 text-sm font-semibold shadow-sm flex items-center justify-center gap-2 cursor-not-allowed">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
+              Archiver
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- STATE C — Succes Archivee                       -->
+  <!-- ============================================== -->
+  <div id="state-archive-ok-section" class="state-section pt-28 pb-8 px-4">
+    <div id="viewport-frame-c" class="viewport-frame bg-stone-100 shadow-2xl rounded-xl border border-stone-300 relative" style="width: 100%; max-width: 1280px; height: 80vh;">
+      <div class="absolute inset-0 flex items-center justify-center p-4 sm:p-8">
+        <div class="w-full max-w-4xl opacity-30">
+          <div class="h-8 bg-stone-300 rounded mb-4 w-48"></div>
+          <div class="h-32 bg-stone-200 rounded mb-4"></div>
+          <div class="h-48 bg-stone-200 rounded"></div>
+        </div>
+      </div>
+
+      <div class="overlay absolute inset-0 z-40 flex items-center justify-center p-4">
+        <div class="modal-enter bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
+          <div class="mobile-handle hidden justify-center pt-2 pb-1">
+            <div class="w-10 h-1 rounded-full bg-stone-300"></div>
+          </div>
+
+          <!-- Banniere -->
+          <div class="px-5 sm:px-6 py-2.5 bg-indigo-50 border-b border-indigo-100 flex items-center gap-2">
+            <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
+            <span class="text-xs font-semibold text-indigo-700">Transaction archivee</span>
+          </div>
+
+          <div class="modal-header px-5 sm:px-6 py-5 text-center">
+            <div class="w-14 h-14 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-3">
+              <svg class="w-7 h-7 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            </div>
+            <h2 class="text-base sm:text-lg font-bold text-stone-900 font-outfit">Transaction archivee</h2>
+            <p class="text-sm text-stone-500 mt-1">Marie-Claire Dupont — 123 rue Principale, Moncton</p>
+          </div>
+
+          <div class="modal-body px-5 sm:px-6 pb-5 space-y-2">
+            <div class="flex items-center gap-2 p-2.5 rounded-lg bg-indigo-50 border border-indigo-100">
+              <svg class="w-4 h-4 text-indigo-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
+              <span class="text-xs text-indigo-800">Retiree des transactions actives</span>
+            </div>
+            <div class="flex items-center gap-2 p-2.5 rounded-lg bg-emerald-50 border border-emerald-100">
+              <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              <span class="text-xs text-emerald-800">Historique et documents conserves</span>
+            </div>
+            <div class="flex items-center gap-2 p-2.5 rounded-lg bg-stone-50 border border-stone-200">
+              <svg class="w-4 h-4 text-stone-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+              <span class="text-xs text-stone-600">Restaurable via : Transactions → Filtre « Archivees »</span>
+            </div>
+          </div>
+
+          <div class="px-5 sm:px-6 py-4 bg-stone-50 border-t border-stone-100 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:justify-center">
+            <button class="px-5 py-2.5 rounded-lg bg-primary hover:bg-primary/90 text-white text-sm font-semibold shadow-sm flex items-center justify-center gap-2">Retour liste</button>
+            <button class="px-5 py-2.5 rounded-lg border border-indigo-200 text-indigo-700 hover:bg-indigo-50 text-sm font-medium flex items-center justify-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+              Restaurer
+            </button>
+            <button class="px-5 py-2.5 rounded-lg border border-stone-200 text-stone-500 hover:bg-stone-100 text-sm font-medium flex items-center justify-center gap-2" disabled>Voir la transaction</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- STATE D — Modal Annuler                         -->
+  <!-- ============================================== -->
+  <div id="state-cancel-section" class="state-section pt-28 pb-8 px-4">
+    <div id="viewport-frame-d" class="viewport-frame bg-stone-100 shadow-2xl rounded-xl border border-stone-300 relative" style="width: 100%; max-width: 1280px; height: 80vh;">
+      <div class="absolute inset-0 flex items-center justify-center p-4 sm:p-8">
+        <div class="w-full max-w-4xl opacity-30">
+          <div class="h-8 bg-stone-300 rounded mb-4 w-48"></div>
+          <div class="h-32 bg-stone-200 rounded mb-4"></div>
+          <div class="h-48 bg-stone-200 rounded"></div>
+        </div>
+      </div>
+
+      <div class="overlay absolute inset-0 z-40 flex items-center justify-center p-4">
+        <div class="modal-enter bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
+          <div class="mobile-handle hidden justify-center pt-2 pb-1">
+            <div class="w-10 h-1 rounded-full bg-stone-300"></div>
+          </div>
+
+          <div class="modal-header px-5 sm:px-6 pt-5 sm:pt-6 pb-4 border-b border-stone-100">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
+                  <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                </div>
+                <div>
+                  <h2 class="text-base sm:text-lg font-bold text-stone-900 font-outfit">Annuler la transaction ?</h2>
+                  <p class="text-xs text-stone-500 mt-0.5">Le statut passera a « Annulee » — non reversible sans admin</p>
+                </div>
+              </div>
+              <button class="p-1.5 rounded-lg hover:bg-stone-100 text-stone-400 -mt-1 -mr-1">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="modal-body px-5 sm:px-6 py-4 space-y-4">
+            <!-- Raison -->
+            <div>
+              <label class="block text-xs font-semibold text-stone-600 mb-1.5 uppercase tracking-wide">Raison de l'annulation <span class="text-red-400">*</span></label>
+              <select id="cancel-reason" class="w-full px-3 py-2.5 text-sm rounded-lg border border-stone-200 focus:outline-none focus:ring-2 focus:ring-primary/20 bg-white" onchange="updateCancelCta()">
+                <option value="">Selectionnez une raison...</option>
+                <option value="financing">Financement refuse</option>
+                <option value="buyer">Acheteur se retire</option>
+                <option value="seller">Vendeur se retire</option>
+                <option value="inspection">Inspection defavorable</option>
+                <option value="mutual">Accord mutuel</option>
+                <option value="other">Autre (preciser)</option>
+              </select>
+            </div>
+
+            <!-- Note (obligatoire si Autre) -->
+            <div>
+              <label class="block text-xs font-medium text-stone-600 mb-1">
+                Note <span class="text-stone-400" id="cancel-note-label">(optionnel)</span>
+              </label>
+              <textarea id="cancel-note" rows="2" placeholder="Precisions sur l'annulation..." class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none" oninput="updateCancelCta()"></textarea>
+              <div id="cancel-note-hint" class="hidden items-center gap-1 mt-1 text-xs text-amber-600">
+                <svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+                Note obligatoire pour « Autre »
+              </div>
+            </div>
+
+            <!-- Impact -->
+            <div class="rounded-lg border border-amber-200 bg-amber-50/50 p-3 sm:p-4">
+              <h3 class="text-xs font-semibold text-amber-800 flex items-center gap-1.5 mb-2">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+                Impact de l'annulation
+              </h3>
+              <div class="space-y-2">
+                <div class="flex items-start gap-2">
+                  <svg class="w-4 h-4 text-amber-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                  <span class="text-xs text-stone-700">Le statut passera a <strong>« Annulee »</strong></span>
+                </div>
+                <div class="flex items-start gap-2">
+                  <svg class="w-4 h-4 text-amber-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                  <span class="text-xs text-stone-700">Les actions (offres, conditions) seront <strong>bloquees</strong></span>
+                </div>
+                <div class="flex items-start gap-2">
+                  <svg class="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                  <span class="text-xs text-stone-700"><strong>Historique</strong> conserve en lecture seule</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Toggle email -->
+            <div class="rounded-lg border border-stone-200 bg-white overflow-hidden">
+              <div class="flex items-center justify-between px-3 py-2.5">
+                <div class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-stone-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                  <span class="text-xs font-medium text-stone-700">Notifier les parties par email</span>
+                </div>
+                <button id="email-toggle-d" class="relative inline-flex h-5 w-9 items-center rounded-full bg-primary transition-colors" onclick="toggleEmail('d')">
+                  <span class="inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform translate-x-4"></span>
+                </button>
+              </div>
+              <div id="email-details-d" class="px-3 pb-3 space-y-2 border-t border-stone-100 pt-2">
+                <div class="text-xs text-stone-500">Destinataires :</div>
+                <div class="space-y-1.5">
+                  <div class="flex items-center gap-1.5">
+                    <div class="w-1.5 h-1.5 rounded-full bg-emerald-400"></div>
+                    <span class="text-xs text-stone-700">Acheteur — jean.tremblay@email.com</span>
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                    <div class="w-1.5 h-1.5 rounded-full bg-emerald-400"></div>
+                    <span class="text-xs text-stone-700">Vendeur — m.dupont@email.com</span>
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                    <div class="w-1.5 h-1.5 rounded-full bg-amber-400"></div>
+                    <span class="text-xs text-stone-500">Avocat — <span class="italic text-amber-600">adresse manquante</span></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Checkbox -->
+            <label class="flex items-start gap-2.5 cursor-pointer px-3 py-2.5 rounded-lg border border-stone-200 bg-white">
+              <input type="checkbox" id="cancel-confirm" class="mt-0.5 w-4 h-4 rounded border-stone-300 text-primary focus:ring-primary/20" onchange="updateCancelCta()">
+              <span class="text-xs text-stone-700 font-medium">Je confirme vouloir annuler cette transaction</span>
+            </label>
+          </div>
+
+          <div class="px-5 sm:px-6 py-4 bg-stone-50 border-t border-stone-100 flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-2 sm:justify-end">
+            <button class="px-4 py-2.5 rounded-lg border border-stone-200 text-stone-600 hover:bg-stone-100 text-sm font-medium text-center">Annuler</button>
+            <button id="cta-cancel" disabled class="px-6 py-2.5 rounded-lg bg-stone-300 text-stone-500 text-sm font-semibold shadow-sm flex items-center justify-center gap-2 cursor-not-allowed">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+              Annuler la transaction
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- STATE E — Succes Annulee                        -->
+  <!-- ============================================== -->
+  <div id="state-cancel-ok-section" class="state-section pt-28 pb-8 px-4">
+    <div id="viewport-frame-e" class="viewport-frame bg-stone-100 shadow-2xl rounded-xl border border-stone-300 relative" style="width: 100%; max-width: 1280px; height: 80vh;">
+      <div class="absolute inset-0 flex items-center justify-center p-4 sm:p-8">
+        <div class="w-full max-w-4xl opacity-30">
+          <div class="h-8 bg-stone-300 rounded mb-4 w-48"></div>
+          <div class="h-32 bg-stone-200 rounded mb-4"></div>
+          <div class="h-48 bg-stone-200 rounded"></div>
+        </div>
+      </div>
+
+      <div class="overlay absolute inset-0 z-40 flex items-center justify-center p-4">
+        <div class="modal-enter bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
+          <div class="mobile-handle hidden justify-center pt-2 pb-1">
+            <div class="w-10 h-1 rounded-full bg-stone-300"></div>
+          </div>
+
+          <div class="modal-header px-5 sm:px-6 py-5 text-center">
+            <div class="w-14 h-14 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-3">
+              <svg class="w-7 h-7 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+            </div>
+            <h2 class="text-base sm:text-lg font-bold text-stone-900 font-outfit">Transaction annulee</h2>
+            <p class="text-sm text-stone-500 mt-1">Marie-Claire Dupont — Raison : Financement refuse</p>
+          </div>
+
+          <div class="modal-body px-5 sm:px-6 pb-5 space-y-2">
+            <div class="flex items-center gap-2 p-2.5 rounded-lg bg-amber-50 border border-amber-100">
+              <svg class="w-4 h-4 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+              <span class="text-xs text-amber-800">Statut mis a jour : <strong>Annulee</strong></span>
+            </div>
+            <div class="flex items-center gap-2 p-2.5 rounded-lg bg-stone-50 border border-stone-200">
+              <svg class="w-4 h-4 text-stone-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+              <span class="text-xs text-stone-600">Actions (offres, conditions) bloquees</span>
+            </div>
+            <div class="flex items-center gap-2 p-2.5 rounded-lg bg-emerald-50 border border-emerald-100">
+              <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              <span class="text-xs text-emerald-800">Historique conserve en lecture seule</span>
+            </div>
+            <div class="flex items-center gap-2 p-2.5 rounded-lg bg-stone-50 border border-stone-200">
+              <svg class="w-4 h-4 text-stone-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+              <span class="text-xs text-stone-600">Notification envoyee a 2 destinataires</span>
+            </div>
+          </div>
+
+          <!-- Hint: enchainer archivage -->
+          <div class="px-5 sm:px-6 pb-4">
+            <div class="rounded-lg border border-indigo-200 bg-indigo-50/50 p-3">
+              <h3 class="text-xs font-semibold text-indigo-800 flex items-center gap-1.5 mb-1">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                Action recommandee
+              </h3>
+              <p class="text-xs text-stone-600">Archivez cette transaction pour la retirer de votre liste active.</p>
+            </div>
+          </div>
+
+          <div class="px-5 sm:px-6 py-4 bg-stone-50 border-t border-stone-100 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:justify-center">
+            <button class="px-5 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold shadow-sm flex items-center justify-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
+              Archiver maintenant
+            </button>
+            <button class="px-5 py-2.5 rounded-lg border border-stone-200 text-stone-600 hover:bg-stone-100 text-sm font-medium flex items-center justify-center gap-2">Retour transaction</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- STATE F — Modal Supprimer (DANGER)              -->
+  <!-- ============================================== -->
+  <div id="state-delete-section" class="state-section pt-28 pb-8 px-4">
+    <div id="viewport-frame-f" class="viewport-frame bg-stone-100 shadow-2xl rounded-xl border border-stone-300 relative" style="width: 100%; max-width: 1280px; height: 80vh;">
+      <div class="absolute inset-0 flex items-center justify-center p-4 sm:p-8">
+        <div class="w-full max-w-4xl opacity-30">
+          <div class="h-8 bg-stone-300 rounded mb-4 w-48"></div>
+          <div class="h-32 bg-stone-200 rounded mb-4"></div>
+          <div class="h-48 bg-stone-200 rounded"></div>
+        </div>
+      </div>
+
+      <div class="overlay absolute inset-0 z-40 flex items-center justify-center p-4">
+        <div class="modal-enter bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border-2 border-red-200">
+          <div class="mobile-handle hidden justify-center pt-2 pb-1">
+            <div class="w-10 h-1 rounded-full bg-stone-300"></div>
+          </div>
+
+          <!-- Danger banner -->
+          <div class="px-5 sm:px-6 py-2.5 bg-red-50 border-b border-red-200 flex items-center gap-2">
+            <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+            <span class="text-xs font-semibold text-red-700">ACTION IRREVERSIBLE — Mode Admin</span>
+          </div>
+
+          <div class="modal-header px-5 sm:px-6 pt-5 sm:pt-6 pb-4 border-b border-stone-100">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+                  <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                </div>
+                <div>
+                  <h2 class="text-base sm:text-lg font-bold text-red-800 font-outfit">Supprimer definitivement ?</h2>
+                  <p class="text-xs text-stone-500 mt-0.5">Marie-Claire Dupont — 123 rue Principale, Moncton</p>
+                </div>
+              </div>
+              <button class="p-1.5 rounded-lg hover:bg-stone-100 text-stone-400 -mt-1 -mr-1">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="modal-body px-5 sm:px-6 py-4 space-y-4">
+            <!-- Warning block -->
+            <div class="rounded-lg bg-red-50 border border-red-200 p-3 sm:p-4">
+              <div class="flex items-center gap-2 mb-2">
+                <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+                <span class="text-sm font-semibold text-red-800">Cette action est irreversible</span>
+              </div>
+              <div class="space-y-1.5 text-xs text-red-700">
+                <p>La transaction et <strong>tout son historique</strong> seront supprimes definitivement :</p>
+                <ul class="list-disc ml-4 space-y-0.5">
+                  <li>Offres ({N}), conditions ({N}), notes ({N})</li>
+                  <li>Documents attaches et pieces justificatives</li>
+                  <li>Journal d'activite et historique de modifications</li>
+                </ul>
+                <p class="font-semibold mt-2">Aucune restauration possible apres suppression.</p>
+              </div>
+            </div>
+
+            <!-- Recommandation -->
+            <div class="rounded-lg border border-indigo-200 bg-indigo-50/50 p-3 flex items-start gap-2">
+              <svg class="w-4 h-4 text-indigo-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <p class="text-xs text-indigo-700">Recommande uniquement pour les transactions <strong>test</strong>, <strong>draft</strong> ou <strong>creees par erreur</strong>. Sinon, preferez <strong>Archiver</strong> ou <strong>Annuler</strong>.</p>
+            </div>
+
+            <!-- Type-to-confirm -->
+            <div>
+              <label class="block text-xs font-semibold text-stone-600 mb-1.5 uppercase tracking-wide">Confirmez en tapant <span class="font-mono text-red-600 bg-red-50 px-1.5 py-0.5 rounded">SUPPRIMER</span></label>
+              <input id="delete-confirm-input" type="text" placeholder="Tapez SUPPRIMER ici..." class="w-full px-3 py-2.5 text-sm rounded-lg border border-red-200 focus:outline-none focus:ring-2 focus:ring-red-300/50 font-mono" oninput="updateDeleteCta()">
+            </div>
+
+            <!-- Checkboxes -->
+            <div class="space-y-2">
+              <label class="flex items-start gap-2.5 cursor-pointer px-3 py-2.5 rounded-lg border border-red-100 bg-red-50/50">
+                <input type="checkbox" id="delete-check-1" class="mt-0.5 w-4 h-4 rounded border-red-300 text-red-500 focus:ring-red-300/20" onchange="updateDeleteCta()">
+                <span class="text-xs text-red-800 font-medium">Je comprends que cette action est irreversible et que toutes les donnees seront perdues</span>
+              </label>
+              <label class="flex items-start gap-2.5 cursor-pointer px-3 py-2.5 rounded-lg border border-red-100 bg-red-50/50">
+                <input type="checkbox" id="delete-check-2" class="mt-0.5 w-4 h-4 rounded border-red-300 text-red-500 focus:ring-red-300/20" onchange="updateDeleteCta()">
+                <span class="text-xs text-red-800 font-medium">Je confirme que c'est une transaction test / creee par erreur</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="px-5 sm:px-6 py-4 bg-stone-50 border-t border-stone-100 flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-2 sm:justify-end">
+            <button class="px-4 py-2.5 rounded-lg border border-stone-200 text-stone-600 hover:bg-stone-100 text-sm font-medium text-center">Annuler</button>
+            <button id="cta-delete" disabled class="px-6 py-2.5 rounded-lg bg-stone-300 text-stone-500 text-sm font-semibold shadow-sm flex items-center justify-center gap-2 cursor-not-allowed">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              Supprimer definitivement
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- STATE G — Succes Supprimee                      -->
+  <!-- ============================================== -->
+  <div id="state-delete-ok-section" class="state-section pt-28 pb-8 px-4">
+    <div id="viewport-frame-g" class="viewport-frame bg-stone-100 shadow-2xl rounded-xl border border-stone-300 relative" style="width: 100%; max-width: 1280px; height: 80vh;">
+      <div class="absolute inset-0 flex items-center justify-center p-4 sm:p-8">
+        <div class="w-full max-w-4xl opacity-30">
+          <div class="h-8 bg-stone-300 rounded mb-4 w-48"></div>
+          <div class="h-32 bg-stone-200 rounded mb-4"></div>
+          <div class="h-48 bg-stone-200 rounded"></div>
+        </div>
+      </div>
+
+      <div class="overlay absolute inset-0 z-40 flex items-center justify-center p-4">
+        <div class="modal-enter bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+          <div class="mobile-handle hidden justify-center pt-2 pb-1">
+            <div class="w-10 h-1 rounded-full bg-stone-300"></div>
+          </div>
+
+          <div class="modal-header px-5 sm:px-6 py-6 text-center">
+            <div class="w-14 h-14 rounded-full bg-stone-100 flex items-center justify-center mx-auto mb-3">
+              <svg class="w-7 h-7 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            </div>
+            <h2 class="text-base sm:text-lg font-bold text-stone-900 font-outfit">Transaction supprimee</h2>
+            <p class="text-sm text-stone-500 mt-1">La transaction et son historique ont ete supprimes definitivement.</p>
+          </div>
+
+          <div class="px-5 sm:px-6 py-4 bg-stone-50 border-t border-stone-100 text-center">
+            <button class="px-6 py-2.5 rounded-lg bg-primary hover:bg-primary/90 text-white text-sm font-semibold shadow-sm">
+              Retour liste
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCRIPTS -->
+  <script>
+    let adminMode = false;
+
+    function toggleAdmin() {
+      adminMode = !adminMode;
+      const btn = document.getElementById('admin-toggle');
+      const dot = document.getElementById('admin-dot');
+      const menuBtn = document.getElementById('menu-delete-btn');
+      const badge = document.getElementById('menu-admin-badge');
+
+      if (adminMode) {
+        btn.classList.remove('bg-stone-600');
+        btn.classList.add('bg-emerald-500');
+        dot.classList.remove('translate-x-0.5');
+        dot.classList.add('translate-x-3.5');
+        menuBtn.classList.remove('disabled');
+        badge.textContent = 'Admin ON';
+        badge.classList.remove('bg-stone-100', 'text-stone-400');
+        badge.classList.add('bg-emerald-100', 'text-emerald-700');
+      } else {
+        btn.classList.add('bg-stone-600');
+        btn.classList.remove('bg-emerald-500');
+        dot.classList.add('translate-x-0.5');
+        dot.classList.remove('translate-x-3.5');
+        menuBtn.classList.add('disabled');
+        badge.textContent = 'Admin requis';
+        badge.classList.add('bg-stone-100', 'text-stone-400');
+        badge.classList.remove('bg-emerald-100', 'text-emerald-700');
+      }
+    }
+
+    function updateArchiveCta() {
+      const cta = document.getElementById('cta-archive');
+      const checked = document.getElementById('archive-confirm').checked;
+      const en = 'px-6 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold shadow-sm flex items-center justify-center gap-2';
+      const dis = 'px-6 py-2.5 rounded-lg bg-stone-300 text-stone-500 text-sm font-semibold shadow-sm flex items-center justify-center gap-2 cursor-not-allowed';
+      cta.disabled = !checked;
+      cta.className = checked ? en : dis;
+    }
+
+    function updateCancelCta() {
+      const cta = document.getElementById('cta-cancel');
+      const reason = document.getElementById('cancel-reason').value;
+      const note = document.getElementById('cancel-note').value.trim();
+      const confirmed = document.getElementById('cancel-confirm').checked;
+      const noteLabel = document.getElementById('cancel-note-label');
+      const noteHint = document.getElementById('cancel-note-hint');
+
+      const isOther = reason === 'other';
+      if (isOther) {
+        noteLabel.textContent = '(obligatoire)';
+        noteLabel.classList.remove('text-stone-400');
+        noteLabel.classList.add('text-red-500', 'font-semibold');
+        noteHint.classList.remove('hidden');
+        noteHint.classList.add('flex');
+      } else {
+        noteLabel.textContent = '(optionnel)';
+        noteLabel.classList.add('text-stone-400');
+        noteLabel.classList.remove('text-red-500', 'font-semibold');
+        noteHint.classList.add('hidden');
+        noteHint.classList.remove('flex');
+      }
+
+      const valid = reason !== '' && confirmed && (!isOther || note.length > 0);
+      const en = 'px-6 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold shadow-sm flex items-center justify-center gap-2';
+      const dis = 'px-6 py-2.5 rounded-lg bg-stone-300 text-stone-500 text-sm font-semibold shadow-sm flex items-center justify-center gap-2 cursor-not-allowed';
+      cta.disabled = !valid;
+      cta.className = valid ? en : dis;
+    }
+
+    function updateDeleteCta() {
+      const cta = document.getElementById('cta-delete');
+      const input = document.getElementById('delete-confirm-input').value.trim();
+      const c1 = document.getElementById('delete-check-1').checked;
+      const c2 = document.getElementById('delete-check-2').checked;
+      const valid = input === 'SUPPRIMER' && c1 && c2;
+      const en = 'px-6 py-2.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-semibold shadow-sm flex items-center justify-center gap-2';
+      const dis = 'px-6 py-2.5 rounded-lg bg-stone-300 text-stone-500 text-sm font-semibold shadow-sm flex items-center justify-center gap-2 cursor-not-allowed';
+      cta.disabled = !valid;
+      cta.className = valid ? en : dis;
+    }
+
+    function toggleEmail(group) {
+      const btn = document.getElementById('email-toggle-' + group);
+      const details = document.getElementById('email-details-' + group);
+      const dot = btn.querySelector('span');
+      btn.classList.toggle('bg-primary');
+      btn.classList.toggle('bg-stone-300');
+      dot.classList.toggle('translate-x-4');
+      dot.classList.toggle('translate-x-0.5');
+      details.classList.toggle('hidden');
+    }
+
+    function showState(state) {
+      document.querySelectorAll('.state-section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.state-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('state-' + state + '-section').classList.add('active');
+      document.getElementById('state-' + state).classList.add('active');
+    }
+
+    function setViewport(mode) {
+      const frames = document.querySelectorAll('.viewport-frame');
+      document.querySelectorAll('.viewport-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('btn-' + mode).classList.add('active');
+      frames.forEach(frame => {
+        if (mode === 'mobile') { frame.style.maxWidth = '375px'; frame.classList.add('mobile-mode'); }
+        else if (mode === 'tablet') { frame.style.maxWidth = '768px'; frame.classList.remove('mobile-mode'); }
+        else { frame.style.maxWidth = '1280px'; frame.classList.remove('mobile-mode'); }
+      });
+    }
+  </script>
+
+</body>
+</html>

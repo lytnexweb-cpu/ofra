@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Maquette 02 — Accepter une offre</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwindcss.config = {
+      theme: {
+        extend: {
+          colors: { primary: '#1e3a5f', accent: '#e07a2f' },
+          fontFamily: { outfit: ['Outfit', 'system-ui', 'sans-serif'] },
+        },
+      },
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    .viewport-btn.active { background: #1e3a5f; color: white; }
+    .viewport-frame { transition: width 0.4s ease, max-width 0.4s ease; margin: 0 auto; overflow: hidden; }
+    .overlay { background: rgba(0,0,0,0.5); backdrop-filter: blur(2px); overflow-y: auto; }
+    .modal-enter {
+      animation: modalIn 0.2s ease-out;
+      display: flex;
+      flex-direction: column;
+      max-height: calc(100% - 6rem);
+    }
+    .modal-body {
+      overflow-y: auto;
+      flex: 1;
+      min-height: 0;
+    }
+    @keyframes modalIn { from { opacity: 0; transform: scale(0.95) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+
+    /* Mobile bottom-sheet */
+    .mobile-mode { overflow-y: auto !important; }
+    .mobile-mode .overlay {
+      align-items: flex-end;
+      padding: 0;
+      overflow-y: auto;
+    }
+    .mobile-mode .modal-enter {
+      max-width: 100%;
+      border-radius: 1rem 1rem 0 0;
+      max-height: 92%;
+      display: flex;
+      flex-direction: column;
+      animation: sheetUp 0.25s ease-out;
+    }
+    .mobile-mode .modal-body {
+      overflow-y: auto;
+      flex: 1;
+      min-height: 0;
+    }
+    .mobile-mode .mobile-handle { display: flex; }
+    .mobile-mode .modal-header { padding-top: 0.75rem; }
+    @keyframes sheetUp { from { opacity: 0; transform: translateY(100%); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+<body class="bg-stone-200 min-h-screen">
+
+  <!-- VIEWPORT SWITCHER -->
+  <div class="fixed top-0 left-0 right-0 bg-stone-800 text-white z-[100] shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="text-sm font-bold font-outfit">MAQUETTE 02</span>
+        <span class="text-xs text-stone-400">Accepter une offre — Modale confirmation</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="setViewport('mobile')" id="btn-mobile" class="viewport-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-stone-700 hover:bg-stone-600 transition-colors">Mobile (375px)</button>
+        <button onclick="setViewport('tablet')" id="btn-tablet" class="viewport-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-stone-700 hover:bg-stone-600 transition-colors">Tablette (768px)</button>
+        <button onclick="setViewport('desktop')" id="btn-desktop" class="viewport-btn active px-3 py-1.5 rounded-lg text-xs font-medium bg-stone-700 hover:bg-stone-600 transition-colors">Desktop (1280px)</button>
+      </div>
+      <div class="text-xs text-stone-400">Déclencheur : bouton "Accepter" sur offre Reçue</div>
+    </div>
+  </div>
+
+  <!-- VIEWPORT FRAME -->
+  <div class="pt-16 pb-8 px-4">
+    <div id="viewport-frame" class="viewport-frame bg-stone-100 shadow-2xl rounded-xl overflow-hidden border border-stone-300 relative" style="width: 100%; max-width: 1280px; height: 80vh;">
+
+      <!-- Fond simulé (page transaction floutée) -->
+      <div class="absolute inset-0 flex items-center justify-center p-4 sm:p-8">
+        <div class="w-full max-w-4xl opacity-30">
+          <div class="h-8 bg-stone-300 rounded mb-4 w-48"></div>
+          <div class="h-4 bg-stone-200 rounded mb-2 w-64"></div>
+          <div class="h-32 bg-stone-200 rounded mb-4"></div>
+          <div class="h-48 bg-stone-200 rounded mb-4"></div>
+          <div class="h-64 bg-stone-200 rounded"></div>
+        </div>
+      </div>
+
+      <!-- OVERLAY -->
+      <div class="overlay absolute inset-0 z-40 flex items-center justify-center p-4">
+
+        <!-- ============================================== -->
+        <!-- MODALE: ACCEPTER UNE OFFRE                      -->
+        <!-- ============================================== -->
+        <div class="modal-enter bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
+
+          <!-- Drag handle (mobile bottom-sheet) -->
+          <div class="mobile-handle hidden justify-center pt-2 pb-1">
+            <div class="w-10 h-1 rounded-full bg-stone-300"></div>
+          </div>
+
+          <!-- Header modale -->
+          <div class="modal-header px-5 sm:px-6 pt-5 sm:pt-6 pb-4 border-b border-stone-100">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+                  <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                </div>
+                <div>
+                  <h2 class="text-base sm:text-lg font-bold text-stone-900 font-outfit">Accepter cette offre ?</h2>
+                  <p class="text-xs text-stone-500 mt-0.5">Cette action modifie le workflow et sera enregistrée dans l'historique</p>
+                </div>
+              </div>
+              <button class="p-1.5 rounded-lg hover:bg-stone-100 text-stone-400 -mt-1 -mr-1">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Corps modale -->
+          <div class="modal-body px-5 sm:px-6 py-4 space-y-4">
+
+            <!-- Résumé de l'offre -->
+            <div class="rounded-lg bg-stone-50 border border-stone-200 p-3 sm:p-4">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs text-stone-500 uppercase font-semibold tracking-wide">Offre de</span>
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">Reçue</span>
+              </div>
+              <div class="grid grid-cols-3 gap-3 text-sm">
+                <div>
+                  <span class="text-xs text-stone-400">Prix</span>
+                  <p class="font-bold text-stone-900 text-base">345 000 $</p>
+                </div>
+                <div>
+                  <span class="text-xs text-stone-400">Dépôt</span>
+                  <p class="font-semibold text-stone-700">10 000 $</p>
+                </div>
+                <div>
+                  <span class="text-xs text-stone-400">Financement</span>
+                  <p class="font-semibold text-stone-700">280 000 $</p>
+                </div>
+              </div>
+              <p class="text-xs text-stone-500 italic mt-2 pt-2 border-t border-stone-200">"Offre conditionnelle à l'inspection"</p>
+            </div>
+
+            <!-- Impact workflow -->
+            <div class="rounded-lg border border-indigo-200 bg-indigo-50/50 p-3 sm:p-4">
+              <h3 class="text-xs font-semibold text-indigo-800 flex items-center gap-1.5 mb-2">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                Impact sur le workflow
+              </h3>
+              <div class="space-y-2">
+                <div class="flex items-start gap-2">
+                  <svg class="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                  <span class="text-xs text-stone-700">L'étape <strong>3. Offre acceptée</strong> sera marquée comme complétée</span>
+                </div>
+                <div class="flex items-start gap-2">
+                  <svg class="w-4 h-4 text-primary mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                  <span class="text-xs text-stone-700">L'étape <strong>4. Période conditionnelle</strong> démarrera automatiquement</span>
+                </div>
+                <div class="flex items-start gap-2">
+                  <svg class="w-4 h-4 text-amber-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  <span class="text-xs text-stone-700">Les <strong>conditions de l'étape 4</strong> seront activées selon le profil de la propriété</span>
+                </div>
+                <div class="flex items-start gap-2">
+                  <svg class="w-4 h-4 text-indigo-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                  <span class="text-xs text-stone-700">Packs : <strong>Universal + Finance NB</strong> <span class="text-stone-400 italic">(selon profil)</span></span>
+                </div>
+                <div class="flex items-start gap-2">
+                  <svg class="w-4 h-4 text-stone-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                  <span class="text-xs text-stone-700">Le prix de la transaction sera mis à jour : <strong>350 000 $ → 345 000 $</strong></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Offres affectées -->
+            <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-50 border border-amber-200">
+              <svg class="w-4 h-4 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+              <span class="text-xs text-amber-800"><strong>1 autre offre</strong> en attente sera marquée comme <strong>non retenue</strong>.</span>
+            </div>
+
+            <!-- Toggle notification email -->
+            <div class="rounded-lg border border-stone-200 bg-white overflow-hidden" id="email-block">
+              <div class="flex items-center justify-between px-3 py-2.5">
+                <div class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-stone-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                  <span class="text-xs font-medium text-stone-700">Notifier les parties par email</span>
+                </div>
+                <!-- Toggle switch -->
+                <button id="email-toggle" class="relative inline-flex h-5 w-9 items-center rounded-full bg-primary transition-colors" onclick="toggleEmail()">
+                  <span class="inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform translate-x-4"></span>
+                </button>
+              </div>
+              <!-- Détails destinataires (visible quand ON) -->
+              <div id="email-details" class="px-3 pb-3 space-y-2 border-t border-stone-100 pt-2">
+                <div class="text-xs text-stone-500">Destinataires :</div>
+                <div class="space-y-1.5">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-1.5">
+                      <div class="w-1.5 h-1.5 rounded-full bg-emerald-400"></div>
+                      <span class="text-xs text-stone-700">Acheteur — jean.tremblay@email.com</span>
+                    </div>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-1.5">
+                      <div class="w-1.5 h-1.5 rounded-full bg-emerald-400"></div>
+                      <span class="text-xs text-stone-700">Vendeur — m.dupont@email.com</span>
+                    </div>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-1.5">
+                      <div class="w-1.5 h-1.5 rounded-full bg-amber-400"></div>
+                      <span class="text-xs text-stone-500">Avocat — <span class="italic text-amber-600">adresse manquante</span></span>
+                    </div>
+                  </div>
+                </div>
+                <button class="text-xs text-primary hover:text-primary/80 font-medium flex items-center gap-1 mt-1">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                  Prévisualiser l'email
+                </button>
+              </div>
+            </div>
+
+            <!-- Note optionnelle -->
+            <div>
+              <label class="block text-xs font-medium text-stone-600 mb-1">Note (optionnel)</label>
+              <textarea rows="2" placeholder="Ex : Acceptée après négociation verbale..." class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"></textarea>
+            </div>
+
+          </div>
+
+          <!-- Footer modale -->
+          <div class="px-5 sm:px-6 py-4 bg-stone-50 border-t border-stone-100 flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-2 sm:justify-end">
+            <button class="px-4 py-2.5 rounded-lg border border-stone-200 text-stone-600 hover:bg-stone-100 text-sm font-medium text-center">
+              Annuler
+            </button>
+            <button class="px-6 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold shadow-sm flex items-center justify-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              Confirmer l'acceptation
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- ÉTAT DE SUCCÈS (après confirmation)             -->
+  <!-- ============================================== -->
+  <div class="px-4 mb-8">
+    <div class="max-w-lg mx-auto">
+      <div class="flex items-center gap-2 mb-3">
+        <div class="w-2 h-2 rounded-full bg-stone-400"></div>
+        <span class="text-xs text-stone-500 font-medium uppercase tracking-wide">État après confirmation</span>
+        <div class="flex-1 h-px bg-stone-300"></div>
+      </div>
+
+      <div class="bg-white rounded-2xl shadow-lg border border-stone-200 overflow-hidden">
+        <!-- Success header -->
+        <div class="px-5 sm:px-6 py-5 text-center">
+          <div class="w-14 h-14 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-3">
+            <svg class="w-7 h-7 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          </div>
+          <h2 class="text-base sm:text-lg font-bold text-stone-900 font-outfit">Offre acceptée !</h2>
+          <p class="text-sm text-stone-500 mt-1">345 000 $ — Marie-Claire Dupont</p>
+        </div>
+
+        <!-- Résumé des changements -->
+        <div class="px-5 sm:px-6 pb-5 space-y-2">
+          <div class="flex items-center gap-2 p-2.5 rounded-lg bg-emerald-50 border border-emerald-100">
+            <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            <span class="text-xs text-emerald-800">Étape 3 « Offre acceptée » complétée</span>
+          </div>
+          <div class="flex items-center gap-2 p-2.5 rounded-lg bg-primary/5 border border-primary/10">
+            <svg class="w-4 h-4 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+            <span class="text-xs text-primary">Étape 4 « Période conditionnelle » démarrée — {N} conditions activées selon le profil (Packs : Universal + Finance NB)</span>
+          </div>
+          <div class="flex items-center gap-2 p-2.5 rounded-lg bg-stone-50 border border-stone-200">
+            <svg class="w-4 h-4 text-stone-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <span class="text-xs text-stone-600">Prix transaction mis à jour : 345 000 $</span>
+          </div>
+          <div class="flex items-center gap-2 p-2.5 rounded-lg bg-amber-50 border border-amber-100">
+            <svg class="w-4 h-4 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+            <span class="text-xs text-amber-700">1 offre marquée comme non retenue</span>
+          </div>
+        </div>
+
+        <!-- CTA retour -->
+        <div class="px-5 sm:px-6 py-4 bg-stone-50 border-t border-stone-100 text-center">
+          <button class="px-6 py-2.5 rounded-lg bg-primary hover:bg-primary/90 text-white text-sm font-semibold shadow-sm">
+            Retour à la transaction
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEWPORT SCRIPT -->
+  <script>
+    function toggleEmail() {
+      const btn = document.getElementById('email-toggle');
+      const details = document.getElementById('email-details');
+      const dot = btn.querySelector('span');
+      btn.classList.toggle('bg-primary');
+      btn.classList.toggle('bg-stone-300');
+      dot.classList.toggle('translate-x-4');
+      dot.classList.toggle('translate-x-0.5');
+      details.classList.toggle('hidden');
+    }
+
+    function setViewport(mode) {
+      const frame = document.getElementById('viewport-frame');
+      document.querySelectorAll('.viewport-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('btn-' + mode).classList.add('active');
+      if (mode === 'mobile') { frame.style.maxWidth = '375px'; frame.classList.add('mobile-mode'); }
+      else if (mode === 'tablet') { frame.style.maxWidth = '768px'; frame.classList.remove('mobile-mode'); }
+      else { frame.style.maxWidth = '1280px'; frame.classList.remove('mobile-mode'); }
+    }
+  </script>
+
+</body>
+</html>
