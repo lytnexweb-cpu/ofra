@@ -167,6 +167,8 @@ export default class ConditionTemplatesController {
         rural_nb: [],
         condo_nb: [],
         finance_nb: [],
+        inspection_nb: [],
+        cash_nb: [],
       }
 
       for (const template of templates) {
@@ -177,18 +179,15 @@ export default class ConditionTemplatesController {
         grouped[pack].push(template)
       }
 
+      const stats: Record<string, number> = {}
+      for (const [key, value] of Object.entries(grouped)) {
+        stats[key] = value.length
+      }
+      stats.total = templates.length
+
       return response.ok({
         success: true,
-        data: {
-          packs: grouped,
-          stats: {
-            universal: grouped.universal.length,
-            rural_nb: grouped.rural_nb.length,
-            condo_nb: grouped.condo_nb.length,
-            finance_nb: grouped.finance_nb.length,
-            total: templates.length,
-          },
-        },
+        data: { packs: grouped, stats },
       })
     } catch (error) {
       return response.internalServerError({

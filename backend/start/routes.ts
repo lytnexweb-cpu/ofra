@@ -86,6 +86,9 @@ router.group(() => {
   router.patch('/transactions/:id/skip', '#controllers/transactions_controller.skipStep').use(middleware.txPermission({ minRole: 'editor' }))
   router.patch('/transactions/:id/goto/:stepOrder', '#controllers/transactions_controller.goToStep').use(middleware.txPermission({ minRole: 'editor' }))
 
+  // Transactions — export (viewer+ can export)
+  router.post('/transactions/:id/export/pdf', '#controllers/export_controller.pdf').use(middleware.txPermission({ minRole: 'viewer' }))
+
   // Transactions — admin+ (cancel/archive/restore)
   router.patch('/transactions/:id/cancel', '#controllers/transactions_controller.cancel').use(middleware.txPermission({ minRole: 'admin' }))
   router.patch('/transactions/:id/archive', '#controllers/transactions_controller.archive').use(middleware.txPermission({ minRole: 'admin' }))
@@ -104,6 +107,11 @@ router.group(() => {
   router.patch('/offers/:offerId/reject', '#controllers/offers_controller.reject')
   router.patch('/offers/:offerId/withdraw', '#controllers/offers_controller.withdraw')
   router.delete('/offers/:offerId', '#controllers/offers_controller.destroy')
+
+  // Condition Packs (D34 P3.4 — maquette 12)
+  router.get('/condition-packs', '#controllers/offer_packs_controller.index')
+  router.get('/condition-packs/:packType/templates', '#controllers/offer_packs_controller.templates')
+  router.post('/offers/:offerId/apply-pack', '#controllers/offer_packs_controller.applyPack')
 
   // Conditions — viewer+ (read), editor+ (modify)
   router.post('/transactions/:id/conditions', '#controllers/conditions_controller.store').use(middleware.txPermission({ minRole: 'editor' }))

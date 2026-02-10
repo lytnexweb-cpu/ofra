@@ -5,7 +5,7 @@ import Condition from './condition.js'
 
 export type ConditionLevel = 'blocking' | 'required' | 'recommended'
 export type SourceType = 'legal' | 'government' | 'industry' | 'best_practice'
-export type PackType = 'rural_nb' | 'condo_nb' | 'finance_nb' | 'universal' | null
+export type PackType = 'rural_nb' | 'condo_nb' | 'finance_nb' | 'inspection_nb' | 'cash_nb' | 'universal' | null
 export type DeadlineReference = 'acceptance' | 'closing' | 'step_start'
 
 /**
