@@ -1,7 +1,14 @@
-# Stratégie de Tarification - Ofra
+# ⚠️ PÉRIMÉ — Voir PRD v2 comme source de vérité
+# ⚠️ Fichier : `_bmad-output/planning-artifacts/prd.md`
+# ⚠️ Les plans, prix, limites et programme fondateur ont changé (2026-02-06)
+
+---
+
+# Stratégie de Tarification - Ofra (ARCHIVE)
 
 > Document de référence pour la tarification SaaS d'Ofra
 > Dernière mise à jour: 2026-01-29
+> **⚠️ PÉRIMÉ depuis 2026-02-06 — Remplacé par le PRD v2**
 
 ## Positionnement
 

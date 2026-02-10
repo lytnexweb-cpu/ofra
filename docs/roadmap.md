@@ -1,8 +1,15 @@
-# Roadmap Ofra - SaaS Premium
+# ⚠️ PÉRIMÉ (sections Pricing + Epic 6-7) — Voir PRD v2 comme source de vérité
+# ⚠️ Fichier : `_bmad-output/planning-artifacts/prd.md`
+# ⚠️ Les plans, prix, roadmap phases et programme fondateur ont changé (2026-02-06)
+
+---
+
+# Roadmap Ofra - SaaS Premium (PARTIELLEMENT PÉRIMÉ)
 
 > Plan d'exécution pour le lancement SaaS Premium d'Ofra
 > Dernière mise à jour: 2026-02-04
 > Version: 2.3 (Post-Audit Technique)
+> **⚠️ Sections Pricing, Epic 6, Epic 7 PÉRIMÉES depuis 2026-02-06 — Remplacées par le PRD v2**
 
 ---
 

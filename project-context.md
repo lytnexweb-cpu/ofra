@@ -1,7 +1,7 @@
 ---
 project_name: OFRA
 user_name: Sam
-date: 2026-01-29
+date: 2026-02-06
 sections_completed:
   [
     'technology_stack',
@@ -407,17 +407,18 @@ expect(results).toHaveNoViolations()
 3. ✅ **Multi-tenant enforcement** — `TenantScopeService` for org-scoped queries
 4. ✅ **BullMQ** — Delayed automations, daily digest, deadline warnings
 
-### SaaS Pricing (Validated)
+### SaaS Pricing (⚠️ UPDATED 2026-02-06 — PRD v2 is source of truth)
 
-| Tier | Prix | Users | Storage | Max/fichier |
-|------|------|-------|---------|-------------|
-| Essentiel | 29$ CAD/mois | 1 | 500 MB | 5 MB |
-| Pro ⭐ | 49$ CAD/mois | 3 | 2 GB | 15 MB |
-| Agence | 99$ CAD/mois | 10 | 10 GB | 25 MB |
+| Plan | Mensuel | Annuel (−17%) | TX actives | Stockage | Historique |
+|------|---------|--------------|-----------|----------|------------|
+| Starter | 29$ CAD | 290$ | 5 | 1 Go | 6 mois |
+| Solo | 49$ CAD | 490$ | 12 | 3 Go | 12 mois |
+| Pro | 79$ CAD | 790$ | 25 | 10 Go | Illimité |
+| Agence | 149$ CAD | 1 490$ | Illimité | 25 Go | Illimité (Phase 2) |
 
-**Programme Fondateur**: 25 places, 3 mois gratuits, -25% à vie
+**Programme Fondateur**: 25 places, 1 mois gratuit, −20% à vie sur plan choisi (−30% si annuel)
 
-Voir `docs/pricing-strategy.md` et `docs/roadmap.md` pour détails complets.
+Voir `_bmad-output/planning-artifacts/prd.md` pour détails complets.
 
 ## 11. NB Broker Automations (Source of Truth)
 
