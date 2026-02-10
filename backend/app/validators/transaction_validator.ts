@@ -25,5 +25,15 @@ export const updateTransactionValidator = vine.compile(
     listPrice: vine.number().min(0).optional(),
     commission: vine.number().min(0).optional(),
     folderUrl: vine.string().trim().maxLength(2048).optional(),
+    closingDate: vine.string().trim().optional(),
+    offerExpiryDate: vine.string().trim().optional(),
+    inspectionDeadline: vine.string().trim().optional(),
+    financingDeadline: vine.string().trim().optional(),
+    tags: vine.array(vine.string().trim()).optional(),
+    language: vine.string().trim().maxLength(5).optional(),
+    cancellationCategory: vine.enum([
+      'financing_refused', 'inspection_failed', 'buyer_withdrawal',
+      'seller_withdrawal', 'deadline_expired', 'mutual_agreement', 'other',
+    ]).optional(),
   })
 )

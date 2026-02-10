@@ -78,6 +78,8 @@ router.group(() => {
   router.patch('/transactions/:id/skip', '#controllers/transactions_controller.skipStep')
   router.patch('/transactions/:id/goto/:stepOrder', '#controllers/transactions_controller.goToStep')
   router.patch('/transactions/:id/cancel', '#controllers/transactions_controller.cancel')
+  router.patch('/transactions/:id/archive', '#controllers/transactions_controller.archive')
+  router.patch('/transactions/:id/restore', '#controllers/transactions_controller.restore')
   router.get('/transactions/:id/activity', '#controllers/transactions_controller.activity')
   router.delete('/transactions/:id', '#controllers/transactions_controller.destroy')
 
@@ -120,6 +122,21 @@ router.group(() => {
   router.get('/conditions/templates', '#controllers/condition_templates_controller.index')
   router.get('/conditions/templates/by-pack', '#controllers/condition_templates_controller.byPack')
   router.get('/conditions/templates/:id', '#controllers/condition_templates_controller.show')
+
+  // Transaction Parties (D34 P1.3)
+  router.get('/transactions/:id/parties', '#controllers/transaction_parties_controller.index')
+  router.post('/transactions/:id/parties', '#controllers/transaction_parties_controller.store')
+  router.put('/parties/:id', '#controllers/transaction_parties_controller.update')
+  router.delete('/parties/:id', '#controllers/transaction_parties_controller.destroy')
+
+  // Transaction Documents (D34 P1.2)
+  router.get('/transactions/:id/documents', '#controllers/transaction_documents_controller.index')
+  router.post('/transactions/:id/documents', '#controllers/transaction_documents_controller.store')
+  router.get('/documents/:id', '#controllers/transaction_documents_controller.show')
+  router.put('/documents/:id', '#controllers/transaction_documents_controller.update')
+  router.patch('/documents/:id/validate', '#controllers/transaction_documents_controller.validate')
+  router.patch('/documents/:id/reject', '#controllers/transaction_documents_controller.reject')
+  router.delete('/documents/:id', '#controllers/transaction_documents_controller.destroy')
 
   // Notes
   router.get('/transactions/:id/notes', '#controllers/notes_controller.index')

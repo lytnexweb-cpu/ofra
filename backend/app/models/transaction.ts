@@ -11,9 +11,20 @@ import Organization from './organization.js'
 import WorkflowTemplate from './workflow_template.js'
 import TransactionStep from './transaction_step.js'
 import ActivityFeed from './activity_feed.js'
+import TransactionParty from './transaction_party.js'
+import TransactionDocument from './transaction_document.js'
 
 export type TransactionType = 'purchase' | 'sale'
-export type TransactionStatus = 'active' | 'cancelled'
+export type TransactionStatus = 'active' | 'cancelled' | 'archived'
+
+export type CancellationCategory =
+  | 'financing_refused'
+  | 'inspection_failed'
+  | 'buyer_withdrawal'
+  | 'seller_withdrawal'
+  | 'deadline_expired'
+  | 'mutual_agreement'
+  | 'other'
 
 export default class Transaction extends BaseModel {
   @column({ isPrimary: true })
@@ -64,6 +75,33 @@ export default class Transaction extends BaseModel {
   @column({ columnName: 'cancellation_reason' })
   declare cancellationReason: string | null
 
+  @column({ columnName: 'cancellation_category' })
+  declare cancellationCategory: CancellationCategory | null
+
+  @column.dateTime({ columnName: 'archived_at' })
+  declare archivedAt: DateTime | null
+
+  @column({ columnName: 'archived_reason' })
+  declare archivedReason: string | null
+
+  @column.date({ columnName: 'closing_date' })
+  declare closingDate: DateTime | null
+
+  @column.date({ columnName: 'offer_expiry_date' })
+  declare offerExpiryDate: DateTime | null
+
+  @column.date({ columnName: 'inspection_deadline' })
+  declare inspectionDeadline: DateTime | null
+
+  @column.date({ columnName: 'financing_deadline' })
+  declare financingDeadline: DateTime | null
+
+  @column({ columnName: 'tags', prepare: (value: string[] | null) => value ? JSON.stringify(value) : null })
+  declare tags: string[] | null
+
+  @column()
+  declare language: string | null
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 
@@ -102,4 +140,10 @@ export default class Transaction extends BaseModel {
 
   @hasMany(() => ActivityFeed, { foreignKey: 'transactionId' })
   declare activities: HasMany<typeof ActivityFeed>
+
+  @hasMany(() => TransactionParty, { foreignKey: 'transactionId' })
+  declare parties: HasMany<typeof TransactionParty>
+
+  @hasMany(() => TransactionDocument, { foreignKey: 'transactionId' })
+  declare documents: HasMany<typeof TransactionDocument>
 }

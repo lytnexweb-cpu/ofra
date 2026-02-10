@@ -31,6 +31,24 @@ export default class OfferRevision extends BaseModel {
   @column()
   declare notes: string | null
 
+  @column.date({ columnName: 'deposit_deadline' })
+  declare depositDeadline: DateTime | null
+
+  @column.date({ columnName: 'closing_date' })
+  declare closingDate: DateTime | null
+
+  @column()
+  declare inspectionRequired: boolean
+
+  @column()
+  declare inspectionDelay: string | null
+
+  @column()
+  declare inclusions: string | null
+
+  @column()
+  declare message: string | null
+
   @column()
   declare direction: OfferDirection
 

@@ -25,6 +25,12 @@ export default class Property extends BaseModel {
   @column()
   declare notes: string | null
 
+  @column()
+  declare province: string | null
+
+  @column()
+  declare mlsNumber: string | null
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 

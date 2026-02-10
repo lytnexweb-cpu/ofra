@@ -1,4 +1,5 @@
 import type { HttpContext } from '@adonisjs/core/http'
+import { DateTime } from 'luxon'
 import Transaction from '#models/transaction'
 import Property from '#models/property'
 import {
@@ -183,7 +184,14 @@ export default class TransactionsController {
       const transaction = await query.firstOrFail()
 
       const payload = await request.validateUsing(updateTransactionValidator)
-      transaction.merge(payload)
+
+      // Extract date strings and convert to DateTime before merge
+      const { closingDate, offerExpiryDate, inspectionDeadline, financingDeadline, ...rest } = payload
+      transaction.merge(rest)
+      if (closingDate !== undefined) transaction.closingDate = closingDate ? DateTime.fromISO(closingDate) : null
+      if (offerExpiryDate !== undefined) transaction.offerExpiryDate = offerExpiryDate ? DateTime.fromISO(offerExpiryDate) : null
+      if (inspectionDeadline !== undefined) transaction.inspectionDeadline = inspectionDeadline ? DateTime.fromISO(inspectionDeadline) : null
+      if (financingDeadline !== undefined) transaction.financingDeadline = financingDeadline ? DateTime.fromISO(financingDeadline) : null
       await transaction.save()
 
       await transaction.load('client')
@@ -407,7 +415,7 @@ export default class TransactionsController {
 
       // Update transaction status to cancelled
       transaction.status = 'cancelled'
-      transaction.cancelledAt = new Date()
+      transaction.cancelledAt = DateTime.now()
       transaction.cancellationReason = reason || null
       await transaction.save()
 
@@ -437,6 +445,108 @@ export default class TransactionsController {
       return response.internalServerError({
         success: false,
         error: { message: 'Failed to cancel transaction', code: 'E_INTERNAL_ERROR' },
+      })
+    }
+  }
+
+  async archive({ params, request, response, auth }: HttpContext) {
+    try {
+      const query = Transaction.query().where('id', params.id)
+      TenantScopeService.apply(query, auth.user!)
+      const transaction = await query.firstOrFail()
+
+      if (transaction.status !== 'active') {
+        return response.unprocessableEntity({
+          success: false,
+          error: {
+            message: 'Only active transactions can be archived',
+            code: 'E_INVALID_STATUS',
+          },
+        })
+      }
+
+      const { reason } = request.only(['reason'])
+
+      transaction.status = 'archived'
+      transaction.archivedAt = DateTime.now()
+      transaction.archivedReason = reason || null
+      await transaction.save()
+
+      await ActivityFeedService.log({
+        transactionId: transaction.id,
+        userId: auth.user!.id,
+        activityType: 'transaction_archived',
+        metadata: { reason: reason || null },
+      })
+
+      await transaction.load('client')
+      await transaction.load('currentStep', (sq) => sq.preload('workflowStep'))
+
+      return response.ok({
+        success: true,
+        data: { transaction },
+      })
+    } catch (error) {
+      if (error.code === 'E_ROW_NOT_FOUND') {
+        return response.notFound({
+          success: false,
+          error: { message: 'Transaction not found', code: 'E_NOT_FOUND' },
+        })
+      }
+      logger.error({ error, transactionId: params.id }, 'Failed to archive transaction')
+      return response.internalServerError({
+        success: false,
+        error: { message: 'Failed to archive transaction', code: 'E_INTERNAL_ERROR' },
+      })
+    }
+  }
+
+  async restore({ params, response, auth }: HttpContext) {
+    try {
+      const query = Transaction.query().where('id', params.id)
+      TenantScopeService.apply(query, auth.user!)
+      const transaction = await query.firstOrFail()
+
+      if (transaction.status !== 'archived') {
+        return response.unprocessableEntity({
+          success: false,
+          error: {
+            message: 'Only archived transactions can be restored',
+            code: 'E_INVALID_STATUS',
+          },
+        })
+      }
+
+      transaction.status = 'active'
+      transaction.archivedAt = null
+      transaction.archivedReason = null
+      await transaction.save()
+
+      await ActivityFeedService.log({
+        transactionId: transaction.id,
+        userId: auth.user!.id,
+        activityType: 'transaction_restored',
+        metadata: {},
+      })
+
+      await transaction.load('client')
+      await transaction.load('currentStep', (sq) => sq.preload('workflowStep'))
+
+      return response.ok({
+        success: true,
+        data: { transaction },
+      })
+    } catch (error) {
+      if (error.code === 'E_ROW_NOT_FOUND') {
+        return response.notFound({
+          success: false,
+          error: { message: 'Transaction not found', code: 'E_NOT_FOUND' },
+        })
+      }
+      logger.error({ error, transactionId: params.id }, 'Failed to restore transaction')
+      return response.internalServerError({
+        success: false,
+        error: { message: 'Failed to restore transaction', code: 'E_INTERNAL_ERROR' },
       })
     }
   }
