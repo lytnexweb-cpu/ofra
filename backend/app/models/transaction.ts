@@ -13,6 +13,8 @@ import TransactionStep from './transaction_step.js'
 import ActivityFeed from './activity_feed.js'
 import TransactionParty from './transaction_party.js'
 import TransactionDocument from './transaction_document.js'
+import TransactionMember from './transaction_member.js'
+import TransactionShareLink from './transaction_share_link.js'
 
 export type TransactionType = 'purchase' | 'sale'
 export type TransactionStatus = 'active' | 'cancelled' | 'archived'
@@ -146,4 +148,10 @@ export default class Transaction extends BaseModel {
 
   @hasMany(() => TransactionDocument, { foreignKey: 'transactionId' })
   declare documents: HasMany<typeof TransactionDocument>
+
+  @hasMany(() => TransactionMember, { foreignKey: 'transactionId' })
+  declare members: HasMany<typeof TransactionMember>
+
+  @hasMany(() => TransactionShareLink, { foreignKey: 'transactionId' })
+  declare shareLinks: HasMany<typeof TransactionShareLink>
 }

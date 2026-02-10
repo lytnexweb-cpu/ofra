@@ -29,6 +29,9 @@ router.post('/api/login', '#controllers/auth_controller.login').use(middleware.r
 router.post('/api/forgot-password', '#controllers/auth_controller.forgotPassword').use(middleware.rateLimit())
 router.post('/api/reset-password', '#controllers/auth_controller.resetPassword').use(middleware.rateLimit())
 
+// Public share link access (D34 P1.5)
+router.get('/api/share/:token', '#controllers/transaction_share_links_controller.publicAccess')
+
 // Routes protégées
 router.group(() => {
   // Auth
@@ -69,23 +72,32 @@ router.group(() => {
   router.put('/workflow-templates/:id', '#controllers/workflow_templates_controller.update')
   router.delete('/workflow-templates/:id', '#controllers/workflow_templates_controller.destroy')
 
-  // Transactions
+  // Transactions — list & create (no txPermission, uses TenantScope internally)
   router.get('/transactions', '#controllers/transactions_controller.index')
   router.post('/transactions', '#controllers/transactions_controller.store').use(middleware.planLimit())
-  router.get('/transactions/:id', '#controllers/transactions_controller.show')
-  router.put('/transactions/:id', '#controllers/transactions_controller.update')
-  router.patch('/transactions/:id/advance', '#controllers/transactions_controller.advanceStep')
-  router.patch('/transactions/:id/skip', '#controllers/transactions_controller.skipStep')
-  router.patch('/transactions/:id/goto/:stepOrder', '#controllers/transactions_controller.goToStep')
-  router.patch('/transactions/:id/cancel', '#controllers/transactions_controller.cancel')
-  router.patch('/transactions/:id/archive', '#controllers/transactions_controller.archive')
-  router.patch('/transactions/:id/restore', '#controllers/transactions_controller.restore')
-  router.get('/transactions/:id/activity', '#controllers/transactions_controller.activity')
-  router.delete('/transactions/:id', '#controllers/transactions_controller.destroy')
 
-  // Offers
-  router.get('/transactions/:id/offers', '#controllers/offers_controller.index')
-  router.post('/transactions/:id/offers', '#controllers/offers_controller.store')
+  // Transactions — viewer+ (read)
+  router.get('/transactions/:id', '#controllers/transactions_controller.show').use(middleware.txPermission({ minRole: 'viewer' }))
+  router.get('/transactions/:id/activity', '#controllers/transactions_controller.activity').use(middleware.txPermission({ minRole: 'viewer' }))
+
+  // Transactions — editor+ (modify)
+  router.put('/transactions/:id', '#controllers/transactions_controller.update').use(middleware.txPermission({ minRole: 'editor' }))
+  router.patch('/transactions/:id/advance', '#controllers/transactions_controller.advanceStep').use(middleware.txPermission({ minRole: 'editor' }))
+  router.patch('/transactions/:id/skip', '#controllers/transactions_controller.skipStep').use(middleware.txPermission({ minRole: 'editor' }))
+  router.patch('/transactions/:id/goto/:stepOrder', '#controllers/transactions_controller.goToStep').use(middleware.txPermission({ minRole: 'editor' }))
+
+  // Transactions — admin+ (cancel/archive/restore)
+  router.patch('/transactions/:id/cancel', '#controllers/transactions_controller.cancel').use(middleware.txPermission({ minRole: 'admin' }))
+  router.patch('/transactions/:id/archive', '#controllers/transactions_controller.archive').use(middleware.txPermission({ minRole: 'admin' }))
+  router.patch('/transactions/:id/restore', '#controllers/transactions_controller.restore').use(middleware.txPermission({ minRole: 'admin' }))
+
+  // Transactions — owner only (delete)
+  router.delete('/transactions/:id', '#controllers/transactions_controller.destroy').use(middleware.txPermission({ minRole: 'owner' }))
+
+  // Offers — viewer+ (read), editor+ (modify)
+  router.get('/transactions/:id/offers', '#controllers/offers_controller.index').use(middleware.txPermission({ minRole: 'viewer' }))
+  router.post('/transactions/:id/offers', '#controllers/offers_controller.store').use(middleware.txPermission({ minRole: 'editor' }))
+  // Offer sub-resource routes (no transaction ID in URL — internal TenantScope)
   router.get('/offers/:offerId', '#controllers/offers_controller.show')
   router.post('/offers/:offerId/revisions', '#controllers/offers_controller.addRevision')
   router.patch('/offers/:offerId/accept', '#controllers/offers_controller.accept')
@@ -93,8 +105,9 @@ router.group(() => {
   router.patch('/offers/:offerId/withdraw', '#controllers/offers_controller.withdraw')
   router.delete('/offers/:offerId', '#controllers/offers_controller.destroy')
 
-  // Conditions (Legacy + Premium)
-  router.post('/transactions/:id/conditions', '#controllers/conditions_controller.store')
+  // Conditions — viewer+ (read), editor+ (modify)
+  router.post('/transactions/:id/conditions', '#controllers/conditions_controller.store').use(middleware.txPermission({ minRole: 'editor' }))
+  // Condition sub-resource routes (no transaction ID in URL — internal TenantScope)
   router.put('/conditions/:id', '#controllers/conditions_controller.update')
   router.patch('/conditions/:id/complete', '#controllers/conditions_controller.complete')
   router.delete('/conditions/:id', '#controllers/conditions_controller.destroy')
@@ -106,41 +119,56 @@ router.group(() => {
   router.post('/conditions/:id/evidence', '#controllers/conditions_controller.addEvidence')
   router.delete('/conditions/:id/evidence/:evidenceId', '#controllers/conditions_controller.removeEvidence')
 
-  // Transaction Conditions - Timeline & Active (Premium)
-  router.get('/transactions/:id/conditions/timeline', '#controllers/conditions_controller.timeline')
-  router.get('/transactions/:id/conditions/active', '#controllers/conditions_controller.active')
-  router.get('/transactions/:id/conditions/advance-check', '#controllers/conditions_controller.advanceCheck')
+  // Transaction Conditions - Timeline & Active (Premium) — viewer+
+  router.get('/transactions/:id/conditions/timeline', '#controllers/conditions_controller.timeline').use(middleware.txPermission({ minRole: 'viewer' }))
+  router.get('/transactions/:id/conditions/active', '#controllers/conditions_controller.active').use(middleware.txPermission({ minRole: 'viewer' }))
+  router.get('/transactions/:id/conditions/advance-check', '#controllers/conditions_controller.advanceCheck').use(middleware.txPermission({ minRole: 'viewer' }))
 
-  // Transaction Profiles (D1)
-  router.get('/transactions/:id/profile', '#controllers/transaction_profiles_controller.show')
-  router.put('/transactions/:id/profile', '#controllers/transaction_profiles_controller.upsert')
-  router.get('/transactions/:id/profile/status', '#controllers/transaction_profiles_controller.status')
-  router.post('/transactions/:id/profile/load-pack', '#controllers/transaction_profiles_controller.loadPack') // D39
-  router.get('/transactions/:id/applicable-templates', '#controllers/condition_templates_controller.applicableForTransaction')
+  // Transaction Profiles (D1) — viewer+ (read), editor+ (modify)
+  router.get('/transactions/:id/profile', '#controllers/transaction_profiles_controller.show').use(middleware.txPermission({ minRole: 'viewer' }))
+  router.put('/transactions/:id/profile', '#controllers/transaction_profiles_controller.upsert').use(middleware.txPermission({ minRole: 'editor' }))
+  router.get('/transactions/:id/profile/status', '#controllers/transaction_profiles_controller.status').use(middleware.txPermission({ minRole: 'viewer' }))
+  router.post('/transactions/:id/profile/load-pack', '#controllers/transaction_profiles_controller.loadPack').use(middleware.txPermission({ minRole: 'editor' }))
+  router.get('/transactions/:id/applicable-templates', '#controllers/condition_templates_controller.applicableForTransaction').use(middleware.txPermission({ minRole: 'viewer' }))
 
-  // Condition Templates (D27)
+  // Condition Templates (D27) — no transaction context
   router.get('/conditions/templates', '#controllers/condition_templates_controller.index')
   router.get('/conditions/templates/by-pack', '#controllers/condition_templates_controller.byPack')
   router.get('/conditions/templates/:id', '#controllers/condition_templates_controller.show')
 
-  // Transaction Parties (D34 P1.3)
-  router.get('/transactions/:id/parties', '#controllers/transaction_parties_controller.index')
-  router.post('/transactions/:id/parties', '#controllers/transaction_parties_controller.store')
+  // Transaction Parties (D34 P1.3) — viewer+ (read), editor+ (modify)
+  router.get('/transactions/:id/parties', '#controllers/transaction_parties_controller.index').use(middleware.txPermission({ minRole: 'viewer' }))
+  router.post('/transactions/:id/parties', '#controllers/transaction_parties_controller.store').use(middleware.txPermission({ minRole: 'editor' }))
+  // Party sub-resource routes (no transaction ID in URL — internal TenantScope)
   router.put('/parties/:id', '#controllers/transaction_parties_controller.update')
   router.delete('/parties/:id', '#controllers/transaction_parties_controller.destroy')
 
-  // Transaction Documents (D34 P1.2)
-  router.get('/transactions/:id/documents', '#controllers/transaction_documents_controller.index')
-  router.post('/transactions/:id/documents', '#controllers/transaction_documents_controller.store')
+  // Transaction Documents (D34 P1.2) — viewer+ (read), editor+ (modify)
+  router.get('/transactions/:id/documents', '#controllers/transaction_documents_controller.index').use(middleware.txPermission({ minRole: 'viewer' }))
+  router.post('/transactions/:id/documents', '#controllers/transaction_documents_controller.store').use(middleware.txPermission({ minRole: 'editor' }))
+  // Document sub-resource routes (no transaction ID in URL — internal TenantScope)
   router.get('/documents/:id', '#controllers/transaction_documents_controller.show')
   router.put('/documents/:id', '#controllers/transaction_documents_controller.update')
   router.patch('/documents/:id/validate', '#controllers/transaction_documents_controller.validate')
   router.patch('/documents/:id/reject', '#controllers/transaction_documents_controller.reject')
   router.delete('/documents/:id', '#controllers/transaction_documents_controller.destroy')
 
-  // Notes
-  router.get('/transactions/:id/notes', '#controllers/notes_controller.index')
-  router.post('/transactions/:id/notes', '#controllers/notes_controller.store')
+  // Transaction Members (D34 P1.4) — viewer+ (list), admin+ (manage)
+  router.get('/transactions/:transactionId/members', '#controllers/transaction_members_controller.index').use(middleware.txPermission({ minRole: 'viewer' }))
+  router.post('/transactions/:transactionId/members', '#controllers/transaction_members_controller.store').use(middleware.txPermission({ minRole: 'admin' }))
+  router.patch('/transactions/:transactionId/members/:id', '#controllers/transaction_members_controller.update').use(middleware.txPermission({ minRole: 'admin' }))
+  router.delete('/transactions/:transactionId/members/:id', '#controllers/transaction_members_controller.destroy').use(middleware.txPermission({ minRole: 'admin' }))
+
+  // Transaction Share Links (D34 P1.5) — admin+ (manage links)
+  router.get('/transactions/:transactionId/share-link', '#controllers/transaction_share_links_controller.show').use(middleware.txPermission({ minRole: 'admin' }))
+  router.post('/transactions/:transactionId/share-link', '#controllers/transaction_share_links_controller.store').use(middleware.txPermission({ minRole: 'admin' }))
+  router.patch('/transactions/:transactionId/share-link/:id', '#controllers/transaction_share_links_controller.update').use(middleware.txPermission({ minRole: 'admin' }))
+  router.delete('/transactions/:transactionId/share-link/:id', '#controllers/transaction_share_links_controller.destroy').use(middleware.txPermission({ minRole: 'admin' }))
+
+  // Notes — viewer+ (read), editor+ (modify)
+  router.get('/transactions/:id/notes', '#controllers/notes_controller.index').use(middleware.txPermission({ minRole: 'viewer' }))
+  router.post('/transactions/:id/notes', '#controllers/notes_controller.store').use(middleware.txPermission({ minRole: 'editor' }))
+  // Note sub-resource (no transaction ID in URL — internal check)
   router.delete('/notes/:id', '#controllers/notes_controller.destroy')
 }).prefix('/api').use(middleware.auth())
 
