@@ -33,3 +33,10 @@ export { default as EditTransactionModal } from './EditTransactionModal'
 export { default as DocumentsSection } from './DocumentsSection'
 export { default as MembersPanel } from './MembersPanel'
 export { default as ExportSharePanel } from './ExportSharePanel'
+
+// Maquette 01: Transaction detail sections
+export { default as PropertyProfileCard } from './PropertyProfileCard'
+export { default as OffersPanel } from './OffersPanel'
+
+// Maquette 02: Accept offer modal
+export { default as AcceptOfferModal } from './AcceptOfferModal'

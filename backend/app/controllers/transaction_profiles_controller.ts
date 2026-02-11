@@ -1,6 +1,5 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import TransactionProfile from '#models/transaction_profile'
-import Transaction from '#models/transaction'
 import vine from '@vinejs/vine'
 import { DateTime } from 'luxon'
 import { ConditionsEngineService } from '#services/conditions_engine_service'
@@ -45,36 +44,14 @@ export default class TransactionProfilesController {
    * Get transaction profile
    * GET /api/transactions/:id/profile
    */
-  async show({ params, response, auth }: HttpContext) {
+  async show({ params, response }: HttpContext) {
     try {
-      // Verify ownership
-      const transaction = await Transaction.query()
-        .where('id', params.id)
-        .where('ownerUserId', auth.user!.id)
-        .first()
-
-      if (!transaction) {
-        return response.notFound({
-          success: false,
-          error: { message: 'Transaction not found', code: 'E_NOT_FOUND' },
-        })
-      }
-
+      // txPermission middleware already validated access
       const profile = await TransactionProfile.find(params.id)
-
-      if (!profile) {
-        return response.notFound({
-          success: false,
-          error: {
-            message: 'Profile not found for this transaction',
-            code: 'E_PROFILE_NOT_FOUND',
-          },
-        })
-      }
 
       return response.ok({
         success: true,
-        data: { profile },
+        data: { profile: profile ?? null },
       })
     } catch (error) {
       return response.internalServerError({
@@ -88,22 +65,9 @@ export default class TransactionProfilesController {
    * Create or update transaction profile
    * PUT /api/transactions/:id/profile
    */
-  async upsert({ params, request, response, auth }: HttpContext) {
+  async upsert({ params, request, response }: HttpContext) {
     try {
-      // Verify ownership
-      const transaction = await Transaction.query()
-        .where('id', params.id)
-        .where('ownerUserId', auth.user!.id)
-        .first()
-
-      if (!transaction) {
-        return response.notFound({
-          success: false,
-          error: { message: 'Transaction not found', code: 'E_NOT_FOUND' },
-        })
-      }
-
-      // Check if profile exists
+      // txPermission middleware already validated access
       const existingProfile = await TransactionProfile.find(params.id)
 
       if (existingProfile) {
@@ -152,20 +116,9 @@ export default class TransactionProfilesController {
    * Check if profile is complete (all required fields for context)
    * GET /api/transactions/:id/profile/status
    */
-  async status({ params, response, auth }: HttpContext) {
+  async status({ params, response }: HttpContext) {
     try {
-      const transaction = await Transaction.query()
-        .where('id', params.id)
-        .where('ownerUserId', auth.user!.id)
-        .first()
-
-      if (!transaction) {
-        return response.notFound({
-          success: false,
-          error: { message: 'Transaction not found', code: 'E_NOT_FOUND' },
-        })
-      }
-
+      // txPermission middleware already validated access
       const profile = await TransactionProfile.find(params.id)
 
       if (!profile) {
@@ -239,20 +192,7 @@ export default class TransactionProfilesController {
    */
   async loadPack({ params, request, response, auth }: HttpContext) {
     try {
-      // Verify ownership
-      const transaction = await Transaction.query()
-        .where('id', params.id)
-        .where('ownerUserId', auth.user!.id)
-        .first()
-
-      if (!transaction) {
-        return response.notFound({
-          success: false,
-          error: { message: 'Transaction not found', code: 'E_NOT_FOUND' },
-        })
-      }
-
-      // Check if profile exists
+      // txPermission middleware already validated access
       const profile = await TransactionProfile.find(params.id)
       if (!profile) {
         return response.badRequest({

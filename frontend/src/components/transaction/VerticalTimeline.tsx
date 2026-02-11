@@ -5,20 +5,23 @@ import {
   Check,
   Clock,
   ChevronDown,
-  ChevronRight,
   Lock,
   SkipForward,
   Plus,
   FileText,
   ExternalLink,
   Sparkles,
+  Shield,
+  AlertTriangle,
+  Lightbulb,
+  Info,
 } from 'lucide-react'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '../ui/Sheet'
-import { Button } from '../ui/Button'
 import type { Transaction, TransactionStep } from '../../api/transactions.api'
 import { conditionsApi, type Condition } from '../../api/conditions.api'
 import { toast } from '../../hooks/use-toast'
 import { differenceInDays, formatDate } from '../../lib/date'
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '../ui/Tooltip'
 import ConditionCard from './ConditionCard'
 import CreateConditionModal from '../CreateConditionModal'
 import EditConditionModal from './EditConditionModal'
@@ -45,29 +48,33 @@ function LevelHeader({
   const { t } = useTranslation()
   const config = {
     blocking: {
-      emoji: '\uD83D\uDD34',
+      Icon: Shield,
       label: t('conditions.levels.blocking'),
-      color: 'text-red-600 dark:text-red-400',
+      iconColor: 'text-red-500',
+      textColor: 'text-red-600',
     },
     required: {
-      emoji: '\uD83D\uDFE1',
+      Icon: AlertTriangle,
       label: t('conditions.levels.required'),
-      color: 'text-yellow-600 dark:text-yellow-400',
+      iconColor: 'text-amber-500',
+      textColor: 'text-amber-600',
     },
     recommended: {
-      emoji: '\uD83D\uDFE2',
+      Icon: Lightbulb,
       label: t('conditions.levels.recommended'),
-      color: 'text-green-600 dark:text-green-400',
+      iconColor: 'text-emerald-500',
+      textColor: 'text-stone-500',
     },
   }
-  const { emoji, label, color } = config[level]
+  const { Icon, label, iconColor, textColor } = config[level]
 
   return (
-    <h4
-      className={`text-xs font-bold uppercase tracking-wide mb-2 ${color}`}
-    >
-      {emoji} {label} ({count})
-    </h4>
+    <div className="flex items-center gap-1.5 mb-1.5">
+      <Icon className={`w-3.5 h-3.5 ${iconColor}`} />
+      <span className={`text-[11px] tracking-[0.5px] uppercase font-semibold ${textColor}`}>
+        {label} ({count})
+      </span>
+    </div>
   )
 }
 
@@ -84,8 +91,8 @@ function InlineDocuments({ conditions }: { conditions: Condition[] }) {
 
   return (
     <div>
-      <h4 className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-2">
-        {'\uD83D\uDCCE'} {t('tabs.documents')} ({docs.length})
+      <h4 className="text-[11px] tracking-[0.5px] uppercase font-semibold text-stone-500 mb-2">
+        {t('tabs.documents')} ({docs.length})
       </h4>
       <div className="space-y-1.5">
         {docs.map((doc, i) => (
@@ -94,11 +101,11 @@ function InlineDocuments({ conditions }: { conditions: Condition[] }) {
             href={doc.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 text-sm text-foreground hover:text-primary transition-colors"
+            className="flex items-center gap-2 text-sm text-stone-700 hover:text-primary transition-colors"
           >
             <FileText className="w-4 h-4 text-primary shrink-0" />
             <span className="truncate">{doc.label}</span>
-            <ExternalLink className="w-3 h-3 text-muted-foreground shrink-0" />
+            <ExternalLink className="w-3 h-3 text-stone-400 shrink-0" />
           </a>
         ))}
       </div>
@@ -306,7 +313,7 @@ export default function VerticalTimeline({
 
   if (steps.length === 0) {
     return (
-      <p className="text-center text-sm text-muted-foreground py-8">
+      <p className="text-center text-sm text-stone-400 py-8">
         {t('common.noResults')}
       </p>
     )
@@ -343,87 +350,77 @@ export default function VerticalTimeline({
             className="relative"
             data-testid={`vt-step-${step.stepOrder}`}
           >
-            {/* Connector line */}
-            {!isLast && (
-              <div
-                className={`absolute left-[15px] top-8 w-0.5 ${
-                  isPast
-                    ? 'bg-success'
-                    : isActive
-                      ? 'bg-primary/30'
-                      : 'bg-border'
-                }`}
-                style={{ height: 'calc(100% - 8px)' }}
-                aria-hidden="true"
-              />
-            )}
-
             {/* === PAST STEP === */}
             {isPast && (
-              <>
-                <button
-                  type="button"
-                  onClick={() =>
-                    conditions.length > 0
-                      ? setExpandedPastStepId(
-                          isPastExpanded ? null : step.id
-                        )
-                      : undefined
-                  }
-                  className={`flex items-center gap-3 w-full text-left py-2 px-1 rounded-lg transition-colors ${
-                    conditions.length > 0
-                      ? 'hover:bg-muted/30 cursor-pointer'
-                      : 'cursor-default'
-                  }`}
-                >
+              <div className="relative flex gap-3 sm:gap-4">
+                <div className="flex flex-col items-center">
                   <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+                    className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center shrink-0 ${
                       status === 'skipped'
-                        ? 'bg-muted text-muted-foreground'
-                        : 'bg-success text-white'
+                        ? 'bg-stone-300'
+                        : 'bg-emerald-500'
                     }`}
                   >
                     {status === 'skipped' ? (
-                      <SkipForward className="w-3.5 h-3.5" />
+                      <SkipForward className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
                     ) : (
-                      <Check className="w-4 h-4" />
+                      <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
                     )}
                   </div>
-                  <span
-                    className={`text-sm flex-1 ${
-                      status === 'skipped'
-                        ? 'text-muted-foreground'
-                        : 'text-success'
+                  {!isLast && (
+                    <div className={`w-0.5 flex-1 min-h-[20px] ${status === 'skipped' ? 'bg-stone-200' : 'bg-emerald-300'}`} />
+                  )}
+                </div>
+                <div className="flex-1 pb-4 sm:pb-5">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      conditions.length > 0
+                        ? setExpandedPastStepId(
+                            isPastExpanded ? null : step.id
+                          )
+                        : undefined
+                    }
+                    className={`w-full flex items-center justify-between text-left ${
+                      conditions.length > 0 ? 'cursor-pointer' : 'cursor-default'
                     }`}
                   >
-                    {step.stepOrder}. {label}
-                  </span>
-                  {step.completedAt && (
-                    <span className="text-xs text-muted-foreground">
-                      {formatDate(step.completedAt, 'd MMM')}
-                    </span>
-                  )}
-                  {conditions.length > 0 && (
-                    <div className="text-muted-foreground">
-                      {isPastExpanded ? (
-                        <ChevronDown className="w-4 h-4" />
-                      ) : (
-                        <ChevronRight className="w-4 h-4" />
-                      )}
-                    </div>
-                  )}
-                </button>
-
-                {/* B2: Past step expanded — read-only conditions */}
-                {isPastExpanded && conditions.length > 0 && (
-                  <div className="ml-[15px] pl-6 border-l-2 border-success/20 pb-2">
-                    <div className="flex items-center gap-2 mb-3 mt-1">
-                      <Lock className="w-3.5 h-3.5 text-muted-foreground" />
-                      <span className="text-xs text-muted-foreground font-medium">
-                        {t('timeline.readOnly')}
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span
+                        className={`text-sm font-semibold ${
+                          status === 'skipped'
+                            ? 'text-stone-400'
+                            : 'text-stone-900'
+                        }`}
+                      >
+                        {step.stepOrder}. {label}
                       </span>
+                      {step.completedAt && (
+                        <span className="text-xs text-stone-400 hidden sm:inline">
+                          {formatDate(step.completedAt, 'd MMM')}
+                        </span>
+                      )}
+                      <Lock className="w-3 h-3 text-stone-400" />
                     </div>
-                    <div className="space-y-2">
+                    {conditions.length > 0 && (
+                      <ChevronDown className="w-4 h-4 text-stone-400 shrink-0" />
+                    )}
+                  </button>
+                  {conditions.length > 0 && (
+                    <div className="mt-1 text-xs text-stone-400">
+                      {conditions.length} conditions
+                    </div>
+                  )}
+
+                  {/* Expanded past step — read-only conditions */}
+                  {isPastExpanded && conditions.length > 0 && (
+                    <div className="mt-3 space-y-2">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Lock className="w-3.5 h-3.5 text-stone-400" />
+                        <span className="text-xs text-stone-400 font-medium">
+                          {t('timeline.readOnly')}
+                        </span>
+                      </div>
                       {conditions.map((condition) => (
                         <ConditionCard
                           key={condition.id}
@@ -433,131 +430,149 @@ export default function VerticalTimeline({
                         />
                       ))}
                     </div>
-                  </div>
-                )}
-              </>
+                  )}
+                </div>
+              </div>
             )}
 
             {/* === CURRENT STEP === */}
             {isActive && grouped && (
-              <>
-                {/* Current step header with horizontal rule */}
-                <div className="flex items-center gap-3 py-2 px-1">
-                  <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center shrink-0 animate-pulse">
-                    <Clock className="w-4 h-4" />
+              <div className="relative flex gap-3 sm:gap-4">
+                <div className="flex flex-col items-center">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary flex items-center justify-center shrink-0 ring-4 ring-primary/20">
+                    <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white animate-pulse" />
                   </div>
-                  <div className="flex-1 flex items-center gap-2 min-w-0">
-                    <span className="font-bold text-primary whitespace-nowrap text-sm">
-                      {step.stepOrder}. {label.toUpperCase()}
+                  {!isLast && (
+                    <div className="w-0.5 flex-1 bg-stone-200 min-h-[20px]" />
+                  )}
+                </div>
+                <div className="flex-1 pb-4 sm:pb-6">
+                  <div className="mb-3">
+                    <span className="text-sm font-bold text-primary">
+                      {step.stepOrder}. {label}
                     </span>
-                    <div className="flex-1 h-px bg-primary/20" />
                     {daysSince !== null && daysSince > 0 && (
-                      <span className="text-xs text-primary/70 whitespace-nowrap">
+                      <span className="text-xs text-stone-400 ml-2">
                         {t('timeline.sinceDays', { count: daysSince })}
                       </span>
                     )}
                   </div>
-                </div>
 
-                {/* Current step content */}
-                <div className="ml-[15px] pl-6 border-l-2 border-primary/20 pb-4 space-y-4">
                   {/* Conditions grouped by level: blocking → required → recommended */}
-                  {grouped.blocking.length > 0 && (
-                    <div>
-                      <LevelHeader
-                        level="blocking"
-                        count={grouped.blocking.length}
-                      />
-                      <div className="space-y-2">
-                        {grouped.blocking.map((c) => (
-                          <ConditionCard
-                            key={c.id}
-                            condition={c}
-                            interactive
-                            isToggling={togglingId === c.id}
-                            onToggle={handleToggle}
-                            onEdit={handleEdit}
-                          />
-                        ))}
+                  <div className="space-y-3">
+                    {grouped.blocking.length > 0 && (
+                      <div>
+                        <LevelHeader
+                          level="blocking"
+                          count={grouped.blocking.length}
+                        />
+                        <div className="space-y-1.5 ml-5">
+                          {grouped.blocking.map((c) => (
+                            <ConditionCard
+                              key={c.id}
+                              condition={c}
+                              interactive
+                              isToggling={togglingId === c.id}
+                              onToggle={handleToggle}
+                              onEdit={handleEdit}
+                            />
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
-
-                  {grouped.required.length > 0 && (
-                    <div>
-                      <LevelHeader
-                        level="required"
-                        count={grouped.required.length}
-                      />
-                      <div className="space-y-2">
-                        {grouped.required.map((c) => (
-                          <ConditionCard
-                            key={c.id}
-                            condition={c}
-                            interactive
-                            isToggling={togglingId === c.id}
-                            onToggle={handleToggle}
-                            onEdit={handleEdit}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {grouped.recommended.length > 0 && (
-                    <div>
-                      <LevelHeader
-                        level="recommended"
-                        count={grouped.recommended.length}
-                      />
-                      <div className="space-y-2">
-                        {grouped.recommended.map((c) => (
-                          <ConditionCard
-                            key={c.id}
-                            condition={c}
-                            interactive
-                            isToggling={togglingId === c.id}
-                            onToggle={handleToggle}
-                            onEdit={handleEdit}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {grouped.blocking.length === 0 &&
-                    grouped.required.length === 0 &&
-                    grouped.recommended.length === 0 && (
-                      <p className="text-sm text-muted-foreground py-2">
-                        {t('timeline.noConditions')}
-                      </p>
                     )}
 
-                  {/* + Add condition + Suggestions */}
-                  <div className="flex flex-wrap gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
+                    {grouped.required.length > 0 && (
+                      <div>
+                        <LevelHeader
+                          level="required"
+                          count={grouped.required.length}
+                        />
+                        <div className="space-y-1.5 ml-5">
+                          {grouped.required.map((c) => (
+                            <ConditionCard
+                              key={c.id}
+                              condition={c}
+                              interactive
+                              isToggling={togglingId === c.id}
+                              onToggle={handleToggle}
+                              onEdit={handleEdit}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {grouped.recommended.length > 0 && (
+                      <div>
+                        <LevelHeader
+                          level="recommended"
+                          count={grouped.recommended.length}
+                        />
+                        <div className="space-y-1.5 ml-5">
+                          {grouped.recommended.map((c) => (
+                            <ConditionCard
+                              key={c.id}
+                              condition={c}
+                              interactive
+                              isToggling={togglingId === c.id}
+                              onToggle={handleToggle}
+                              onEdit={handleEdit}
+                            />
+                          ))}
+                          {/* Auto-archive hint */}
+                          <p className="text-[10px] text-stone-400 italic ml-1 flex items-center gap-1">
+                            <Info className="w-3 h-3 shrink-0" />
+                            {t('timeline.autoArchiveHint')}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {grouped.blocking.length === 0 &&
+                      grouped.required.length === 0 &&
+                      grouped.recommended.length === 0 && (
+                        <p className="text-sm text-stone-400 py-2">
+                          {t('timeline.noConditions')}
+                        </p>
+                      )}
+                  </div>
+
+                  {/* Inline actions */}
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <button
                       onClick={() => setIsCreateModalOpen(true)}
-                      className="gap-1.5 text-muted-foreground hover:text-foreground"
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-primary hover:bg-primary/5 rounded-lg border border-stone-200"
                       data-testid="timeline-add-condition"
                     >
-                      <Plus className="w-4 h-4" />
+                      <Plus className="w-3 h-3" />
                       {t('timeline.addCondition')}
-                    </Button>
+                    </button>
                     {onOpenSuggestions && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={onOpenSuggestions}
-                        className="gap-1.5 text-primary/70 hover:text-primary"
-                        data-testid="timeline-suggestions"
-                      >
-                        <Sparkles className="w-4 h-4" />
-                        {t('suggestions.openPanel')}
-                      </Button>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              onClick={onOpenSuggestions}
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-accent hover:bg-accent/5 rounded-lg border border-stone-200"
+                              data-testid="timeline-suggestions"
+                            >
+                              <Sparkles className="w-3 h-3" />
+                              {t('suggestions.openPanel')}
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="text-xs">{t('actionZone.suggestionsTooltip')}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     )}
                   </div>
+
+                  {/* Action Zone */}
+                  <ActionZone transaction={transaction} />
+
+                  {/* Notes */}
+                  <NotesSection transactionId={transaction.id} />
 
                   {/* Documents from conditions */}
                   <InlineDocuments
@@ -568,32 +583,28 @@ export default function VerticalTimeline({
                       ),
                     ]}
                   />
-
-                  {/* Notes */}
-                  <div>
-                    <h4 className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-2">
-                      {'\uD83D\uDCDD'} {t('tabs.notes')}
-                    </h4>
-                    <NotesSection transactionId={transaction.id} />
-                  </div>
-
-                  {/* Action Zone: advance/skip buttons */}
-                  <ActionZone transaction={transaction} />
                 </div>
-              </>
+              </div>
             )}
 
             {/* === FUTURE STEP === */}
             {isFuture && (
-              <div className="flex items-center gap-3 py-2 px-1 opacity-50">
-                <div className="w-8 h-8 rounded-full border-2 border-muted flex items-center justify-center shrink-0">
-                  <span className="text-xs font-bold text-muted-foreground">
-                    {step.stepOrder}
+              <div className="relative flex gap-3 sm:gap-4 opacity-50">
+                <div className="flex flex-col items-center">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-stone-300 flex items-center justify-center shrink-0">
+                    <span className="text-xs font-semibold text-stone-400">
+                      {step.stepOrder}
+                    </span>
+                  </div>
+                  {!isLast && (
+                    <div className="w-0.5 flex-1 bg-stone-200 min-h-[16px]" />
+                  )}
+                </div>
+                <div className="flex-1 pb-3 sm:pb-4 pt-1">
+                  <span className="text-sm font-semibold text-stone-500">
+                    {step.stepOrder}. {label}
                   </span>
                 </div>
-                <span className="text-sm text-muted-foreground">
-                  {step.stepOrder}. {label}
-                </span>
               </div>
             )}
           </div>
@@ -602,26 +613,24 @@ export default function VerticalTimeline({
 
       {/* Completed transaction state */}
       {!currentStepId && steps.length > 0 && (
-        <div className="mt-4 bg-success/10 border border-success/20 rounded-xl p-6 text-center">
+        <div className="mt-4 bg-emerald-50 border border-emerald-200 rounded-xl p-6 text-center">
           <div className="text-3xl mb-2">{'\u2705'}</div>
-          <p className="text-success font-semibold text-lg">
+          <p className="text-emerald-700 font-semibold text-lg">
             {t('timeline.transactionCompleted')}
           </p>
         </div>
       )}
 
       {/* View full history */}
-      <div className="pt-4 border-t border-border mt-4">
-        <Button
-          variant="ghost"
-          size="sm"
+      <div className="mt-4 text-center">
+        <button
           onClick={() => setHistoryOpen(true)}
-          className="w-full text-muted-foreground"
+          className="inline-flex items-center gap-2 px-4 py-2 text-sm text-stone-500 hover:text-primary hover:bg-stone-100 rounded-lg transition-colors"
           data-testid="view-history-btn"
         >
-          <Clock className="w-4 h-4 mr-2" />
+          <Clock className="w-4 h-4" />
           {t('tabs.viewFullHistory')}
-        </Button>
+        </button>
       </div>
 
       {/* History drawer */}

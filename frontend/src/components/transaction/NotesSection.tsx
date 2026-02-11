@@ -1,11 +1,10 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Trash2 } from 'lucide-react'
+import { MessageSquare, Send, Trash2 } from 'lucide-react'
 import { notesApi, type Note } from '../../api/notes.api'
 import { authApi } from '../../api/auth.api'
 import { toast } from '../../hooks/use-toast'
-import { Button } from '../ui/Button'
 import { formatDate } from '../../lib/date'
 import ConfirmDialog from '../ConfirmDialog'
 
@@ -80,67 +79,65 @@ export default function NotesSection({ transactionId }: NotesSectionProps) {
   const isOwner = (note: Note) => currentUserId && note.authorUserId === currentUserId
 
   return (
-    <div className="py-4" data-testid="notes-section">
-      {/* Create note */}
-      <form onSubmit={handleSubmit} className="mb-6">
-        <textarea
-          value={newNote}
-          onChange={(e) => setNewNote(e.target.value)}
-          rows={3}
-          placeholder={t('common.add') + '...'}
-          className="block w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          data-testid="note-input"
-        />
-        <div className="mt-2 flex justify-end">
-          <Button
+    <>
+      <div className="mt-4 p-3 sm:p-4 rounded-xl bg-white border border-stone-200 shadow-sm" data-testid="notes-section">
+        {/* Header — maquette 01 */}
+        <h3 className="text-xs sm:text-sm font-semibold text-stone-700 flex items-center gap-2 mb-2">
+          <MessageSquare className="w-4 h-4 text-stone-400" />
+          Notes
+        </h3>
+
+        {/* Notes list */}
+        {notes.length > 0 && (
+          <div className="space-y-2 mb-3">
+            {notes.map((note: Note) => (
+              <div
+                key={note.id}
+                className="p-2.5 rounded-lg bg-stone-50 group"
+                data-testid={`note-${note.id}`}
+              >
+                <div className="flex items-start justify-between">
+                  <p className="text-sm text-stone-700 flex-1">{note.content}</p>
+                  {isOwner(note) && (
+                    <button
+                      onClick={() => setDeleteTargetId(note.id)}
+                      className="p-1 rounded text-stone-300 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity ml-2 shrink-0"
+                      aria-label={t('common.remove')}
+                      data-testid={`delete-note-${note.id}`}
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
+                <p className="text-xs text-stone-400 mt-1">
+                  {note.author?.fullName ?? 'Unknown'} &middot;{' '}
+                  {formatDate(note.createdAt, 'd MMM')}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Create note — maquette 01: textarea + send icon inline */}
+        <form onSubmit={handleSubmit} className="flex gap-2">
+          <textarea
+            value={newNote}
+            onChange={(e) => setNewNote(e.target.value)}
+            rows={2}
+            placeholder={t('notes.addPlaceholder', 'Ajouter une note...')}
+            className="flex-1 px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
+            data-testid="note-input"
+          />
+          <button
             type="submit"
-            size="sm"
             disabled={!newNote.trim() || createMutation.isPending}
+            className="self-end px-3 py-2 text-sm font-medium rounded-lg bg-primary text-white hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
             data-testid="note-submit"
           >
-            {createMutation.isPending ? t('common.loading') : t('common.add')}
-          </Button>
-        </div>
-      </form>
-
-      {/* Notes list */}
-      {notes.length > 0 ? (
-        <div className="space-y-3">
-          {notes.map((note: Note) => (
-            <div
-              key={note.id}
-              className="rounded-lg border border-border p-3 group"
-              data-testid={`note-${note.id}`}
-            >
-                <div>
-                  <div className="flex items-start justify-between">
-                    <p className="text-sm text-foreground flex-1">{note.content}</p>
-                    {isOwner(note) && (
-                      <div className="flex gap-1 ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button
-                          onClick={() => setDeleteTargetId(note.id)}
-                          className="p-1 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                          aria-label={t('common.remove')}
-                          data-testid={`delete-note-${note.id}`}
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                  <p className="mt-1.5 text-xs text-muted-foreground">
-                    {note.author?.fullName ?? 'Unknown'} &middot;{' '}
-                    {formatDate(note.createdAt, 'PP')}
-                  </p>
-                </div>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <p className="text-sm text-muted-foreground text-center py-4">
-          {t('common.noResults')}
-        </p>
-      )}
+            <Send className="w-4 h-4" />
+          </button>
+        </form>
+      </div>
 
       {/* Delete confirmation */}
       <ConfirmDialog
@@ -154,6 +151,6 @@ export default function NotesSection({ transactionId }: NotesSectionProps) {
         variant="danger"
         isLoading={deleteMutation.isPending}
       />
-    </div>
+    </>
   )
 }

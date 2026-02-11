@@ -281,6 +281,7 @@ export class ConditionsEngineService {
   ): Promise<Map<number, Condition[]>> {
     const conditions = await Condition.query()
       .where('transactionId', transactionId)
+      .preload('template')
       .orderBy('stepWhenCreated', 'asc')
       .orderByRaw("CASE level WHEN 'blocking' THEN 1 WHEN 'required' THEN 2 WHEN 'recommended' THEN 3 ELSE 4 END")
       .orderBy('createdAt', 'asc')
@@ -305,6 +306,7 @@ export class ConditionsEngineService {
     return Condition.query()
       .where('transactionId', transactionId)
       .where('archived', false)
+      .preload('template')
       .orderBy('level', 'desc')
       .orderBy('createdAt', 'asc')
   }

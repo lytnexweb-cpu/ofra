@@ -3,11 +3,18 @@ import { useTranslation } from 'react-i18next'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { differenceInDays, parseISO } from '../../lib/date'
-import { AlertTriangle, CheckCircle, Clock, ArrowRight, SkipForward, X, AlertCircle, Lightbulb } from 'lucide-react'
+import { AlertTriangle, CheckCircle2, Clock, SkipForward, X, AlertCircle, Lightbulb, MoreVertical, Info } from 'lucide-react'
 import { transactionsApi, type Transaction } from '../../api/transactions.api'
 import { conditionsApi, type Condition } from '../../api/conditions.api'
 import { toast } from '../../hooks/use-toast'
 import { Button } from '../ui/Button'
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '../ui/Tooltip'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '../ui/DropdownMenu'
 import {
   Dialog,
   DialogContent,
@@ -276,13 +283,16 @@ export default function ActionZone({ transaction }: ActionZoneProps) {
 
   if (isCompleted) return null
 
+  const canValidate = blockingCount === 0 && requiredCount === 0
+
   return (
     <>
-      <div className="mb-4 rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 p-4 shadow-sm" data-testid="action-zone">
+      <TooltipProvider>
+      <div className="mt-4 p-3 sm:p-4 rounded-xl bg-white border border-stone-200 shadow-sm" data-testid="action-zone">
         {/* Blocking banner (FR9) — shown after first modal dismissed */}
         {blockingBannerCount !== null && blockingBannerCount > 0 && !blockingModalOpen && (
           <div
-            className="mb-3 flex items-center gap-2 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/30 px-3 py-2 z-30 relative"
+            className="mb-3 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 relative"
             role="alert"
             data-testid="blocking-banner"
           >
@@ -300,79 +310,99 @@ export default function ActionZone({ transaction }: ActionZoneProps) {
           </div>
         )}
 
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          {/* Left: status summary - show all condition counts */}
-          <div className="flex items-center gap-2 flex-wrap">
-            {blockingCount === 0 && requiredCount === 0 && recommendedCount === 0 ? (
-              <span className="inline-flex items-center gap-1.5 text-sm text-emerald-600 font-medium">
-                <CheckCircle className="w-4 h-4" />
-                {t('actionZone.readyToAdvance')}
-              </span>
-            ) : (
-              <>
-                {blockingCount > 0 && (
-                  <span className="inline-flex items-center gap-1 text-xs text-red-600 font-medium bg-red-50 px-2 py-1 rounded-full">
-                    <AlertTriangle className="w-3.5 h-3.5" />
-                    {blockingCount} {t('actionZone.blocking')}
-                  </span>
-                )}
-                {requiredCount > 0 && (
-                  <span className="inline-flex items-center gap-1 text-xs text-amber-600 font-medium bg-amber-50 px-2 py-1 rounded-full">
-                    <AlertCircle className="w-3.5 h-3.5" />
-                    {requiredCount} {t('actionZone.required')}
-                  </span>
-                )}
-                {recommendedCount > 0 && (
-                  <span className="inline-flex items-center gap-1 text-xs text-emerald-600 font-medium bg-emerald-50 px-2 py-1 rounded-full">
-                    <Lightbulb className="w-3.5 h-3.5" />
-                    {recommendedCount} {t('actionZone.recommended')}
-                  </span>
-                )}
-              </>
-            )}
-
-            {nearestDays !== null && (
-              <span
-                className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-stone-100 dark:bg-stone-700 ${
-                  nearestDays < 0
-                    ? 'text-red-600 dark:text-red-400'
-                    : nearestDays <= 7
-                      ? 'text-amber-600 dark:text-amber-400'
-                      : 'text-stone-500 dark:text-stone-400'
-                }`}
-              >
-                <Clock className="w-3.5 h-3.5" />
-                {nearestDays}j
-              </span>
-            )}
-          </div>
-
-          {/* Right: action buttons */}
-          <div className="flex gap-2 w-full sm:w-auto">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setSkipDialogOpen(true)}
-              disabled={skipMutation.isPending}
-              className="flex-1 sm:flex-none gap-1.5"
-              data-testid="skip-step-btn"
-            >
-              <SkipForward className="w-3.5 h-3.5" />
-              {t('workflow.actions.skip')}
-            </Button>
-            <Button
-              size="sm"
-              onClick={handleAdvanceClick}
-              disabled={advanceMutation.isPending}
-              className="flex-1 sm:flex-none gap-1.5 bg-primary hover:bg-primary/90"
-              data-testid="advance-step-btn"
-            >
-              <ArrowRight className="w-3.5 h-3.5" />
-              {advanceMutation.isPending ? t('common.loading') : t('workflow.actions.advance')}
-            </Button>
-          </div>
+        {/* Summary badges row */}
+        <div className="flex flex-wrap items-center gap-1.5 mb-3">
+          {canValidate && recommendedCount === 0 ? (
+            <span className="inline-flex items-center gap-1.5 text-sm text-emerald-600 font-medium">
+              <CheckCircle2 className="w-4 h-4" />
+              {t('actionZone.readyToAdvance')}
+            </span>
+          ) : (
+            <>
+              {blockingCount > 0 && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-xs font-medium">
+                  {blockingCount} {t('actionZone.blocking')}
+                </span>
+              )}
+              {requiredCount > 0 && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-xs font-medium">
+                  {requiredCount} {t('actionZone.required')}
+                </span>
+              )}
+              {nearestDays !== null && (
+                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
+                  nearestDays < 0 ? 'bg-red-50 text-red-600' : 'bg-stone-100 text-stone-500'
+                }`}>
+                  {nearestDays}j
+                </span>
+              )}
+            </>
+          )}
         </div>
+
+        {/* CTA row: Valider l'étape + ... menu */}
+        <div className="flex items-center gap-2">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex-1">
+                <button
+                  onClick={handleAdvanceClick}
+                  disabled={!canValidate || advanceMutation.isPending}
+                  className={`w-full px-4 py-2.5 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-colors ${
+                    canValidate
+                      ? 'bg-primary text-white hover:bg-primary/90'
+                      : 'bg-stone-200 text-stone-400 cursor-not-allowed'
+                  }`}
+                  data-testid="advance-step-btn"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  {advanceMutation.isPending ? t('common.loading') : t('actionZone.validateStep')}
+                </button>
+              </div>
+            </TooltipTrigger>
+            {!canValidate && (
+              <TooltipContent>
+                <p className="text-xs">{t('actionZone.validateStepTooltip', { blocking: blockingCount, required: requiredCount })}</p>
+              </TooltipContent>
+            )}
+          </Tooltip>
+
+          {/* Advanced menu (...) */}
+          <DropdownMenu>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuTrigger asChild>
+                  <button className="p-2 rounded-lg border border-stone-200 text-stone-400 hover:bg-stone-50 hover:text-stone-600">
+                    <MoreVertical className="w-4 h-4" />
+                  </button>
+                </DropdownMenuTrigger>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="text-xs">{t('actionZone.advancedActionsTooltip')}</p>
+              </TooltipContent>
+            </Tooltip>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={() => setSkipDialogOpen(true)}
+                disabled={skipMutation.isPending}
+                className="gap-2"
+              >
+                <SkipForward className="w-3.5 h-3.5" />
+                {t('workflow.actions.skip')}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        {/* Hint text */}
+        {!canValidate && (
+          <p className="text-[11px] text-stone-400 mt-2 flex items-center gap-1">
+            <Info className="w-3 h-3 shrink-0" />
+            {t('actionZone.hint')}
+          </p>
+        )}
       </div>
+      </TooltipProvider>
 
       {/* Skip confirmation dialog - strict or simple based on condition types */}
       <Dialog open={skipDialogOpen} onOpenChange={(open) => !open && handleSkipDialogClose()}>

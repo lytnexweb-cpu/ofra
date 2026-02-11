@@ -9,6 +9,8 @@ import {
   EditTransactionModal,
   MembersPanel,
   ExportSharePanel,
+  PropertyProfileCard,
+  OffersPanel,
 } from '../components/transaction'
 import { Button } from '../components/ui/Button'
 import { AlertCircle, Loader2, RefreshCw } from 'lucide-react'
@@ -93,6 +95,8 @@ export default function TransactionDetailPage() {
         onOpenMembers={() => setMembersOpen(true)}
         onOpenExport={() => setExportOpen(true)}
       />
+      <PropertyProfileCard transactionId={transaction.id} onEdit={() => setEditModalOpen(true)} />
+      <OffersPanel transaction={transaction} />
       <VerticalTimeline
         transaction={transaction}
         highlightConditionId={highlightId}

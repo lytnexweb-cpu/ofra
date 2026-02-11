@@ -55,6 +55,11 @@ export interface Condition {
   escapedWithoutProof?: boolean
   escapeReason?: string | null
   escapeConfirmedAt?: string | null
+  // Preloaded template (for pack badge)
+  template?: {
+    id: number
+    pack: string | null
+  } | null
 }
 
 export interface ConditionEvidence {

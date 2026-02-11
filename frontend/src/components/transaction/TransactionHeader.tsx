@@ -20,10 +20,13 @@ import {
   CheckCircle2,
   Lock,
   Mail,
+  Phone,
+  Calendar,
   RotateCw,
   Zap,
 } from 'lucide-react'
 import { transactionsApi, type Transaction } from '../../api/transactions.api'
+import { formatDate, parseISO, differenceInDays } from '../../lib/date'
 import { toast } from '../../hooks/use-toast'
 import { Button } from '../ui/Button'
 import { Checkbox } from '../ui/Checkbox'
@@ -94,6 +97,41 @@ export default function TransactionHeader({ transaction, onOpenEdit, onOpenMembe
     : t('transaction.client')
 
   const propertyAddress = transaction.property?.address ?? null
+
+  // Info pills data
+  const clientPhone = transaction.client?.cellPhone || transaction.client?.phone
+  const clientEmail = transaction.client?.email
+  const acceptedOffer = transaction.offers?.find((o) => o.status === 'accepted')
+  const acceptedOfferPrice = acceptedOffer?.revisions?.length
+    ? acceptedOffer.revisions.reduce((latest, rev) => (rev.revisionNumber > latest.revisionNumber ? rev : latest), acceptedOffer.revisions[0]).price
+    : null
+
+  // Closing date data
+  const daysUntilClosing = transaction.closingDate
+    ? differenceInDays(parseISO(transaction.closingDate), new Date())
+    : null
+  const currentStepOrder = transaction.currentStep?.stepOrder ?? 0
+  const totalSteps = transaction.transactionSteps?.length ?? 0
+  const stepProgress = totalSteps > 0 ? Math.round((currentStepOrder / totalSteps) * 100) : 0
+  const currentStepName = transaction.currentStep?.workflowStep?.name ?? ''
+
+  // Next actions — pending conditions on current step
+  const upcomingConditions = useMemo(() => {
+    if (!transaction.conditions || !transaction.currentStepId) return []
+    return transaction.conditions
+      .filter(
+        (c: any) =>
+          c.status !== 'completed' &&
+          c.status !== 'waived' &&
+          c.transactionStepId === transaction.currentStepId
+      )
+      .sort((a: any, b: any) => {
+        if (!a.dueDate && !b.dueDate) return 0
+        if (!a.dueDate) return 1
+        if (!b.dueDate) return -1
+        return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
+      })
+  }, [transaction.conditions, transaction.currentStepId])
 
   // Delete confirmation
   const deleteTypeWord = t('transaction.deleteModal.typeWord')
@@ -213,29 +251,56 @@ export default function TransactionHeader({ transaction, onOpenEdit, onOpenMembe
 
   return (
     <>
-      <div className="mb-6" data-testid="transaction-header">
-        <div className="flex items-center justify-between mb-2">
-          <Link
-            to="/transactions"
-            className="inline-flex items-center gap-1.5 text-sm text-stone-500 hover:text-stone-700"
-            data-testid="back-link"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            {t('common.back')}
-          </Link>
+      <div className="mb-5" data-testid="transaction-header">
+        <Link
+          to="/transactions"
+          className="inline-flex items-center gap-1.5 text-sm text-stone-500 hover:text-primary mb-3"
+          data-testid="back-link"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Transactions
+        </Link>
+
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+          <div className="min-w-0">
+            <h1
+              className="text-xl sm:text-2xl font-bold text-stone-900 truncate"
+              style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}
+              data-testid="header-client"
+            >
+              {clientName}
+              {isCancelled && (
+                <span className="ml-2 inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full bg-stone-100 text-stone-600 align-middle">
+                  {t('transaction.status.cancelled')}
+                </span>
+              )}
+              {isArchived && (
+                <span className="ml-2 inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full bg-amber-50 text-amber-700 border border-amber-200 align-middle">
+                  <Archive className="w-3 h-3 mr-1" />
+                  {t('transaction.status.archived')}
+                </span>
+              )}
+            </h1>
+            {propertyAddress && (
+              <p
+                className="text-sm text-stone-400 mt-0.5 truncate"
+                data-testid="header-address"
+              >
+                {propertyAddress}
+              </p>
+            )}
+          </div>
 
           {/* Actions menu — État A */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
+              <button
+                className="self-start p-2 rounded-lg hover:bg-stone-100 text-stone-400 shrink-0"
                 data-testid="transaction-actions-menu"
               >
-                <MoreVertical className="w-4 h-4" />
+                <MoreVertical className="w-5 h-5" />
                 <span className="sr-only">{t('transaction.actions.moreActions')}</span>
-              </Button>
+              </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-64 p-0">
               <DropdownMenuLabel className="px-3 py-2 text-[10px] uppercase tracking-wider text-stone-400 font-semibold">
@@ -345,42 +410,142 @@ export default function TransactionHeader({ transaction, onOpenEdit, onOpenMembe
           </DropdownMenu>
         </div>
 
-        <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
-          <div className="flex items-center gap-2">
-            <h1
-              className="text-xl font-bold text-stone-900 truncate"
-              style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}
-              data-testid="header-client"
+        {/* Info pills + Contact rapide */}
+        <div className="flex flex-wrap items-center gap-2 mt-2">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+            {t(`transaction.${transaction.type}`)}
+          </span>
+          {transaction.salePrice && (
+            <span className="text-sm text-stone-600 font-semibold">
+              {Number(transaction.salePrice).toLocaleString()} $
+            </span>
+          )}
+          {acceptedOfferPrice && (
+            <span className="text-xs text-emerald-600 font-medium">
+              ({t('transaction.detail.acceptedOffer', { price: Number(acceptedOfferPrice).toLocaleString() })})
+            </span>
+          )}
+          <span className="text-stone-300">|</span>
+          {clientPhone && (
+            <a
+              href={`tel:${clientPhone}`}
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-stone-100 text-stone-600 hover:bg-primary/10 hover:text-primary transition-colors"
             >
-              {clientName}
-            </h1>
-            {isCancelled && (
-              <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full bg-stone-100 text-stone-600">
-                {t('transaction.status.cancelled')}
-              </span>
-            )}
-            {isArchived && (
-              <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full bg-amber-50 text-amber-700 border border-amber-200">
-                <Archive className="w-3 h-3 mr-1" />
-                {t('transaction.status.archived')}
-              </span>
-            )}
-          </div>
-
-          {propertyAddress && (
-            <>
-              <span className="hidden sm:inline text-stone-300" aria-hidden="true">
-                —
-              </span>
-              <p
-                className="text-sm text-stone-500 truncate"
-                data-testid="header-address"
-              >
-                {propertyAddress}
-              </p>
-            </>
+              <Phone className="w-3 h-3" />
+              {t('transaction.detail.call')}
+            </a>
+          )}
+          {clientEmail && (
+            <a
+              href={`mailto:${clientEmail}`}
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-stone-100 text-stone-600 hover:bg-primary/10 hover:text-primary transition-colors"
+            >
+              <Mail className="w-3 h-3" />
+              {t('transaction.detail.email')}
+            </a>
           )}
         </div>
+
+        {/* Fermeture prévue + Étape card — toujours visible */}
+        <div className="mt-3">
+          <div className="rounded-lg bg-primary/5 border border-primary/10 overflow-hidden">
+            <div className="flex items-center gap-3 px-3 py-2.5">
+              <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                <Calendar className="w-4 h-4 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <span className="text-xs text-stone-500">{t('transaction.detail.closingExpected')}</span>
+                <div className="flex items-baseline gap-2 flex-wrap">
+                  {transaction.closingDate ? (
+                    <>
+                      <span className="text-base sm:text-lg font-bold text-primary">
+                        {formatDate(parseISO(transaction.closingDate), 'd MMMM yyyy')}
+                      </span>
+                      {daysUntilClosing !== null && (
+                        <span className={`text-sm font-semibold ${daysUntilClosing < 0 ? 'text-red-600' : 'text-accent'}`}>
+                          {daysUntilClosing < 0
+                            ? t('transaction.detail.overdueDays', { count: Math.abs(daysUntilClosing) })
+                            : t('transaction.detail.inDays', { count: daysUntilClosing })}
+                        </span>
+                      )}
+                    </>
+                  ) : (
+                    <span className="text-sm text-stone-400 italic">
+                      {t('transaction.detail.noClosingDate')}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+            {totalSteps > 0 && (
+              <div className="flex items-center gap-3 px-3 py-2 bg-primary/[0.03] border-t border-primary/10">
+                <div className="w-9 shrink-0" />
+                <div className="flex items-center gap-2 flex-1">
+                  <span className="text-xs text-stone-500">{t('transaction.step')}</span>
+                  <span className="text-sm font-bold text-primary">{currentStepOrder} / {totalSteps}</span>
+                  <div className="flex-1 max-w-[120px] h-1.5 bg-stone-200 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-primary rounded-full transition-all"
+                      style={{ width: `${stepProgress}%` }}
+                    />
+                  </div>
+                  {currentStepName && (
+                    <span className="text-[10px] text-stone-400">{currentStepName}</span>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Prochaines actions cockpit */}
+        {upcomingConditions.length > 0 && (
+          <div className="mt-3">
+            <div className="rounded-lg border border-amber-200 bg-amber-50/50 p-3">
+              <h3 className="text-xs font-semibold text-amber-800 flex items-center gap-1.5 mb-2">
+                <Zap className="w-3.5 h-3.5" />
+                {t('transaction.detail.nextActions')}
+              </h3>
+              <div className="space-y-1.5">
+                {upcomingConditions.map((condition: any) => {
+                  const days = condition.dueDate
+                    ? differenceInDays(parseISO(condition.dueDate), new Date())
+                    : null
+                  const isOverdue = days !== null && days < 0
+                  const isSoon = days !== null && days <= 7 && days >= 0
+                  const borderColor = isOverdue ? 'border-red-100' : isSoon ? 'border-amber-100' : 'border-stone-100'
+                  const dotColor = isOverdue ? 'bg-red-500' : isSoon ? 'bg-amber-500' : 'bg-stone-300'
+                  const textColor = isOverdue ? 'text-red-600 font-bold' : isSoon ? 'text-amber-600 font-medium' : 'text-stone-400 font-medium'
+
+                  return (
+                    <div key={condition.id} className={`flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-white border ${borderColor}`}>
+                      <div className={`w-1.5 h-1.5 rounded-full ${dotColor} shrink-0`} />
+                      <span className="text-xs text-stone-700 flex-1">{condition.title}</span>
+                      {days !== null && (
+                        <span className={`text-[10px] ${textColor}`}>
+                          {days}j
+                        </span>
+                      )}
+                      <button
+                        onClick={() => {
+                          const el = document.querySelector(`[data-condition-id="${condition.id}"]`)
+                          if (el) {
+                            el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                            el.classList.add('ring-2', 'ring-primary')
+                            setTimeout(() => el.classList.remove('ring-2', 'ring-primary'), 3000)
+                          }
+                        }}
+                        className="text-[10px] font-medium text-primary hover:underline shrink-0"
+                      >
+                        {isOverdue ? t('transaction.detail.followUp') : isSoon ? t('transaction.detail.plan') : t('transaction.detail.track')}
+                      </button>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ═══════════════════════════════════════════════════════
