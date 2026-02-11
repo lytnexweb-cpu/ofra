@@ -246,7 +246,7 @@ export default class AdminController {
    */
   async getNotes({ params, response }: HttpContext) {
     const notes = await AdminNote.query()
-      .where('userId', params.id)
+      .where('user_id', params.id)
       .preload('author', (q) => q.select(['id', 'email', 'fullName']))
       .orderBy('createdAt', 'desc')
 
@@ -375,7 +375,7 @@ export default class AdminController {
    */
   async getTasks({ params, response }: HttpContext) {
     const tasks = await AdminTask.query()
-      .where('userId', params.id)
+      .where('user_id', params.id)
       .preload('author', (q) => q.select(['id', 'email', 'fullName']))
       .orderBy('dueDate', 'asc')
       .orderBy('createdAt', 'desc')

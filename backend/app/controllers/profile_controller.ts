@@ -306,7 +306,7 @@ export default class ProfileController {
 
     // Count active transactions
     const activeResult = await Transaction.query()
-      .where('userId', user.id)
+      .where('owner_user_id', user.id)
       .where('status', 'active')
       .count('* as total')
       .first()

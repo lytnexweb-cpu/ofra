@@ -34,7 +34,7 @@ export default class PlanLimitMiddleware {
 
     // Count active transactions for this user
     const activeCount = await Transaction.query()
-      .where('userId', user.id)
+      .where('owner_user_id', user.id)
       .where('status', 'active')
       .count('* as total')
       .first()

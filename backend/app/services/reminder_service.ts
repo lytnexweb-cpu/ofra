@@ -103,19 +103,22 @@ export class ReminderService {
 
     const frontendUrl = process.env.FRONTEND_URL ?? 'https://ofra.pages.dev'
 
-    await mail.send(
-      new DeadlineWarningMail({
-        to: user.email,
-        userName: user.fullName ?? user.email,
-        conditionTitle: condition.title,
-        clientName,
-        propertyAddress,
-        dueDate: condition.dueDate?.toFormat('dd MMMM yyyy') ?? 'N/A',
-        transactionUrl: `${frontendUrl}/transactions/${transactionId}`,
-      })
-    )
-
-    logger.info({ conditionId, userId: user.id }, 'Deadline warning email sent')
+    try {
+      await mail.send(
+        new DeadlineWarningMail({
+          to: user.email,
+          userName: user.fullName ?? user.email,
+          conditionTitle: condition.title,
+          clientName,
+          propertyAddress,
+          dueDate: condition.dueDate?.toFormat('dd MMMM yyyy') ?? 'N/A',
+          transactionUrl: `${frontendUrl}/transactions/${transactionId}`,
+        })
+      )
+      logger.info({ conditionId, userId: user.id }, 'Deadline warning email sent')
+    } catch (err) {
+      logger.warn({ conditionId, userId: user.id, err }, 'Failed to send deadline warning email — SMTP may be unavailable')
+    }
   }
 
   /**
@@ -189,29 +192,33 @@ export class ReminderService {
     const { user, overdue, upcoming } = digest
     const frontendUrl = process.env.FRONTEND_URL ?? 'https://ofra.pages.dev'
 
-    await mail.send(
-      new DailyDigestMail({
-        to: user.email,
-        userName: user.fullName ?? user.email,
-        overdue: overdue.map((c) => ({
-          title: c.title,
-          clientName: c.transaction.clientName,
-          propertyAddress: c.transaction.propertyAddress,
-          dueDate: c.dueDate.toFormat('dd MMMM yyyy'),
-          daysOverdue: Math.floor(DateTime.now().diff(c.dueDate, 'days').days),
-          transactionUrl: `${frontendUrl}/transactions/${c.transaction.id}`,
-        })),
-        upcoming: upcoming.map((c) => ({
-          title: c.title,
-          clientName: c.transaction.clientName,
-          propertyAddress: c.transaction.propertyAddress,
-          dueDate: c.dueDate.toFormat('dd MMMM yyyy'),
-          daysUntil: Math.ceil(c.dueDate.diff(DateTime.now(), 'days').days),
-          transactionUrl: `${frontendUrl}/transactions/${c.transaction.id}`,
-        })),
-        dashboardUrl: `${frontendUrl}/dashboard`,
-      })
-    )
+    try {
+      await mail.send(
+        new DailyDigestMail({
+          to: user.email,
+          userName: user.fullName ?? user.email,
+          overdue: overdue.map((c) => ({
+            title: c.title,
+            clientName: c.transaction.clientName,
+            propertyAddress: c.transaction.propertyAddress,
+            dueDate: c.dueDate.toFormat('dd MMMM yyyy'),
+            daysOverdue: Math.floor(DateTime.now().diff(c.dueDate, 'days').days),
+            transactionUrl: `${frontendUrl}/transactions/${c.transaction.id}`,
+          })),
+          upcoming: upcoming.map((c) => ({
+            title: c.title,
+            clientName: c.transaction.clientName,
+            propertyAddress: c.transaction.propertyAddress,
+            dueDate: c.dueDate.toFormat('dd MMMM yyyy'),
+            daysUntil: Math.ceil(c.dueDate.diff(DateTime.now(), 'days').days),
+            transactionUrl: `${frontendUrl}/transactions/${c.transaction.id}`,
+          })),
+          dashboardUrl: `${frontendUrl}/dashboard`,
+        })
+      )
+    } catch (err) {
+      logger.warn({ userId: user.id, err }, 'Failed to send daily digest email — SMTP may be unavailable')
+    }
   }
 
   /**
