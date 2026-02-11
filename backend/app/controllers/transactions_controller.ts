@@ -99,6 +99,8 @@ export default class TransactionsController {
         propertyId = property.id
       }
 
+      const autoConditionsEnabled = payload.autoConditionsEnabled ?? true
+
       const transaction = await WorkflowEngineService.createTransactionFromTemplate({
         templateId: payload.workflowTemplateId,
         ownerUserId: auth.user!.id,
@@ -111,7 +113,15 @@ export default class TransactionsController {
         commission: payload.commission ?? null,
         notesText: payload.notesText ?? null,
         folderUrl: payload.folderUrl ?? null,
+        profile: autoConditionsEnabled && payload.profile ? payload.profile : undefined,
+        autoConditionsEnabled,
       })
+
+      // Set closing date if provided
+      if (payload.closingDate) {
+        transaction.closingDate = DateTime.fromISO(payload.closingDate)
+        await transaction.save()
+      }
 
       // Reload with full relations
       await transaction.load('client')
@@ -225,13 +235,17 @@ export default class TransactionsController {
     }
   }
 
-  async advanceStep({ params, response, auth }: HttpContext) {
+  async advanceStep({ params, request, response, auth }: HttpContext) {
     try {
+      const { note, notifyEmail } = request.only(['note', 'notifyEmail'])
       const query = Transaction.query().where('id', params.id)
       TenantScopeService.apply(query, auth.user!)
       const transaction = await query.firstOrFail()
 
-      const result = await WorkflowEngineService.advanceStep(transaction.id, auth.user!.id)
+      const result = await WorkflowEngineService.advanceStep(transaction.id, auth.user!.id, {
+        note,
+        notifyEmail,
+      })
 
       // Reload full data
       await result.transaction.load('currentStep', (sq) => sq.preload('workflowStep'))

@@ -104,6 +104,9 @@ export default class Transaction extends BaseModel {
   @column()
   declare language: string | null
 
+  @column({ columnName: 'auto_conditions_enabled' })
+  declare autoConditionsEnabled: boolean
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 

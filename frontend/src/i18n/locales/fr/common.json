@@ -405,8 +405,9 @@
     "addressPlaceholder": "123 rue Exemple, Montréal",
     "price": "Prix",
     "closingDate": "Date de clôture prévue",
-    "suggestConditions": "Me proposer des suggestions de conditions",
-    "suggestConditionsHint": "Un panneau de suggestions s'ouvrira après la création",
+    "propertyProfile": "Profil de la propriété",
+    "suggestConditions": "Générer automatiquement les conditions",
+    "suggestConditionsHint": "Les conditions seront créées selon le profil de propriété ci-dessus",
     "client": "Client",
     "step": "Étape",
     "template": "Modèle",
@@ -610,7 +611,9 @@
       "fullHistory": "Historique complet",
       "propertyProfile": "Profil propriété",
       "editProperty": "Modifier",
+      "profileLocked": "Verrouillé",
       "noProfile": "Ajouter le profil propriété",
+      "noParties": "Aucune partie ajoutée",
       "profileForm": {
         "type": "Type",
         "context": "Contexte",
@@ -1596,5 +1599,60 @@
       "agent": "Agent",
       "other": "Autre"
     }
+  },
+  "validateStep": {
+    "title": "Valider l'étape",
+    "subtitle": "Étape {{order}} — {{name}}",
+    "subtitleNext": "Étape {{order}} — {{name}} → Étape {{nextOrder}}",
+    "blocked": {
+      "title": "Validation impossible",
+      "message": "{{blocking}} condition(s) bloquante(s) et {{required}} condition(s) requise(s) doivent être résolues avant de pouvoir avancer.",
+      "messageBlocking": "{{count}} condition(s) bloquante(s) doivent être résolues avant de pouvoir avancer.",
+      "messageRequired": "{{count}} condition(s) requise(s) doivent être résolues avant de pouvoir avancer.",
+      "offerRequiredTitle": "Offre acceptée requise",
+      "offerRequiredMessage": "Vous devez accepter une offre avant de pouvoir terminer l'étape de négociation.",
+      "viewOffers": "Voir les offres"
+    },
+    "ready": {
+      "title": "Prêt pour validation",
+      "message": "Toutes les conditions bloquantes et requises sont résolues. Vous pouvez avancer au step suivant."
+    },
+    "success": {
+      "title": "Étape validée !",
+      "subtitle": "{{from}} → {{to}}",
+      "completed": "Étape {{order}} « {{name}} » complétée",
+      "started": "Étape {{order}} « {{name}} » démarrée",
+      "transactionCompleted": "Transaction terminée !",
+      "archived": "{{total}} conditions archivées ({{detail}})",
+      "archivedCompleted": "{{count}} complétée(s)",
+      "archivedWaived": "{{count}} renoncée(s)",
+      "archivedNotApplicable": "{{count}} non applicable(s)",
+      "archivedRecommended": "{{count}} recommandée(s) auto-archivées",
+      "returnToTransaction": "Retour à la transaction"
+    },
+    "conditionsSummary": "Résumé des conditions",
+    "levelBlocking": "Bloquantes",
+    "levelRequired": "Requises",
+    "levelRecommended": "Recommandées",
+    "resolvedCount": "{{resolved}} / {{total}} résolues",
+    "pendingCount": "{{count}} en attente",
+    "recommendedNote": "Les conditions recommandées non résolues seront automatiquement archivées comme « non applicable » lors de la validation.",
+    "recommendedNoteReady": "Seront automatiquement archivées comme « non applicable » lors de la validation.",
+    "resolve": "Résoudre",
+    "dueDate": "échéance {{date}}",
+    "workflowImpact": "Impact sur le workflow",
+    "impactCompleted": "L'étape {{order}}. {{name}} sera marquée comme complétée",
+    "impactStarted": "L'étape {{order}}. {{name}} démarrera automatiquement",
+    "impactArchived": "Les conditions seront archivées avec leur résolution (recommandées en attente → non applicable)",
+    "notifyEmail": "Notifier les parties par email",
+    "recipients": "Destinataires :",
+    "noteLabel": "Note (optionnel)",
+    "notePlaceholder": "Ex : Toutes les conditions remplies, transaction ferme...",
+    "validateAndAdvance": "Valider et avancer",
+    "close": "Fermer",
+    "resolutionCompleted": "Complétée",
+    "resolutionWaived": "Renoncée",
+    "resolutionNotApplicable": "Non applicable",
+    "resolutionSkipped": "Ignorée (risque)"
   }
 }

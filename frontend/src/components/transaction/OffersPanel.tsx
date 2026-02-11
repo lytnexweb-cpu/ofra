@@ -145,7 +145,10 @@ export default function OffersPanel({ transaction }: OffersPanelProps) {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ['transaction', transaction.id] }),
       queryClient.invalidateQueries({ queryKey: ['offers', transaction.id] }),
+      queryClient.invalidateQueries({ queryKey: ['transactions'] }),
       queryClient.invalidateQueries({ queryKey: ['dashboard'] }),
+      queryClient.invalidateQueries({ queryKey: ['advance-check', transaction.id] }),
+      queryClient.invalidateQueries({ queryKey: ['conditions', 'active', transaction.id] }),
     ])
   }
 
@@ -438,7 +441,7 @@ export default function OffersPanel({ transaction }: OffersPanelProps) {
   }
 
   return (
-    <div className="mb-5 bg-white rounded-xl shadow-sm border border-stone-200 p-3 sm:p-4">
+    <div id="offers-panel" className="mb-5 bg-white rounded-xl shadow-sm border border-stone-200 p-3 sm:p-4">
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-xs sm:text-sm font-semibold text-stone-700 flex items-center gap-2">

@@ -12,6 +12,15 @@ export const createTransactionValidator = vine.compile(
     commission: vine.number().min(0).optional(),
     folderUrl: vine.string().trim().maxLength(2048).optional(),
     address: vine.string().trim().maxLength(500).optional(),
+    closingDate: vine.string().trim().optional(),
+    autoConditionsEnabled: vine.boolean().optional(),
+    profile: vine
+      .object({
+        propertyType: vine.enum(['house', 'condo', 'land']),
+        propertyContext: vine.enum(['urban', 'suburban', 'rural']),
+        isFinanced: vine.boolean(),
+      })
+      .optional(),
   })
 )
 

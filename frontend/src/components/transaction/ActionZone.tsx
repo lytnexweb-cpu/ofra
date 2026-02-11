@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { differenceInDays, parseISO } from '../../lib/date'
-import { AlertTriangle, CheckCircle2, Clock, SkipForward, X, AlertCircle, Lightbulb, MoreVertical, Info } from 'lucide-react'
+import { AlertTriangle, CheckCircle2, SkipForward, MoreVertical, Info } from 'lucide-react'
 import { transactionsApi, type Transaction } from '../../api/transactions.api'
 import { conditionsApi, type Condition } from '../../api/conditions.api'
 import { toast } from '../../hooks/use-toast'
@@ -23,9 +23,7 @@ import {
   DialogFooter,
   DialogDescription,
 } from '../ui/Dialog'
-import ResolutionRequiredModal from './ResolutionRequiredModal'
-
-const BLOCKING_MODAL_KEY = 'ofra-blockingModalDismissed'
+import ValidateStepModal from './ValidateStepModal'
 
 interface ActionZoneProps {
   transaction: Transaction
@@ -38,10 +36,7 @@ export default function ActionZone({ transaction }: ActionZoneProps) {
   const [skipConfirmInput, setSkipConfirmInput] = useState('')
   const [skipTermsAccepted, setSkipTermsAccepted] = useState(false)
   const [skipReason, setSkipReason] = useState('')
-  const [blockingModalOpen, setBlockingModalOpen] = useState(false)
-  const [resolutionModalOpen, setResolutionModalOpen] = useState(false)
-  const [blockingBannerCount, setBlockingBannerCount] = useState<number | null>(null)
-  const [dontShowAgain, setDontShowAgain] = useState(false)
+  const [validateModalOpen, setValidateModalOpen] = useState(false)
 
   // Confirmation phrase from translations
   const confirmPhrase = t('workflow.skipConfirmModal.confirmPhrase')
@@ -153,116 +148,14 @@ export default function ActionZone({ transaction }: ActionZoneProps) {
   const isCompleted = !transaction.currentStepId
 
   const invalidateAll = async () => {
-    // Use refetchQueries for the main transaction to ensure immediate data refresh
-    // This fixes the timeline not updating visually after step advancement
     await Promise.all([
-      queryClient.refetchQueries({ queryKey: transactionKey }),
+      queryClient.invalidateQueries({ queryKey: transactionKey }),
       queryClient.invalidateQueries({ queryKey: ['transactions'] }),
       queryClient.invalidateQueries({ queryKey: ['dashboard'] }),
       queryClient.invalidateQueries({ queryKey: ['advance-check', transaction.id] }),
       queryClient.invalidateQueries({ queryKey: ['conditions', 'active', transaction.id] }),
     ])
   }
-
-  const handleBlockingError = (count: number) => {
-    const dismissed = localStorage.getItem(BLOCKING_MODAL_KEY) === 'true'
-    if (dismissed) {
-      // Show inline banner
-      setBlockingBannerCount(count)
-    } else {
-      // Show pedagogical modal
-      setBlockingModalOpen(true)
-      setBlockingBannerCount(count)
-    }
-  }
-
-  const handleDismissModal = () => {
-    if (dontShowAgain) {
-      localStorage.setItem(BLOCKING_MODAL_KEY, 'true')
-    }
-    setBlockingModalOpen(false)
-  }
-
-  // Handle advance button click - check for required conditions first
-  const handleAdvanceClick = () => {
-    // If there are blocking conditions, the mutation will handle it
-    if (blockingCount > 0) {
-      advanceMutation.mutate()
-      return
-    }
-
-    // If there are required conditions needing resolution, show the modal
-    if (advanceCheckData && !advanceCheckData.canAdvance && (advanceCheckData.requiredPendingConditions?.length ?? 0) > 0) {
-      setResolutionModalOpen(true)
-      return
-    }
-
-    // Otherwise, just advance
-    advanceMutation.mutate()
-  }
-
-  // Called after conditions are resolved in the modal
-  const handleResolutionComplete = () => {
-    setResolutionModalOpen(false)
-    // Invalidate advance-check and retry advance
-    queryClient.invalidateQueries({ queryKey: ['advance-check', transaction.id] })
-    advanceMutation.mutate()
-  }
-
-  const advanceMutation = useMutation({
-    mutationFn: () => transactionsApi.advanceStep(transaction.id),
-    onSuccess: async (response) => {
-      if (!response.success && response.error) {
-        if (response.error.code === 'E_BLOCKING_CONDITIONS') {
-          const blocking = (response.error as any).blockingConditions ?? []
-          handleBlockingError(blocking.length || blockingCount)
-          return
-        }
-        if (response.error.code === 'E_REQUIRED_RESOLUTIONS_NEEDED') {
-          // Show resolution modal for required conditions
-          setResolutionModalOpen(true)
-          return
-        }
-        toast({ title: t('common.error'), description: response.error.message, variant: 'destructive' })
-        return
-      }
-      setBlockingBannerCount(null)
-      const newStep = response.data?.newStep
-      if (newStep) {
-        const newSlug = newStep.workflowStep?.slug ?? ''
-        const newName = newSlug
-          ? t(`workflow.steps.${newSlug}`, { defaultValue: newStep.workflowStep?.name ?? '' })
-          : newStep.workflowStep?.name ?? ''
-        toast({
-          title: t('common.success'),
-          description: t('workflow.actions.advancedTo', { step: newName }),
-          variant: 'success',
-        })
-      } else {
-        // Last step completed — transaction finished
-        toast({
-          title: t('blocking.completionTitle'),
-          description: t('blocking.completionMessage'),
-          variant: 'success',
-        })
-      }
-      await invalidateAll()
-    },
-    onError: (error: any) => {
-      const errorData = error?.response?.data?.error
-      if (errorData?.code === 'E_BLOCKING_CONDITIONS') {
-        const blocking = errorData.blockingConditions ?? []
-        handleBlockingError(blocking.length || blockingCount)
-        return
-      }
-      if (errorData?.code === 'E_REQUIRED_RESOLUTIONS_NEEDED') {
-        // Show resolution modal for required conditions
-        setResolutionModalOpen(true)
-        return
-      }
-      toast({ title: t('common.error'), variant: 'destructive' })
-    },
-  })
 
   const skipMutation = useMutation({
     mutationFn: () => transactionsApi.skipStep(transaction.id),
@@ -273,7 +166,6 @@ export default function ActionZone({ transaction }: ActionZoneProps) {
       }
       toast({ title: t('common.success'), description: t('workflow.actions.stepSkipped'), variant: 'success' })
       handleSkipDialogClose()
-      setBlockingBannerCount(null)
       await invalidateAll()
     },
     onError: () => {
@@ -289,27 +181,6 @@ export default function ActionZone({ transaction }: ActionZoneProps) {
     <>
       <TooltipProvider>
       <div className="mt-4 p-3 sm:p-4 rounded-xl bg-white border border-stone-200 shadow-sm" data-testid="action-zone">
-        {/* Blocking banner (FR9) — shown after first modal dismissed */}
-        {blockingBannerCount !== null && blockingBannerCount > 0 && !blockingModalOpen && (
-          <div
-            className="mb-3 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 relative"
-            role="alert"
-            data-testid="blocking-banner"
-          >
-            <AlertTriangle className="w-4 h-4 text-red-600 shrink-0" />
-            <p className="flex-1 text-sm text-red-700 font-medium">
-              {t('blocking.bannerMessage', { count: blockingBannerCount })}
-            </p>
-            <button
-              onClick={() => setBlockingBannerCount(null)}
-              className="p-0.5 text-red-400 hover:text-red-600"
-              aria-label={t('common.close')}
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        )}
-
         {/* Summary badges row */}
         <div className="flex flex-wrap items-center gap-1.5 mb-3">
           {canValidate && recommendedCount === 0 ? (
@@ -342,30 +213,16 @@ export default function ActionZone({ transaction }: ActionZoneProps) {
 
         {/* CTA row: Valider l'étape + ... menu */}
         <div className="flex items-center gap-2">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className="flex-1">
-                <button
-                  onClick={handleAdvanceClick}
-                  disabled={!canValidate || advanceMutation.isPending}
-                  className={`w-full px-4 py-2.5 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-colors ${
-                    canValidate
-                      ? 'bg-primary text-white hover:bg-primary/90'
-                      : 'bg-stone-200 text-stone-400 cursor-not-allowed'
-                  }`}
-                  data-testid="advance-step-btn"
-                >
-                  <CheckCircle2 className="w-4 h-4" />
-                  {advanceMutation.isPending ? t('common.loading') : t('actionZone.validateStep')}
-                </button>
-              </div>
-            </TooltipTrigger>
-            {!canValidate && (
-              <TooltipContent>
-                <p className="text-xs">{t('actionZone.validateStepTooltip', { blocking: blockingCount, required: requiredCount })}</p>
-              </TooltipContent>
-            )}
-          </Tooltip>
+          <div className="flex-1">
+            <button
+              onClick={() => setValidateModalOpen(true)}
+              className="w-full px-4 py-2.5 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-colors bg-primary text-white hover:bg-primary/90"
+              data-testid="advance-step-btn"
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              {t('actionZone.validateStep')}
+            </button>
+          </div>
 
           {/* Advanced menu (...) */}
           <DropdownMenu>
@@ -509,45 +366,11 @@ export default function ActionZone({ transaction }: ActionZoneProps) {
         </DialogContent>
       </Dialog>
 
-      {/* Blocking modal — first-time pedagogical (FR7, FR8) z-index dialog(40) */}
-      <Dialog open={blockingModalOpen} onOpenChange={(open) => !open && handleDismissModal()}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>{t('blocking.modalTitle')}</DialogTitle>
-          </DialogHeader>
-          <p className="text-sm text-muted-foreground">
-            {t('blocking.modalMessage', { count: blockingBannerCount ?? blockingCount })}
-          </p>
-          <label className="flex items-center gap-2 mt-2">
-            <input
-              type="checkbox"
-              checked={dontShowAgain}
-              onChange={(e) => setDontShowAgain(e.target.checked)}
-              className="h-4 w-4 rounded border-input"
-              data-testid="dont-show-again"
-            />
-            <span className="text-sm text-muted-foreground">
-              {t('blocking.dontShowAgain')}
-            </span>
-          </label>
-          <DialogFooter>
-            <Button onClick={handleDismissModal} data-testid="blocking-modal-close">
-              {t('common.close')}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Premium: Resolution Required Modal for Required conditions */}
-      <ResolutionRequiredModal
-        isOpen={resolutionModalOpen}
-        onClose={() => setResolutionModalOpen(false)}
-        onResolved={handleResolutionComplete}
-        transactionId={transaction.id}
-        conditions={[
-          ...(advanceCheckData?.blockingConditions ?? []),
-          ...(advanceCheckData?.requiredPendingConditions ?? []),
-        ]}
+      {/* Maquette 03: Validate step modal */}
+      <ValidateStepModal
+        isOpen={validateModalOpen}
+        onClose={() => setValidateModalOpen(false)}
+        transaction={transaction}
       />
     </>
   )

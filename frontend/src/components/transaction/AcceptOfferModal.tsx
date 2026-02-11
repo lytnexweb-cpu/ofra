@@ -105,7 +105,10 @@ export default function AcceptOfferModal({
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['transaction', transaction.id] }),
         queryClient.invalidateQueries({ queryKey: ['offers', transaction.id] }),
+        queryClient.invalidateQueries({ queryKey: ['transactions'] }),
         queryClient.invalidateQueries({ queryKey: ['dashboard'] }),
+        queryClient.invalidateQueries({ queryKey: ['advance-check', transaction.id] }),
+        queryClient.invalidateQueries({ queryKey: ['conditions', 'active', transaction.id] }),
       ])
       setShowSuccess(true)
     },

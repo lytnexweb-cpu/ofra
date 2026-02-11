@@ -5,7 +5,6 @@ import { useNavigate } from 'react-router-dom'
 import {
   transactionsApi,
   type CreateTransactionRequest,
-  type CreateProfileRequest,
   type TransactionType,
   type PropertyType,
   type PropertyContext,
@@ -83,6 +82,9 @@ export default function CreateTransactionModal({
     type: 'purchase' as TransactionType,
     salePrice: '',
     closingDate: '',
+    propertyType: (userDefaults.propertyType || 'house') as PropertyType,
+    propertyContext: (userDefaults.propertyContext || 'urban') as PropertyContext,
+    isFinanced: true,
   })
 
   // E1: Suggestions toggle — default from onboarding preference (D40)
@@ -121,28 +123,10 @@ export default function CreateTransactionModal({
 
   const createMutation = useMutation({
     mutationFn: async (payload: CreateTransactionRequest) => {
-      // Step 1: Create transaction (backend auto-creates Property if address provided)
       const txResponse = await transactionsApi.create(payload)
       if (!txResponse.success || !txResponse.data?.transaction) {
         throw new Error(txResponse.error?.message || 'Failed to create transaction')
       }
-
-      const transactionId = txResponse.data.transaction.id
-
-      // Step 2: Auto-create profile from onboarding defaults (best-effort, non-blocking)
-      if (userDefaults.propertyType && userDefaults.propertyContext) {
-        const profilePayload: CreateProfileRequest = {
-          propertyType: userDefaults.propertyType as PropertyType,
-          propertyContext: userDefaults.propertyContext as PropertyContext,
-          isFinanced: true, // Default — can be refined in suggestions panel
-        }
-        try {
-          await transactionsApi.upsertProfile(transactionId, profilePayload)
-        } catch {
-          // Non-blocking — profile can be created later via suggestions panel
-        }
-      }
-
       return txResponse
     },
     onSuccess: (response) => {
@@ -158,13 +142,15 @@ export default function CreateTransactionModal({
         resetForm()
         onClose()
 
-        // E1: If suggestions toggle is on, navigate to transaction with suggestions panel open
+        // Always navigate to detail page after creation
         if (suggestConditions) {
           const params = new URLSearchParams({ suggestions: 'open' })
           if (formData.closingDate) {
             params.set('closingDate', formData.closingDate)
           }
           navigate(`/transactions/${txId}?${params.toString()}`)
+        } else {
+          navigate(`/transactions/${txId}`)
         }
       } else {
         toast({
@@ -190,6 +176,9 @@ export default function CreateTransactionModal({
       type: 'purchase',
       salePrice: '',
       closingDate: '',
+      propertyType: (userDefaults.propertyType || 'house') as PropertyType,
+      propertyContext: (userDefaults.propertyContext || 'urban') as PropertyContext,
+      isFinanced: true,
     })
     setSelectedTemplateId(null)
     setSuggestConditions(userDefaults.autoConditions)
@@ -211,11 +200,22 @@ export default function CreateTransactionModal({
       clientId: formData.clientId,
       type: formData.type,
       workflowTemplateId: selectedTemplateId,
+      autoConditionsEnabled: suggestConditions,
     }
 
     const price = parsePrice(formData.salePrice)
     if (price) payload.salePrice = price
     if (formData.address.trim()) payload.address = formData.address.trim()
+    if (formData.closingDate) payload.closingDate = formData.closingDate
+
+    // Send profile for premium condition creation (only when auto-conditions enabled)
+    if (suggestConditions) {
+      payload.profile = {
+        propertyType: formData.propertyType,
+        propertyContext: formData.propertyContext,
+        isFinanced: formData.isFinanced,
+      }
+    }
 
     createMutation.mutate(payload)
   }
@@ -335,7 +335,63 @@ export default function CreateTransactionModal({
         />
       </div>
 
-      {/* E1: Suggestions toggle */}
+      {/* Property Profile */}
+      <div className="border-t border-border pt-4 mt-4">
+        <p className="text-sm font-medium text-foreground mb-3">
+          {t('transaction.propertyProfile', 'Profil de la propriété')}
+        </p>
+        <div className="grid grid-cols-3 gap-3">
+          <div>
+            <label htmlFor="propertyType" className="block text-sm font-medium text-foreground mb-1">
+              {t('transaction.detail.profileForm.type', 'Type')}
+            </label>
+            <select
+              id="propertyType"
+              value={formData.propertyType}
+              onChange={(e) => setFormData({ ...formData, propertyType: e.target.value as PropertyType })}
+              className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              data-testid="property-type-select"
+            >
+              <option value="house">{t('transaction.detail.propertyTags.residential', 'Résidentiel')}</option>
+              <option value="condo">Condo</option>
+              <option value="land">{t('transaction.detail.propertyTags.land', 'Terrain')}</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="propertyContext" className="block text-sm font-medium text-foreground mb-1">
+              {t('transaction.detail.profileForm.context', 'Contexte')}
+            </label>
+            <select
+              id="propertyContext"
+              value={formData.propertyContext}
+              onChange={(e) => setFormData({ ...formData, propertyContext: e.target.value as PropertyContext })}
+              className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              data-testid="property-context-select"
+            >
+              <option value="urban">{t('transaction.detail.propertyTags.urban', 'Urbain')}</option>
+              <option value="suburban">{t('transaction.detail.propertyTags.suburban', 'Banlieue')}</option>
+              <option value="rural">{t('transaction.detail.propertyTags.rural', 'Rural')}</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="isFinanced" className="block text-sm font-medium text-foreground mb-1">
+              {t('transaction.detail.profileForm.financing', 'Financement')}
+            </label>
+            <select
+              id="isFinanced"
+              value={formData.isFinanced ? 'yes' : 'no'}
+              onChange={(e) => setFormData({ ...formData, isFinanced: e.target.value === 'yes' })}
+              className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              data-testid="financing-select"
+            >
+              <option value="yes">{t('transaction.detail.propertyTags.financed', 'Financé')}</option>
+              <option value="no">{t('transaction.detail.propertyTags.notFinanced', 'Non financé')}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* E1: Auto-conditions toggle */}
       <div className="border-t border-border pt-4 mt-4">
         <label className="flex items-start gap-3 cursor-pointer" data-testid="suggestions-toggle">
           <input
@@ -346,10 +402,10 @@ export default function CreateTransactionModal({
           />
           <div>
             <span className="text-sm font-medium text-foreground">
-              {t('transaction.suggestConditions', 'Me proposer des suggestions de conditions')}
+              {t('transaction.suggestConditions', 'Générer automatiquement les conditions')}
             </span>
             <p className="text-xs text-muted-foreground mt-0.5">
-              {t('transaction.suggestConditionsHint', 'Un panneau de suggestions s\'ouvrira après la création')}
+              {t('transaction.suggestConditionsHint', 'Les conditions seront créées selon le profil de propriété ci-dessus')}
             </p>
           </div>
         </label>

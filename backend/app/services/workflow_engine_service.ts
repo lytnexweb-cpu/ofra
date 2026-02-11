@@ -3,6 +3,8 @@ import TransactionStep from '#models/transaction_step'
 import WorkflowTemplate from '#models/workflow_template'
 import WorkflowStep from '#models/workflow_step'
 import Condition from '#models/condition'
+import Note from '#models/note'
+import Offer from '#models/offer'
 import TransactionProfile from '#models/transaction_profile'
 import { ActivityFeedService } from '#services/activity_feed_service'
 import { AutomationExecutorService } from '#services/automation_executor_service'
@@ -34,6 +36,8 @@ interface CreateTransactionParams {
     condoDocsRequired?: boolean
     appraisalRequired?: boolean | null
   }
+  /** Sprint 1: When false, skip ALL auto-condition creation */
+  autoConditionsEnabled?: boolean
 }
 
 interface ConditionResolutionInput {
@@ -46,6 +50,10 @@ interface AdvanceOptions {
   skipBlockingCheck?: boolean
   /** D4: Required condition resolutions for step advancement */
   requiredResolutions?: ConditionResolutionInput[]
+  /** Optional note to attach when validating the step */
+  note?: string
+  /** Whether to notify parties by email */
+  notifyEmail?: boolean
 }
 
 export class WorkflowEngineService {
@@ -64,6 +72,7 @@ export class WorkflowEngineService {
       .firstOrFail()
 
     // Create the transaction
+    const autoConditionsEnabled = params.autoConditionsEnabled ?? true
     const transaction = await Transaction.create({
       ownerUserId: params.ownerUserId,
       clientId: params.clientId,
@@ -76,6 +85,7 @@ export class WorkflowEngineService {
       commission: params.commission ?? null,
       notesText: params.notesText ?? null,
       folderUrl: params.folderUrl ?? null,
+      autoConditionsEnabled,
     })
 
     // Instantiate all steps
@@ -117,21 +127,26 @@ export class WorkflowEngineService {
           condoDocsRequired: params.profile.condoDocsRequired ?? true,
           appraisalRequired: params.profile.appraisalRequired,
         })
+      }
 
-        // Premium: Create conditions from templates based on profile
-        try {
-          await ConditionsEngineService.createConditionsFromProfile(
-            transaction.id,
-            firstStep.id,
-            1, // First step
-            params.ownerUserId
-          )
-        } catch (err) {
-          logger.warn({ transactionId: transaction.id, err }, 'Failed to create Premium conditions')
+      // Create conditions only if autoConditionsEnabled
+      if (autoConditionsEnabled) {
+        if (params.profile) {
+          // Premium: Create conditions from templates based on profile
+          try {
+            await ConditionsEngineService.createConditionsFromProfile(
+              transaction.id,
+              firstStep.id,
+              1, // First step
+              params.ownerUserId
+            )
+          } catch (err) {
+            logger.warn({ transactionId: transaction.id, err }, 'Failed to create Premium conditions')
+          }
+        } else {
+          // Legacy: Create conditions from workflow step template (no profile)
+          await this.createConditionsFromTemplate(transaction.id, firstStep.id, firstWfStep)
         }
-      } else {
-        // Legacy: Create conditions from workflow step template (no profile)
-        await this.createConditionsFromTemplate(transaction.id, firstStep.id, firstWfStep)
       }
 
       // Execute on_enter automations for first step
@@ -196,6 +211,21 @@ export class WorkflowEngineService {
     }
 
     const currentStepOrder = currentStep.stepOrder
+
+    // Offer gate: negotiation step requires an accepted offer
+    const currentWfStepForGate = await WorkflowStep.find(currentStep.workflowStepId)
+    const slug = currentWfStepForGate?.slug ?? ''
+    if (['negotiation', 'en-negociation', 'offer-submitted'].includes(slug)) {
+      const acceptedOffer = await Offer.query()
+        .where('transactionId', transactionId)
+        .where('status', 'accepted')
+        .first()
+      if (!acceptedOffer) {
+        const error: any = new Error('Cannot advance: an accepted offer is required to complete the negotiation step')
+        error.code = 'E_ACCEPTED_OFFER_REQUIRED'
+        throw error
+      }
+    }
 
     // D4: Check step advancement using Premium logic
     if (!options?.skipBlockingCheck) {
@@ -279,6 +309,15 @@ export class WorkflowEngineService {
       },
     })
 
+    // Save optional note attached to step validation
+    if (options?.note?.trim()) {
+      await Note.create({
+        transactionId,
+        authorUserId: userId,
+        content: options.note.trim(),
+      })
+    }
+
     if (!nextStep) {
       // No more steps — transaction is complete
       transaction.currentStepId = null
@@ -301,27 +340,30 @@ export class WorkflowEngineService {
       .preload('automations')
       .firstOrFail()
 
-    // D27: Check if profile exists to decide which condition system to use
-    const profile = await TransactionProfile.find(transactionId)
+    // Create conditions only if autoConditionsEnabled
+    if (transaction.autoConditionsEnabled) {
+      // D27: Check if profile exists to decide which condition system to use
+      const profile = await TransactionProfile.find(transactionId)
 
-    if (profile) {
-      // Premium: Create conditions from templates based on profile
-      try {
-        await ConditionsEngineService.createConditionsFromProfile(
-          transactionId,
-          nextStep.id,
-          nextStepOrder,
-          userId
-        )
-      } catch (profileError) {
-        logger.warn(
-          { transactionId, profileError },
-          'Failed to create Premium conditions from profile'
-        )
+      if (profile) {
+        // Premium: Create conditions from templates based on profile
+        try {
+          await ConditionsEngineService.createConditionsFromProfile(
+            transactionId,
+            nextStep.id,
+            nextStepOrder,
+            userId
+          )
+        } catch (profileError) {
+          logger.warn(
+            { transactionId, profileError },
+            'Failed to create Premium conditions from profile'
+          )
+        }
+      } else {
+        // Legacy: Create conditions from workflow step template (no profile)
+        await this.createConditionsFromTemplate(transactionId, nextStep.id, nextWfStep)
       }
-    } else {
-      // Legacy: Create conditions from workflow step template (no profile)
-      await this.createConditionsFromTemplate(transactionId, nextStep.id, nextWfStep)
     }
 
     // Execute on_enter automations
@@ -410,27 +452,27 @@ export class WorkflowEngineService {
       .preload('automations')
       .firstOrFail()
 
-    // D27: Check if profile exists to decide which condition system to use
-    const profile = await TransactionProfile.find(transactionId)
+    // Create conditions only if autoConditionsEnabled
+    if (transaction.autoConditionsEnabled) {
+      const profile = await TransactionProfile.find(transactionId)
 
-    if (profile) {
-      // Premium: Create conditions from templates based on profile
-      try {
-        await ConditionsEngineService.createConditionsFromProfile(
-          transactionId,
-          nextStep.id,
-          nextStep.stepOrder,
-          userId
-        )
-      } catch (profileError) {
-        logger.warn(
-          { transactionId, profileError },
-          'Failed to create Premium conditions from profile on skip'
-        )
+      if (profile) {
+        try {
+          await ConditionsEngineService.createConditionsFromProfile(
+            transactionId,
+            nextStep.id,
+            nextStep.stepOrder,
+            userId
+          )
+        } catch (profileError) {
+          logger.warn(
+            { transactionId, profileError },
+            'Failed to create Premium conditions from profile on skip'
+          )
+        }
+      } else {
+        await this.createConditionsFromTemplate(transactionId, nextStep.id, nextWfStep)
       }
-    } else {
-      // Legacy: Create conditions from workflow step template (no profile)
-      await this.createConditionsFromTemplate(transactionId, nextStep.id, nextWfStep)
     }
 
     await this.executeAutomations(nextWfStep, 'on_enter', transactionId)

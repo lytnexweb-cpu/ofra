@@ -405,8 +405,9 @@
     "addressPlaceholder": "123 Example St, Montreal",
     "price": "Price",
     "closingDate": "Expected closing date",
-    "suggestConditions": "Suggest conditions for me",
-    "suggestConditionsHint": "A suggestions panel will open after creation",
+    "propertyProfile": "Property profile",
+    "suggestConditions": "Auto-generate conditions",
+    "suggestConditionsHint": "Conditions will be created based on the property profile above",
     "client": "Client",
     "step": "Step",
     "template": "Template",
@@ -610,7 +611,9 @@
       "fullHistory": "Full history",
       "propertyProfile": "Property profile",
       "editProperty": "Edit",
+      "profileLocked": "Locked",
       "noProfile": "Add property profile",
+      "noParties": "No parties added",
       "profileForm": {
         "type": "Type",
         "context": "Context",
@@ -1596,5 +1599,60 @@
       "agent": "Agent",
       "other": "Other"
     }
+  },
+  "validateStep": {
+    "title": "Validate step",
+    "subtitle": "Step {{order}} — {{name}}",
+    "subtitleNext": "Step {{order}} — {{name}} → Step {{nextOrder}}",
+    "blocked": {
+      "title": "Validation blocked",
+      "message": "{{blocking}} blocking condition(s) and {{required}} required condition(s) must be resolved before advancing.",
+      "messageBlocking": "{{count}} blocking condition(s) must be resolved before advancing.",
+      "messageRequired": "{{count}} required condition(s) must be resolved before advancing.",
+      "offerRequiredTitle": "Accepted offer required",
+      "offerRequiredMessage": "You must accept an offer before completing the negotiation step.",
+      "viewOffers": "View offers"
+    },
+    "ready": {
+      "title": "Ready for validation",
+      "message": "All blocking and required conditions are resolved. You can advance to the next step."
+    },
+    "success": {
+      "title": "Step validated!",
+      "subtitle": "{{from}} → {{to}}",
+      "completed": "Step {{order}} \"{{name}}\" completed",
+      "started": "Step {{order}} \"{{name}}\" started",
+      "transactionCompleted": "Transaction completed!",
+      "archived": "{{total}} conditions archived ({{detail}})",
+      "archivedCompleted": "{{count}} completed",
+      "archivedWaived": "{{count}} waived",
+      "archivedNotApplicable": "{{count}} not applicable",
+      "archivedRecommended": "{{count}} recommended auto-archived",
+      "returnToTransaction": "Return to transaction"
+    },
+    "conditionsSummary": "Conditions summary",
+    "levelBlocking": "Blocking",
+    "levelRequired": "Required",
+    "levelRecommended": "Recommended",
+    "resolvedCount": "{{resolved}} / {{total}} resolved",
+    "pendingCount": "{{count}} pending",
+    "recommendedNote": "Unresolved recommended conditions will be automatically archived as \"not applicable\" upon validation.",
+    "recommendedNoteReady": "Will be automatically archived as \"not applicable\" upon validation.",
+    "resolve": "Resolve",
+    "dueDate": "due {{date}}",
+    "workflowImpact": "Workflow impact",
+    "impactCompleted": "Step {{order}}. {{name}} will be marked as completed",
+    "impactStarted": "Step {{order}}. {{name}} will start automatically",
+    "impactArchived": "Conditions will be archived with their resolution (pending recommended → not applicable)",
+    "notifyEmail": "Notify parties by email",
+    "recipients": "Recipients:",
+    "noteLabel": "Note (optional)",
+    "notePlaceholder": "Ex: All conditions met, firm transaction...",
+    "validateAndAdvance": "Validate and advance",
+    "close": "Close",
+    "resolutionCompleted": "Completed",
+    "resolutionWaived": "Waived",
+    "resolutionNotApplicable": "Not applicable",
+    "resolutionSkipped": "Skipped (risk)"
   }
 }

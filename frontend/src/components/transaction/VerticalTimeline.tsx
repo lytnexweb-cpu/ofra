@@ -150,7 +150,7 @@ export default function VerticalTimeline({
     (step: TransactionStep) => {
       if (step.status === 'completed') return 'completed' as const
       if (step.status === 'skipped') return 'skipped' as const
-      if (step.id === currentStepId) return 'active' as const
+      if (step.id === currentStepId || step.status === 'active') return 'active' as const
       return 'pending' as const
     },
     [currentStepId]
@@ -257,9 +257,8 @@ export default function VerticalTimeline({
       queryClient.invalidateQueries({ queryKey: transactionKey })
       queryClient.invalidateQueries({ queryKey: ['transactions'] })
       queryClient.invalidateQueries({ queryKey: ['dashboard'] })
-      queryClient.invalidateQueries({
-        queryKey: ['advance-check', transaction.id],
-      })
+      queryClient.invalidateQueries({ queryKey: ['advance-check', transaction.id] })
+      queryClient.invalidateQueries({ queryKey: ['conditions', 'active', transaction.id] })
     },
   })
 
@@ -675,9 +674,8 @@ export default function VerticalTimeline({
             queryClient.invalidateQueries({ queryKey: transactionKey })
             queryClient.invalidateQueries({ queryKey: ['transactions'] })
             queryClient.invalidateQueries({ queryKey: ['dashboard'] })
-            queryClient.invalidateQueries({
-              queryKey: ['advance-check', transaction.id],
-            })
+            queryClient.invalidateQueries({ queryKey: ['advance-check', transaction.id] })
+            queryClient.invalidateQueries({ queryKey: ['conditions', 'active', transaction.id] })
           }}
         />
       )}

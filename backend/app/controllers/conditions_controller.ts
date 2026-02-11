@@ -4,6 +4,7 @@ import { cuid } from '@adonisjs/core/helpers'
 import Condition from '#models/condition'
 import ConditionEvidence from '#models/condition_evidence'
 import ConditionEvent from '#models/condition_event'
+import Offer from '#models/offer'
 import Transaction from '#models/transaction'
 import {
   createConditionValidator,
@@ -757,15 +758,33 @@ export default class ConditionsController {
       }
 
       const currentStepOrder = transaction.currentStep.stepOrder
+      const stepSlug = transaction.currentStep.workflowStep?.slug ?? ''
       const check = await ConditionsEngineService.checkStepAdvancement(params.id, currentStepOrder)
+
+      // Offer gate: check if negotiation step requires accepted offer
+      const requiresAcceptedOffer = ['negotiation', 'en-negociation', 'offer-submitted'].includes(stepSlug)
+      let hasAcceptedOffer = false
+      if (requiresAcceptedOffer) {
+        const acceptedOffer = await Offer.query()
+          .where('transactionId', params.id)
+          .where('status', 'accepted')
+          .first()
+        hasAcceptedOffer = !!acceptedOffer
+      }
+
+      const conditionsOk = check.canAdvance
+      const canAdvance = conditionsOk && (!requiresAcceptedOffer || hasAcceptedOffer)
 
       return response.ok({
         success: true,
         data: {
-          canAdvance: check.canAdvance,
+          canAdvance,
+          requiresAcceptedOffer,
+          hasAcceptedOffer,
           currentStep: {
             order: currentStepOrder,
             name: transaction.currentStep.workflowStep?.name,
+            slug: stepSlug,
           },
           blockingConditions: check.blockingConditions.map((c) => ({
             id: c.id,

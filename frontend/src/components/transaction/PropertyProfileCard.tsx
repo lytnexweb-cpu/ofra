@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Home, Pencil, Loader2 } from 'lucide-react'
+import { Home, Pencil, Loader2, Lock } from 'lucide-react'
 import { transactionsApi, type TransactionProfile } from '../../api/transactions.api'
 import { toast } from '../../hooks/use-toast'
 
 interface PropertyProfileCardProps {
   transactionId: number
+  currentStepOrder?: number // when > 1, profile is locked
   onEdit?: () => void // kept for backwards compat but not used internally
 }
 
@@ -38,9 +39,10 @@ function getProfileTags(profile: TransactionProfile, t: (key: string) => string)
   return tags
 }
 
-export default function PropertyProfileCard({ transactionId, onEdit }: PropertyProfileCardProps) {
+export default function PropertyProfileCard({ transactionId, currentStepOrder, onEdit }: PropertyProfileCardProps) {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
+  const isLocked = (currentStepOrder ?? 1) > 1
 
   const [showForm, setShowForm] = useState(false)
   const [propertyType, setPropertyType] = useState<string>('house')
@@ -72,6 +74,9 @@ export default function PropertyProfileCard({ transactionId, onEdit }: PropertyP
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transaction-profile', transactionId] })
+      queryClient.invalidateQueries({ queryKey: ['transaction', transactionId] })
+      queryClient.invalidateQueries({ queryKey: ['advance-check', transactionId] })
+      queryClient.invalidateQueries({ queryKey: ['conditions', 'active', transactionId] })
       setShowForm(false)
       toast({ title: t('common.success'), variant: 'success' })
     },
@@ -93,13 +98,20 @@ export default function PropertyProfileCard({ transactionId, onEdit }: PropertyP
             <Home className="w-4 h-4 text-stone-400" />
             {t('transaction.detail.propertyProfile')}
           </h3>
-          <button
-            onClick={openEditForm}
-            className="text-xs text-primary hover:underline font-medium flex items-center gap-1"
-          >
-            <Pencil className="w-3.5 h-3.5" />
-            {t('transaction.detail.editProperty')}
-          </button>
+          {isLocked ? (
+            <span className="text-xs text-stone-400 flex items-center gap-1">
+              <Lock className="w-3 h-3" />
+              {t('transaction.detail.profileLocked', 'Verrouillé')}
+            </span>
+          ) : (
+            <button
+              onClick={openEditForm}
+              className="text-xs text-primary hover:underline font-medium flex items-center gap-1"
+            >
+              <Pencil className="w-3.5 h-3.5" />
+              {t('transaction.detail.editProperty')}
+            </button>
+          )}
         </div>
 
         {/* Tags — maquette 01 : flex flex-wrap gap-1.5 */}

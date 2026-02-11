@@ -10,6 +10,7 @@ import {
   MembersPanel,
   ExportSharePanel,
   PropertyProfileCard,
+  PartiesCard,
   OffersPanel,
   PartiesModal,
 } from '../components/transaction'
@@ -98,7 +99,15 @@ export default function TransactionDetailPage() {
         onOpenParties={() => setPartiesOpen(true)}
         onOpenExport={() => setExportOpen(true)}
       />
-      <PropertyProfileCard transactionId={transaction.id} onEdit={() => setEditModalOpen(true)} />
+      <PropertyProfileCard
+        transactionId={transaction.id}
+        currentStepOrder={transaction.currentStep?.stepOrder}
+        onEdit={() => setEditModalOpen(true)}
+      />
+      <PartiesCard
+        transactionId={transaction.id}
+        onManage={() => setPartiesOpen(true)}
+      />
       <OffersPanel transaction={transaction} />
       <VerticalTimeline
         transaction={transaction}

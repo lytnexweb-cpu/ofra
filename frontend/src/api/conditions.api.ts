@@ -131,9 +131,12 @@ export interface ConditionResolutionInput {
 
 export interface AdvanceCheckResult {
   canAdvance: boolean
+  requiresAcceptedOffer?: boolean
+  hasAcceptedOffer?: boolean
   currentStep: {
     order: number
     name: string
+    slug?: string
   } | null
   blockingConditions: Pick<Condition, 'id' | 'title' | 'labelFr' | 'labelEn'>[]
   requiredPendingConditions: Pick<Condition, 'id' | 'title' | 'labelFr' | 'labelEn'>[]

@@ -101,6 +101,13 @@ export interface CreateTransactionRequest {
   commission?: number
   folderUrl?: string
   address?: string
+  closingDate?: string
+  autoConditionsEnabled?: boolean
+  profile?: {
+    propertyType: PropertyType
+    propertyContext: PropertyContext
+    isFinanced: boolean
+  }
 }
 
 export interface UpdateTransactionRequest {
@@ -189,10 +196,10 @@ export const transactionsApi = {
   cancel: (id: number, reason?: string) =>
     http.patch<{ transaction: Transaction }>(`/api/transactions/${id}/cancel`, { reason }),
 
-  advanceStep: (id: number) =>
+  advanceStep: (id: number, data?: { note?: string; notifyEmail?: boolean }) =>
     http.patch<{ transaction: Transaction; newStep: TransactionStep | null }>(
       `/api/transactions/${id}/advance`,
-      {}
+      data ?? {}
     ),
 
   skipStep: (id: number) =>

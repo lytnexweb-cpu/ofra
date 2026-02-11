@@ -44,5 +44,9 @@ export { default as AcceptOfferModal } from './AcceptOfferModal'
 // Maquette 06: Create/Counter offer modal
 export { default as CreateOfferModal } from './CreateOfferModal'
 
-// Maquette 13: Parties management modal
+// Maquette 13: Parties management modal + card
 export { default as PartiesModal } from './PartiesModal'
+export { default as PartiesCard } from './PartiesCard'
+
+// Maquette 03: Validate step modal
+export { default as ValidateStepModal } from './ValidateStepModal'

@@ -185,6 +185,7 @@ export default function TransactionHeader({ transaction, onOpenEdit, onOpenMembe
         queryClient.invalidateQueries({ queryKey: ['transaction', transaction.id] })
         queryClient.invalidateQueries({ queryKey: ['transactions'] })
         queryClient.invalidateQueries({ queryKey: ['dashboard'] })
+        queryClient.invalidateQueries({ queryKey: ['advance-check', transaction.id] })
       }
     },
     onError: () => {
@@ -216,6 +217,7 @@ export default function TransactionHeader({ transaction, onOpenEdit, onOpenMembe
         queryClient.invalidateQueries({ queryKey: ['transaction', transaction.id] })
         queryClient.invalidateQueries({ queryKey: ['transactions'] })
         queryClient.invalidateQueries({ queryKey: ['dashboard'] })
+        queryClient.invalidateQueries({ queryKey: ['advance-check', transaction.id] })
       }
     },
     onError: () => {
@@ -237,6 +239,7 @@ export default function TransactionHeader({ transaction, onOpenEdit, onOpenMembe
         queryClient.invalidateQueries({ queryKey: ['transaction', transaction.id] })
         queryClient.invalidateQueries({ queryKey: ['transactions'] })
         queryClient.invalidateQueries({ queryKey: ['dashboard'] })
+        queryClient.invalidateQueries({ queryKey: ['advance-check', transaction.id] })
       }
     },
     onError: () => {
