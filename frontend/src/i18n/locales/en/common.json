@@ -728,7 +728,20 @@
       "recommendedAction": "Recommended next action",
       "recommendedActionDesc": "Schedule a follow-up before expiration ({{date}}) to remind if no response.",
       "viewTransaction": "Back to transaction",
-      "followUpEmail": "Follow up by email"
+      "followUpEmail": "Follow up by email",
+      "hidePreview": "Hide preview",
+      "emailPreview": {
+        "from": "From",
+        "to": "To",
+        "subject": "Subject",
+        "noRecipients": "No recipients with email",
+        "subjectNew": "New offer — {{price}} $ — {{address}}",
+        "subjectCounter": "Counter-offer — {{price}} $ — {{address}}",
+        "greeting": "Hello,",
+        "bodyNew": "A new offer of {{price}} $ has been submitted for the property at {{address}}.",
+        "bodyCounter": "A counter-offer of {{price}} $ has been submitted for the property at {{address}}.",
+        "footer": "— This email is sent automatically by Ofra. Do not reply to this message."
+      }
     }
   },
   "suggestions": {

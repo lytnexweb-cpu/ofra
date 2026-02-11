@@ -7,7 +7,7 @@ import { toast } from '../../hooks/use-toast'
 
 interface PropertyProfileCardProps {
   transactionId: number
-  onEdit?: () => void
+  onEdit?: () => void // kept for backwards compat but not used internally
 }
 
 function getProfileTags(profile: TransactionProfile, t: (key: string) => string): { label: string; variant: 'default' | 'blue' }[] {
@@ -54,6 +54,15 @@ export default function PropertyProfileCard({ transactionId, onEdit }: PropertyP
 
   const profile = data?.data?.profile ?? null
 
+  const openEditForm = () => {
+    if (profile) {
+      setPropertyType(profile.propertyType ?? 'house')
+      setPropertyContext(profile.propertyContext ?? 'urban')
+      setIsFinanced(profile.isFinanced ?? true)
+    }
+    setShowForm(true)
+  }
+
   const createMutation = useMutation({
     mutationFn: () =>
       transactionsApi.upsertProfile(transactionId, {
@@ -85,7 +94,7 @@ export default function PropertyProfileCard({ transactionId, onEdit }: PropertyP
             {t('transaction.detail.propertyProfile')}
           </h3>
           <button
-            onClick={profile ? onEdit : () => setShowForm(!showForm)}
+            onClick={openEditForm}
             className="text-xs text-primary hover:underline font-medium flex items-center gap-1"
           >
             <Pencil className="w-3.5 h-3.5" />
@@ -94,7 +103,7 @@ export default function PropertyProfileCard({ transactionId, onEdit }: PropertyP
         </div>
 
         {/* Tags — maquette 01 : flex flex-wrap gap-1.5 */}
-        {profile ? (
+        {profile && !showForm ? (
           <div className="flex flex-wrap gap-1.5">
             {getProfileTags(profile, t).map((tag, i) => (
               <span
@@ -149,7 +158,7 @@ export default function PropertyProfileCard({ transactionId, onEdit }: PropertyP
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-primary text-white hover:bg-primary/90 disabled:opacity-50"
               >
                 {createMutation.isPending && <Loader2 className="w-3 h-3 animate-spin" />}
-                {t('transaction.detail.profileForm.create')}
+                {profile ? t('common.save') : t('transaction.detail.profileForm.create')}
               </button>
               <button onClick={() => setShowForm(false)} className="px-3 py-1.5 text-xs font-medium rounded-lg text-stone-500 hover:bg-stone-100">
                 {t('common.cancel')}

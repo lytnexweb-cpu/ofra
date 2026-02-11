@@ -65,6 +65,7 @@ export default function CreateOfferModal({
   const [note, setNote] = useState('')
   const [selectedConditionIds, setSelectedConditionIds] = useState<number[]>([])
   const [showConditionPicker, setShowConditionPicker] = useState(false)
+  const [showEmailPreview, setShowEmailPreview] = useState(false)
   const [formData, setFormData] = useState({
     price: '',
     deposit: '',
@@ -85,6 +86,7 @@ export default function CreateOfferModal({
           : []
       )
       setShowConditionPicker(false)
+      setShowEmailPreview(false)
       setFormData({
         price: isCounter ? String(lastRevision!.price) : '',
         deposit: isCounter && lastRevision!.deposit != null ? String(lastRevision!.deposit) : '',
@@ -323,10 +325,25 @@ export default function CreateOfferModal({
               <ChevronLeft className="w-4 h-4" />
               {t('transaction.createOffer.viewTransaction')}
             </button>
-            <button className="px-5 py-2.5 rounded-lg border border-stone-200 text-stone-600 hover:bg-stone-100 text-sm font-medium flex items-center justify-center gap-2">
+            <a
+              href={`mailto:${[
+                clientEmail,
+                ...parties.filter((p) => p.email).map((p) => p.email),
+              ].filter(Boolean).join(',')}?subject=${encodeURIComponent(
+                isCounter
+                  ? t('transaction.createOffer.emailPreview.subjectCounter', { price: formatCAD(priceNum), address: transaction.property?.address ?? '' })
+                  : t('transaction.createOffer.emailPreview.subjectNew', { price: formatCAD(priceNum), address: transaction.property?.address ?? '' })
+              )}&body=${encodeURIComponent(
+                (isCounter
+                  ? t('transaction.createOffer.emailPreview.bodyCounter', { price: formatCAD(priceNum), address: transaction.property?.address ?? '—' })
+                  : t('transaction.createOffer.emailPreview.bodyNew', { price: formatCAD(priceNum), address: transaction.property?.address ?? '—' })
+                ) + '\n\n' + t('transaction.createOffer.emailPreview.footer')
+              )}`}
+              className="px-5 py-2.5 rounded-lg border border-stone-200 text-stone-600 hover:bg-stone-100 text-sm font-medium flex items-center justify-center gap-2"
+            >
               <Mail className="w-4 h-4" />
               {t('transaction.createOffer.followUpEmail')}
-            </button>
+            </a>
           </div>
         </DialogContent>
       </Dialog>
@@ -817,10 +834,80 @@ export default function CreateOfferModal({
                     </div>
                   ))}
                 </div>
-                <button type="button" className="text-xs text-primary hover:text-primary/80 font-medium flex items-center gap-1 mt-1">
+                <button
+                  type="button"
+                  onClick={() => setShowEmailPreview(!showEmailPreview)}
+                  className="text-xs text-primary hover:text-primary/80 font-medium flex items-center gap-1 mt-1"
+                >
                   <Eye className="w-3.5 h-3.5" />
-                  {t('transaction.acceptOffer.previewEmail')}
+                  {showEmailPreview ? t('transaction.createOffer.hidePreview') : t('transaction.acceptOffer.previewEmail')}
                 </button>
+
+                {/* Email preview */}
+                {showEmailPreview && (
+                  <div className="mt-2 rounded-lg border border-stone-200 bg-white overflow-hidden">
+                    {/* Email header */}
+                    <div className="px-3 py-2 bg-stone-50 border-b border-stone-100 space-y-1">
+                      <div className="flex items-center gap-2 text-[10px]">
+                        <span className="font-semibold text-stone-500 uppercase w-8 shrink-0">{t('transaction.createOffer.emailPreview.from')}</span>
+                        <span className="text-stone-700">Ofra &lt;noreply@ofra.ca&gt;</span>
+                      </div>
+                      <div className="flex items-start gap-2 text-[10px]">
+                        <span className="font-semibold text-stone-500 uppercase w-8 shrink-0">{t('transaction.createOffer.emailPreview.to')}</span>
+                        <span className="text-stone-700">
+                          {[
+                            clientEmail ? `${transaction.client?.fullName ?? t('transaction.acceptOffer.buyerLabel')} <${clientEmail}>` : null,
+                            ...parties.filter((p) => p.email).map((p) => `${p.fullName} <${p.email}>`),
+                          ].filter(Boolean).join(', ') || t('transaction.createOffer.emailPreview.noRecipients')}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 text-[10px]">
+                        <span className="font-semibold text-stone-500 uppercase w-8 shrink-0">{t('transaction.createOffer.emailPreview.subject')}</span>
+                        <span className="text-stone-700 font-medium">
+                          {isCounter
+                            ? t('transaction.createOffer.emailPreview.subjectCounter', { price: formatCAD(priceNum), address: transaction.property?.address ?? '' })
+                            : t('transaction.createOffer.emailPreview.subjectNew', { price: formatCAD(priceNum), address: transaction.property?.address ?? '' })
+                          }
+                        </span>
+                      </div>
+                    </div>
+                    {/* Email body */}
+                    <div className="px-3 py-3 text-xs text-stone-700 space-y-2">
+                      <p>{t('transaction.createOffer.emailPreview.greeting')}</p>
+                      <p>
+                        {isCounter
+                          ? t('transaction.createOffer.emailPreview.bodyCounter', { price: formatCAD(priceNum), address: transaction.property?.address ?? '—' })
+                          : t('transaction.createOffer.emailPreview.bodyNew', { price: formatCAD(priceNum), address: transaction.property?.address ?? '—' })
+                        }
+                      </p>
+                      <div className="rounded bg-stone-50 border border-stone-100 p-2 space-y-0.5">
+                        <div className="flex justify-between">
+                          <span className="text-stone-500">{t('transaction.createOffer.priceLabel')}</span>
+                          <span className="font-semibold">{formatCAD(priceNum)} $</span>
+                        </div>
+                        {depositNum > 0 && (
+                          <div className="flex justify-between">
+                            <span className="text-stone-500">{t('transaction.createOffer.depositLabel')}</span>
+                            <span className="font-semibold">{formatCAD(depositNum)} $</span>
+                          </div>
+                        )}
+                        {financingNum > 0 && (
+                          <div className="flex justify-between">
+                            <span className="text-stone-500">{t('transaction.createOffer.financingLabel')}</span>
+                            <span className="font-semibold">{formatCAD(financingNum)} $</span>
+                          </div>
+                        )}
+                        {expiryDate && (
+                          <div className="flex justify-between">
+                            <span className="text-stone-500">{t('transaction.createOffer.expiryLabel')}</span>
+                            <span className="font-semibold">{formatDate(expiryDate, 'd MMM yyyy')}</span>
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-stone-500 italic text-[10px]">{t('transaction.createOffer.emailPreview.footer')}</p>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>

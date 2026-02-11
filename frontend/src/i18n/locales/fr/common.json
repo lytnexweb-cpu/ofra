@@ -728,7 +728,20 @@
       "recommendedAction": "Prochaine action recommandée",
       "recommendedActionDesc": "Planifier un suivi avant l'expiration ({{date}}) pour relancer si pas de réponse.",
       "viewTransaction": "Voir la transaction",
-      "followUpEmail": "Relancer par email"
+      "followUpEmail": "Relancer par email",
+      "hidePreview": "Masquer la prévisualisation",
+      "emailPreview": {
+        "from": "De",
+        "to": "À",
+        "subject": "Objet",
+        "noRecipients": "Aucun destinataire avec email",
+        "subjectNew": "Nouvelle offre — {{price}} $ — {{address}}",
+        "subjectCounter": "Contre-offre — {{price}} $ — {{address}}",
+        "greeting": "Bonjour,",
+        "bodyNew": "Une nouvelle offre de {{price}} $ a été soumise pour la propriété située au {{address}}.",
+        "bodyCounter": "Une contre-offre de {{price}} $ a été soumise pour la propriété située au {{address}}.",
+        "footer": "— Cet email est envoyé automatiquement par Ofra. Ne pas répondre à ce message."
+      }
     }
   },
   "suggestions": {
