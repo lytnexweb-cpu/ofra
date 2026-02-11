@@ -14,6 +14,7 @@ export interface CreateOfferRequest {
   inspectionDelay?: number | null
   inclusions?: string | null
   message?: string | null
+  conditionIds?: number[]
 }
 
 export interface AddRevisionRequest {
@@ -29,6 +30,7 @@ export interface AddRevisionRequest {
   inspectionDelay?: number | null
   inclusions?: string | null
   message?: string | null
+  conditionIds?: number[]
 }
 
 export const offersApi = {

@@ -11,6 +11,7 @@ import {
   ExportSharePanel,
   PropertyProfileCard,
   OffersPanel,
+  PartiesModal,
 } from '../components/transaction'
 import { Button } from '../components/ui/Button'
 import { AlertCircle, Loader2, RefreshCw } from 'lucide-react'
@@ -30,6 +31,7 @@ export default function TransactionDetailPage() {
   // D34: Maquettes 07-12 panel states
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [membersOpen, setMembersOpen] = useState(false)
+  const [partiesOpen, setPartiesOpen] = useState(false)
   const [exportOpen, setExportOpen] = useState(false)
 
   useEffect(() => {
@@ -93,6 +95,7 @@ export default function TransactionDetailPage() {
         transaction={transaction}
         onOpenEdit={() => setEditModalOpen(true)}
         onOpenMembers={() => setMembersOpen(true)}
+        onOpenParties={() => setPartiesOpen(true)}
         onOpenExport={() => setExportOpen(true)}
       />
       <PropertyProfileCard transactionId={transaction.id} onEdit={() => setEditModalOpen(true)} />
@@ -118,6 +121,11 @@ export default function TransactionDetailPage() {
         onClose={() => setMembersOpen(false)}
         transactionId={transaction.id}
         ownerUserId={transaction.ownerUserId}
+      />
+      <PartiesModal
+        isOpen={partiesOpen}
+        onClose={() => setPartiesOpen(false)}
+        transactionId={transaction.id}
       />
       <ExportSharePanel
         isOpen={exportOpen}

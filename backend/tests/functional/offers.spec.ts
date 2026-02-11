@@ -267,7 +267,7 @@ test.group('Offers Controller - CRUD', (group) => {
       price: 350000,
       createdByUserId: user.id,
     })
-    await OfferService.acceptOffer(offer.id)
+    await OfferService.acceptOffer(offer.id, user.id)
 
     const response = await withAuth(
       client.patch(`/api/offers/${offer.id}/accept`),
@@ -317,7 +317,7 @@ test.group('Offers Controller - CRUD', (group) => {
       price: 350000,
       createdByUserId: user.id,
     })
-    await OfferService.acceptOffer(offer.id)
+    await OfferService.acceptOffer(offer.id, user.id)
 
     const response = await withAuth(
       client.patch(`/api/offers/${offer.id}/reject`),
@@ -391,7 +391,7 @@ test.group('Offers Controller - CRUD', (group) => {
       price: 350000,
       createdByUserId: user.id,
     })
-    await OfferService.acceptOffer(offer.id)
+    await OfferService.acceptOffer(offer.id, user.id)
 
     const response = await withAuth(
       client.delete(`/api/offers/${offer.id}`),

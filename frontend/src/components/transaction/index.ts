@@ -40,3 +40,9 @@ export { default as OffersPanel } from './OffersPanel'
 
 // Maquette 02: Accept offer modal
 export { default as AcceptOfferModal } from './AcceptOfferModal'
+
+// Maquette 06: Create/Counter offer modal
+export { default as CreateOfferModal } from './CreateOfferModal'
+
+// Maquette 13: Parties management modal
+export { default as PartiesModal } from './PartiesModal'

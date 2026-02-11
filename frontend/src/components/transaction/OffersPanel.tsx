@@ -17,8 +17,7 @@ import { parseApiError, isSessionExpired } from '../../utils/apiError'
 import { formatDate, parseISO } from '../../lib/date'
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '../ui/Tooltip'
 import ConfirmDialog from '../ConfirmDialog'
-import CreateOfferModal from '../CreateOfferModal'
-import CounterOfferModal from '../CounterOfferModal'
+import CreateOfferModal from './CreateOfferModal'
 import AcceptOfferModal from './AcceptOfferModal'
 
 interface OffersPanelProps {
@@ -94,7 +93,7 @@ export default function OffersPanel({ transaction }: OffersPanelProps) {
   const [showHistory, setShowHistory] = useState(false)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [counterOffer, setCounterOffer] = useState<{
-    offerId: number
+    offer: Offer
     lastRevision: OfferRevision
   } | null>(null)
 
@@ -112,6 +111,7 @@ export default function OffersPanel({ transaction }: OffersPanelProps) {
     isOpen: false,
     offerId: null,
   })
+  const [createConfirmOpen, setCreateConfirmOpen] = useState(false)
 
   const { data: offersData, isLoading } = useQuery({
     queryKey: ['offers', transaction.id],
@@ -130,6 +130,10 @@ export default function OffersPanel({ transaction }: OffersPanelProps) {
   )
   const historyOffers = useMemo(
     () => offers.filter((o) => o.status !== 'received' && o.status !== 'countered'),
+    [offers]
+  )
+  const hasAcceptedOffer = useMemo(
+    () => offers.some((o) => o.status === 'accepted'),
     [offers]
   )
 
@@ -287,7 +291,7 @@ export default function OffersPanel({ transaction }: OffersPanelProps) {
                 </Tooltip>
               </TooltipProvider>
               <button
-                onClick={() => setCounterOffer({ offerId: offer.id, lastRevision: lastRev })}
+                onClick={() => setCounterOffer({ offer, lastRevision: lastRev })}
                 className="px-2.5 py-1 text-xs font-medium rounded-lg bg-blue-500 text-white hover:bg-blue-600"
               >
                 {t('offers.counter')}
@@ -444,8 +448,18 @@ export default function OffersPanel({ transaction }: OffersPanelProps) {
         </h3>
         {transaction.status === 'active' && (
           <button
-            onClick={() => setIsCreateModalOpen(true)}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-white bg-primary hover:bg-primary/90 rounded-lg"
+            onClick={() => {
+              if (hasAcceptedOffer) {
+                setCreateConfirmOpen(true)
+              } else {
+                setIsCreateModalOpen(true)
+              }
+            }}
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg ${
+              hasAcceptedOffer
+                ? 'border border-stone-200 text-stone-400 hover:text-stone-600 hover:bg-stone-50'
+                : 'text-white bg-primary hover:bg-primary/90'
+            }`}
           >
             <Plus className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">{t('transaction.detail.newOffer')}</span>
@@ -484,21 +498,20 @@ export default function OffersPanel({ transaction }: OffersPanelProps) {
         </>
       )}
 
-      {/* Create Offer Modal */}
+      {/* Create Offer Modal (Maquette 06) */}
       <CreateOfferModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
-        transactionId={transaction.id}
-        listPrice={transaction.listPrice}
+        transaction={transaction}
       />
 
-      {/* Counter-Offer Modal */}
+      {/* Counter-Offer Modal (Maquette 06 — unified) */}
       {counterOffer && (
-        <CounterOfferModal
+        <CreateOfferModal
           isOpen={true}
           onClose={() => setCounterOffer(null)}
-          offerId={counterOffer.offerId}
-          transactionId={transaction.id}
+          transaction={transaction}
+          existingOffer={counterOffer.offer}
           lastRevision={counterOffer.lastRevision}
         />
       )}
@@ -545,6 +558,18 @@ export default function OffersPanel({ transaction }: OffersPanelProps) {
         confirmLabel={t('offers.delete')}
         variant="danger"
         isLoading={deleteMutation.isPending}
+      />
+      <ConfirmDialog
+        isOpen={createConfirmOpen}
+        onClose={() => setCreateConfirmOpen(false)}
+        onConfirm={() => {
+          setCreateConfirmOpen(false)
+          setIsCreateModalOpen(true)
+        }}
+        title={t('offers.confirm.createWhileAcceptedTitle')}
+        message={t('offers.confirm.createWhileAcceptedMessage')}
+        confirmLabel={t('offers.confirm.createWhileAcceptedConfirm')}
+        variant="warning"
       />
     </div>
   )

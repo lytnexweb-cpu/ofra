@@ -1,6 +1,8 @@
 import { DateTime } from 'luxon'
 import Offer, { type OfferStatus } from '#models/offer'
 import OfferRevision from '#models/offer_revision'
+import Transaction from '#models/transaction'
+import { WorkflowEngineService } from '#services/workflow_engine_service'
 
 /**
  * OfferService
@@ -27,13 +29,14 @@ export class OfferService {
     notes?: string
     direction?: 'buyer_to_seller' | 'seller_to_buyer'
     createdByUserId: number
+    conditionIds?: number[]
   }): Promise<Offer> {
     const offer = await Offer.create({
       transactionId: params.transactionId,
       status: 'received',
     })
 
-    await OfferRevision.create({
+    const revision = await OfferRevision.create({
       offerId: offer.id,
       revisionNumber: 1,
       price: params.price,
@@ -45,7 +48,11 @@ export class OfferService {
       createdByUserId: params.createdByUserId,
     })
 
-    await offer.load('revisions')
+    if (params.conditionIds && params.conditionIds.length > 0) {
+      await revision.related('conditions').attach(params.conditionIds)
+    }
+
+    await offer.load('revisions', (query) => query.preload('conditions'))
     return offer
   }
 
@@ -62,6 +69,7 @@ export class OfferService {
     notes?: string
     direction: 'buyer_to_seller' | 'seller_to_buyer'
     createdByUserId: number
+    conditionIds?: number[]
   }): Promise<OfferRevision> {
     const offer = await Offer.findOrFail(params.offerId)
 
@@ -90,6 +98,10 @@ export class OfferService {
       createdByUserId: params.createdByUserId,
     })
 
+    if (params.conditionIds && params.conditionIds.length > 0) {
+      await revision.related('conditions').attach(params.conditionIds)
+    }
+
     // Update offer status to countered
     offer.status = 'countered'
     await offer.save()
@@ -98,9 +110,16 @@ export class OfferService {
   }
 
   /**
-   * Accept an offer. Rejects all other pending offers for the same transaction.
+   * Accept an offer. Rejects all other pending offers, updates sale price,
+   * and auto-advances the workflow step.
    */
-  public static async acceptOffer(offerId: number): Promise<Offer> {
+  public static async acceptOffer(
+    offerId: number,
+    userId: number
+  ): Promise<{
+    offer: Offer
+    advanceResult: { newStep: any } | null
+  }> {
     const offer = await Offer.findOrFail(offerId)
 
     if (!['received', 'countered'].includes(offer.status)) {
@@ -129,8 +148,28 @@ export class OfferService {
       .whereIn('status', ['received', 'countered'])
       .update({ status: 'rejected' })
 
+    // Update transaction sale price with the accepted offer price
+    if (latestRevision) {
+      const transaction = await Transaction.findOrFail(offer.transactionId)
+      transaction.salePrice = latestRevision.price
+      await transaction.save()
+    }
+
+    // Auto-advance workflow step (best-effort: don't fail accept if advance fails)
+    let advanceResult: { newStep: any } | null = null
+    try {
+      const result = await WorkflowEngineService.advanceStep(
+        offer.transactionId,
+        userId,
+        { skipBlockingCheck: true }
+      )
+      advanceResult = { newStep: result.newStep }
+    } catch (error) {
+      console.warn('[OfferService] Auto-advance failed after offer accept:', (error as Error).message)
+    }
+
     await offer.load('revisions')
-    return offer
+    return { offer, advanceResult }
   }
 
   /**
@@ -195,7 +234,7 @@ export class OfferService {
   public static async getOffers(transactionId: number): Promise<Offer[]> {
     return Offer.query()
       .where('transaction_id', transactionId)
-      .preload('revisions', (query) => query.orderBy('revision_number', 'asc'))
+      .preload('revisions', (query) => query.preload('conditions').orderBy('revision_number', 'asc'))
       .orderBy('created_at', 'desc')
   }
 

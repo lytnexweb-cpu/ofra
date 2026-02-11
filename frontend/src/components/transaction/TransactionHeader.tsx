@@ -24,6 +24,7 @@ import {
   Calendar,
   RotateCw,
   Zap,
+  UserCheck,
 } from 'lucide-react'
 import { transactionsApi, type Transaction } from '../../api/transactions.api'
 import { formatDate, parseISO, differenceInDays } from '../../lib/date'
@@ -51,6 +52,7 @@ interface TransactionHeaderProps {
   transaction: Transaction
   onOpenEdit?: () => void
   onOpenMembers?: () => void
+  onOpenParties?: () => void
   onOpenExport?: () => void
 }
 
@@ -63,7 +65,7 @@ const CANCELLATION_REASONS = [
   'other',
 ] as const
 
-export default function TransactionHeader({ transaction, onOpenEdit, onOpenMembers, onOpenExport }: TransactionHeaderProps) {
+export default function TransactionHeader({ transaction, onOpenEdit, onOpenMembers, onOpenParties, onOpenExport }: TransactionHeaderProps) {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -328,6 +330,17 @@ export default function TransactionHeader({ transaction, onOpenEdit, onOpenMembe
                 <div>
                   <span className="text-sm font-medium text-stone-800">{t('transaction.actions.members')}</span>
                   <p className="text-[10px] text-stone-400">{t('transaction.actions.membersDescription')}</p>
+                </div>
+              </DropdownMenuItem>
+
+              {/* Parties */}
+              <DropdownMenuItem onClick={onOpenParties} className="px-3 py-2.5 flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0">
+                  <UserCheck className="w-4 h-4 text-emerald-500" />
+                </div>
+                <div>
+                  <span className="text-sm font-medium text-stone-800">{t('transaction.actions.parties')}</span>
+                  <p className="text-[10px] text-stone-400">{t('transaction.actions.partiesDescription')}</p>
                 </div>
               </DropdownMenuItem>
 

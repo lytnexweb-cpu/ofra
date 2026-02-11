@@ -1,8 +1,9 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column, belongsTo } from '@adonisjs/lucid/orm'
-import type { BelongsTo } from '@adonisjs/lucid/types/relations'
+import { BaseModel, column, belongsTo, manyToMany } from '@adonisjs/lucid/orm'
+import type { BelongsTo, ManyToMany } from '@adonisjs/lucid/types/relations'
 import Offer from './offer.js'
 import User from './user.js'
+import Condition from './condition.js'
 
 export type OfferDirection = 'buyer_to_seller' | 'seller_to_buyer'
 
@@ -63,4 +64,12 @@ export default class OfferRevision extends BaseModel {
 
   @belongsTo(() => User, { foreignKey: 'createdByUserId' })
   declare createdBy: BelongsTo<typeof User>
+
+  @manyToMany(() => Condition, {
+    pivotTable: 'offer_revision_conditions',
+    pivotForeignKey: 'revision_id',
+    pivotRelatedForeignKey: 'condition_id',
+    pivotTimestamps: { createdAt: 'created_at', updatedAt: false },
+  })
+  declare conditions: ManyToMany<typeof Condition>
 }

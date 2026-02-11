@@ -52,6 +52,7 @@ export default class OffersController {
         notes: payload.notes,
         direction: payload.direction || 'buyer_to_seller',
         createdByUserId: auth.user!.id,
+        conditionIds: payload.conditionIds,
       })
 
       await ActivityFeedService.log({
@@ -93,7 +94,7 @@ export default class OffersController {
     const offer = await Offer.query()
       .where('id', offerId)
       .preload('revisions', (query) => {
-        query.preload('createdBy').orderBy('revision_number', 'asc')
+        query.preload('createdBy').preload('conditions').orderBy('revision_number', 'asc')
       })
       .firstOrFail()
 
@@ -149,11 +150,12 @@ export default class OffersController {
         notes: payload.notes,
         direction: payload.direction,
         createdByUserId: auth.user!.id,
+        conditionIds: payload.conditionIds,
       })
 
       // Refresh offer to get updated status
       await offer.refresh()
-      await offer.load('revisions', (query) => query.orderBy('revision_number', 'asc'))
+      await offer.load('revisions', (query) => query.preload('conditions').orderBy('revision_number', 'asc'))
 
       return response.created({
         success: true,
@@ -196,7 +198,10 @@ export default class OffersController {
         auth.user!
       )
 
-      const acceptedOffer = await OfferService.acceptOffer(params.offerId)
+      const { offer: acceptedOffer, advanceResult } = await OfferService.acceptOffer(
+        params.offerId,
+        auth.user!.id
+      )
 
       await ActivityFeedService.log({
         transactionId: transaction.id,
@@ -207,7 +212,7 @@ export default class OffersController {
 
       return response.ok({
         success: true,
-        data: { offer: acceptedOffer },
+        data: { offer: acceptedOffer, advanceResult },
       })
     } catch (error) {
       if (error.code === 'E_ROW_NOT_FOUND') {
