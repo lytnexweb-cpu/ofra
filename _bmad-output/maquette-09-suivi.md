@@ -75,78 +75,22 @@
 
 ### PHASE B : Page Create/Edit Transaction (M09)
 
-#### Étape B1 : Backend — Retirer MLS ❌
-**Fichiers** : migration, property model, validator, controller, API frontend, i18n
-**Contenu** :
-- Migration : drop colonne `mls_number`
-- Model Property : retirer `mlsNumber`
-- Validators : retirer champ
-- Controller : retirer du destructuring
-- API frontend : retirer de l'interface
-- i18n FR/EN : retirer les clés MLS
-**Status** : ❌ Non commencé
+#### Étape B1 : Backend — Retirer MLS ✅
+**Status** : ✅ Commit 8078e18
+- Migration drop mls_number, model, validator, controller, API, i18n nettoyés
 
-#### Étape B2 : Page layout + routing + onglets ❌
-**Fichier** : `frontend/src/pages/EditTransactionPage.tsx` (réécriture complète)
-**Contenu** :
-- Routes : `/transactions/new` (create) + `/transactions/:id/edit` (edit)
-- Header : breadcrumb, titre dynamique (Créer/Modifier), boutons Annuler/Enregistrer
-- Navigation 3 onglets : Bien, Parties, Dates
-- Sidebar résumé des changements (desktop) + barre mobile
-- Skeleton loading
-**Status** : ❌ Non commencé
+#### Étape B2-B8 : Page edit complète ✅
+**Status** : ✅ Commit 0c6ea8e
+- 3 onglets (Bien, Parties, Dates), sidebar, barre mobile
+- Profil propriété intégré (type/contexte/financé/puits/septique)
+- Ville NB dropdown (64 villes), Province NB fixe
+- 5 états : formulaire, confirmation, succès, erreurs, verrouillée
+- Change tracking temps réel, route /transactions/:id/edit
 
-#### Étape B3 : Onglet Bien (localisation + profil propriété) ❌
-**Contenu** :
-- **Section Localisation** : Adresse (full-width), Ville (dropdown NB), Code postal, Province (NB fixe)
-- **Section Profil propriété** : Type bien (house/condo/land), Contexte (urban/suburban/rural), Financé (oui/non), Puits privé (si rural), Fosse septique (si rural)
-- **Section Transaction** : Type (achat/vente), Prix ($)
-- Change tracking : bg-amber-50, dot amber, "Modifié — était : X"
-**Status** : ❌ Non commencé
-
-#### Étape B4 : Onglet Parties ❌
-**Contenu** :
-- Affichage des parties existantes en cards résumé (lecture)
-- Bouton "Gérer les parties" ouvre PartiesModal existant
-- Bouton "Ajouter une partie" ouvre PartiesModal en mode ajout
-- Refresh automatique après fermeture du modal
-- En mode create : PartiesModal lié au transactionId une fois créé (ou flow en 2 temps)
-**Status** : ❌ Non commencé
-
-#### Étape B5 : Onglet Dates ❌
-**Contenu** :
-- Dates clés : closing (required), expiration offre, inspection, financement
-- Change tracking comme onglet Bien
-**Status** : ❌ Non commencé
-
-#### Étape B6 : Sidebar résumé + barre mobile ❌
-**Contenu** :
-- Sidebar sticky desktop (w-72) : icône edit amber, "Résumé des changements", badge compteur, liste old→new
-- Barre fixe mobile bottom : badge compteur + "champ(s) modifié(s)" + "Voir le résumé"
-**Status** : ❌ Non commencé
-
-#### Étape B7 : État B — Modal confirmation ❌
-**Contenu** :
-- Header warning amber, titre "Confirmer les modifications"
-- Liste des changements (old → new)
-- Checkbox confirmation + bouton gated
-**Status** : ❌ Non commencé
-
-#### Étape B8 : État C — Succès + État D — Erreurs + État E — Verrouillée ❌
-**Contenu** :
-- Succès : toast emerald + redirect vers detail
-- Erreurs : banner rouge + liens vers champs + border-red inline
-- Verrouillée : banner stone + tous champs disabled + icône lock
-**Status** : ❌ Non commencé
-
-#### Étape B9 : i18n + TypeScript + nettoyage ❌
-**Contenu** :
-- Clés i18n FR/EN pour tous les labels create/edit
-- Dropdown villes NB dans constantes
-- Supprimer/remplacer ancien EditTransactionModal
-- Supprimer/remplacer ancien CreateTransactionModal par navigation
+#### Étape B9 : i18n + nettoyage ✅
+**Status** : ✅ Commit 2c267ea
+- 100+ clés editTransaction FR/EN
 - TypeScript compile ✅
-**Status** : ❌ Non commencé
 
 ## Villes du NB (dropdown)
 Moncton, Fredericton, Saint John, Dieppe, Riverview, Miramichi, Bathurst, Edmundston, Campbellton, Oromocto, Shediac, Tracadie, Woodstock, Sussex, Sackville, Caraquet, Grand Falls, Dalhousie, Rothesay, Quispamsis, Hampton, Petitcodiac, Neguac, Bouctouche, Richibucto, Saint Andrews, St. Stephen, Hartland, Florenceville-Bristol, Perth-Andover, Shippagan, Lamèque, Beresford, Nigadoo, Petit-Rocher, Bertrand, Saint-Quentin, Kedgwick, Atholville, Tide Head, Rexton, Saint-Louis de Kent, Rogersville, Blackville, Doaktown, Grand Bay-Westfield, McAdam, Plaster Rock, Chipman, Norton, Hillsborough, Salisbury, Cap-Pelé, Memramcook, Cocagne, Grande-Anse, Paquetville, Saint-Léonard, Drummond, Clair, Baker Brook, Saint-François-de-Madawaska
@@ -155,6 +99,9 @@ Moncton, Fredericton, Saint John, Dieppe, Riverview, Miramichi, Bathurst, Edmund
 | # | Hash | Description |
 |---|------|-------------|
 | A1-A3 | 2693e12 | Phase A : StatusBar + Drawer + câblage page detail |
+| B1 | 8078e18 | Backend : retirer MLS |
+| B2-B8 | 0c6ea8e | Page edit complète — 3 onglets + sidebar + 5 états |
+| B9 | 2c267ea | i18n FR/EN complet |
 
 ## Design tokens (cohérence)
 - Primary : `#1e3a5f`
