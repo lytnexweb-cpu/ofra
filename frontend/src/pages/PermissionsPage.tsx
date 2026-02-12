@@ -243,7 +243,7 @@ export default function PermissionsPage() {
       <div className="bg-white border-b border-stone-200">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           {/* Breadcrumb */}
-          <div className="flex items-center gap-1 text-xs text-stone-400 mb-2">
+          <div className="flex items-center gap-1.5 text-xs text-stone-400 mb-2">
             <button onClick={() => navigate('/transactions')} className="hover:text-stone-600">
               {t('nav.transactions', 'Transactions')}
             </button>
@@ -402,7 +402,7 @@ export default function PermissionsPage() {
                       onClick={() => handleOpenRemove(member)}
                       className="p-1.5 text-stone-400 hover:text-red-500 hover:bg-red-50 rounded"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
@@ -431,7 +431,7 @@ export default function PermissionsPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="flex items-center gap-1">
-                    <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                    <div className="w-1.5 h-1.5 rounded-full bg-amber-400" />
                     <span className="text-[10px] text-amber-600 font-medium">Pending</span>
                   </div>
                   <button className="text-[10px] text-[#1e3a5f] font-medium hover:underline">
@@ -441,7 +441,7 @@ export default function PermissionsPage() {
                     onClick={() => handleOpenRemove(member)}
                     className="p-1.5 text-stone-400 hover:text-red-500"
                   >
-                    <X className="w-3.5 h-3.5" />
+                    <X className="w-4 h-4" />
                   </button>
                 </div>
               </div>
@@ -515,7 +515,7 @@ export default function PermissionsPage() {
               </thead>
               <tbody>
                 {PERMISSION_MATRIX.map(({ action, viewer, editor, admin, owner }) => (
-                  <tr key={action} className="border-b border-stone-100 last:border-0">
+                  <tr key={action} className="border-b border-stone-100 last:border-b-0">
                     <td className="py-2 pr-4 text-stone-700">{t(action)}</td>
                     {[viewer, editor, admin, owner].map((allowed, i) => (
                       <td key={i} className="text-center py-2">
@@ -617,7 +617,7 @@ export default function PermissionsPage() {
                     <UserPlus className="w-4.5 h-4.5 text-[#1e3a5f]" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-stone-900">
+                    <h3 className="text-sm font-bold text-stone-900 font-outfit">
                       {t('permissionsPage.inviteTitle', 'Inviter un collaborateur')}
                     </h3>
                     <p className="text-xs text-stone-500">
@@ -729,20 +729,20 @@ export default function PermissionsPage() {
 
               {/* Details */}
               <div className="rounded-lg bg-stone-50 border border-stone-200 p-3 text-left mb-4 space-y-1.5">
-                <div className="flex justify-between text-xs">
+                <div className="flex items-center justify-between text-xs">
                   <span className="text-stone-500">{t('permissionsPage.emailLabel', 'Courriel')}</span>
                   <span className="text-stone-700 font-medium">{modal.email}</span>
                 </div>
-                <div className="flex justify-between text-xs">
+                <div className="flex items-center justify-between text-xs">
                   <span className="text-stone-500">{t('members.roleLabel', 'Rôle')}</span>
                   <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase ${ROLE_BADGE_COLORS[modal.role]}`}>
                     {t(`members.roles.${modal.role}`)}
                   </span>
                 </div>
-                <div className="flex justify-between text-xs">
+                <div className="flex items-center justify-between text-xs">
                   <span className="text-stone-500">{t('permissionsPage.status', 'Statut')}</span>
                   <span className="text-amber-600 font-medium flex items-center gap-1">
-                    <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                    <div className="w-1.5 h-1.5 rounded-full bg-amber-400" />
                     Pending
                   </span>
                 </div>
