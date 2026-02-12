@@ -1,62 +1,70 @@
-import { useState } from 'react'
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import {
   FileText,
-  ExternalLink,
   Plus,
-  CheckCircle2,
-  XCircle,
-  AlertCircle,
-  Trash2,
-  Upload,
-  Shield,
+  Download,
+  Eye,
+  Search,
+  DollarSign,
+  User,
+  FolderOpen,
+  Clock,
+  AlertTriangle,
+  Check,
 } from 'lucide-react'
 import {
   documentsApi,
   type TransactionDocument,
   type DocumentCategory,
-  type DocumentStatus,
-  type CreateDocumentRequest,
 } from '../../api/documents.api'
-import { toast } from '../../hooks/use-toast'
-import { Button } from '../ui/Button'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogDescription,
-} from '../ui/Dialog'
 
 interface DocumentsSectionProps {
   transactionId: number
+  transactionLabel?: string
+  onUpload?: () => void
+  onViewProof?: (doc: TransactionDocument) => void
+  onViewVersions?: (doc: TransactionDocument) => void
 }
 
-const CATEGORIES: DocumentCategory[] = ['offer', 'inspection', 'financing', 'identity', 'legal', 'other']
+const CATEGORIES: { key: DocumentCategory; icon: typeof FileText; color: string }[] = [
+  { key: 'offer', icon: FileText, color: 'blue' },
+  { key: 'inspection', icon: Search, color: 'amber' },
+  { key: 'financing', icon: DollarSign, color: 'emerald' },
+  { key: 'identity', icon: User, color: 'violet' },
+  { key: 'legal', icon: FileText, color: 'indigo' },
+  { key: 'other', icon: FolderOpen, color: 'stone' },
+]
 
-const statusConfig: Record<DocumentStatus, { icon: typeof FileText; color: string; bg: string }> = {
-  missing: { icon: AlertCircle, color: 'text-stone-400', bg: 'bg-stone-100' },
-  uploaded: { icon: Upload, color: 'text-blue-600', bg: 'bg-blue-50' },
-  validated: { icon: CheckCircle2, color: 'text-green-600', bg: 'bg-green-50' },
-  rejected: { icon: XCircle, color: 'text-red-600', bg: 'bg-red-50' },
+const STATUS_BADGE: Record<string, { label: string; classes: string }> = {
+  validated: { label: 'Valide', classes: 'bg-emerald-100 text-emerald-700' },
+  uploaded: { label: 'En attente', classes: 'bg-amber-100 text-amber-700' },
+  missing: { label: 'Manquant', classes: 'bg-red-100 text-red-700' },
+  rejected: { label: 'Refusé', classes: 'bg-red-100 text-red-600' },
 }
 
-export default function DocumentsSection({ transactionId }: DocumentsSectionProps) {
+function formatFileSize(bytes: number | null): string {
+  if (!bytes) return ''
+  if (bytes < 1024) return `${bytes} o`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} Ko`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} Mo`
+}
+
+function formatShortDate(dateStr: string): string {
+  const d = new Date(dateStr)
+  const months = ['jan.', 'fév.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.']
+  return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`
+}
+
+export default function DocumentsSection({
+  transactionId,
+  transactionLabel,
+  onUpload,
+  onViewProof,
+  onViewVersions,
+}: DocumentsSectionProps) {
   const { t } = useTranslation()
-  const queryClient = useQueryClient()
-
-  const [addModalOpen, setAddModalOpen] = useState(false)
-  const [rejectModalOpen, setRejectModalOpen] = useState(false)
-  const [rejectingDocId, setRejectingDocId] = useState<number | null>(null)
-  const [rejectReason, setRejectReason] = useState('')
-  const [newDoc, setNewDoc] = useState<CreateDocumentRequest>({
-    name: '',
-    category: 'other',
-    fileUrl: '',
-    conditionId: null,
-  })
 
   const { data, isLoading } = useQuery({
     queryKey: ['documents', transactionId],
@@ -65,281 +73,356 @@ export default function DocumentsSection({ transactionId }: DocumentsSectionProp
 
   const documents = data?.data?.documents ?? []
 
-  // Group by category
-  const grouped = CATEGORIES.reduce(
-    (acc, cat) => {
-      const docs = documents.filter((d) => d.category === cat)
-      if (docs.length > 0) acc[cat] = docs
-      return acc
-    },
-    {} as Record<string, TransactionDocument[]>
-  )
+  // Counters
+  const counts = useMemo(() => {
+    const total = documents.length
+    const validated = documents.filter((d) => d.status === 'validated').length
+    const pending = documents.filter((d) => d.status === 'uploaded').length
+    const missing = documents.filter((d) => d.status === 'missing').length
+    return { total, validated, pending, missing }
+  }, [documents])
 
-  const createMutation = useMutation({
-    mutationFn: (data: CreateDocumentRequest) => documentsApi.create(transactionId, data),
-    onSuccess: (response) => {
-      if (response.success) {
-        toast({ title: t('common.success'), description: t('documents.addSuccess'), variant: 'success' })
-        queryClient.invalidateQueries({ queryKey: ['documents', transactionId] })
-        setAddModalOpen(false)
-        setNewDoc({ name: '', category: 'other', fileUrl: '', conditionId: null })
-      }
-    },
-    onError: () => {
-      toast({ title: t('common.error'), variant: 'destructive' })
-    },
-  })
-
-  const validateMutation = useMutation({
-    mutationFn: (id: number) => documentsApi.validate(id),
-    onSuccess: () => {
-      toast({ title: t('documents.validated'), variant: 'success' })
-      queryClient.invalidateQueries({ queryKey: ['documents', transactionId] })
-    },
-    onError: () => {
-      toast({ title: t('common.error'), variant: 'destructive' })
-    },
-  })
-
-  const rejectMutation = useMutation({
-    mutationFn: ({ id, reason }: { id: number; reason: string }) => documentsApi.reject(id, reason),
-    onSuccess: () => {
-      toast({ title: t('documents.rejected'), variant: 'success' })
-      queryClient.invalidateQueries({ queryKey: ['documents', transactionId] })
-      setRejectModalOpen(false)
-      setRejectingDocId(null)
-      setRejectReason('')
-    },
-    onError: () => {
-      toast({ title: t('common.error'), variant: 'destructive' })
-    },
-  })
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: number) => documentsApi.delete(id),
-    onSuccess: () => {
-      toast({ title: t('documents.deleted'), variant: 'success' })
-      queryClient.invalidateQueries({ queryKey: ['documents', transactionId] })
-    },
-    onError: () => {
-      toast({ title: t('common.error'), variant: 'destructive' })
-    },
-  })
-
-  const handleReject = (docId: number) => {
-    setRejectingDocId(docId)
-    setRejectReason('')
-    setRejectModalOpen(true)
-  }
-
-  const handleAddSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!newDoc.name.trim()) return
-    createMutation.mutate({
-      ...newDoc,
-      fileUrl: newDoc.fileUrl || undefined,
-      conditionId: newDoc.conditionId || null,
-    })
-  }
-
-  const inputClass =
-    'w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 bg-background'
+  // Group by category — show all categories even if empty
+  const grouped = useMemo(() => {
+    return CATEGORIES.map((cat) => ({
+      ...cat,
+      docs: documents.filter((d) => d.category === cat.key),
+    }))
+  }, [documents])
 
   if (isLoading) {
     return (
-      <div className="space-y-3">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="h-16 rounded-lg bg-muted animate-pulse" />
-        ))}
+      <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
+        <div className="space-y-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-16 rounded-lg bg-stone-100 animate-pulse" />
+          ))}
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-          <FileText className="w-4 h-4" />
-          {t('documents.title')} ({documents.length})
-        </h3>
-        <Button variant="outline" size="sm" onClick={() => setAddModalOpen(true)} className="gap-1.5">
-          <Plus className="w-3.5 h-3.5" />
-          {t('documents.add')}
-        </Button>
+    <div className="bg-stone-50 min-h-0">
+      <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-5">
+          <div>
+            <h2 className="text-lg font-bold text-stone-900 flex items-center gap-2">
+              <FileText className="w-5 h-5 text-stone-400" />
+              {t('documents.title', 'Documents')}
+            </h2>
+            {transactionLabel && (
+              <p className="text-xs text-stone-500 mt-0.5">{transactionLabel}</p>
+            )}
+          </div>
+          <button
+            onClick={onUpload}
+            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-white bg-[#1e3a5f] hover:bg-[#1e3a5f]/90 rounded-lg shadow-sm"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            {t('documents.add', 'Ajouter un document')}
+          </button>
+        </div>
+
+        {/* Counters */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-5">
+          <CounterCard value={counts.total} label={t('documents.counters.total', 'Total')} />
+          <CounterCard
+            value={counts.validated}
+            label={t('documents.counters.validated', 'Valides')}
+            color="emerald"
+          />
+          <CounterCard
+            value={counts.pending}
+            label={t('documents.counters.pending', 'En attente')}
+            color="amber"
+          />
+          <CounterCard
+            value={counts.missing}
+            label={t('documents.counters.missing', 'Manquants')}
+            color="red"
+            bold
+          />
+        </div>
+
+        {/* Categories */}
+        {grouped.map((group) => (
+          <CategoryGroup
+            key={group.key}
+            category={group.key}
+            icon={group.icon}
+            color={group.color}
+            docs={group.docs}
+            t={t}
+            onUpload={onUpload}
+            onViewProof={onViewProof}
+            onViewVersions={onViewVersions}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+/* ─── Counter Card ─── */
+
+function CounterCard({
+  value,
+  label,
+  color,
+  bold,
+}: {
+  value: number
+  label: string
+  color?: 'emerald' | 'amber' | 'red'
+  bold?: boolean
+}) {
+  const colorMap = {
+    emerald: { bg: 'bg-emerald-50 border-emerald-200', value: 'text-emerald-700', label: 'text-emerald-600' },
+    amber: { bg: 'bg-amber-50 border-amber-200', value: 'text-amber-700', label: 'text-amber-600' },
+    red: { bg: 'bg-red-50 border-red-200', value: 'text-red-700', label: 'text-red-600' },
+  }
+  const c = color ? colorMap[color] : { bg: 'bg-white border-stone-200', value: 'text-stone-900', label: 'text-stone-500' }
+
+  return (
+    <div className={`rounded-lg border p-3 text-center ${c.bg}`}>
+      <p className={`text-lg font-bold ${c.value}`}>{value}</p>
+      <p className={`text-[10px] uppercase tracking-wide ${bold ? 'font-semibold' : ''} ${c.label}`}>{label}</p>
+    </div>
+  )
+}
+
+/* ─── Category Group ─── */
+
+function CategoryGroup({
+  category,
+  icon: Icon,
+  color,
+  docs,
+  t,
+  onUpload,
+  onViewProof,
+  onViewVersions,
+}: {
+  category: DocumentCategory
+  icon: typeof FileText
+  color: string
+  docs: TransactionDocument[]
+  t: (key: string, fallback?: string) => string
+  onUpload?: () => void
+  onViewProof?: (doc: TransactionDocument) => void
+  onViewVersions?: (doc: TransactionDocument) => void
+}) {
+  const iconColorMap: Record<string, string> = {
+    blue: 'text-blue-500',
+    amber: 'text-amber-500',
+    emerald: 'text-emerald-500',
+    violet: 'text-violet-500',
+    indigo: 'text-indigo-500',
+    stone: 'text-stone-400',
+  }
+
+  return (
+    <div className="mb-4">
+      <div className="flex items-center gap-2 mb-2">
+        <Icon className={`w-4 h-4 ${iconColorMap[color] ?? 'text-stone-400'}`} />
+        <span className="text-xs font-semibold text-stone-700 uppercase tracking-wide">
+          {t(`documents.categories.${category}`, category)}
+        </span>
+        <span className="text-xs text-stone-400">({docs.length})</span>
       </div>
 
-      {/* Empty state */}
-      {documents.length === 0 && (
-        <div className="text-center py-8 text-muted-foreground">
-          <FileText className="w-8 h-8 mx-auto mb-2 opacity-40" />
-          <p className="text-sm">{t('documents.empty')}</p>
+      {docs.length === 0 ? (
+        <p className="text-xs text-stone-400 italic ml-6">
+          {t('documents.emptyCategory', 'Aucun document dans cette catégorie.')}
+        </p>
+      ) : (
+        <div className="space-y-1.5">
+          {docs.map((doc) => (
+            <DocumentCard
+              key={doc.id}
+              doc={doc}
+              categoryColor={color}
+              t={t}
+              onUpload={onUpload}
+              onViewProof={onViewProof}
+              onViewVersions={onViewVersions}
+            />
+          ))}
         </div>
       )}
+    </div>
+  )
+}
 
-      {/* Grouped documents */}
-      {Object.entries(grouped).map(([category, docs]) => (
-        <div key={category} className="space-y-2">
-          <h4 className="text-xs font-medium uppercase text-muted-foreground tracking-wider">
-            {t(`documents.categories.${category}`)}
-          </h4>
-          <div className="space-y-1.5">
-            {docs.map((doc) => {
-              const config = statusConfig[doc.status]
-              const StatusIcon = config.icon
-              return (
-                <div
-                  key={doc.id}
-                  className="flex items-center gap-3 rounded-lg border border-border p-3 hover:bg-accent/50 transition-colors"
-                >
-                  <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${config.bg}`}>
-                    <StatusIcon className={`w-4 h-4 ${config.color}`} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">{doc.name}</p>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <span className={`text-xs font-medium ${config.color}`}>
-                        {t(`documents.status.${doc.status}`)}
-                      </span>
-                      {doc.rejectionReason && (
-                        <span className="text-xs text-red-500 truncate">
-                          — {doc.rejectionReason}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    {doc.fileUrl && (
-                      <a
-                        href={doc.fileUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="p-1.5 rounded-md hover:bg-accent text-muted-foreground hover:text-foreground"
-                      >
-                        <ExternalLink className="w-3.5 h-3.5" />
-                      </a>
-                    )}
-                    {doc.status === 'uploaded' && (
-                      <>
-                        <button
-                          onClick={() => validateMutation.mutate(doc.id)}
-                          className="p-1.5 rounded-md hover:bg-green-50 text-green-600"
-                          title={t('documents.validate')}
-                        >
-                          <Shield className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() => handleReject(doc.id)}
-                          className="p-1.5 rounded-md hover:bg-red-50 text-red-500"
-                          title={t('documents.reject')}
-                        >
-                          <XCircle className="w-3.5 h-3.5" />
-                        </button>
-                      </>
-                    )}
-                    <button
-                      onClick={() => deleteMutation.mutate(doc.id)}
-                      className="p-1.5 rounded-md hover:bg-red-50 text-muted-foreground hover:text-red-500"
-                      title={t('common.delete')}
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-              )
-            })}
+/* ─── Document Card ─── */
+
+function DocumentCard({
+  doc,
+  categoryColor,
+  t,
+  onUpload,
+  onViewProof,
+  onViewVersions,
+}: {
+  doc: TransactionDocument
+  categoryColor: string
+  t: (key: string, fallback?: string) => string
+  onUpload?: () => void
+  onViewProof?: (doc: TransactionDocument) => void
+  onViewVersions?: (doc: TransactionDocument) => void
+}) {
+  const isMissing = doc.status === 'missing'
+  const isUploaded = doc.status === 'uploaded'
+  const isValidated = doc.status === 'validated'
+
+  const iconBgMap: Record<string, string> = {
+    blue: 'bg-blue-50',
+    amber: 'bg-amber-50',
+    emerald: 'bg-emerald-50',
+    violet: 'bg-violet-50',
+    indigo: 'bg-indigo-50',
+    stone: 'bg-stone-100',
+  }
+  const iconColorMap: Record<string, string> = {
+    blue: 'text-blue-500',
+    amber: 'text-amber-500',
+    emerald: 'text-emerald-500',
+    violet: 'text-violet-500',
+    indigo: 'text-indigo-500',
+    stone: 'text-stone-400',
+  }
+
+  // Missing → dashed red border
+  if (isMissing) {
+    return (
+      <div className="rounded-lg border border-dashed border-red-200 bg-red-50/30 p-3 flex items-center gap-3">
+        <div className="w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
+          <AlertTriangle className="w-4 h-4 text-red-400" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-sm font-medium text-red-800">{doc.name}</span>
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-red-100 text-red-700">
+              {t('documents.status.missing', 'Manquant')}
+            </span>
+            {doc.condition?.isBlocking && (
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-red-100 text-red-600">
+                {t('documents.blocking', 'Bloquante')}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-1 mt-0.5">
+            <span className="text-[10px] text-red-600 font-medium">
+              {t('documents.proofRequired', 'Preuve requise : OUI')}
+            </span>
+            {doc.condition && (
+              <span className="text-[10px] text-stone-400">→ {doc.condition.title}</span>
+            )}
           </div>
         </div>
-      ))}
+        <button
+          onClick={onUpload}
+          className="px-2.5 py-1.5 text-xs font-medium text-white bg-[#1e3a5f] hover:bg-[#1e3a5f]/90 rounded-lg shrink-0"
+        >
+          {t('documents.upload', 'Uploader')}
+        </button>
+      </div>
+    )
+  }
 
-      {/* Add Document Modal */}
-      <Dialog open={addModalOpen} onOpenChange={(open) => !open && setAddModalOpen(false)}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>{t('documents.addModal.title')}</DialogTitle>
-            <DialogDescription>{t('documents.addModal.description')}</DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleAddSubmit} className="space-y-4 py-2">
-            <div>
-              <label className="block text-sm font-medium mb-1">{t('documents.addModal.name')}</label>
-              <input
-                type="text"
-                required
-                value={newDoc.name}
-                onChange={(e) => setNewDoc({ ...newDoc, name: e.target.value })}
-                className={inputClass}
-                placeholder={t('documents.addModal.namePlaceholder')}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">{t('documents.addModal.category')}</label>
-              <select
-                value={newDoc.category}
-                onChange={(e) => setNewDoc({ ...newDoc, category: e.target.value as DocumentCategory })}
-                className={inputClass}
-              >
-                {CATEGORIES.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {t(`documents.categories.${cat}`)}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">{t('documents.addModal.fileUrl')}</label>
-              <input
-                type="url"
-                value={newDoc.fileUrl}
-                onChange={(e) => setNewDoc({ ...newDoc, fileUrl: e.target.value })}
-                className={inputClass}
-                placeholder="https://..."
-              />
-            </div>
-            <DialogFooter className="gap-2 sm:gap-0">
-              <Button type="button" variant="outline" onClick={() => setAddModalOpen(false)}>
-                {t('common.cancel')}
-              </Button>
-              <Button type="submit" disabled={createMutation.isPending || !newDoc.name.trim()}>
-                {createMutation.isPending ? t('common.loading') : t('common.add')}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+  // Uploaded → amber border
+  const borderClass = isUploaded
+    ? 'border-amber-200 bg-amber-50/30'
+    : isValidated
+      ? 'border-stone-200 bg-white'
+      : 'border-stone-200 bg-white'
 
-      {/* Reject Modal */}
-      <Dialog open={rejectModalOpen} onOpenChange={(open) => !open && setRejectModalOpen(false)}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-red-600">{t('documents.rejectModal.title')}</DialogTitle>
-            <DialogDescription>{t('documents.rejectModal.description')}</DialogDescription>
-          </DialogHeader>
-          <div className="py-2">
-            <label className="block text-sm font-medium mb-1">
-              {t('documents.rejectModal.reason')} <span className="text-red-500">*</span>
-            </label>
-            <textarea
-              required
-              value={rejectReason}
-              onChange={(e) => setRejectReason(e.target.value)}
-              className={`${inputClass} min-h-[80px] resize-none`}
-              placeholder={t('documents.rejectModal.reasonPlaceholder')}
-            />
-          </div>
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" onClick={() => setRejectModalOpen(false)}>
-              {t('common.cancel')}
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={() => rejectingDocId && rejectMutation.mutate({ id: rejectingDocId, reason: rejectReason })}
-              disabled={!rejectReason.trim() || rejectMutation.isPending}
+  // Validated with special emerald border for financing-type validated docs
+  const validatedBorder = isValidated && categoryColor === 'emerald' ? 'border-emerald-200 bg-white' : borderClass
+
+  const statusBadge = STATUS_BADGE[doc.status]
+  const uploaderName = doc.uploader ? `${doc.uploader.firstName}` : ''
+  const meta = [
+    uploaderName && `Ajouté par ${uploaderName}`,
+    formatShortDate(doc.createdAt),
+    doc.fileSize && formatFileSize(doc.fileSize),
+  ]
+    .filter(Boolean)
+    .join(' · ')
+
+  // Icon for status
+  const getStatusIcon = () => {
+    if (isUploaded) return <Clock className={`w-4 h-4 text-amber-500`} />
+    if (isValidated) return <Check className={`w-4 h-4 text-emerald-500`} />
+    return <FileText className={`w-4 h-4 ${iconColorMap[categoryColor] ?? 'text-stone-400'}`} />
+  }
+
+  const getIconBg = () => {
+    if (isUploaded) return 'bg-amber-50'
+    if (isValidated) return 'bg-emerald-50'
+    return iconBgMap[categoryColor] ?? 'bg-stone-100'
+  }
+
+  return (
+    <div
+      className={`rounded-lg border p-3 flex items-center gap-3 transition-all hover:border-stone-300 ${validatedBorder}`}
+    >
+      <div className={`w-9 h-9 rounded-lg ${getIconBg()} flex items-center justify-center shrink-0`}>
+        {getStatusIcon()}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className="text-sm font-medium text-stone-800 truncate">{doc.name}</span>
+          {statusBadge && (
+            <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium ${statusBadge.classes}`}>
+              {t(`documents.status.${doc.status}`, statusBadge.label)}
+            </span>
+          )}
+          {doc.conditionId && (
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-indigo-100 text-indigo-700">
+              {t('documents.proofAttached', 'Preuve jointe')}
+            </span>
+          )}
+          {doc.version > 1 && (
+            <button
+              onClick={() => onViewVersions?.(doc)}
+              className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-stone-100 text-stone-500 hover:bg-stone-200 transition-colors"
             >
-              {rejectMutation.isPending ? t('common.loading') : t('documents.reject')}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+              v{doc.version}
+            </button>
+          )}
+        </div>
+        <div className="flex items-center gap-2 mt-0.5">
+          <p className="text-[10px] text-stone-400">{meta}</p>
+          {doc.condition && (
+            <span className="text-[10px] text-[#1e3a5f] font-medium">→ {doc.condition.title}</span>
+          )}
+        </div>
+      </div>
+      <div className="flex items-center gap-1 shrink-0">
+        {doc.conditionId && onViewProof && (
+          <button
+            onClick={() => onViewProof(doc)}
+            className="p-1.5 rounded-lg hover:bg-stone-100 text-stone-400"
+            title={t('documents.viewProof', 'Voir la preuve')}
+          >
+            <Eye className="w-4 h-4" />
+          </button>
+        )}
+        {doc.fileUrl && (
+          <a
+            href={doc.fileUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-1.5 rounded-lg hover:bg-stone-100 text-stone-400"
+            title={t('documents.download', 'Télécharger')}
+          >
+            <Download className="w-4 h-4" />
+          </a>
+        )}
+      </div>
     </div>
   )
 }

@@ -1554,22 +1554,35 @@
   },
   "documents": {
     "title": "Documents",
-    "add": "Ajouter",
+    "add": "Ajouter un document",
     "empty": "Aucun document pour le moment.",
+    "emptyCategory": "Aucun document dans cette catégorie.",
+    "counters": {
+      "total": "Total",
+      "validated": "Valides",
+      "pending": "En attente",
+      "missing": "Manquants"
+    },
     "categories": {
       "offer": "Offre",
       "inspection": "Inspection",
       "financing": "Financement",
       "identity": "Identité",
       "legal": "Légal",
-      "other": "Autre"
+      "other": "Autres"
     },
     "status": {
       "missing": "Manquant",
-      "uploaded": "Téléversé",
-      "validated": "Validé",
-      "rejected": "Rejeté"
+      "uploaded": "En attente",
+      "validated": "Valide",
+      "rejected": "Refusé"
     },
+    "blocking": "Bloquante",
+    "proofRequired": "Preuve requise : OUI",
+    "proofAttached": "Preuve jointe",
+    "upload": "Uploader",
+    "download": "Télécharger",
+    "viewProof": "Voir la preuve",
     "validate": "Valider",
     "reject": "Rejeter",
     "validated": "Document validé",
@@ -1578,17 +1591,76 @@
     "addSuccess": "Document ajouté",
     "addModal": {
       "title": "Ajouter un document",
+      "subtitle": "Transaction",
       "description": "Ajoutez un document ou un lien vers un fichier.",
       "name": "Nom du document",
-      "namePlaceholder": "ex: Certificat de localisation",
+      "namePlaceholder": "Nom affiché dans la liste...",
       "category": "Catégorie",
-      "fileUrl": "URL du fichier"
+      "categoryPlaceholder": "Sélectionnez...",
+      "fileUrl": "URL du fichier",
+      "associateTo": "Associer à",
+      "associateTransaction": "Transaction (général)",
+      "associateCondition": "Condition",
+      "blockingHint": "Condition bloquante — ce document servira de preuve justificative",
+      "tags": "Tags (optionnel)",
+      "addTag": "+ tag",
+      "dropzone": "Glissez un fichier ici ou",
+      "browse": "parcourez",
+      "formats": "PDF, JPG, PNG, DOCX — max 10 Mo",
+      "uploading": "Téléchargement en cours...",
+      "save": "Enregistrer"
     },
     "rejectModal": {
       "title": "Rejeter le document",
       "description": "Indiquez la raison du rejet.",
       "reason": "Raison du rejet",
       "reasonPlaceholder": "Expliquez pourquoi ce document est rejeté..."
+    },
+    "proofModal": {
+      "title": "Preuve",
+      "subtitle": "Condition bloquante — Étape",
+      "proofRequiredYes": "Preuve requise : OUI",
+      "lifecycle": "Cycle de vie du document",
+      "stepMissing": "Manquant",
+      "stepMissingDesc": "Condition créée — preuve requise",
+      "stepUploaded": "Uploadé — en attente de validation",
+      "stepValidated": "Validé / Refusé",
+      "stepPending": "En attente de validation",
+      "currentDoc": "Document actuel",
+      "commentLabel": "Commentaire de validation (optionnel)",
+      "commentPlaceholder": "Ex : Résultats conformes, document accepté...",
+      "close": "Fermer",
+      "refuse": "Refuser",
+      "validateBtn": "Valider"
+    },
+    "versionModal": {
+      "title": "Historique versions",
+      "currentVersion": "Version actuelle",
+      "previousVersions": "Versions précédentes",
+      "active": "Active",
+      "replaced": "Remplacée",
+      "activityLog": "Journal d'activité",
+      "close": "Fermer",
+      "replace": "Remplacer (uploader v{{version}})",
+      "validated": "a validé la",
+      "uploaded": "a uploadé la",
+      "rejected": "a refusé la",
+      "added": "a ajouté la"
+    },
+    "errors": {
+      "tooLarge": "Fichier trop volumineux",
+      "tooLargeDesc": "dépasse la limite de 10 Mo.",
+      "tooLargeHint": "Compressez le fichier ou uploadez-le en plusieurs parties.",
+      "badFormat": "Format non accepté",
+      "badFormatDesc": "n'est pas un format autorisé.",
+      "acceptedFormats": "Formats acceptés : PDF, JPG, PNG, DOCX",
+      "networkFail": "Échec du téléchargement",
+      "networkFailDesc": "La connexion a été interrompue pendant l'envoi de",
+      "retry": "Réessayer",
+      "infoFormats": "Formats",
+      "infoMaxSize": "Taille max",
+      "infoTip": "Conseil",
+      "infoTipText": "nommez vos fichiers clairement"
     }
   },
   "members": {

@@ -10,10 +10,18 @@ export interface TransactionDocument {
   category: DocumentCategory
   status: DocumentStatus
   fileUrl: string | null
+  fileSize: number | null
+  mimeType: string | null
   conditionId: number | null
+  version: number
+  parentDocumentId: number | null
+  tags: string[] | null
   rejectionReason: string | null
+  validatedBy: number | null
   validatedAt: string | null
-  validatedByUserId: number | null
+  uploadedBy: number
+  uploader?: { id: number; firstName: string; lastName: string }
+  condition?: { id: number; title: string; level: string; isBlocking: boolean }
   createdAt: string
   updatedAt: string
 }
