@@ -1852,6 +1852,7 @@
       "activeLabel": "Link active",
       "readOnly": "Read only",
       "comment": "Comment",
+      "roleLabel": "Link role",
       "7days": "7 days",
       "30days": "30 days",
       "revoked": "Link revoked"
@@ -1877,7 +1878,8 @@
       "subject": "Subject",
       "message": "Message",
       "messagePlaceholder": "Custom message (optional)...",
-      "send": "Send recap"
+      "send": "Send recap",
+      "preview": "Preview email"
     },
     "emailSent": {
       "title": "Recap sent successfully",
@@ -1886,7 +1888,11 @@
     "errors": {
       "pdfTitle": "PDF generation failed",
       "pdfMessage": "An error occurred while generating the PDF.",
-      "retry": "Retry"
+      "retry": "Retry",
+      "retryWithoutDocs": "Retry without documents",
+      "upgrade": "Upgrade plan",
+      "fixAddress": "Fix address",
+      "viewPlans": "View plans"
     }
   },
   "shareLink": {

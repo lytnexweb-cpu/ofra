@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import {
-  ArrowLeft,
   Share2,
   FileDown,
   Link2,
@@ -22,7 +21,6 @@ import {
   ChevronRight,
   Send,
   Info,
-  Shield,
 } from 'lucide-react'
 import { transactionsApi } from '../api/transactions.api'
 import { exportApi, type ExportPdfOptions } from '../api/export.api'
@@ -198,13 +196,16 @@ export default function ExportSharePage() {
       queryClient.invalidateQueries({ queryKey: ['share-link', transactionId] })
       const link = res?.data?.shareLink
       if (link) {
+        const expiryLabels: Record<string, string> = { '24h': '24h', '7d': t('exportPage.link.7days', '7 jours'), '30d': t('exportPage.link.30days', '30 jours') }
         const expiryMap: Record<string, number> = { '24h': 1, '7d': 7, '30d': 30 }
         const days = expiryMap[linkExpiry] || 7
+        const expiryDate = new Date(Date.now() + days * 86400000)
+        const formattedDate = expiryDate.toLocaleDateString('fr-CA', { day: 'numeric', month: 'short', year: 'numeric' })
         setModal({
           type: 'link-created',
           token: link.token,
           role: linkRole === 'viewer' ? t('exportPage.link.readOnly', 'Lecture seule') : t('exportPage.link.comment', 'Commentaire'),
-          expiresAt: new Date(Date.now() + days * 86400000).toLocaleDateString('fr-CA'),
+          expiresAt: `${expiryLabels[linkExpiry] || linkExpiry} (${formattedDate})`,
           hasPassword: link.hasPassword,
         })
       }
@@ -351,10 +352,7 @@ export default function ExportSharePage() {
               onClick={() => navigate(`/transactions/${transactionId}`)}
               className="px-3 py-2 text-xs font-medium text-stone-600 bg-white border border-stone-300 rounded-lg hover:bg-stone-50"
             >
-              <div className="flex items-center gap-1.5">
-                <ArrowLeft className="w-3.5 h-3.5" />
-                {t('common.back', 'Retour')}
-              </div>
+              {t('common.back', 'Retour')}
             </button>
           </div>
         </div>
@@ -503,6 +501,9 @@ export default function ExportSharePage() {
               {/* Options (disabled when toggle off) */}
               <div className={`space-y-3 transition-opacity ${linkActive ? 'opacity-100' : 'opacity-40 pointer-events-none'}`}>
                 {/* Role radio cards */}
+                <p className="text-[10px] font-semibold text-stone-500 uppercase tracking-wide mb-2">
+                  {t('exportPage.link.roleLabel', 'Rôle du lien')}
+                </p>
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     onClick={() => setLinkRole('viewer')}
@@ -620,7 +621,8 @@ export default function ExportSharePage() {
                     {emailChips.map((email) => (
                       <span
                         key={email}
-                        className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#1e3a5f]/10 text-[#1e3a5f]"
+                        className="inline-flex items-center gap-1 rounded-full text-xs font-medium bg-[#1e3a5f]/10 text-[#1e3a5f]"
+                        style={{ padding: '3px 10px' }}
                       >
                         {email}
                         <button onClick={() => handleRemoveChip(email)} className="hover:text-red-600">
@@ -633,7 +635,7 @@ export default function ExportSharePage() {
                       value={emailInput}
                       onChange={(e) => setEmailInput(e.target.value)}
                       onKeyDown={handleAddChip}
-                      placeholder={emailChips.length === 0 ? t('exportPage.email.addPlaceholder', 'Ajouter un courriel...') : ''}
+                      placeholder={t('exportPage.email.addPlaceholder', 'Ajouter un courriel...')}
                       className="flex-1 min-w-[120px] text-xs outline-none bg-transparent"
                     />
                   </div>
@@ -669,6 +671,12 @@ export default function ExportSharePage() {
                   className="mt-1 w-full px-3 py-1.5 text-xs border border-stone-300 rounded-lg resize-none"
                 />
               </div>
+
+              {/* Preview link */}
+              <button className="flex items-center gap-1.5 text-xs text-[#1e3a5f] font-medium hover:underline">
+                <Eye className="w-3.5 h-3.5" />
+                {t('exportPage.email.preview', 'Prévisualiser l\'email')}
+              </button>
             </div>
 
             {/* Footer */}
@@ -696,10 +704,11 @@ export default function ExportSharePage() {
 
       {/* ═══ Modals Overlay ═══ */}
       {modal.type !== 'none' && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center sm:p-4">
           {/* ─── État B: PDF Generating ─── */}
           {modal.type === 'pdf-generating' && (
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 text-center animate-in fade-in zoom-in-95">
+            <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full max-w-sm p-6 text-center animate-in fade-in zoom-in-95 max-h-[92vh] sm:max-h-none overflow-y-auto">
+              <div className="flex justify-center mb-3 sm:hidden"><div className="w-8 h-1 rounded-full bg-stone-300" /></div>
               <div className="w-14 h-14 rounded-full bg-[#1e3a5f]/10 flex items-center justify-center mx-auto mb-4 animate-pulse">
                 <FileDown className="w-7 h-7 text-[#1e3a5f]" />
               </div>
@@ -729,7 +738,8 @@ export default function ExportSharePage() {
 
           {/* ─── État C: PDF Ready ─── */}
           {modal.type === 'pdf-ready' && (
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 text-center animate-in fade-in zoom-in-95">
+            <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full max-w-sm p-6 text-center animate-in fade-in zoom-in-95 max-h-[92vh] sm:max-h-none overflow-y-auto">
+              <div className="flex justify-center mb-3 sm:hidden"><div className="w-8 h-1 rounded-full bg-stone-300" /></div>
               <div className="w-14 h-14 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-4">
                 <Check className="w-7 h-7 text-emerald-600" />
               </div>
@@ -774,7 +784,8 @@ export default function ExportSharePage() {
 
           {/* ─── État D: Link Created ─── */}
           {modal.type === 'link-created' && (
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 animate-in fade-in zoom-in-95">
+            <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full max-w-md p-6 animate-in fade-in zoom-in-95 max-h-[92vh] sm:max-h-none overflow-y-auto">
+              <div className="flex justify-center mb-3 sm:hidden"><div className="w-8 h-1 rounded-full bg-stone-300" /></div>
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
                   <Link2 className="w-5 h-5 text-blue-600" />
@@ -820,7 +831,7 @@ export default function ExportSharePage() {
               </div>
 
               {/* Link info */}
-              <div className="rounded-lg border border-stone-200 divide-y divide-stone-200 mb-4">
+              <div className="rounded-lg border border-stone-200 divide-y divide-stone-100 mb-4">
                 {[
                   { label: t('exportPage.linkCreated.role', 'Rôle'), value: modal.role },
                   { label: t('exportPage.linkCreated.expiration', 'Expiration'), value: modal.expiresAt || '—' },
@@ -853,7 +864,8 @@ export default function ExportSharePage() {
 
           {/* ─── État E: Email Sent ─── */}
           {modal.type === 'email-sent' && (
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 text-center animate-in fade-in zoom-in-95">
+            <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full max-w-sm p-6 text-center animate-in fade-in zoom-in-95 max-h-[92vh] sm:max-h-none overflow-y-auto">
+              <div className="flex justify-center mb-3 sm:hidden"><div className="w-8 h-1 rounded-full bg-stone-300" /></div>
               <div className="w-14 h-14 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-4">
                 <Mail className="w-7 h-7 text-emerald-600" />
               </div>
@@ -901,43 +913,68 @@ export default function ExportSharePage() {
 
           {/* ─── État F: Error ─── */}
           {modal.type === 'error' && (
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 animate-in fade-in zoom-in-95">
-              <div className="flex items-start gap-3">
-                <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${
-                  modal.errorType === 'permission' ? 'bg-amber-50' : 'bg-red-50'
-                }`}>
-                  {modal.errorType === 'permission' ? (
-                    <Shield className="w-4.5 h-4.5 text-amber-500" />
-                  ) : modal.errorType === 'email' ? (
-                    <Mail className="w-4.5 h-4.5 text-red-500" />
-                  ) : (
-                    <FileDown className="w-4.5 h-4.5 text-red-500" />
-                  )}
-                </div>
-                <div className="flex-1">
-                  <h3 className={`text-sm font-semibold ${modal.errorType === 'permission' ? 'text-amber-800' : 'text-red-800'}`}>
-                    {modal.title}
-                  </h3>
-                  <p className={`text-xs mt-0.5 ${modal.errorType === 'permission' ? 'text-amber-600' : 'text-red-600'}`}>
-                    {modal.message}
-                  </p>
-                  <div className="flex items-center gap-2 mt-3">
-                    <button
-                      onClick={() => {
-                        setModal({ type: 'none' })
-                        if (modal.errorType === 'pdf') handleGeneratePdf()
-                      }}
-                      className="px-3 py-1.5 text-xs font-medium text-white bg-[#1e3a5f] hover:bg-[#1e3a5f]/90 rounded-lg flex items-center gap-1"
-                    >
-                      <RefreshCw className="w-3 h-3" />
-                      {t('exportPage.errors.retry', 'Réessayer')}
-                    </button>
-                    <button
-                      onClick={() => setModal({ type: 'none' })}
-                      className="px-3 py-1.5 text-xs font-medium text-stone-600 bg-white border border-stone-300 rounded-lg hover:bg-stone-50"
-                    >
-                      {t('common.close', 'Fermer')}
-                    </button>
+            <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full max-w-sm p-5 animate-in fade-in zoom-in-95 max-h-[92vh] sm:max-h-none overflow-y-auto">
+              <div className="flex justify-center mb-3 sm:hidden"><div className="w-8 h-1 rounded-full bg-stone-300" /></div>
+              <div className={`rounded-xl border p-5 ${
+                modal.errorType === 'permission' ? 'border-amber-200' : 'border-red-200'
+              }`}>
+                <div className="flex items-start gap-3">
+                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
+                    modal.errorType === 'permission' ? 'bg-amber-50' : 'bg-red-50'
+                  }`}>
+                    {modal.errorType === 'permission' ? (
+                      <Lock className="w-4 h-4 text-amber-500" />
+                    ) : modal.errorType === 'email' ? (
+                      <Mail className="w-4 h-4 text-red-500" />
+                    ) : (
+                      <FileDown className="w-4 h-4 text-red-500" />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <h3 className={`text-sm font-semibold ${modal.errorType === 'permission' ? 'text-amber-800' : 'text-red-800'}`}>
+                      {modal.title}
+                    </h3>
+                    <p className={`text-xs mt-0.5 ${modal.errorType === 'permission' ? 'text-amber-600' : 'text-red-600'}`}>
+                      {modal.message}
+                    </p>
+                    <div className="flex items-center gap-2 mt-3">
+                      {modal.errorType === 'pdf' && (
+                        <>
+                          <button
+                            onClick={() => {
+                              setModal({ type: 'none' })
+                              setPdfSections({ ...pdfSections, documents: false })
+                              handleGeneratePdf()
+                            }}
+                            className="px-3 py-1.5 text-xs font-medium text-white bg-[#1e3a5f] hover:bg-[#1e3a5f]/90 rounded-lg"
+                          >
+                            {t('exportPage.errors.retryWithoutDocs', 'Réessayer sans documents')}
+                          </button>
+                          <button
+                            onClick={() => setModal({ type: 'none' })}
+                            className="px-3 py-1.5 text-xs font-medium text-[#1e3a5f] bg-white border border-stone-300 rounded-lg hover:bg-stone-50"
+                          >
+                            {t('exportPage.errors.upgrade', 'Mettre à niveau')}
+                          </button>
+                        </>
+                      )}
+                      {modal.errorType === 'email' && (
+                        <button
+                          onClick={() => setModal({ type: 'none' })}
+                          className="px-3 py-1.5 text-xs font-medium text-white bg-[#1e3a5f] hover:bg-[#1e3a5f]/90 rounded-lg"
+                        >
+                          {t('exportPage.errors.fixAddress', 'Corriger l\'adresse')}
+                        </button>
+                      )}
+                      {modal.errorType === 'permission' && (
+                        <button
+                          onClick={() => setModal({ type: 'none' })}
+                          className="px-3 py-1.5 text-xs font-medium text-white bg-[#e07a2f] hover:bg-[#e07a2f]/90 rounded-lg"
+                        >
+                          {t('exportPage.errors.viewPlans', 'Voir les plans')}
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>

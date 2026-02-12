@@ -1852,6 +1852,7 @@
       "activeLabel": "Lien actif",
       "readOnly": "Lecture seule",
       "comment": "Commentaire",
+      "roleLabel": "Rôle du lien",
       "7days": "7 jours",
       "30days": "30 jours",
       "revoked": "Lien révoqué"
@@ -1877,7 +1878,8 @@
       "subject": "Objet",
       "message": "Message",
       "messagePlaceholder": "Message personnalisé (optionnel)...",
-      "send": "Envoyer le récap"
+      "send": "Envoyer le récap",
+      "preview": "Prévisualiser l'email"
     },
     "emailSent": {
       "title": "Récap envoyé avec succès",
@@ -1886,7 +1888,11 @@
     "errors": {
       "pdfTitle": "Échec de génération PDF",
       "pdfMessage": "Une erreur est survenue lors de la génération du PDF.",
-      "retry": "Réessayer"
+      "retry": "Réessayer",
+      "retryWithoutDocs": "Réessayer sans documents",
+      "upgrade": "Mettre à niveau",
+      "fixAddress": "Corriger l'adresse",
+      "viewPlans": "Voir les plans"
     }
   },
   "shareLink": {
