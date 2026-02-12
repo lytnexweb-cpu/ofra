@@ -11,8 +11,14 @@ export interface OfferRevision {
   revisionNumber: number
   price: number
   deposit: number | null
+  depositDeadline: string | null
+  closingDate: string | null
   financingAmount: number | null
   expiryAt: string | null
+  inspectionRequired: boolean
+  inspectionDelay: number | null
+  inclusions: string | null
+  message: string | null
   notes: string | null
   direction: 'buyer_to_seller' | 'seller_to_buyer'
   createdByUserId: number | null

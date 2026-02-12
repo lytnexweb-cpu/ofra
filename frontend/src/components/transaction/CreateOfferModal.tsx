@@ -1,32 +1,25 @@
 import { useState, useEffect, useMemo } from 'react'
+import { createPortal } from 'react-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
 import {
-  FileText,
   X,
-  ArrowLeftRight,
-  ClipboardList,
-  Plus,
-  Mail,
-  Eye,
-  Info,
-  CheckCircle,
-  Zap,
-  Clock,
-  Ban,
+  FileText,
   Check,
-  ChevronLeft,
+  Lock,
+  AlertTriangle,
+  Package,
+  ArrowRight,
+  Mail,
+  RefreshCw,
+  Copy,
+  ChevronDown,
+  ClipboardList,
 } from 'lucide-react'
 import { offersApi } from '../../api/offers.api'
-import { partiesApi, type PartyRole } from '../../api/parties.api'
+import { packsApi, type PackTemplate, type ConditionPack } from '../../api/packs.api'
 import type { Offer, OfferRevision, Transaction } from '../../api/transactions.api'
-import { formatDate, parseISO, differenceInDays } from '../../lib/date'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-} from '../ui/Dialog'
 
 interface CreateOfferModalProps {
   isOpen: boolean
@@ -48,6 +41,30 @@ function parseMoney(value: string): number {
   return parseFloat(value.replace(/\s/g, '').replace(',', '.')) || 0
 }
 
+const EXPIRY_OPTIONS = ['24h', '48h', '7d', 'custom'] as const
+type ExpiryOption = (typeof EXPIRY_OPTIONS)[number] | ''
+
+function computeExpiryAt(option: ExpiryOption, customDate: string): string | null {
+  const now = new Date()
+  switch (option) {
+    case '24h': return new Date(now.getTime() + 24 * 3600 * 1000).toISOString()
+    case '48h': return new Date(now.getTime() + 48 * 3600 * 1000).toISOString()
+    case '7d': return new Date(now.getTime() + 7 * 24 * 3600 * 1000).toISOString()
+    case 'custom': return customDate ? new Date(customDate + 'T23:59:59').toISOString() : null
+    default: return null
+  }
+}
+
+const BADGE_COLORS: Record<string, string> = {
+  auto: 'bg-[rgba(30,58,95,.1)] text-[#1e3a5f]',
+  pack: 'bg-[rgba(224,122,47,.1)] text-[#e07a2f]',
+  legal: 'bg-[#ede9fe] text-[#7c3aed]',
+  industry: 'bg-[#e0f2fe] text-[#0284c7]',
+  finance: 'bg-[#e0f2fe] text-[#0284c7]',
+  inspection: 'bg-[#e0f2fe] text-[#0284c7]',
+  status: 'bg-[#d1fae5] text-[#059669]',
+}
+
 export default function CreateOfferModal({
   isOpen,
   onClose,
@@ -55,888 +72,991 @@ export default function CreateOfferModal({
   existingOffer,
   lastRevision,
 }: CreateOfferModalProps) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const navigate = useNavigate()
   const queryClient = useQueryClient()
   const isCounter = !!existingOffer && !!lastRevision
 
-  const [step, setStep] = useState<'form' | 'confirm' | 'success'>('form')
-  const [emailNotify, setEmailNotify] = useState(true)
-  const [markPrevious, setMarkPrevious] = useState(true)
-  const [note, setNote] = useState('')
-  const [selectedConditionIds, setSelectedConditionIds] = useState<number[]>([])
-  const [showConditionPicker, setShowConditionPicker] = useState(false)
-  const [showEmailPreview, setShowEmailPreview] = useState(false)
-  const [formData, setFormData] = useState({
-    price: '',
-    deposit: '',
-    financingAmount: '',
-    expiryAt: '',
-  })
+  // ── View state ──
+  const [view, setView] = useState<'form' | 'success' | 'perm-error' | 'server-error'>('form')
 
-  // Reset form when modal opens/changes
+  // ── Form state ──
+  const [offerType, setOfferType] = useState<'offer' | 'counter'>('offer')
+  const [price, setPrice] = useState('')
+  const [deposit, setDeposit] = useState('')
+  const [depositDeadline, setDepositDeadline] = useState('')
+  const [closingDate, setClosingDate] = useState('')
+  const [expiryOption, setExpiryOption] = useState<ExpiryOption>('48h')
+  const [customExpiry, setCustomExpiry] = useState('')
+  const [financingEnabled, setFinancingEnabled] = useState(false)
+  const [financingAmount, setFinancingAmount] = useState('')
+  const [inspectionEnabled, setInspectionEnabled] = useState(false)
+  const [inspectionDelay, setInspectionDelay] = useState('')
+  const [inclusions, setInclusions] = useState('')
+  const [message, setMessage] = useState('')
+  const [emailNotify, setEmailNotify] = useState(true)
+
+  // ── Pack state ──
+  const [selectedPackType, setSelectedPackType] = useState<string | null>(null)
+  const [packTemplates, setPackTemplates] = useState<PackTemplate[]>([])
+  const [packLoaded, setPackLoaded] = useState(false)
+  const [loadingPack, setLoadingPack] = useState(false)
+
+  // ── Validation ──
+  const [showErrors, setShowErrors] = useState(false)
+
+  // ── Error details (State F) ──
+  const [serverErrorDetails, setServerErrorDetails] = useState({ code: '', timestamp: '' })
+  const [copiedDetails, setCopiedDetails] = useState(false)
+
+  // ── Mobile accordion ──
+  const [accordionOpen, setAccordionOpen] = useState(false)
+
+  // ── Reset on open ──
   useEffect(() => {
     if (isOpen) {
-      setStep('form')
+      setView('form')
+      setOfferType(isCounter ? 'counter' : 'offer')
+      setPrice(isCounter ? String(lastRevision!.price) : '')
+      setDeposit(isCounter && lastRevision!.deposit != null ? String(lastRevision!.deposit) : '')
+      setDepositDeadline(isCounter && lastRevision!.depositDeadline ? lastRevision!.depositDeadline.substring(0, 10) : '')
+      setClosingDate(isCounter && lastRevision!.closingDate ? lastRevision!.closingDate.substring(0, 10) : '')
+      setExpiryOption('48h')
+      setCustomExpiry('')
+      setFinancingEnabled(isCounter ? !!lastRevision!.financingAmount : false)
+      setFinancingAmount(isCounter && lastRevision!.financingAmount != null ? String(lastRevision!.financingAmount) : '')
+      setInspectionEnabled(isCounter ? !!lastRevision!.inspectionRequired : false)
+      setInspectionDelay(isCounter && lastRevision!.inspectionDelay != null ? String(lastRevision!.inspectionDelay) : '')
+      setInclusions(isCounter && lastRevision!.inclusions ? lastRevision!.inclusions : '')
+      setMessage(isCounter && lastRevision!.message ? lastRevision!.message : '')
       setEmailNotify(true)
-      setMarkPrevious(true)
-      setNote('')
-      setSelectedConditionIds(
-        isCounter && lastRevision?.conditions
-          ? lastRevision.conditions.map((c: any) => c.id)
-          : []
-      )
-      setShowConditionPicker(false)
-      setShowEmailPreview(false)
-      setFormData({
-        price: isCounter ? String(lastRevision!.price) : '',
-        deposit: isCounter && lastRevision!.deposit != null ? String(lastRevision!.deposit) : '',
-        financingAmount: isCounter && lastRevision!.financingAmount != null ? String(lastRevision!.financingAmount) : '',
-        expiryAt: '',
-      })
+      setSelectedPackType(null)
+      setPackTemplates([])
+      setPackLoaded(false)
+      setShowErrors(false)
+      setAccordionOpen(false)
+      setCopiedDetails(false)
     }
   }, [isOpen, isCounter, lastRevision])
 
-  // Current step info
-  const currentStep = transaction.currentStep
-  const stepOrder = currentStep?.stepOrder ?? 2
-  const stepName = currentStep?.workflowStep?.name ?? '—'
+  // ── Escape key ──
+  useEffect(() => {
+    if (!isOpen) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') handleClose() }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [isOpen])
 
-  // Available conditions from current step (pending/in_progress only)
-  const availableConditions = useMemo(() => {
-    const stepConditions = currentStep?.conditions ?? []
-    const txConditions = transaction.conditions ?? []
-    const allConditions = stepConditions.length > 0 ? stepConditions : txConditions
-    return allConditions.filter((c: any) => c.status !== 'completed')
-  }, [currentStep, transaction.conditions])
+  // ── Derived values ──
+  const priceNum = parseMoney(price)
+  const depositNum = parseMoney(deposit)
+  const listPrice = transaction.listPrice ?? 0
+  const diff = priceNum > 0 && listPrice > 0 ? priceNum - listPrice : null
 
-  // Parsed values
-  const priceNum = parseMoney(formData.price)
-  const depositNum = parseMoney(formData.deposit)
-  const financingNum = parseMoney(formData.financingAmount)
+  const expiryLabel = useMemo(() => {
+    switch (expiryOption) {
+      case '24h': return '24h'
+      case '48h': return '48h'
+      case '7d': return t('addOffer.exp7d')
+      case 'custom': return customExpiry || '—'
+      default: return '—'
+    }
+  }, [expiryOption, customExpiry, t])
 
-  // Deltas vs previous
-  const priceDelta = isCounter ? priceNum - lastRevision!.price : null
-  const depositDelta = isCounter && lastRevision!.deposit != null ? depositNum - lastRevision!.deposit : null
-  const financingDelta = isCounter && lastRevision!.financingAmount != null ? financingNum - lastRevision!.financingAmount : null
+  // ── Validation ──
+  const errors: Record<string, string> = {}
+  if (!priceNum) errors.price = t('addOffer.errorAmountRequired')
+  if (depositNum > priceNum && priceNum > 0) errors.deposit = t('addOffer.errorDepositExceeds')
+  if (closingDate && new Date(closingDate) < new Date(new Date().toDateString())) errors.closingDate = t('addOffer.errorClosingPast')
+  if (!expiryOption) errors.expiry = t('addOffer.errorExpirationRequired')
+  if (financingEnabled && !parseMoney(financingAmount)) errors.financing = t('addOffer.errorFinancingRequired')
+  const errorCount = Object.keys(errors).length
+  const hasErrors = showErrors && errorCount > 0
 
-  // Form validity
-  const isFormValid = priceNum > 0 && depositNum >= 0 && formData.deposit.trim() !== '' && formData.financingAmount.trim() !== '' && formData.expiryAt.trim() !== ''
-
-  // Fetch parties for email recipients
-  const { data: partiesData } = useQuery({
-    queryKey: ['parties', transaction.id],
-    queryFn: () => partiesApi.list(transaction.id),
+  // ── Packs query ──
+  const { data: packsData } = useQuery({
+    queryKey: ['condition-packs'],
+    queryFn: () => packsApi.listPacks(),
     enabled: isOpen,
   })
-  const parties = partiesData?.data?.parties ?? []
+  const packs = packsData?.data?.packs ?? []
 
-  const clientEmail = transaction.client?.email
-  const recipientsWithEmail = (clientEmail ? 1 : 0) + parties.filter((p) => p.email).length
-  const recipientsMissing = (clientEmail ? 0 : 1) + parties.filter((p) => !p.email).length
+  // ── Recommended pack ──
+  const recommendedPack = useMemo((): ConditionPack | null => {
+    if (packs.length === 0) return null
+    const profile = transaction.profile
+    if (profile?.isFinanced) return packs.find(p => p.packType === 'finance_nb') || null
+    if (profile?.propertyType === 'condo') return packs.find(p => p.packType === 'condo_nb') || null
+    if (profile?.propertyContext === 'rural') return packs.find(p => p.packType === 'rural_nb') || null
+    return packs.find(p => p.packType === 'universal') || packs[0] || null
+  }, [packs, transaction.profile])
 
-  // Role label mapping
-  const ROLE_LABELS: Record<PartyRole, string> = {
-    buyer: t('transaction.acceptOffer.buyerLabel'),
-    seller: t('transaction.acceptOffer.sellerLabel'),
-    lawyer: t('transaction.acceptOffer.lawyerLabel'),
-    notary: t('transaction.acceptOffer.notaryLabel'),
-    agent: t('transaction.acceptOffer.agentLabel'),
-    broker: t('transaction.acceptOffer.brokerLabel'),
-    other: t('transaction.acceptOffer.otherLabel'),
+  const packLabel = (pack: ConditionPack) =>
+    i18n.language === 'en' && pack.labelEn ? pack.labelEn : pack.label
+
+  // ── Load pack templates ──
+  const handleLoadPack = async (packType: string) => {
+    setLoadingPack(true)
+    try {
+      const res = await packsApi.getPackTemplates(packType)
+      if (res.success && res.data) {
+        setPackTemplates(res.data.templates)
+        setSelectedPackType(packType)
+        setPackLoaded(true)
+      }
+    } finally {
+      setLoadingPack(false)
+    }
   }
 
-  // Direction for counter-offer (invert previous)
-  const direction: 'buyer_to_seller' | 'seller_to_buyer' = isCounter
-    ? (lastRevision!.direction === 'buyer_to_seller' ? 'seller_to_buyer' : 'buyer_to_seller')
-    : 'buyer_to_seller'
-
-  // Create mutation (new offer)
+  // ── Submit mutation ──
   const createMutation = useMutation({
-    mutationFn: () =>
-      offersApi.create(transaction.id, {
+    mutationFn: async () => {
+      const direction = offerType === 'counter' ? 'seller_to_buyer' as const : 'buyer_to_seller' as const
+      const payload = {
         price: priceNum,
         deposit: depositNum || null,
-        financingAmount: financingNum || null,
-        expiryAt: formData.expiryAt || null,
+        depositDeadline: depositDeadline || null,
+        closingDate: closingDate || null,
+        financingAmount: financingEnabled ? parseMoney(financingAmount) || null : null,
+        expiryAt: computeExpiryAt(expiryOption, customExpiry),
         direction,
-        notes: note.trim() || null,
-        conditionIds: selectedConditionIds.length > 0 ? selectedConditionIds : undefined,
-      }),
+        inspectionRequired: inspectionEnabled,
+        inspectionDelay: inspectionEnabled ? parseInt(inspectionDelay) || null : null,
+        inclusions: inclusions.trim() || null,
+        message: message.trim() || null,
+        notes: null,
+      }
+
+      let result
+      if (isCounter) {
+        result = await offersApi.addRevision(existingOffer!.id, payload)
+      } else {
+        result = await offersApi.create(transaction.id, payload)
+      }
+
+      if (!result.success) {
+        throw { type: 'permission', message: result.error?.message || '' }
+      }
+
+      // Apply pack if loaded
+      const offerId = isCounter
+        ? existingOffer!.id
+        : (result.data as any)?.offer?.id
+      if (packLoaded && selectedPackType && offerId) {
+        await packsApi.applyPack(offerId, selectedPackType)
+      }
+
+      return result
+    },
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['transaction', transaction.id] }),
         queryClient.invalidateQueries({ queryKey: ['offers', transaction.id] }),
         queryClient.invalidateQueries({ queryKey: ['dashboard'] }),
       ])
-      setStep('success')
+      setView('success')
+    },
+    onError: (error: any) => {
+      if (error?.type === 'permission') {
+        setView('perm-error')
+      } else {
+        setServerErrorDetails({
+          code: 'ERR_OFFER_SUBMIT_500',
+          timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
+        })
+        setView('server-error')
+      }
     },
   })
 
-  // Counter mutation (add revision)
-  const counterMutation = useMutation({
-    mutationFn: () =>
-      offersApi.addRevision(existingOffer!.id, {
-        price: priceNum,
-        deposit: depositNum || null,
-        financingAmount: financingNum || null,
-        expiryAt: formData.expiryAt || null,
-        direction,
-        notes: note.trim() || null,
-        conditionIds: selectedConditionIds.length > 0 ? selectedConditionIds : undefined,
-      }),
-    onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['transaction', transaction.id] }),
-        queryClient.invalidateQueries({ queryKey: ['offers', transaction.id] }),
-        queryClient.invalidateQueries({ queryKey: ['dashboard'] }),
-      ])
-      setStep('success')
-    },
-  })
-
-  const isPending = createMutation.isPending || counterMutation.isPending
-
-  const handleConfirm = () => {
-    if (isCounter) {
-      counterMutation.mutate()
-    } else {
-      createMutation.mutate()
-    }
+  // ── Handlers ──
+  const handleSubmit = () => {
+    setShowErrors(true)
+    if (errorCount > 0) return
+    createMutation.mutate()
   }
 
   const handleClose = () => {
-    if (!isPending) {
-      setStep('form')
-      onClose()
-    }
+    if (createMutation.isPending) return
+    onClose()
   }
 
-  // Delta display helper
-  const deltaClass = (val: number | null) => {
-    if (val === null) return 'text-stone-500'
-    if (val > 0) return 'text-emerald-600'
-    if (val < 0) return 'text-red-600'
-    return 'text-stone-500'
+  const handleRetry = () => {
+    setView('form')
+    createMutation.reset()
   }
 
-  const deltaText = (val: number | null) => {
-    if (val === null) return '—'
-    if (val === 0) return '0 $'
-    return `${val > 0 ? '+' : ''}${formatCAD(val)} $`
+  const handleCopyDetails = () => {
+    const text = `${serverErrorDetails.code}\n${serverErrorDetails.timestamp}`
+    navigator.clipboard.writeText(text)
+    setCopiedDetails(true)
+    setTimeout(() => setCopiedDetails(false), 1500)
   }
 
-  // Expiry info for success state
-  const expiryDate = formData.expiryAt ? parseISO(formData.expiryAt) : null
-  const daysUntilExpiry = expiryDate ? differenceInDays(expiryDate, new Date()) : null
+  if (!isOpen) return null
 
-  // ═══════════════════════════════════════
-  // ÉTAT C — SUCCÈS
-  // ═══════════════════════════════════════
-  if (step === 'success') {
-    return (
-      <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-        <DialogContent className="sm:max-w-lg p-0 gap-0" aria-describedby="create-offer-success-desc">
-          <DialogTitle className="sr-only">{t('transaction.createOffer.successTitle')}</DialogTitle>
-          <DialogDescription id="create-offer-success-desc" className="sr-only">
-            {t('transaction.createOffer.successTitle')}
-          </DialogDescription>
+  const clientName = transaction.client?.fullName || transaction.client?.email || '—'
+  const address = transaction.property?.address
+    ? `${transaction.property.address}, ${transaction.property.city || ''}`
+    : '—'
 
-          {/* Success header */}
-          <div className="px-5 sm:px-6 py-5 text-center">
-            <div className="w-14 h-14 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-3">
-              <Check className="w-7 h-7 text-emerald-600" />
-            </div>
-            <h2 className="text-base sm:text-lg font-bold text-stone-900" style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}>
-              {t('transaction.createOffer.successTitle')}
-            </h2>
-            <p className="text-sm text-stone-500 mt-1">
-              {t('transaction.createOffer.successSubtitle', {
-                type: isCounter ? t('transaction.createOffer.counterBadge') : t('transaction.createOffer.title'),
-                price: formatCAD(priceNum),
-              })}
-            </p>
-          </div>
-
-          {/* Summary cards */}
-          <div className="px-5 sm:px-6 pb-5 space-y-2">
-            {/* Offer added */}
-            <div className="flex items-center gap-2 p-2.5 rounded-lg bg-emerald-50 border border-emerald-100">
-              <Plus className="w-4 h-4 text-emerald-600 shrink-0" />
-              <span className="text-xs text-emerald-800" dangerouslySetInnerHTML={{ __html: t('transaction.createOffer.successOfferAdded') }} />
+  // ═════════════════════════════════════════
+  // STATE D — SUCCESS
+  // ═════════════════════════════════════════
+  if (view === 'success') {
+    return createPortal(
+      <div className="fixed inset-0 z-50" role="dialog" aria-modal="true">
+        <div className="absolute inset-0 bg-black/50 animate-[fadeIn_.2s_ease-out]" onClick={handleClose} />
+        <div className="absolute inset-0 flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div
+            className="relative w-full sm:max-w-[400px] bg-white rounded-t-2xl sm:rounded-2xl overflow-hidden shadow-xl animate-[sheetUp_.25s_ease-out] sm:animate-[modalIn_.25s_ease-out]"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Mobile handle */}
+            <div className="flex sm:hidden justify-center pt-2 pb-1">
+              <div className="w-8 h-1 rounded-full bg-stone-300" />
             </div>
 
-            {/* Previous marked non-retenue */}
-            {isCounter && markPrevious && (
-              <div className="flex items-center gap-2 p-2.5 rounded-lg bg-amber-50 border border-amber-100">
-                <Ban className="w-4 h-4 text-amber-500 shrink-0" />
-                <span className="text-xs text-amber-700" dangerouslySetInnerHTML={{
-                  __html: t('transaction.createOffer.successPreviousMarked', { price: formatCAD(lastRevision!.price) }),
-                }} />
+            <div className="px-6 py-8 text-center">
+              {/* Icon */}
+              <div className="w-14 h-14 rounded-full bg-[#d1fae5] flex items-center justify-center mx-auto mb-4">
+                <Check className="w-7 h-7 text-[#059669]" strokeWidth={2} />
               </div>
-            )}
 
-            {/* Email notification */}
-            {emailNotify && (
-              <div className="flex items-center gap-2 p-2.5 rounded-lg bg-stone-50 border border-stone-200">
-                <Mail className="w-4 h-4 text-stone-500 shrink-0" />
-                <span className="text-xs text-stone-600">
-                  {t('transaction.createOffer.successNotification', { count: recipientsWithEmail })}
-                </span>
-              </div>
-            )}
+              <h2 className="text-base font-bold text-stone-900" style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}>
+                {t('addOffer.successTitle')}
+              </h2>
+              <p className="text-xs text-stone-500 mt-1 mb-5">
+                {t('addOffer.successSubtitle')}
+              </p>
 
-            {/* Expiry countdown */}
-            {expiryDate && daysUntilExpiry !== null && (
-              <div className="flex items-center gap-2 p-2.5 rounded-lg bg-primary/5 border border-primary/10">
-                <Clock className="w-4 h-4 text-primary shrink-0" />
-                <span className="text-xs text-primary" dangerouslySetInnerHTML={{
-                  __html: t('transaction.createOffer.successExpiry', {
-                    date: formatDate(expiryDate, 'd MMM yyyy'),
-                    days: daysUntilExpiry,
-                  }),
-                }} />
-              </div>
-            )}
-          </div>
-
-          {/* Recommended action */}
-          {expiryDate && (
-            <div className="px-5 sm:px-6 pb-4">
-              <div className="rounded-lg border border-accent/20 bg-accent/5 p-3">
-                <h3 className="text-xs font-semibold text-accent flex items-center gap-1.5 mb-1.5">
-                  <Zap className="w-3.5 h-3.5" />
-                  {t('transaction.createOffer.recommendedAction')}
-                </h3>
-                <p className="text-xs text-stone-600">
-                  {t('transaction.createOffer.recommendedActionDesc', {
-                    date: formatDate(expiryDate, 'd MMM'),
-                  })}
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Actions */}
-          <div className="px-5 sm:px-6 py-4 bg-stone-50 border-t border-stone-100 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:justify-center">
-            <button
-              onClick={handleClose}
-              className="px-5 py-2.5 rounded-lg bg-primary hover:bg-primary/90 text-white text-sm font-semibold shadow-sm flex items-center justify-center gap-2"
-            >
-              <ChevronLeft className="w-4 h-4" />
-              {t('transaction.createOffer.viewTransaction')}
-            </button>
-            <a
-              href={`mailto:${[
-                clientEmail,
-                ...parties.filter((p) => p.email).map((p) => p.email),
-              ].filter(Boolean).join(',')}?subject=${encodeURIComponent(
-                isCounter
-                  ? t('transaction.createOffer.emailPreview.subjectCounter', { price: formatCAD(priceNum), address: transaction.property?.address ?? '' })
-                  : t('transaction.createOffer.emailPreview.subjectNew', { price: formatCAD(priceNum), address: transaction.property?.address ?? '' })
-              )}&body=${encodeURIComponent(
-                (isCounter
-                  ? t('transaction.createOffer.emailPreview.bodyCounter', { price: formatCAD(priceNum), address: transaction.property?.address ?? '—' })
-                  : t('transaction.createOffer.emailPreview.bodyNew', { price: formatCAD(priceNum), address: transaction.property?.address ?? '—' })
-                ) + '\n\n' + t('transaction.createOffer.emailPreview.footer')
-              )}`}
-              className="px-5 py-2.5 rounded-lg border border-stone-200 text-stone-600 hover:bg-stone-100 text-sm font-medium flex items-center justify-center gap-2"
-            >
-              <Mail className="w-4 h-4" />
-              {t('transaction.createOffer.followUpEmail')}
-            </a>
-          </div>
-        </DialogContent>
-      </Dialog>
-    )
-  }
-
-  // ═══════════════════════════════════════
-  // ÉTAT B — CONFIRMATION
-  // ═══════════════════════════════════════
-  if (step === 'confirm') {
-    return (
-      <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-        <DialogContent className="sm:max-w-lg p-0 gap-0 overflow-hidden" aria-describedby="create-offer-confirm-desc">
-          <DialogTitle className="sr-only">{t('transaction.createOffer.confirmTitle')}</DialogTitle>
-          <DialogDescription id="create-offer-confirm-desc" className="sr-only">
-            {t('transaction.createOffer.confirmSubtitle')}
-          </DialogDescription>
-
-          {/* Header */}
-          <div className="px-5 sm:px-6 pt-5 sm:pt-6 pb-4 border-b border-stone-100">
-            <div className="flex items-start justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                  <CheckCircle className="w-5 h-5 text-primary" />
+              {/* Info card */}
+              <div className="rounded-lg border border-stone-200 bg-stone-50 p-3 text-left space-y-2">
+                <div className="flex justify-between text-xs">
+                  <span className="text-stone-500">{t('addOffer.successType')}</span>
+                  <span className="font-medium text-stone-900">
+                    {offerType === 'counter' ? t('addOffer.typeCounter') : t('addOffer.typeOffer')}
+                  </span>
                 </div>
-                <div>
-                  <h2 className="text-base sm:text-lg font-bold text-stone-900" style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}>
-                    {t('transaction.createOffer.confirmTitle')}
-                  </h2>
-                  <p className="text-xs text-stone-500 mt-0.5">
-                    {t('transaction.createOffer.confirmSubtitle')}
-                  </p>
+                <div className="flex justify-between text-xs">
+                  <span className="text-stone-500">{t('addOffer.successAmount')}</span>
+                  <span className="font-medium text-stone-900">{formatCAD(priceNum)} $</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-stone-500">{t('addOffer.successExpiration')}</span>
+                  <span className="font-medium text-stone-900">{expiryLabel}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-stone-500">{t('addOffer.successConditions')}</span>
+                  <span className="font-medium text-stone-900">{packTemplates.length}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-stone-500">{t('addOffer.successNotification')}</span>
+                  <span className="font-medium text-[#059669]">{emailNotify ? t('addOffer.successEmailSent') : '—'}</span>
                 </div>
               </div>
-              <button onClick={handleClose} className="p-1.5 rounded-lg hover:bg-stone-100 text-stone-400 -mt-1 -mr-1">
-                <X className="w-5 h-5" />
+            </div>
+
+            {/* Actions */}
+            <div className="px-6 pb-6 flex flex-col gap-2">
+              <button
+                onClick={() => { handleClose(); navigate(`/transactions/${transaction.id}`) }}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-[#1e3a5f] hover:bg-[#16304d] text-white text-xs font-semibold"
+              >
+                <ArrowRight className="w-3.5 h-3.5" />
+                {t('addOffer.viewTimeline')}
+              </button>
+              <button
+                onClick={handleClose}
+                className="w-full px-4 py-2.5 rounded-lg border border-stone-300 text-stone-600 hover:bg-stone-50 text-xs font-semibold"
+              >
+                {t('addOffer.close')}
               </button>
             </div>
           </div>
-
-          {/* Body */}
-          <div className="px-5 sm:px-6 py-4 space-y-4 overflow-y-auto max-h-[60vh]">
-            {/* Recap card */}
-            <div className="rounded-lg bg-stone-50 border border-stone-200 p-3 sm:p-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs text-stone-500 uppercase font-semibold tracking-wide">
-                  {t('transaction.createOffer.recap')}
-                </span>
-                {isCounter && (
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
-                    {t('transaction.createOffer.counterBadge')}
-                  </span>
-                )}
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
-                <div>
-                  <span className="text-xs text-stone-400">{t('transaction.createOffer.priceOffered')}</span>
-                  <p className="font-bold text-stone-900">{formatCAD(priceNum)} $</p>
-                </div>
-                <div>
-                  <span className="text-xs text-stone-400">{t('transaction.createOffer.depositLabel')}</span>
-                  <p className="font-semibold text-stone-700">{formatCAD(depositNum)} $</p>
-                </div>
-                <div>
-                  <span className="text-xs text-stone-400">{t('transaction.createOffer.financingLabel')}</span>
-                  <p className="font-semibold text-stone-700">{formatCAD(financingNum)} $</p>
-                </div>
-                <div>
-                  <span className="text-xs text-stone-400">{t('transaction.createOffer.expiration')}</span>
-                  <p className="font-semibold text-stone-700">
-                    {expiryDate ? formatDate(expiryDate, 'd MMM yyyy') : '—'}
-                  </p>
-                </div>
-              </div>
-              {isCounter && (
-                <div className="mt-2 pt-2 border-t border-stone-200 flex items-center gap-2">
-                  <ClipboardList className="w-3.5 h-3.5 text-stone-400 shrink-0" />
-                  <span className="text-xs text-stone-500">
-                    {t('transaction.createOffer.conditionsRecap', { count: selectedConditionIds.length })}
-                  </span>
-                </div>
-              )}
-            </div>
-
-            {/* Deltas (counter-offer only) */}
-            {isCounter && (
-              <div className="rounded-lg border border-indigo-200 bg-indigo-50/50 p-3">
-                <h3 className="text-xs font-semibold text-indigo-800 flex items-center gap-1.5 mb-2">
-                  <ArrowLeftRight className="w-3.5 h-3.5" />
-                  {t('transaction.createOffer.deltaTitleWithPrice', { price: formatCAD(lastRevision!.price) })}
-                </h3>
-                <div className="grid grid-cols-3 gap-2 text-xs">
-                  <div>
-                    <span className="text-stone-400">{t('transaction.createOffer.priceLabel')}</span>
-                    <p className={`font-semibold ${deltaClass(priceDelta)}`}>{deltaText(priceDelta)}</p>
-                  </div>
-                  <div>
-                    <span className="text-stone-400">{t('transaction.createOffer.depositLabel')}</span>
-                    <p className={`font-semibold ${deltaClass(depositDelta)}`}>{deltaText(depositDelta)}</p>
-                  </div>
-                  <div>
-                    <span className="text-stone-400">{t('transaction.createOffer.financingLabel')}</span>
-                    <p className={`font-semibold ${deltaClass(financingDelta)}`}>{deltaText(financingDelta)}</p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Workflow impact */}
-            <div className="rounded-lg border border-indigo-200 bg-indigo-50/50 p-3 sm:p-4">
-              <h3 className="text-xs font-semibold text-indigo-800 flex items-center gap-1.5 mb-2">
-                <Zap className="w-3.5 h-3.5" />
-                {t('transaction.createOffer.impactTitle')}
-              </h3>
-              <div className="space-y-2">
-                <div className="flex items-start gap-2">
-                  <Clock className="w-4 h-4 text-primary mt-0.5 shrink-0" />
-                  <span className="text-xs text-stone-700" dangerouslySetInnerHTML={{
-                    __html: t('transaction.createOffer.impactStepActive', { stepOrder, stepName }),
-                  }} />
-                </div>
-                <div className="flex items-start gap-2">
-                  <FileText className="w-4 h-4 text-stone-400 mt-0.5 shrink-0" />
-                  <span className="text-xs text-stone-700" dangerouslySetInnerHTML={{
-                    __html: t('transaction.createOffer.impactOfferPrice', { price: formatCAD(priceNum) }),
-                  }} />
-                </div>
-              </div>
-            </div>
-
-            {/* Mark previous as non-retenue (counter-offer only) */}
-            {isCounter && (
-              <div className="rounded-lg border border-amber-200 bg-amber-50 p-3">
-                <label className="flex items-start gap-2.5 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={markPrevious}
-                    onChange={(e) => setMarkPrevious(e.target.checked)}
-                    className="mt-0.5 w-4 h-4 rounded border-amber-300 accent-primary"
-                  />
-                  <div>
-                    <span className="text-xs font-medium text-amber-800">
-                      {t('transaction.createOffer.markPreviousTitle')}
-                    </span>
-                    <p className="text-[10px] text-amber-600 mt-0.5">
-                      {t('transaction.createOffer.markPreviousDesc', {
-                        price: formatCAD(lastRevision!.price),
-                        status: t(`offers.status.${existingOffer!.status}`),
-                      })}
-                    </p>
-                  </div>
-                </label>
-              </div>
-            )}
-
-            {/* Email notification recap */}
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-stone-50 border border-stone-200">
-              <Mail className="w-4 h-4 text-stone-400 shrink-0" />
-              <span className="text-xs text-stone-600" dangerouslySetInnerHTML={{
-                __html: t('transaction.createOffer.emailRecap', {
-                  state: emailNotify ? t('transaction.createOffer.emailEnabled') : t('transaction.createOffer.emailDisabled'),
-                  count: recipientsWithEmail,
-                  missing: recipientsMissing,
-                }),
-              }} />
-            </div>
-          </div>
-
-          {/* Footer */}
-          <div className="px-5 sm:px-6 py-4 bg-stone-50 border-t border-stone-100 flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-2 sm:justify-end">
-            <button
-              onClick={() => setStep('form')}
-              disabled={isPending}
-              className="px-4 py-2.5 rounded-lg border border-stone-200 text-stone-600 hover:bg-stone-100 text-sm font-medium text-center"
-            >
-              {t('transaction.createOffer.back')}
-            </button>
-            <button
-              onClick={handleConfirm}
-              disabled={isPending}
-              className="px-6 py-2.5 rounded-lg bg-primary hover:bg-primary/90 text-white text-sm font-semibold shadow-sm flex items-center justify-center gap-2 disabled:opacity-50"
-            >
-              <Check className="w-4 h-4" />
-              {isPending ? '...' : t('transaction.createOffer.confirmCreate')}
-            </button>
-          </div>
-        </DialogContent>
-      </Dialog>
+        </div>
+      </div>,
+      document.body,
     )
   }
 
-  // ═══════════════════════════════════════
-  // ÉTAT A — FORMULAIRE
-  // ═══════════════════════════════════════
-  return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent className="sm:max-w-lg p-0 gap-0 overflow-hidden" aria-describedby="create-offer-form-desc">
-        <DialogTitle className="sr-only">{t('transaction.createOffer.title')}</DialogTitle>
-        <DialogDescription id="create-offer-form-desc" className="sr-only">
-          {t('transaction.createOffer.stepInfo', { stepOrder, stepName })}
-        </DialogDescription>
+  // ═════════════════════════════════════════
+  // STATE E — PERMISSION ERROR
+  // ═════════════════════════════════════════
+  if (view === 'perm-error') {
+    return createPortal(
+      <div className="fixed inset-0 z-50" role="dialog" aria-modal="true">
+        <div className="absolute inset-0 bg-black/50 animate-[fadeIn_.2s_ease-out]" onClick={handleClose} />
+        <div className="absolute inset-0 flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div
+            className="relative w-full sm:max-w-[400px] bg-white rounded-t-2xl sm:rounded-2xl overflow-hidden shadow-xl animate-[sheetUp_.25s_ease-out] sm:animate-[modalIn_.25s_ease-out]"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Mobile handle */}
+            <div className="flex sm:hidden justify-center pt-2 pb-1">
+              <div className="w-8 h-1 rounded-full bg-stone-300" />
+            </div>
 
-        {/* Header */}
-        <div className="px-5 sm:px-6 pt-5 sm:pt-6 pb-4 border-b border-stone-100">
-          <div className="flex items-start justify-between">
+            <div className="px-6 pt-7 pb-5">
+              {/* Icon */}
+              <div className="w-11 h-11 rounded-full bg-[#fffbeb] flex items-center justify-center mx-auto mb-4">
+                <Lock className="w-5.5 h-5.5 text-[#d97706]" strokeWidth={2} />
+              </div>
+
+              <h2 className="text-[15px] font-bold text-stone-900 text-center" style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}>
+                {t('addOffer.permErrorTitle')}
+              </h2>
+              <p className="text-[11px] text-stone-500 text-center mt-0.5 mb-4">
+                {t('addOffer.permErrorSubtitle')}
+              </p>
+
+              {/* Warning card */}
+              <div className="rounded-lg border border-[#fde68a] bg-[#fffbeb] p-3 mb-4">
+                <p className="text-xs text-[#92400e]">
+                  {t('addOffer.permErrorMessage', { role: 'Viewer' })}
+                </p>
+              </div>
+
+              {/* Info card */}
+              <div className="rounded-lg border border-stone-200 bg-stone-50 p-3 space-y-2">
+                <div className="flex justify-between text-xs">
+                  <span className="text-stone-500">{t('addOffer.permErrorYourRole')}</span>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-stone-100 text-stone-600">Viewer</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-stone-500">{t('addOffer.permErrorRequiredRole')}</span>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#1e3a5f] text-white">{t('addOffer.permErrorRequiredValue')}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-stone-500">{t('addOffer.permErrorOwner')}</span>
+                  <span className="font-medium text-stone-900">{transaction.user?.fullName || '—'}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="px-6 pb-6 flex flex-col gap-2">
+              <button
+                onClick={() => navigate(`/transactions/${transaction.id}/access`)}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-[#1e3a5f] hover:bg-[#16304d] text-white text-xs font-semibold"
+              >
+                <Mail className="w-3.5 h-3.5" />
+                {t('addOffer.requestAccess')}
+              </button>
+              <button
+                onClick={handleClose}
+                className="w-full px-4 py-2.5 rounded-lg border border-stone-300 text-stone-600 hover:bg-stone-50 text-xs font-semibold"
+              >
+                {t('addOffer.close')}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>,
+      document.body,
+    )
+  }
+
+  // ═════════════════════════════════════════
+  // STATE F — SERVER ERROR
+  // ═════════════════════════════════════════
+  if (view === 'server-error') {
+    return createPortal(
+      <div className="fixed inset-0 z-50" role="dialog" aria-modal="true">
+        <div className="absolute inset-0 bg-black/50 animate-[fadeIn_.2s_ease-out]" onClick={handleClose} />
+        <div className="absolute inset-0 flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div
+            className="relative w-full sm:max-w-[400px] bg-white rounded-t-2xl sm:rounded-2xl overflow-hidden shadow-xl animate-[sheetUp_.25s_ease-out] sm:animate-[modalIn_.25s_ease-out]"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Mobile handle */}
+            <div className="flex sm:hidden justify-center pt-2 pb-1">
+              <div className="w-8 h-1 rounded-full bg-stone-300" />
+            </div>
+
+            <div className="px-6 pt-7 pb-5">
+              {/* Icon */}
+              <div className="w-11 h-11 rounded-full bg-[#fef2f2] flex items-center justify-center mx-auto mb-4">
+                <AlertTriangle className="w-5.5 h-5.5 text-[#dc2626]" strokeWidth={2} />
+              </div>
+
+              <h2 className="text-[15px] font-bold text-stone-900 text-center" style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}>
+                {t('addOffer.serverErrorTitle')}
+              </h2>
+              <p className="text-[11px] text-stone-500 text-center mt-0.5 mb-4">
+                {t('addOffer.serverErrorSubtitle', { code: '500' })}
+              </p>
+
+              {/* Error card */}
+              <div className="rounded-lg border border-[#fecaca] bg-[#fef2f2] p-3 mb-4">
+                <p className="text-xs text-[#991b1b]">
+                  {t('addOffer.serverErrorMessage')}
+                </p>
+              </div>
+
+              {/* Info card */}
+              <div className="rounded-lg border border-stone-200 bg-stone-50 p-3 space-y-2">
+                <div className="flex justify-between text-xs">
+                  <span className="text-stone-500">{t('addOffer.serverErrorCode')}</span>
+                  <span className="font-mono text-[10px] text-stone-700">{serverErrorDetails.code}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-stone-500">{t('addOffer.serverErrorTimestamp')}</span>
+                  <span className="font-mono text-[10px] text-stone-700">{serverErrorDetails.timestamp}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="px-6 pb-6 flex flex-col gap-2">
+              <button
+                onClick={handleRetry}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-[#dc2626] hover:bg-[#b91c1c] text-white text-xs font-semibold"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                {t('addOffer.retry')}
+              </button>
+              <button
+                onClick={handleCopyDetails}
+                className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border text-xs font-semibold transition-colors ${
+                  copiedDetails
+                    ? 'border-emerald-300 bg-emerald-50 text-emerald-700'
+                    : 'border-stone-300 text-stone-600 hover:bg-stone-50'
+                }`}
+              >
+                {copiedDetails ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                {copiedDetails ? t('addOffer.copied') : t('addOffer.copyDetails')}
+              </button>
+              <button
+                onClick={handleClose}
+                className="w-full px-4 py-2.5 rounded-lg border border-stone-300 text-stone-600 hover:bg-stone-50 text-xs font-semibold"
+              >
+                {t('addOffer.close')}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>,
+      document.body,
+    )
+  }
+
+  // ═════════════════════════════════════════
+  // STATES A / B / C — FORM
+  // ═════════════════════════════════════════
+  const fieldError = (key: string) =>
+    showErrors && errors[key] ? (
+      <p className="text-[10px] text-[#dc2626] mt-1">{errors[key]}</p>
+    ) : null
+
+  const inputClass = (key: string) =>
+    `w-full px-3 py-2 text-[13px] rounded-lg border ${
+      showErrors && errors[key]
+        ? 'border-[#dc2626] bg-[#fef2f2]'
+        : 'border-stone-200 focus:border-[#1e3a5f]'
+    } focus:outline-none focus:ring-[3px] focus:ring-[rgba(30,58,95,.1)]`
+
+  const selectedPackData = packs.find(p => p.packType === selectedPackType) || null
+
+  return createPortal(
+    <div className="fixed inset-0 z-50" role="dialog" aria-modal="true">
+      <div className="absolute inset-0 bg-black/50 animate-[fadeIn_.2s_ease-out]" onClick={handleClose} />
+      <div className="absolute inset-0 flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto">
+        <div
+          className="relative w-full sm:max-w-[820px] max-h-[85vh] sm:max-h-[90vh] bg-white rounded-t-2xl sm:rounded-2xl overflow-hidden shadow-xl flex flex-col animate-[sheetUp_.25s_ease-out] sm:animate-[modalIn_.25s_ease-out]"
+          onClick={e => e.stopPropagation()}
+        >
+          {/* Mobile handle */}
+          <div className="flex sm:hidden justify-center pt-2 pb-1">
+            <div className="w-8 h-1 rounded-full bg-stone-300" />
+          </div>
+
+          {/* ── HEADER ── */}
+          <div className="px-4 sm:px-6 pt-3 sm:pt-5 pb-3 sm:pb-4 border-b border-stone-200 flex items-start justify-between gap-3 shrink-0">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
-                <FileText className="w-5 h-5 text-blue-600" />
+              <div className="w-10 h-10 rounded-[10px] bg-[rgba(30,58,95,.08)] flex items-center justify-center shrink-0">
+                <FileText className="w-[18px] h-[18px] text-[#1e3a5f]" strokeWidth={2} />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h2 className="text-base sm:text-lg font-bold text-stone-900" style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}>
-                    {t('transaction.createOffer.title')}
+                  <h2 className="text-[15px] font-bold text-stone-900" style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}>
+                    {t('addOffer.title')}
                   </h2>
-                  {isCounter && (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-100 text-blue-700">
-                      {t('transaction.createOffer.counterBadge')}
+                  {offerType === 'counter' && (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[rgba(224,122,47,.15)] text-[#e07a2f]">
+                      {t('addOffer.typeCounter')}
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-stone-500 mt-0.5">
-                  {t('transaction.createOffer.stepInfo', { stepOrder, stepName })}
+                <p className="text-[11px] text-stone-500 mt-0.5">
+                  {t('addOffer.transactionLabel', { client: clientName, address })}
                 </p>
               </div>
             </div>
-            <button onClick={handleClose} className="p-1.5 rounded-lg hover:bg-stone-100 text-stone-400 -mt-1 -mr-1">
-              <X className="w-5 h-5" />
+            <button
+              onClick={handleClose}
+              className="flex w-8 h-8 rounded-lg items-center justify-center text-stone-400 hover:bg-stone-100"
+            >
+              <X className="w-[18px] h-[18px]" />
             </button>
           </div>
-        </div>
 
-        {/* Body */}
-        <div className="px-5 sm:px-6 py-4 space-y-4 overflow-y-auto max-h-[60vh]">
-          {/* Previous offer reference (counter-offer only) */}
-          {isCounter && lastRevision && (
-            <div className="rounded-lg bg-stone-50 border border-stone-200 p-3">
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-xs text-stone-500 uppercase font-semibold tracking-wide">
-                  {t('transaction.createOffer.previousOffer')}
-                </span>
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
-                  {t(`offers.status.${existingOffer!.status}`)}
-                </span>
-              </div>
-              <div className="grid grid-cols-3 gap-2 text-xs">
-                <div>
-                  <span className="text-stone-400">{t('transaction.createOffer.priceLabel')}</span>
-                  <p className="font-semibold text-stone-700">{formatCAD(lastRevision.price)} $</p>
-                </div>
-                {lastRevision.deposit != null && (
-                  <div>
-                    <span className="text-stone-400">{t('transaction.createOffer.depositLabel')}</span>
-                    <p className="font-semibold text-stone-700">{formatCAD(lastRevision.deposit)} $</p>
-                  </div>
-                )}
-                {lastRevision.financingAmount != null && (
-                  <div>
-                    <span className="text-stone-400">{t('transaction.createOffer.financingLabel')}</span>
-                    <p className="font-semibold text-stone-700">{formatCAD(lastRevision.financingAmount)} $</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Prix offert */}
-          <div>
-            <label className="block text-xs font-semibold text-stone-600 mb-1.5 uppercase tracking-wide">
-              {t('transaction.createOffer.priceLabel')} <span className="text-red-400">*</span>
-            </label>
-            <div className="relative">
-              <input
-                type="text"
-                value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                placeholder="350 000"
-                className="w-full px-3 py-2.5 text-sm rounded-lg border border-stone-200 focus:outline-none focus:ring-2 focus:ring-primary/20 pr-8"
-              />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-stone-400 font-medium">$</span>
-            </div>
-          </div>
-
-          {/* Dépôt + Financement */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-semibold text-stone-600 mb-1.5 uppercase tracking-wide">
-                {t('transaction.createOffer.depositLabel')} <span className="text-red-400">*</span>
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={formData.deposit}
-                  onChange={(e) => setFormData({ ...formData, deposit: e.target.value })}
-                  placeholder="10 000"
-                  className="w-full px-3 py-2.5 text-sm rounded-lg border border-stone-200 focus:outline-none focus:ring-2 focus:ring-primary/20 pr-8"
-                />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-stone-400 font-medium">$</span>
-              </div>
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-stone-600 mb-1.5 uppercase tracking-wide">
-                {t('transaction.createOffer.financingLabel')} <span className="text-red-400">*</span>
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={formData.financingAmount}
-                  onChange={(e) => setFormData({ ...formData, financingAmount: e.target.value })}
-                  placeholder="280 000"
-                  className="w-full px-3 py-2.5 text-sm rounded-lg border border-stone-200 focus:outline-none focus:ring-2 focus:ring-primary/20 pr-8"
-                />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-stone-400 font-medium">$</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Date d'expiration */}
-          <div>
-            <label className="block text-xs font-semibold text-stone-600 mb-1.5 uppercase tracking-wide">
-              {t('transaction.createOffer.expiryLabel')} <span className="text-red-400">*</span>
-            </label>
-            <input
-              type="date"
-              value={formData.expiryAt}
-              onChange={(e) => setFormData({ ...formData, expiryAt: e.target.value })}
-              className="w-full px-3 py-2.5 text-sm rounded-lg border border-stone-200 focus:outline-none focus:ring-2 focus:ring-primary/20"
-            />
-          </div>
-
-          {/* Deltas vs previous (counter-offer only) */}
-          {isCounter && priceNum > 0 && (
-            <div className="rounded-lg border border-indigo-200 bg-indigo-50/50 p-3">
-              <h3 className="text-xs font-semibold text-indigo-800 flex items-center gap-1.5 mb-2">
-                <ArrowLeftRight className="w-3.5 h-3.5" />
-                {t('transaction.createOffer.deltaTitle')}
-              </h3>
-              <div className="grid grid-cols-3 gap-2 text-xs">
-                <div>
-                  <span className="text-stone-400">{t('transaction.createOffer.priceLabel')}</span>
-                  <p className={`font-semibold ${deltaClass(priceDelta)}`}>{deltaText(priceDelta)}</p>
-                </div>
-                <div>
-                  <span className="text-stone-400">{t('transaction.createOffer.depositLabel')}</span>
-                  <p className={`font-semibold ${deltaClass(depositDelta)}`}>{deltaText(depositDelta)}</p>
-                </div>
-                <div>
-                  <span className="text-stone-400">{t('transaction.createOffer.financingLabel')}</span>
-                  <p className={`font-semibold ${deltaClass(financingDelta)}`}>{deltaText(financingDelta)}</p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Conditions liées */}
-          <div className="rounded-lg border border-stone-200 bg-white p-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <ClipboardList className="w-4 h-4 text-stone-400" />
-                <span className="text-xs font-medium text-stone-700">{t('transaction.createOffer.conditionsLinked')}</span>
-                <span className="text-xs text-stone-400">({t('transaction.createOffer.conditionsActive', { count: selectedConditionIds.length })})</span>
-              </div>
-              {availableConditions.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setShowConditionPicker(!showConditionPicker)}
-                  className="text-xs text-primary hover:text-primary/80 font-medium flex items-center gap-1"
-                >
-                  <Plus className="w-3 h-3" />
-                  {t('transaction.createOffer.conditionsAdd')}
-                </button>
-              )}
-            </div>
-
-            {/* Selected conditions tags */}
-            {selectedConditionIds.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 mt-2">
-                {selectedConditionIds.map((cId) => {
-                  const cond = availableConditions.find((c: any) => c.id === cId)
-                  if (!cond) return null
-                  return (
-                    <span key={cId} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-indigo-50 text-indigo-700 border border-indigo-100">
-                      {cond.title ?? cond.labelFr ?? `#${cId}`}
-                      <button
-                        type="button"
-                        onClick={() => setSelectedConditionIds((prev) => prev.filter((id) => id !== cId))}
-                        className="hover:text-red-500 ml-0.5"
-                      >
-                        &times;
-                      </button>
-                    </span>
-                  )
-                })}
-              </div>
-            )}
-
-            {/* Condition picker popover */}
-            {showConditionPicker && (
-              <div className="mt-2 rounded-lg border border-stone-200 bg-stone-50 p-2 space-y-1">
-                {availableConditions.map((cond: any) => {
-                  const isSelected = selectedConditionIds.includes(cond.id)
-                  return (
-                    <label key={cond.id} className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-white cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={isSelected}
-                        onChange={() => {
-                          setSelectedConditionIds((prev) =>
-                            isSelected ? prev.filter((id) => id !== cond.id) : [...prev, cond.id]
-                          )
-                        }}
-                        className="w-3.5 h-3.5 rounded border-stone-300 accent-primary"
-                      />
-                      <span className="text-xs text-stone-700 flex-1">{cond.title ?? cond.labelFr ?? `Condition #${cond.id}`}</span>
-                      <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${
-                        cond.level === 'blocking' ? 'bg-red-100 text-red-700' :
-                        cond.level === 'required' ? 'bg-amber-100 text-amber-700' :
-                        'bg-stone-100 text-stone-500'
-                      }`}>
-                        {cond.level ?? 'required'}
-                      </span>
-                    </label>
-                  )
-                })}
-                {availableConditions.length === 0 && (
-                  <p className="text-[10px] text-stone-400 text-center py-2">{t('transaction.createOffer.noConditions')}</p>
-                )}
-              </div>
-            )}
-
-            {isCounter && (
-              <p className="text-[10px] text-stone-400 mt-1">
-                {t('transaction.createOffer.conditionsNote')}
+          {/* ── ERROR BANNER (State B) ── */}
+          {hasErrors && (
+            <div className="px-5 sm:px-6 py-2.5 bg-[#fef2f2] border-b border-[#fecaca] flex items-center gap-2 shrink-0">
+              <AlertTriangle className="w-4 h-4 text-[#dc2626] shrink-0" />
+              <p className="text-xs text-[#991b1b] font-medium">
+                {t('addOffer.errorBanner', { count: errorCount })}
               </p>
-            )}
-          </div>
-
-          {/* Note interne */}
-          <div>
-            <label className="block text-xs font-medium text-stone-600 mb-1">
-              {t('transaction.createOffer.noteLabel')}
-            </label>
-            <textarea
-              rows={2}
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              placeholder={t('transaction.createOffer.notePlaceholder')}
-              className="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
-            />
-          </div>
-
-          {/* Email toggle */}
-          <div className="rounded-lg border border-stone-200 bg-white overflow-hidden">
-            <div className="flex items-center justify-between px-3 py-2.5">
-              <div className="flex items-center gap-2">
-                <Mail className="w-4 h-4 text-stone-500" />
-                <span className="text-xs font-medium text-stone-700">
-                  {t('transaction.acceptOffer.emailToggle')}
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setEmailNotify(!emailNotify)}
-                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${emailNotify ? 'bg-primary' : 'bg-stone-300'}`}
-              >
-                <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${emailNotify ? 'translate-x-4' : 'translate-x-0.5'}`} />
-              </button>
             </div>
-            {emailNotify && (
-              <div className="px-3 pb-3 space-y-2 border-t border-stone-100 pt-2">
-                <div className="text-xs text-stone-500">{t('transaction.acceptOffer.recipients')}</div>
-                <div className="space-y-1.5">
-                  {/* Client */}
-                  <div className="flex items-center gap-1.5">
-                    <div className={`w-1.5 h-1.5 rounded-full ${clientEmail ? 'bg-emerald-400' : 'bg-amber-400'}`} />
-                    <span className={`text-xs ${clientEmail ? 'text-stone-700' : 'text-stone-500'}`}>
-                      {t('transaction.acceptOffer.buyerLabel')} —{' '}
-                      {clientEmail ?? <span className="italic text-amber-600">{t('transaction.acceptOffer.missingEmail')}</span>}
-                    </span>
-                  </div>
-                  {/* Parties */}
-                  {parties.map((party) => (
-                    <div key={party.id} className="flex items-center gap-1.5">
-                      <div className={`w-1.5 h-1.5 rounded-full ${party.email ? 'bg-emerald-400' : 'bg-amber-400'}`} />
-                      <span className={`text-xs ${party.email ? 'text-stone-700' : 'text-stone-500'}`}>
-                        {ROLE_LABELS[party.role] ?? party.role} —{' '}
-                        {party.email ?? <span className="italic text-amber-600">{t('transaction.acceptOffer.missingEmail')}</span>}
-                      </span>
-                    </div>
+          )}
+
+          {/* ── BODY (two-column) ── */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 min-h-0 flex-1 overflow-y-auto">
+            {/* ═══ LEFT COLUMN — FORM ═══ */}
+            <div className="px-5 sm:px-6 py-5 space-y-3.5 overflow-y-auto">
+              {/* Type segmented */}
+              <div>
+                <label className="block text-[11px] font-semibold text-stone-600 mb-1.5">
+                  {t('addOffer.typeLabel')}
+                </label>
+                <div className="inline-flex rounded-lg border border-stone-200 bg-stone-100 p-[3px] gap-[2px]">
+                  <button
+                    type="button"
+                    onClick={() => setOfferType('offer')}
+                    className={`px-4 py-1.5 rounded-md text-[11px] font-medium transition-all ${
+                      offerType === 'offer'
+                        ? 'bg-white text-[#1e3a5f] shadow-sm'
+                        : 'text-stone-500 hover:text-stone-700'
+                    }`}
+                  >
+                    {t('addOffer.typeOffer')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setOfferType('counter')}
+                    className={`px-4 py-1.5 rounded-md text-[11px] font-medium transition-all ${
+                      offerType === 'counter'
+                        ? 'bg-white text-[#1e3a5f] shadow-sm'
+                        : 'text-stone-500 hover:text-stone-700'
+                    }`}
+                  >
+                    {t('addOffer.typeCounter')}
+                  </button>
+                </div>
+              </div>
+
+              {/* Montant offert */}
+              <div>
+                <label className="block text-[11px] font-semibold text-stone-600 mb-1.5">
+                  {t('addOffer.amountLabel')} <span className="text-red-400">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={price}
+                  onChange={e => setPrice(e.target.value)}
+                  placeholder={t('addOffer.amountPlaceholder')}
+                  className={inputClass('price')}
+                />
+                {listPrice > 0 && (
+                  <p className="text-[10px] text-stone-400 mt-1">
+                    {t('addOffer.askingPriceHint', { price: `${formatCAD(listPrice)} $` })}
+                  </p>
+                )}
+                {fieldError('price')}
+              </div>
+
+              {/* Dépôt + Date limite dépôt */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div>
+                  <label className="block text-[11px] font-semibold text-stone-600 mb-1.5">
+                    {t('addOffer.depositLabel')}
+                  </label>
+                  <input
+                    type="text"
+                    value={deposit}
+                    onChange={e => setDeposit(e.target.value)}
+                    placeholder={t('addOffer.depositPlaceholder')}
+                    className={inputClass('deposit')}
+                  />
+                  {fieldError('deposit')}
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-stone-600 mb-1.5">
+                    {t('addOffer.depositDeadlineLabel')}
+                  </label>
+                  <input
+                    type="date"
+                    value={depositDeadline}
+                    onChange={e => setDepositDeadline(e.target.value)}
+                    className={inputClass('')}
+                  />
+                </div>
+              </div>
+
+              {/* Date de clôture */}
+              <div>
+                <label className="block text-[11px] font-semibold text-stone-600 mb-1.5">
+                  {t('addOffer.closingDateLabel')}
+                </label>
+                <input
+                  type="date"
+                  value={closingDate}
+                  onChange={e => setClosingDate(e.target.value)}
+                  className={inputClass('closingDate')}
+                />
+                {fieldError('closingDate')}
+              </div>
+
+              {/* Expiration pills */}
+              <div>
+                <label className="block text-[11px] font-semibold text-stone-600 mb-1.5">
+                  {t('addOffer.expirationLabel')} <span className="text-red-400">*</span>
+                </label>
+                <div className="flex flex-wrap gap-1.5">
+                  {EXPIRY_OPTIONS.map(opt => (
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={() => setExpiryOption(opt)}
+                      className={`px-3.5 py-1.5 rounded-[20px] text-[11px] font-medium border transition-colors ${
+                        expiryOption === opt
+                          ? 'bg-[#1e3a5f] text-white border-[#1e3a5f]'
+                          : 'bg-white text-stone-600 border-stone-300 hover:border-[#1e3a5f] hover:text-[#1e3a5f]'
+                      }`}
+                    >
+                      {opt === '24h' ? t('addOffer.exp24h') :
+                       opt === '48h' ? t('addOffer.exp48h') :
+                       opt === '7d' ? t('addOffer.exp7d') :
+                       t('addOffer.expCustom')}
+                    </button>
                   ))}
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setShowEmailPreview(!showEmailPreview)}
-                  className="text-xs text-primary hover:text-primary/80 font-medium flex items-center gap-1 mt-1"
-                >
-                  <Eye className="w-3.5 h-3.5" />
-                  {showEmailPreview ? t('transaction.createOffer.hidePreview') : t('transaction.acceptOffer.previewEmail')}
-                </button>
+                {expiryOption === 'custom' && (
+                  <input
+                    type="date"
+                    value={customExpiry}
+                    onChange={e => setCustomExpiry(e.target.value)}
+                    className={`mt-2 ${inputClass('')}`}
+                  />
+                )}
+                {fieldError('expiry')}
+              </div>
 
-                {/* Email preview */}
-                {showEmailPreview && (
-                  <div className="mt-2 rounded-lg border border-stone-200 bg-white overflow-hidden">
-                    {/* Email header */}
-                    <div className="px-3 py-2 bg-stone-50 border-b border-stone-100 space-y-1">
-                      <div className="flex items-center gap-2 text-[10px]">
-                        <span className="font-semibold text-stone-500 uppercase w-8 shrink-0">{t('transaction.createOffer.emailPreview.from')}</span>
-                        <span className="text-stone-700">Ofra &lt;noreply@ofra.ca&gt;</span>
-                      </div>
-                      <div className="flex items-start gap-2 text-[10px]">
-                        <span className="font-semibold text-stone-500 uppercase w-8 shrink-0">{t('transaction.createOffer.emailPreview.to')}</span>
-                        <span className="text-stone-700">
-                          {[
-                            clientEmail ? `${transaction.client?.fullName ?? t('transaction.acceptOffer.buyerLabel')} <${clientEmail}>` : null,
-                            ...parties.filter((p) => p.email).map((p) => `${p.fullName} <${p.email}>`),
-                          ].filter(Boolean).join(', ') || t('transaction.createOffer.emailPreview.noRecipients')}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2 text-[10px]">
-                        <span className="font-semibold text-stone-500 uppercase w-8 shrink-0">{t('transaction.createOffer.emailPreview.subject')}</span>
-                        <span className="text-stone-700 font-medium">
-                          {isCounter
-                            ? t('transaction.createOffer.emailPreview.subjectCounter', { price: formatCAD(priceNum), address: transaction.property?.address ?? '' })
-                            : t('transaction.createOffer.emailPreview.subjectNew', { price: formatCAD(priceNum), address: transaction.property?.address ?? '' })
-                          }
-                        </span>
-                      </div>
+              {/* Financement toggle */}
+              <div>
+                <div className="flex items-center justify-between">
+                  <label className="text-[11px] font-semibold text-stone-600">
+                    {t('addOffer.financingLabel')}
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setFinancingEnabled(!financingEnabled)}
+                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                      financingEnabled ? 'bg-[#1e3a5f]' : 'bg-stone-300'
+                    }`}
+                  >
+                    <span className={`inline-block h-4 w-4 rounded-full bg-white shadow transition-transform ${
+                      financingEnabled ? 'translate-x-[16px]' : 'translate-x-[2px]'
+                    }`} />
+                  </button>
+                </div>
+                <div
+                  className="overflow-hidden transition-all duration-250"
+                  style={{ maxHeight: financingEnabled ? 80 : 0 }}
+                >
+                  <input
+                    type="text"
+                    value={financingAmount}
+                    onChange={e => setFinancingAmount(e.target.value)}
+                    placeholder={t('addOffer.financingPlaceholder')}
+                    className={`mt-2 ${inputClass('financing')}`}
+                  />
+                  {fieldError('financing')}
+                </div>
+              </div>
+
+              {/* Inspection toggle */}
+              <div>
+                <div className="flex items-center justify-between">
+                  <label className="text-[11px] font-semibold text-stone-600">
+                    {t('addOffer.inspectionLabel')}
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setInspectionEnabled(!inspectionEnabled)}
+                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                      inspectionEnabled ? 'bg-[#1e3a5f]' : 'bg-stone-300'
+                    }`}
+                  >
+                    <span className={`inline-block h-4 w-4 rounded-full bg-white shadow transition-transform ${
+                      inspectionEnabled ? 'translate-x-[16px]' : 'translate-x-[2px]'
+                    }`} />
+                  </button>
+                </div>
+                <div
+                  className="overflow-hidden transition-all duration-250"
+                  style={{ maxHeight: inspectionEnabled ? 80 : 0 }}
+                >
+                  <input
+                    type="text"
+                    value={inspectionDelay}
+                    onChange={e => setInspectionDelay(e.target.value)}
+                    placeholder={t('addOffer.inspectionPlaceholder')}
+                    className={`mt-2 ${inputClass('')}`}
+                  />
+                </div>
+              </div>
+
+              {/* Inclusions / Exclusions */}
+              <div>
+                <label className="block text-[11px] font-semibold text-stone-600 mb-1.5">
+                  {t('addOffer.inclusionsLabel')}
+                </label>
+                <textarea
+                  value={inclusions}
+                  onChange={e => setInclusions(e.target.value)}
+                  placeholder={t('addOffer.inclusionsPlaceholder')}
+                  className={`${inputClass('')} resize-y`}
+                  style={{ minHeight: 60 }}
+                />
+              </div>
+
+              {/* Message */}
+              <div>
+                <label className="block text-[11px] font-semibold text-stone-600 mb-1.5">
+                  {t('addOffer.messageLabel')}{' '}
+                  <span className="font-normal text-stone-400">({t('addOffer.messageOptional')})</span>
+                </label>
+                <textarea
+                  value={message}
+                  onChange={e => setMessage(e.target.value)}
+                  placeholder={t('addOffer.messagePlaceholder')}
+                  className={`${inputClass('')} resize-y`}
+                  style={{ minHeight: 60 }}
+                />
+              </div>
+
+              {/* ── Summary card ── */}
+              <div className="rounded-lg border border-stone-200 bg-stone-50 p-3 mt-4 space-y-1">
+                <div className="flex justify-between text-[11px] py-1">
+                  <span className="text-stone-500">{t('addOffer.summaryAskingPrice')}</span>
+                  <span className="font-medium text-stone-900">{listPrice > 0 ? `${formatCAD(listPrice)} $` : '—'}</span>
+                </div>
+                <div className="flex justify-between text-[11px] py-1">
+                  <span className="text-stone-500">{t('addOffer.summaryOffered')}</span>
+                  <span className={`font-medium ${priceNum > 0 ? 'text-stone-900' : 'text-stone-400'}`}>
+                    {priceNum > 0 ? `${formatCAD(priceNum)} $` : '—'}
+                  </span>
+                </div>
+                <div className="border-t border-dashed border-stone-200 my-1" />
+                <div className="flex justify-between text-[11px] py-1">
+                  <span className="text-stone-500">{t('addOffer.summaryDiff')}</span>
+                  <span className={`font-bold ${
+                    diff === null ? 'text-stone-400' :
+                    diff > 0 ? 'text-[#059669]' :
+                    diff < 0 ? 'text-[#e07a2f]' : 'text-stone-500'
+                  }`}>
+                    {diff === null ? '—' : `${diff > 0 ? '+' : ''}${formatCAD(diff)} $`}
+                  </span>
+                </div>
+                <div className="flex justify-between text-[11px] py-1">
+                  <span className="text-stone-500">{t('addOffer.summaryExpiration')}</span>
+                  <span className="font-medium text-stone-900">{expiryLabel}</span>
+                </div>
+                <div className="flex justify-between text-[11px] py-1">
+                  <span className="text-stone-500">{t('addOffer.summaryConditions')}</span>
+                  <span className="font-medium text-stone-900">{packTemplates.length}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* ═══ RIGHT COLUMN — PACKS ═══ */}
+            <div className="border-t sm:border-t-0 sm:border-l border-stone-200 bg-stone-50 px-5 sm:px-6 py-5 space-y-4 overflow-y-auto">
+              {/* Mobile accordion toggle */}
+              <button
+                type="button"
+                onClick={() => setAccordionOpen(!accordionOpen)}
+                className="flex sm:hidden items-center justify-between w-full py-2.5 border-t border-stone-200"
+              >
+                <span className="text-[11px] uppercase font-semibold text-stone-700">
+                  {t('addOffer.accordionConditions')}
+                </span>
+                <ChevronDown className={`w-3.5 h-3.5 text-stone-500 transition-transform ${accordionOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              <div className={`${accordionOpen ? 'block' : 'hidden'} sm:block space-y-4`}>
+                {/* Pack recommandé card */}
+                {recommendedPack && !packLoaded && (
+                  <div className="flex items-center gap-2.5 p-3 rounded-lg border border-stone-200 bg-white">
+                    <div className="w-9 h-9 rounded-lg bg-[rgba(30,58,95,.08)] flex items-center justify-center shrink-0">
+                      <Package className="w-[18px] h-[18px] text-[#1e3a5f]" strokeWidth={2} />
                     </div>
-                    {/* Email body */}
-                    <div className="px-3 py-3 text-xs text-stone-700 space-y-2">
-                      <p>{t('transaction.createOffer.emailPreview.greeting')}</p>
-                      <p>
-                        {isCounter
-                          ? t('transaction.createOffer.emailPreview.bodyCounter', { price: formatCAD(priceNum), address: transaction.property?.address ?? '—' })
-                          : t('transaction.createOffer.emailPreview.bodyNew', { price: formatCAD(priceNum), address: transaction.property?.address ?? '—' })
-                        }
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-stone-900">{packLabel(recommendedPack)}</p>
+                      <span className="text-[10px] text-stone-400">
+                        {t('addOffer.conditionsInfo', { count: recommendedPack.templateCount, tags: recommendedPack.description || '' })}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleLoadPack(recommendedPack.packType)}
+                      disabled={loadingPack}
+                      className="px-3.5 py-1.5 rounded-md bg-[#1e3a5f] hover:bg-[#16304d] text-white text-[11px] font-semibold shrink-0 disabled:opacity-50"
+                    >
+                      {loadingPack ? '...' : t('addOffer.loadPack')}
+                    </button>
+                  </div>
+                )}
+
+                {/* Pack loaded card */}
+                {packLoaded && selectedPackData && (
+                  <div className="flex items-center gap-2.5 p-3 rounded-lg border border-[#059669] bg-[#f0fdf4]">
+                    <div className="w-9 h-9 rounded-lg bg-[rgba(5,150,105,.1)] flex items-center justify-center shrink-0">
+                      <Check className="w-[18px] h-[18px] text-[#059669]" strokeWidth={2} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-[#059669]">
+                        {t('addOffer.packLoadedLabel', { name: packLabel(selectedPackData) })}
                       </p>
-                      <div className="rounded bg-stone-50 border border-stone-100 p-2 space-y-0.5">
-                        <div className="flex justify-between">
-                          <span className="text-stone-500">{t('transaction.createOffer.priceLabel')}</span>
-                          <span className="font-semibold">{formatCAD(priceNum)} $</span>
-                        </div>
-                        {depositNum > 0 && (
-                          <div className="flex justify-between">
-                            <span className="text-stone-500">{t('transaction.createOffer.depositLabel')}</span>
-                            <span className="font-semibold">{formatCAD(depositNum)} $</span>
-                          </div>
-                        )}
-                        {financingNum > 0 && (
-                          <div className="flex justify-between">
-                            <span className="text-stone-500">{t('transaction.createOffer.financingLabel')}</span>
-                            <span className="font-semibold">{formatCAD(financingNum)} $</span>
-                          </div>
-                        )}
-                        {expiryDate && (
-                          <div className="flex justify-between">
-                            <span className="text-stone-500">{t('transaction.createOffer.expiryLabel')}</span>
-                            <span className="font-semibold">{formatDate(expiryDate, 'd MMM yyyy')}</span>
-                          </div>
-                        )}
-                      </div>
-                      <p className="text-stone-500 italic text-[10px]">{t('transaction.createOffer.emailPreview.footer')}</p>
+                      <span className="text-[10px] text-[#059669]/70">
+                        {t('addOffer.packConditionsApplied', { count: packTemplates.length })}
+                      </span>
                     </div>
                   </div>
                 )}
+
+                {/* Packs chips */}
+                <div>
+                  <h3 className="text-[10px] uppercase font-bold text-stone-500 mb-2 tracking-wide">
+                    {t('addOffer.packsTitle')}
+                  </h3>
+                  <div className="flex flex-wrap gap-1.5">
+                    {packs.map(pack => (
+                      <button
+                        key={pack.packType}
+                        type="button"
+                        onClick={() => handleLoadPack(pack.packType)}
+                        disabled={loadingPack}
+                        className={`px-3 py-[5px] rounded-2xl text-[11px] font-medium border transition-colors ${
+                          selectedPackType === pack.packType
+                            ? 'bg-[#1e3a5f] text-white border-[#1e3a5f]'
+                            : 'bg-white text-stone-600 border-stone-200 hover:border-[#1e3a5f] hover:text-[#1e3a5f]'
+                        }`}
+                      >
+                        {packLabel(pack)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Conditions list */}
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <h3 className="text-[10px] uppercase font-bold text-stone-500 tracking-wide">
+                      {t('addOffer.conditionsTitle')}
+                    </h3>
+                    {packTemplates.length > 0 && (
+                      <span className="px-1.5 py-0.5 rounded-full bg-[#1e3a5f] text-white text-[10px] font-bold">
+                        {packTemplates.length}
+                      </span>
+                    )}
+                  </div>
+
+                  {packTemplates.length === 0 ? (
+                    /* Empty state */
+                    <div className="text-center py-6">
+                      <ClipboardList className="w-8 h-8 text-stone-300 mx-auto mb-3" strokeWidth={1.5} />
+                      <p className="text-xs text-stone-400">
+                        {t('addOffer.conditionsEmpty')}
+                      </p>
+                    </div>
+                  ) : (
+                    /* Conditions list */
+                    <div className="flex flex-col gap-1.5">
+                      {packTemplates.map(tpl => (
+                        <div
+                          key={tpl.id}
+                          className="flex items-center justify-between gap-2 px-2.5 py-2 rounded-lg border border-stone-200 bg-white"
+                        >
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs font-medium text-stone-900 truncate">
+                              {i18n.language === 'en' && tpl.titleEn ? tpl.titleEn : tpl.title}
+                            </p>
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              <span className="px-[7px] py-px rounded-full text-[9px] font-bold uppercase bg-[rgba(224,122,47,.1)] text-[#e07a2f]">
+                                {t('addOffer.badgePack')}
+                              </span>
+                              {tpl.conditionType && (
+                                <span className={`px-[7px] py-px rounded-full text-[9px] font-bold uppercase ${
+                                  BADGE_COLORS[tpl.conditionType] || 'bg-stone-100 text-stone-500'
+                                }`}>
+                                  {tpl.conditionType}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <span className="px-[7px] py-px rounded-full text-[9px] font-bold uppercase bg-[#d1fae5] text-[#059669] shrink-0">
+                            {t('addOffer.badgeActive')}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Manage link */}
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/transactions/${transaction.id}`)}
+                    className="flex items-center gap-1.5 text-[11px] text-[#1e3a5f] hover:underline font-medium mt-3"
+                  >
+                    {t('addOffer.conditionsManageLink')}
+                    <ArrowRight className="w-3 h-3" />
+                  </button>
+                </div>
               </div>
-            )}
+            </div>
           </div>
 
-          {/* Info mention */}
-          <p className="text-[10px] text-stone-400 italic flex items-center gap-1">
-            <Info className="w-3 h-3 shrink-0" />
-            {t('transaction.createOffer.infoMention')}
-          </p>
-        </div>
+          {/* ── FOOTER ── */}
+          <div className="px-5 sm:px-6 py-4 border-t border-stone-200 bg-stone-50 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shrink-0 rounded-b-none sm:rounded-b-2xl">
+            {/* Email checkbox */}
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={emailNotify}
+                onChange={e => setEmailNotify(e.target.checked)}
+                className="w-3.5 h-3.5 rounded border-stone-300 accent-[#1e3a5f]"
+              />
+              <span className="text-[11px] font-semibold text-stone-600">{t('addOffer.emailNotify')}</span>
+            </label>
 
-        {/* Footer */}
-        <div className="px-5 sm:px-6 py-4 bg-stone-50 border-t border-stone-100 flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-2 sm:justify-end">
-          <button
-            onClick={handleClose}
-            className="px-4 py-2.5 rounded-lg border border-stone-200 text-stone-600 hover:bg-stone-100 text-sm font-medium text-center"
-          >
-            {t('transaction.acceptOffer.cancel')}
-          </button>
-          <button
-            onClick={() => setStep('confirm')}
-            disabled={!isFormValid}
-            className="px-6 py-2.5 rounded-lg bg-primary hover:bg-primary/90 text-white text-sm font-semibold shadow-sm flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <FileText className="w-4 h-4" />
-            {t('transaction.createOffer.createButton')}
-          </button>
+            {/* Buttons */}
+            <div className="flex gap-2 sm:ml-auto">
+              <button
+                type="button"
+                onClick={handleClose}
+                className="flex-1 sm:flex-none px-4.5 py-2 rounded-lg border border-stone-300 bg-white text-stone-600 hover:bg-stone-50 text-xs font-semibold"
+              >
+                {t('addOffer.cancel')}
+              </button>
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={createMutation.isPending}
+                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4.5 py-2 rounded-lg bg-[#1e3a5f] hover:bg-[#16304d] text-white text-xs font-semibold disabled:bg-stone-300 disabled:cursor-not-allowed"
+              >
+                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="19" x2="12" y2="5" /><polyline points="5 12 12 5 19 12" />
+                </svg>
+                {createMutation.isPending ? '...' : t('addOffer.submit')}
+              </button>
+            </div>
+          </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>,
+    document.body,
   )
 }
