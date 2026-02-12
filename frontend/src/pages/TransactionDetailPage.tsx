@@ -118,7 +118,7 @@ export default function TransactionDetailPage() {
       <TransactionHeader
         transaction={transaction}
         onOpenEdit={() => navigate(`/transactions/${transaction.id}/edit`)}
-        onOpenMembers={() => setMembersOpen(true)}
+        onOpenMembers={() => navigate(`/transactions/${transaction.id}/access`)}
         onOpenParties={() => setPartiesOpen(true)}
         onOpenExport={() => navigate(`/transactions/${transaction.id}/export`)}
       />

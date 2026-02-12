@@ -429,7 +429,28 @@
     "checkYourEmail": "Vérifiez vos courriels",
     "resetEmailSent": "Si un compte existe avec ce courriel, vous recevrez un lien de réinitialisation sous peu.",
     "backToLogin": "Retour à la connexion",
-    "forgotPasswordFailed": "Échec de l'envoi du courriel. Veuillez réessayer."
+    "forgotPasswordFailed": "Échec de l'envoi du courriel. Veuillez réessayer.",
+    "adminOnly": "Accès réservé aux administrateurs.",
+    "adminPanel": "Administration",
+    "phone": "Téléphone",
+    "address": "Adresse",
+    "city": "Ville",
+    "province": "Province",
+    "emailNotVerified": "Veuillez vérifier votre adresse courriel avant de vous connecter. Consultez votre boîte de réception."
+  },
+  "verify": {
+    "loading": "Vérification en cours...",
+    "successTitle": "Courriel confirmé!",
+    "successDesc": "Votre adresse courriel a été vérifiée avec succès. Vous pouvez maintenant vous connecter.",
+    "errorTitle": "Lien invalide ou expiré",
+    "errorDesc": "Ce lien de vérification est invalide ou a expiré. Veuillez vous inscrire à nouveau.",
+    "tryAgain": "S'inscrire à nouveau",
+    "checkEmail": "Vérifiez votre courriel",
+    "checkEmailDesc": "Un courriel de vérification a été envoyé. Cliquez sur le lien dans le courriel pour activer votre compte."
+  },
+  "register": {
+    "heroTagline": "Le premier gestionnaire transactionnel du Nouveau-Brunswick",
+    "heroOrigin": "Entreprise 100% néo-brunswickoise"
   },
   "tabs": {
     "conditions": "Conditions",
@@ -1508,7 +1529,11 @@
       "subtitle": "Essayez gratuitement. Aucun engagement, annulez en tout temps.",
       "button": "Créer mon compte gratuitement",
       "start": "Commencer"
-    }
+    },
+    "selectPlan": "Choisir ce forfait",
+    "currentPlan": "Forfait actuel",
+    "downgradeBlocked": "Archivez {{count}} transaction(s) d'abord.",
+    "planChanged": "Forfait changé avec succès!"
   },
   "csvImport": {
     "button": "Importer",
@@ -1770,7 +1795,9 @@
       "infoMaxSize": "Taille max",
       "infoTip": "Conseil",
       "infoTipText": "nommez vos fichiers clairement"
-    }
+    },
+    "storageFull": "Stockage plein",
+    "storageFullDesc": "Vous avez utilisé {{used}} Go sur {{max}} Go. Supprimez des fichiers ou passez au forfait supérieur."
   },
   "members": {
     "title": "Permissions & Rôles",
@@ -1798,7 +1825,10 @@
       "active": "Actif",
       "pending": "En attente",
       "revoked": "Révoqué"
-    }
+    },
+    "maxReached": "Limite de collaborateurs atteinte",
+    "maxReachedDesc": "Votre forfait permet {{max}} collaborateur(s). Passez au forfait supérieur.",
+    "alreadyInvited": "Déjà invité"
   },
   "export": {
     "title": "Exporter & Partager",
@@ -1909,6 +1939,67 @@
     "passwordPlaceholder": "Laisser vide si pas de mot de passe",
     "passwordProtected": "Protégé",
     "views": "vue(s)"
+  },
+  "permissionsPage": {
+    "title": "Accès & Permissions",
+    "active": "Active",
+    "membersCount": "membres",
+    "invite": "Inviter",
+    "accessLabel": "Accès à la transaction",
+    "you": "vous",
+    "statusActive": "Actif",
+    "cannotModifyOwner": "Impossible de modifier le Owner",
+    "inviteSentAgo": "Invitation envoyée il y a 2 jours",
+    "resend": "Renvoyer",
+    "publicLink": "Lien public",
+    "publicLinkSub": "Accès sans compte · Configurable via Exporter & Partager",
+    "noActiveLink": "Aucun lien actif. Activez pour configurer rôle, expiration et mot de passe.",
+    "matrixTitle": "Matrice des permissions",
+    "activityLog": "Journal des accès (récent)",
+    "inviteTitle": "Inviter un collaborateur",
+    "inviteSubtitle": "Donner accès à cette transaction",
+    "emailLabel": "Courriel",
+    "roleViewer": "Lecture seule",
+    "roleEditor": "Modifier",
+    "roleAdmin": "Gérer",
+    "inviteSentTitle": "Invitation envoyée",
+    "inviteSentSubtitle": "Un courriel a été envoyé à l'adresse indiquée",
+    "inviteSentHint": "L'utilisateur apparaîtra dans la liste une fois qu'il aura accepté l'invitation.",
+    "status": "Statut",
+    "removeTitle": "Retirer l'accès",
+    "removeReversible": "Cette action est réversible",
+    "removeWarning": "Vous êtes sur le point de retirer l'accès de {{name}} ({{role}}) à cette transaction. Elle ne pourra plus consulter ni modifier les données.",
+    "removeConfirm": "Je confirme vouloir retirer cet accès",
+    "removeAccess": "Retirer l'accès",
+    "errorTitle": "Permission insuffisante",
+    "errorSubtitle": "Action non autorisée",
+    "errorMessage": "Seul le Owner peut transférer la propriété de la transaction. Vous êtes actuellement {{yourRole}}.",
+    "yourRole": "Votre rôle",
+    "requiredRole": "Rôle requis",
+    "currentOwner": "Owner actuel",
+    "requestAccess": "Demander l'accès au Owner",
+    "wasRole": "était {{role}}",
+    "toast": {
+      "roleChanged": "Rôle de {{name}} modifié → {{role}}"
+    },
+    "activity": {
+      "roleChanged": "{{user}} a modifié le rôle de {{target}} : {{oldRole}} → {{newRole}}",
+      "invited": "{{user}} a invité {{email}} en tant que {{role}}",
+      "removed": "{{user}} a retiré l'accès de {{target}}",
+      "minutesAgo": "Il y a {{count}} minute(s)",
+      "hoursAgo": "Il y a {{count}} heure(s)",
+      "daysAgo": "Il y a {{count}} jour(s)"
+    },
+    "matrix": {
+      "action": "Action",
+      "viewTransaction": "Voir la transaction",
+      "editOffers": "Modifier offres / conditions",
+      "manageDocuments": "Gérer documents",
+      "cancelArchive": "Annuler / Archiver",
+      "manageAccess": "Gérer les accès",
+      "deleteTransaction": "Supprimer la transaction",
+      "transferOwnership": "Transférer la propriété"
+    }
   },
   "parties": {
     "title": "Parties de la transaction",

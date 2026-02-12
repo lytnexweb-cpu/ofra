@@ -429,7 +429,28 @@
     "checkYourEmail": "Check your email",
     "resetEmailSent": "If an account exists with this email, you will receive a password reset link shortly.",
     "backToLogin": "Back to login",
-    "forgotPasswordFailed": "Failed to send reset email. Please try again."
+    "forgotPasswordFailed": "Failed to send reset email. Please try again.",
+    "adminOnly": "Access restricted to administrators.",
+    "adminPanel": "Administration",
+    "phone": "Phone",
+    "address": "Address",
+    "city": "City",
+    "province": "Province",
+    "emailNotVerified": "Please verify your email address before logging in. Check your inbox."
+  },
+  "verify": {
+    "loading": "Verifying...",
+    "successTitle": "Email confirmed!",
+    "successDesc": "Your email address has been verified successfully. You can now sign in.",
+    "errorTitle": "Invalid or expired link",
+    "errorDesc": "This verification link is invalid or has expired. Please register again.",
+    "tryAgain": "Register again",
+    "checkEmail": "Check your email",
+    "checkEmailDesc": "A verification email has been sent. Click the link in the email to activate your account."
+  },
+  "register": {
+    "heroTagline": "New Brunswick's first transaction management platform",
+    "heroOrigin": "100% New Brunswick company"
   },
   "tabs": {
     "conditions": "Conditions",
@@ -1508,7 +1529,11 @@
       "subtitle": "Try for free. No commitment, cancel anytime.",
       "button": "Create my free account",
       "start": "Start"
-    }
+    },
+    "selectPlan": "Select this plan",
+    "currentPlan": "Current plan",
+    "downgradeBlocked": "Archive {{count}} transaction(s) first.",
+    "planChanged": "Plan changed successfully!"
   },
   "csvImport": {
     "button": "Import",
@@ -1770,7 +1795,9 @@
       "infoMaxSize": "Max size",
       "infoTip": "Tip",
       "infoTipText": "name your files clearly"
-    }
+    },
+    "storageFull": "Storage full",
+    "storageFullDesc": "You have used {{used}} GB of {{max}} GB. Delete files or upgrade your plan."
   },
   "members": {
     "title": "Permissions & Roles",
@@ -1798,7 +1825,10 @@
       "active": "Active",
       "pending": "Pending",
       "revoked": "Revoked"
-    }
+    },
+    "maxReached": "Member limit reached",
+    "maxReachedDesc": "Your plan allows {{max}} team member(s). Upgrade to add more.",
+    "alreadyInvited": "Already invited"
   },
   "export": {
     "title": "Export & Share",
@@ -1909,6 +1939,67 @@
     "passwordPlaceholder": "Leave empty for no password",
     "passwordProtected": "Protected",
     "views": "view(s)"
+  },
+  "permissionsPage": {
+    "title": "Access & Permissions",
+    "active": "Active",
+    "membersCount": "members",
+    "invite": "Invite",
+    "accessLabel": "Transaction access",
+    "you": "you",
+    "statusActive": "Active",
+    "cannotModifyOwner": "Cannot modify the Owner",
+    "inviteSentAgo": "Invitation sent 2 days ago",
+    "resend": "Resend",
+    "publicLink": "Public link",
+    "publicLinkSub": "Access without account · Configurable via Export & Share",
+    "noActiveLink": "No active link. Enable to configure role, expiration and password.",
+    "matrixTitle": "Permissions matrix",
+    "activityLog": "Access log (recent)",
+    "inviteTitle": "Invite a collaborator",
+    "inviteSubtitle": "Grant access to this transaction",
+    "emailLabel": "Email",
+    "roleViewer": "Read only",
+    "roleEditor": "Edit",
+    "roleAdmin": "Manage",
+    "inviteSentTitle": "Invitation sent",
+    "inviteSentSubtitle": "An email has been sent to the specified address",
+    "inviteSentHint": "The user will appear in the list once they accept the invitation.",
+    "status": "Status",
+    "removeTitle": "Remove access",
+    "removeReversible": "This action is reversible",
+    "removeWarning": "You are about to remove access for {{name}} ({{role}}) to this transaction. They will no longer be able to view or edit data.",
+    "removeConfirm": "I confirm I want to remove this access",
+    "removeAccess": "Remove access",
+    "errorTitle": "Insufficient permission",
+    "errorSubtitle": "Unauthorized action",
+    "errorMessage": "Only the Owner can transfer transaction ownership. You are currently {{yourRole}}.",
+    "yourRole": "Your role",
+    "requiredRole": "Required role",
+    "currentOwner": "Current owner",
+    "requestAccess": "Request access from Owner",
+    "wasRole": "was {{role}}",
+    "toast": {
+      "roleChanged": "{{name}}'s role changed → {{role}}"
+    },
+    "activity": {
+      "roleChanged": "{{user}} changed the role of {{target}}: {{oldRole}} → {{newRole}}",
+      "invited": "{{user}} invited {{email}} as {{role}}",
+      "removed": "{{user}} removed access for {{target}}",
+      "minutesAgo": "{{count}} minute(s) ago",
+      "hoursAgo": "{{count}} hour(s) ago",
+      "daysAgo": "{{count}} day(s) ago"
+    },
+    "matrix": {
+      "action": "Action",
+      "viewTransaction": "View transaction",
+      "editOffers": "Edit offers / conditions",
+      "manageDocuments": "Manage documents",
+      "cancelArchive": "Cancel / Archive",
+      "manageAccess": "Manage access",
+      "deleteTransaction": "Delete transaction",
+      "transferOwnership": "Transfer ownership"
+    }
   },
   "parties": {
     "title": "Transaction Parties",

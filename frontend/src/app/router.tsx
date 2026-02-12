@@ -9,8 +9,10 @@ import PrivacyPage from '../pages/PrivacyPage'
 import TermsPage from '../pages/TermsPage'
 import ContactPage from '../pages/ContactPage'
 import LoginPage from '../pages/LoginPage'
+import AdminLoginPage from '../pages/AdminLoginPage'
 import RegisterPage from '../pages/RegisterPage'
 import ForgotPasswordPage from '../pages/ForgotPasswordPage'
+import VerifyEmailPage from '../pages/VerifyEmailPage'
 import OnboardingPage from '../pages/OnboardingPage'
 import DashboardPage from '../pages/DashboardPage'
 import ClientsPage from '../pages/ClientsPage'
@@ -19,6 +21,7 @@ import TransactionsPage from '../pages/TransactionsPage'
 import TransactionDetailPage from '../pages/TransactionDetailPage'
 import EditTransactionPage from '../pages/EditTransactionPage'
 import ExportSharePage from '../pages/ExportSharePage'
+import PermissionsPage from '../pages/PermissionsPage'
 import SettingsPage from '../pages/SettingsPage'
 import AccountPage from '../pages/AccountPage'
 import Layout from '../components/Layout'
@@ -86,7 +89,7 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (!data?.success) {
-    return <Navigate to="/login" replace />
+    return <Navigate to="/admin/login" replace />
   }
 
   const user = data.data?.user
@@ -129,6 +132,10 @@ export const router = createBrowserRouter([
   {
     path: '/forgot-password',
     element: <ForgotPasswordPage />,
+  },
+  {
+    path: '/verify-email',
+    element: <VerifyEmailPage />,
   },
   // D40: Onboarding route (protected but outside main layout)
   {
@@ -180,6 +187,10 @@ export const router = createBrowserRouter([
         element: <ExportSharePage />,
       },
       {
+        path: 'transactions/:id/access',
+        element: <PermissionsPage />,
+      },
+      {
         path: 'settings',
         element: <SettingsPage />,
       },
@@ -188,6 +199,10 @@ export const router = createBrowserRouter([
         element: <AccountPage />,
       },
     ],
+  },
+  {
+    path: '/admin/login',
+    element: <AdminLoginPage />,
   },
   // Admin routes
   {
