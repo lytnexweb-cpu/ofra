@@ -77,12 +77,28 @@
 - Navigation vers /export au lieu d'ouvrir Dialog
 - TypeScript compile ✅
 
+### Étape 9 : Audit conformité — 12 écarts corrigés ✅
+**Status** : ✅ Commit 9001817
+- Retrait ArrowLeft du bouton Retour (texte seul per maquette)
+- Label "RÔLE DU LIEN" uppercase au-dessus des radio cards
+- divide-stone-100 (pas 200) dans modal lien info
+- Padding chips email style inline 3px 10px
+- Placeholder email toujours visible (pas conditionnel)
+- Bouton "Prévisualiser l'email" avec Eye ajouté
+- Date expiration format français "7 jours (17 fév. 2026)"
+- Boutons contextuels erreur : PDF (Réessayer sans docs + Upgrade), Email (Corriger adresse), Permission (accent Voir plans)
+- Mobile bottom sheet (items-end + rounded-t-2xl + max-h-[92vh]) sur 5 modales (B-F)
+- Drag handle mobile (w-8 h-1 bg-stone-300) sur 5 modales
+- Nettoyage imports inutilisés (ArrowLeft, Shield)
+- 6 clés i18n ajoutées FR/EN (roleLabel, preview, errors.*)
+
 ## Commits
 | # | Hash | Description |
 |---|------|-------------|
 | 1 | 8c6cf3d | Étapes 1-8 : page complète + fix bugs + i18n |
+| 2 | 9001817 | Étape 9 : audit conformité — 12 écarts corrigés |
 
-## Status final : MAQUETTE 10 — IMPLÉMENTÉE ✅
+## Status final : MAQUETTE 10 — CONFORME 100% ✅
 
 ## Design tokens
 - Primary : `#1e3a5f`
