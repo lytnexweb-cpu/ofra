@@ -195,14 +195,29 @@ export default class TransactionsController {
 
       const payload = await request.validateUsing(updateTransactionValidator)
 
-      // Extract date strings and convert to DateTime before merge
-      const { closingDate, offerExpiryDate, inspectionDeadline, financingDeadline, ...rest } = payload
+      // M09: Extract property fields before merging into transaction
+      const { closingDate, offerExpiryDate, inspectionDeadline, financingDeadline, address, city, postalCode, province, ...rest } = payload
       transaction.merge(rest)
       if (closingDate !== undefined) transaction.closingDate = closingDate ? DateTime.fromISO(closingDate) : null
       if (offerExpiryDate !== undefined) transaction.offerExpiryDate = offerExpiryDate ? DateTime.fromISO(offerExpiryDate) : null
       if (inspectionDeadline !== undefined) transaction.inspectionDeadline = inspectionDeadline ? DateTime.fromISO(inspectionDeadline) : null
       if (financingDeadline !== undefined) transaction.financingDeadline = financingDeadline ? DateTime.fromISO(financingDeadline) : null
       await transaction.save()
+
+      // M09: Update related property if property fields provided
+      const propertyFields = { address, city, postalCode, province }
+      const hasPropertyUpdate = Object.values(propertyFields).some((v) => v !== undefined)
+      if (hasPropertyUpdate && transaction.propertyId) {
+        const Property = (await import('#models/property')).default
+        const property = await Property.find(transaction.propertyId)
+        if (property) {
+          if (address !== undefined) property.address = address
+          if (city !== undefined) property.city = city
+          if (postalCode !== undefined) property.postalCode = postalCode
+          if (province !== undefined) property.province = province
+          await property.save()
+        }
+      }
 
       await transaction.load('client')
       if (transaction.propertyId) await transaction.load('property')

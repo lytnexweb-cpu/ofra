@@ -130,7 +130,6 @@ export interface UpdateTransactionRequest {
   city?: string
   postalCode?: string
   province?: string
-  mlsNumber?: string
 }
 
 export interface ActivityEntry {

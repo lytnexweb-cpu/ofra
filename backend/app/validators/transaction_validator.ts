@@ -44,5 +44,10 @@ export const updateTransactionValidator = vine.compile(
       'financing_refused', 'inspection_failed', 'buyer_withdrawal',
       'seller_withdrawal', 'deadline_expired', 'mutual_agreement', 'other',
     ]).optional(),
+    // M09: Property fields (inline update)
+    address: vine.string().trim().maxLength(500).optional(),
+    city: vine.string().trim().maxLength(200).optional(),
+    postalCode: vine.string().trim().maxLength(20).optional(),
+    province: vine.string().trim().maxLength(100).optional(),
   })
 )

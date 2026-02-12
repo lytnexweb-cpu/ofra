@@ -36,7 +36,6 @@ export default function EditTransactionModal({ isOpen, onClose, transaction }: E
     city: transaction.property?.city ?? '',
     postalCode: transaction.property?.postalCode ?? '',
     province: transaction.property?.province ?? '',
-    mlsNumber: transaction.property?.mlsNumber ?? '',
     tags: (transaction.tags ?? []).join(', '),
     language: transaction.language ?? 'fr',
     folderUrl: transaction.folderUrl ?? '',
@@ -57,8 +56,7 @@ export default function EditTransactionModal({ isOpen, onClose, transaction }: E
         city: transaction.property?.city ?? '',
         postalCode: transaction.property?.postalCode ?? '',
         province: transaction.property?.province ?? '',
-        mlsNumber: transaction.property?.mlsNumber ?? '',
-        tags: (transaction.tags ?? []).join(', '),
+            tags: (transaction.tags ?? []).join(', '),
         language: transaction.language ?? 'fr',
         folderUrl: transaction.folderUrl ?? '',
       })
@@ -109,7 +107,6 @@ export default function EditTransactionModal({ isOpen, onClose, transaction }: E
       city: formData.city || undefined,
       postalCode: formData.postalCode || undefined,
       province: formData.province || undefined,
-      mlsNumber: formData.mlsNumber || undefined,
       tags: tags.length > 0 ? tags : undefined,
       language: formData.language || undefined,
       folderUrl: formData.folderUrl || undefined,
@@ -309,17 +306,6 @@ export default function EditTransactionModal({ isOpen, onClose, transaction }: E
                   placeholder="NB"
                 />
               </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                {t('transaction.editModal.mlsNumber')}
-              </label>
-              <input
-                type="text"
-                value={formData.mlsNumber}
-                onChange={(e) => updateField('mlsNumber', e.target.value)}
-                className={inputClass}
-              />
             </div>
           </fieldset>
 

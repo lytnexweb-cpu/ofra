@@ -647,7 +647,6 @@
       "city": "Ville",
       "postalCode": "Code postal",
       "province": "Province",
-      "mlsNumber": "Numéro MLS",
       "other": "Autres",
       "tags": "Étiquettes",
       "tagsPlaceholder": "ex: urgente, VIP, premier achat",
