@@ -36,6 +36,18 @@ export default function ConditionsTab({ transaction, filterStepId }: ConditionsT
   // D41: Validation modal for blocking/required conditions
   const [validatingCondition, setValidatingCondition] = useState<Condition | null>(null)
 
+  // Compute step name for validation modal subtitle
+  const validatingStepName = useMemo(() => {
+    if (!validatingCondition) return undefined
+    const step = steps.find((s) => s.id === validatingCondition.transactionStepId)
+    if (!step) return undefined
+    const slug = step.workflowStep?.slug ?? ''
+    const name = slug
+      ? t(`workflow.steps.${slug}`, { defaultValue: step.workflowStep?.name ?? '' })
+      : step.workflowStep?.name ?? `Step ${step.stepOrder}`
+    return `${t('resolveCondition.stepPrefix', 'Étape')} ${step.stepOrder} — ${name}`
+  }, [validatingCondition, steps, t])
+
   // D32: Filter conditions by step if filterStepId is provided
   const allConditions = (transaction.conditions ?? []) as Condition[]
   const conditions = filterStepId != null
@@ -117,18 +129,16 @@ export default function ConditionsTab({ transaction, filterStepId }: ConditionsT
 
     // D41: Prevent unchecking blocking/required conditions (audit trail protection)
     if (isUncompleting && (level === 'blocking' || level === 'required')) {
-      // Silently ignore - these conditions are locked once completed
-      // User can see the condition is completed but can't undo it
       return
     }
 
-    // D41: For blocking/required conditions being completed, show validation modal
-    if (isCompleting && (level === 'blocking' || level === 'required')) {
+    // All conditions being completed show the validation modal
+    if (isCompleting) {
       setValidatingCondition(condition)
       return
     }
 
-    // For recommended conditions (both directions), use direct toggle
+    // Uncompleting recommended conditions uses direct toggle
     toggleMutation.mutate(condition)
   }, [togglingId, toggleMutation])
 
@@ -217,6 +227,7 @@ export default function ConditionsTab({ transaction, filterStepId }: ConditionsT
           onClose={() => setIsCreateModalOpen(false)}
           transactionId={transaction.id}
           currentStepOrder={transaction.currentStep?.stepOrder}
+          existingConditions={allConditions}
         />
       </div>
     )
@@ -280,6 +291,7 @@ export default function ConditionsTab({ transaction, filterStepId }: ConditionsT
         onClose={() => setIsCreateModalOpen(false)}
         transactionId={transaction.id}
         currentStepOrder={transaction.currentStep?.stepOrder}
+        existingConditions={allConditions}
       />
 
       {/* D38: Edit Condition Modal */}
@@ -297,6 +309,7 @@ export default function ConditionsTab({ transaction, filterStepId }: ConditionsT
           transactionId={transaction.id}
           isOpen={!!validatingCondition}
           onClose={() => setValidatingCondition(null)}
+          stepName={validatingStepName}
           onSuccess={() => {
             // Invalidate queries after successful validation
             queryClient.invalidateQueries({ queryKey: transactionKey })

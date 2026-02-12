@@ -1,11 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useParams, Link, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { transactionsApi } from '../api/transactions.api'
 import {
   TransactionHeader,
-  SuggestionsPanel,
   EditTransactionModal,
   MembersPanel,
   ExportSharePanel,
@@ -22,29 +21,14 @@ export default function TransactionDetailPage() {
   const { t } = useTranslation()
   const { id } = useParams<{ id: string }>()
   const transactionId = Number(id)
-  const [searchParams, setSearchParams] = useSearchParams()
+  const [searchParams] = useSearchParams()
   const highlightId = searchParams.get('highlight')
-
-  // E1 → C1: Auto-open suggestions panel from creation modal
-  const [suggestionsOpen, setSuggestionsOpen] = useState(false)
-  const closingDate = searchParams.get('closingDate')
 
   // D34: Maquettes 07-12 panel states
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [membersOpen, setMembersOpen] = useState(false)
   const [partiesOpen, setPartiesOpen] = useState(false)
   const [exportOpen, setExportOpen] = useState(false)
-
-  useEffect(() => {
-    if (searchParams.get('suggestions') === 'open') {
-      setSuggestionsOpen(true)
-      // Clean URL params after reading
-      const next = new URLSearchParams(searchParams)
-      next.delete('suggestions')
-      next.delete('closingDate')
-      setSearchParams(next, { replace: true })
-    }
-  }, [])
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['transaction', transactionId],
@@ -112,13 +96,6 @@ export default function TransactionDetailPage() {
       <VerticalTimeline
         transaction={transaction}
         highlightConditionId={highlightId}
-        onOpenSuggestions={() => setSuggestionsOpen(true)}
-      />
-      <SuggestionsPanel
-        isOpen={suggestionsOpen}
-        onClose={() => setSuggestionsOpen(false)}
-        transaction={transaction}
-        closingDate={closingDate}
       />
       <EditTransactionModal
         isOpen={editModalOpen}

@@ -1,23 +1,21 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Calendar, Loader2 } from 'lucide-react'
-import { conditionsApi, type Condition } from '../../api/conditions.api'
+import { Pencil, X, Calendar, Check } from 'lucide-react'
+import { conditionsApi, type Condition, type ConditionLevel } from '../../api/conditions.api'
 import { toast } from '../../hooks/use-toast'
-import { Button } from '../ui/Button'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '../ui/Dialog'
 
 interface EditConditionModalProps {
   condition: Condition | null
   transactionId: number
   isOpen: boolean
   onClose: () => void
+}
+
+const LEVEL_BADGE: Record<ConditionLevel, { classes: string }> = {
+  blocking: { classes: 'bg-red-100 text-red-700' },
+  required: { classes: 'bg-amber-100 text-amber-700' },
+  recommended: { classes: 'bg-emerald-100 text-emerald-700' },
 }
 
 export default function EditConditionModal({
@@ -29,14 +27,11 @@ export default function EditConditionModal({
   const { t, i18n } = useTranslation()
   const queryClient = useQueryClient()
 
-  // Form state
   const [dueDate, setDueDate] = useState('')
   const [description, setDescription] = useState('')
 
-  // Reset form when condition changes
   useEffect(() => {
     if (condition) {
-      // Format date for input (YYYY-MM-DD)
       const dateValue = condition.dueDate
         ? new Date(condition.dueDate).toISOString().split('T')[0]
         : ''
@@ -44,10 +39,6 @@ export default function EditConditionModal({
       setDescription(condition.description ?? '')
     }
   }, [condition])
-
-  const handleClose = () => {
-    onClose()
-  }
 
   const updateMutation = useMutation({
     mutationFn: () => {
@@ -64,117 +55,160 @@ export default function EditConditionModal({
           description: t('conditions.updateSuccess'),
           variant: 'success',
         })
-        // Invalidate relevant queries
         queryClient.invalidateQueries({ queryKey: ['transaction', transactionId] })
         queryClient.invalidateQueries({ queryKey: ['transactions'] })
         queryClient.invalidateQueries({ queryKey: ['advance-check', transactionId] })
-        handleClose()
+        onClose()
       }
     },
     onError: (error: any) => {
       const errorCode = error?.response?.data?.error?.code
-      if (errorCode === 'E_CONDITION_ARCHIVED') {
-        toast({
-          title: t('common.error'),
-          description: t('conditions.archivedError'),
-          variant: 'destructive',
-        })
-      } else {
-        toast({
-          title: t('common.error'),
-          description: t('conditions.updateError'),
-          variant: 'destructive',
-        })
-      }
+      toast({
+        title: t('common.error'),
+        description: errorCode === 'E_CONDITION_ARCHIVED'
+          ? t('conditions.archivedError')
+          : t('conditions.updateError'),
+        variant: 'destructive',
+      })
     },
   })
 
-  if (!condition) return null
+  const isLoading = updateMutation.isPending
 
-  // Get display label based on locale
+  const handleClose = useCallback(() => {
+    if (isLoading) return
+    onClose()
+  }, [isLoading, onClose])
+
+  if (!isOpen || !condition) return null
+
+  const level: ConditionLevel = condition.level || (condition.isBlocking ? 'blocking' : 'recommended')
+  const badgeConfig = LEVEL_BADGE[level]
+
   const conditionLabel =
     i18n.language.startsWith('fr') && condition.labelFr
       ? condition.labelFr
       : condition.labelEn ?? condition.title
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-primary" />
-            {t('conditions.editModal.title')}
-          </DialogTitle>
-        </DialogHeader>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={handleClose} />
 
-        <div className="space-y-4 py-2">
-          {/* Title (readonly) */}
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-muted-foreground">
-              {t('conditions.form.titleLabel')}
-            </label>
-            <div className="px-3 py-2 text-sm bg-muted rounded-md border">
-              {conditionLabel}
+      <div className="relative bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg mx-0 sm:mx-4 max-h-[92vh] sm:max-h-[calc(100%-2rem)] flex flex-col">
+        {/* Mobile drag handle */}
+        <div className="flex justify-center pt-2 pb-1 sm:hidden">
+          <div className="w-10 h-1 rounded-full bg-stone-300" />
+        </div>
+
+        {/* Header */}
+        <div className="px-5 sm:px-6 pt-5 sm:pt-6 pb-4 border-b border-stone-100">
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-[#1e3a5f]/10 flex items-center justify-center shrink-0">
+                <Pencil className="w-5 h-5 text-[#1e3a5f]" />
+              </div>
+              <div>
+                <h2 className="text-base sm:text-lg font-bold text-stone-900">
+                  {t('conditions.editModal.title')}
+                </h2>
+              </div>
             </div>
+            <button
+              onClick={handleClose}
+              className="p-1.5 rounded-lg hover:bg-stone-100 text-stone-400 -mt-1 -mr-1"
+              disabled={isLoading}
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Body */}
+        <div className="flex-1 overflow-y-auto min-h-0 px-5 sm:px-6 py-4 space-y-4">
+          {/* Condition info card (readonly) */}
+          <div className="rounded-lg bg-stone-50 border border-stone-200 p-3 sm:p-4">
+            <div className="flex items-center gap-2 flex-wrap mb-2">
+              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${badgeConfig.classes}`}>
+                {t(`resolveCondition.level.${level}`)}
+              </span>
+              {condition.templateId && (
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-stone-100 text-stone-400">
+                  {t('conditions.generated')}
+                </span>
+              )}
+            </div>
+            <h3 className="text-sm font-semibold text-stone-900">{conditionLabel}</h3>
           </div>
 
           {/* Due Date */}
-          <div className="space-y-1.5">
-            <label htmlFor="edit-dueDate" className="text-sm font-medium">
+          <div>
+            <label className="block text-xs font-semibold text-stone-600 mb-1.5 uppercase tracking-wide">
               {t('conditions.form.dueDate')}
             </label>
             <input
-              id="edit-dueDate"
               type="date"
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
-              className="w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 bg-background"
+              className="w-full px-3 py-2.5 text-sm rounded-lg border border-stone-200 focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]/20"
+              disabled={isLoading}
             />
           </div>
 
           {/* Description/Note */}
-          <div className="space-y-1.5">
-            <label htmlFor="edit-description" className="text-sm font-medium">
-              {t('conditions.form.description')}
+          <div>
+            <label className="block text-xs font-medium text-stone-600 mb-1">
+              {t('conditions.form.description')} <span className="text-stone-400">({t('resolveCondition.noteOptional', 'optionnel')})</span>
             </label>
             <textarea
-              id="edit-description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder={t('conditions.editModal.notePlaceholder')}
-              className="w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 bg-background resize-none"
-              rows={4}
+              className="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]/20 resize-none"
+              rows={3}
               maxLength={1000}
+              disabled={isLoading}
             />
-            <p className="text-xs text-muted-foreground text-right">
+            <p className="text-xs text-stone-400 text-right mt-1">
               {description.length}/1000
             </p>
           </div>
         </div>
 
-        <DialogFooter className="gap-2 sm:gap-0">
-          <Button
-            variant="outline"
+        {/* Footer */}
+        <div className="px-5 sm:px-6 py-4 bg-stone-50 border-t border-stone-100 flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-2 sm:justify-end">
+          <button
+            type="button"
             onClick={handleClose}
-            disabled={updateMutation.isPending}
+            disabled={isLoading}
+            className="px-4 py-2.5 rounded-lg border border-stone-200 text-stone-600 hover:bg-stone-100 text-sm font-medium text-center"
           >
             {t('common.cancel')}
-          </Button>
-          <Button
+          </button>
+          <button
+            type="button"
             onClick={() => updateMutation.mutate()}
-            disabled={updateMutation.isPending}
+            disabled={isLoading}
+            className={[
+              'px-6 py-2.5 rounded-lg text-sm font-semibold shadow-sm flex items-center justify-center gap-2',
+              !isLoading
+                ? 'bg-[#1e3a5f] hover:bg-[#1e3a5f]/90 text-white'
+                : 'bg-stone-300 text-stone-500 cursor-not-allowed',
+            ].join(' ')}
           >
-            {updateMutation.isPending ? (
+            {isLoading ? (
               <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                <span className="animate-spin w-4 h-4 border-2 border-white/30 border-t-white rounded-full inline-block" />
                 {t('common.loading')}
               </>
             ) : (
-              t('common.save')
+              <>
+                <Check className="w-4 h-4" />
+                {t('common.save')}
+              </>
             )}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          </button>
+        </div>
+      </div>
+    </div>
   )
 }

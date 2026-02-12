@@ -10,7 +10,6 @@ import {
   Plus,
   FileText,
   ExternalLink,
-  Sparkles,
   Shield,
   AlertTriangle,
   Lightbulb,
@@ -21,7 +20,6 @@ import type { Transaction, TransactionStep } from '../../api/transactions.api'
 import { conditionsApi, type Condition } from '../../api/conditions.api'
 import { toast } from '../../hooks/use-toast'
 import { differenceInDays, formatDate } from '../../lib/date'
-import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '../ui/Tooltip'
 import ConditionCard from './ConditionCard'
 import CreateConditionModal from '../CreateConditionModal'
 import EditConditionModal from './EditConditionModal'
@@ -33,7 +31,6 @@ import TimelineTab from './TimelineTab'
 interface VerticalTimelineProps {
   transaction: Transaction
   highlightConditionId?: string | null
-  onOpenSuggestions?: () => void
 }
 
 // --- Internal sub-components ---
@@ -118,7 +115,6 @@ function InlineDocuments({ conditions }: { conditions: Condition[] }) {
 export default function VerticalTimeline({
   transaction,
   highlightConditionId,
-  onOpenSuggestions,
 }: VerticalTimelineProps) {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
@@ -275,12 +271,13 @@ export default function VerticalTimeline({
       if (isUncompleting && (level === 'blocking' || level === 'required'))
         return
 
-      // D41: Show validation modal for completing blocking/required
-      if (isCompleting && (level === 'blocking' || level === 'required')) {
+      // All conditions being completed show the validation modal
+      if (isCompleting) {
         setValidatingCondition(condition)
         return
       }
 
+      // Uncompleting recommended conditions uses direct toggle
       toggleMutation.mutate(condition)
     },
     [togglingId, toggleMutation]
@@ -546,25 +543,6 @@ export default function VerticalTimeline({
                       <Plus className="w-3 h-3" />
                       {t('timeline.addCondition')}
                     </button>
-                    {onOpenSuggestions && (
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <button
-                              onClick={onOpenSuggestions}
-                              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-accent hover:bg-accent/5 rounded-lg border border-stone-200"
-                              data-testid="timeline-suggestions"
-                            >
-                              <Sparkles className="w-3 h-3" />
-                              {t('suggestions.openPanel')}
-                            </button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p className="text-xs">{t('actionZone.suggestionsTooltip')}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    )}
                   </div>
 
                   {/* Action Zone */}
@@ -653,6 +631,7 @@ export default function VerticalTimeline({
         onClose={() => setIsCreateModalOpen(false)}
         transactionId={transaction.id}
         currentStepOrder={transaction.currentStep?.stepOrder}
+        existingConditions={allConditions}
       />
 
       {/* Edit Condition Modal */}

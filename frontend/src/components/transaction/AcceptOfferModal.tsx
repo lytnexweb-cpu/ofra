@@ -15,6 +15,7 @@ import {
   X,
 } from 'lucide-react'
 import { offersApi } from '../../api/offers.api'
+import { toast } from '../../hooks/use-toast'
 import { partiesApi, type PartyRole } from '../../api/parties.api'
 import type { Offer, OfferRevision, Transaction } from '../../api/transactions.api'
 import {
@@ -111,6 +112,13 @@ export default function AcceptOfferModal({
         queryClient.invalidateQueries({ queryKey: ['conditions', 'active', transaction.id] }),
       ])
       setShowSuccess(true)
+    },
+    onError: (error: Error) => {
+      toast({
+        title: t('common.error'),
+        description: error.message,
+        variant: 'destructive',
+      })
     },
   })
 

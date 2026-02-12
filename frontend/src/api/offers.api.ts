@@ -46,14 +46,23 @@ export const offersApi = {
   addRevision: (offerId: number, data: AddRevisionRequest) =>
     http.post<{ revision: OfferRevision }>(`/api/offers/${offerId}/revisions`, data),
 
-  accept: (offerId: number) =>
-    http.patch<{ offer: Offer }>(`/api/offers/${offerId}/accept`, {}),
+  accept: async (offerId: number) => {
+    const result = await http.patch<{ offer: Offer }>(`/api/offers/${offerId}/accept`, {})
+    if (!result.success) throw new Error(result.error?.message || 'Failed to accept offer')
+    return result
+  },
 
-  reject: (offerId: number) =>
-    http.patch<{ offer: Offer }>(`/api/offers/${offerId}/reject`, {}),
+  reject: async (offerId: number) => {
+    const result = await http.patch<{ offer: Offer }>(`/api/offers/${offerId}/reject`, {})
+    if (!result.success) throw new Error(result.error?.message || 'Failed to reject offer')
+    return result
+  },
 
-  withdraw: (offerId: number) =>
-    http.patch<{ offer: Offer }>(`/api/offers/${offerId}/withdraw`, {}),
+  withdraw: async (offerId: number) => {
+    const result = await http.patch<{ offer: Offer }>(`/api/offers/${offerId}/withdraw`, {})
+    if (!result.success) throw new Error(result.error?.message || 'Failed to withdraw offer')
+    return result
+  },
 
   delete: (offerId: number) =>
     http.delete<{}>(`/api/offers/${offerId}`),
