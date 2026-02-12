@@ -20,12 +20,18 @@ import {
   type DocumentCategory,
 } from '../../api/documents.api'
 
+import type { DocumentFilter } from './DocumentStatusBar'
+
 interface DocumentsSectionProps {
   transactionId: number
   transactionLabel?: string
   onUpload?: () => void
   onViewProof?: (doc: TransactionDocument) => void
   onViewVersions?: (doc: TransactionDocument) => void
+  /** Pre-filter documents by status when opened from StatusBar */
+  initialFilter?: DocumentFilter
+  /** Compact mode (no outer bg/padding wrapper) for use inside drawer */
+  compact?: boolean
 }
 
 const CATEGORIES: { key: DocumentCategory; icon: typeof FileText; color: string }[] = [
@@ -63,6 +69,8 @@ export default function DocumentsSection({
   onUpload,
   onViewProof,
   onViewVersions,
+  initialFilter = 'all',
+  compact = false,
 }: DocumentsSectionProps) {
   const { t } = useTranslation()
 
@@ -82,13 +90,25 @@ export default function DocumentsSection({
     return { total, validated, pending, missing }
   }, [documents])
 
+  // Filter documents based on initialFilter
+  const filtered = useMemo(() => {
+    if (initialFilter === 'all') return documents
+    const statusMap: Record<string, string[]> = {
+      validated: ['validated'],
+      pending: ['uploaded'],
+      missing: ['missing'],
+    }
+    const statuses = statusMap[initialFilter] ?? []
+    return documents.filter((d) => statuses.includes(d.status))
+  }, [documents, initialFilter])
+
   // Group by category — show all categories even if empty
   const grouped = useMemo(() => {
     return CATEGORIES.map((cat) => ({
       ...cat,
-      docs: documents.filter((d) => d.category === cat.key),
+      docs: filtered.filter((d) => d.category === cat.key),
     }))
-  }, [documents])
+  }, [filtered])
 
   if (isLoading) {
     return (
@@ -103,8 +123,8 @@ export default function DocumentsSection({
   }
 
   return (
-    <div className="bg-stone-50 min-h-[80vh]">
-      <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
+    <div className={compact ? '' : 'bg-stone-50 min-h-[80vh]'}>
+      <div className={compact ? 'py-4' : 'max-w-4xl mx-auto p-4 sm:p-6 lg:p-8'}>
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
           <div>

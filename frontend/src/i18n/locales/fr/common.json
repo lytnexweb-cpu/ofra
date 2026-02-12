@@ -1554,7 +1554,14 @@
   },
   "documents": {
     "title": "Documents",
+    "drawerTitle": "Documents & Preuves",
     "add": "Ajouter un document",
+    "statusBar": {
+      "conditions": "Conditions",
+      "validated": "Validées",
+      "pending": "En attente",
+      "missing": "Manquantes"
+    },
     "empty": "Aucun document pour le moment.",
     "emptyCategory": "Aucun document dans cette catégorie.",
     "counters": {

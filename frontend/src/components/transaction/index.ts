@@ -52,3 +52,7 @@ export { default as ValidateStepModal } from './ValidateStepModal'
 // Maquette 08: Document proof + version modals
 export { default as DocumentProofModal } from './DocumentProofModal'
 export { default as DocumentVersionModal } from './DocumentVersionModal'
+
+// M08 refactor: StatusBar + Drawer
+export { default as DocumentStatusBar } from './DocumentStatusBar'
+export { default as DocumentsDrawer } from './DocumentsDrawer'

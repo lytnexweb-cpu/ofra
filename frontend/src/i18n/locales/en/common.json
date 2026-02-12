@@ -1554,7 +1554,14 @@
   },
   "documents": {
     "title": "Documents",
+    "drawerTitle": "Documents & Proofs",
     "add": "Add a document",
+    "statusBar": {
+      "conditions": "Conditions",
+      "validated": "Validated",
+      "pending": "Pending",
+      "missing": "Missing"
+    },
     "empty": "No documents yet.",
     "emptyCategory": "No documents in this category.",
     "counters": {

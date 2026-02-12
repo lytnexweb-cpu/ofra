@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { useParams, Link, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
@@ -13,11 +13,13 @@ import {
   PartiesCard,
   OffersPanel,
   PartiesModal,
-  DocumentsSection,
   UploadDocumentModal,
   DocumentProofModal,
   DocumentVersionModal,
+  DocumentStatusBar,
+  DocumentsDrawer,
 } from '../components/transaction'
+import type { DocumentFilter } from '../components/transaction/DocumentStatusBar'
 import { Button } from '../components/ui/Button'
 import { AlertCircle, Loader2, RefreshCw } from 'lucide-react'
 import VerticalTimeline from '../components/transaction/VerticalTimeline'
@@ -35,10 +37,17 @@ export default function TransactionDetailPage() {
   const [partiesOpen, setPartiesOpen] = useState(false)
   const [exportOpen, setExportOpen] = useState(false)
 
-  // M08: Documents modals
+  // M08: Documents modals + drawer
   const [uploadOpen, setUploadOpen] = useState(false)
   const [proofDoc, setProofDoc] = useState<TransactionDocument | null>(null)
   const [versionDoc, setVersionDoc] = useState<TransactionDocument | null>(null)
+  const [docsDrawerOpen, setDocsDrawerOpen] = useState(false)
+  const [docsDrawerFilter, setDocsDrawerFilter] = useState<DocumentFilter>('all')
+
+  const handleBadgeClick = useCallback((filter: DocumentFilter) => {
+    setDocsDrawerFilter(filter)
+    setDocsDrawerOpen(true)
+  }, [])
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['transaction', transactionId],
@@ -114,6 +123,10 @@ export default function TransactionDetailPage() {
         currentStepOrder={transaction.currentStep?.stepOrder}
         onEdit={() => setEditModalOpen(true)}
       />
+      <DocumentStatusBar
+        transactionId={transaction.id}
+        onBadgeClick={handleBadgeClick}
+      />
       <PartiesCard
         transactionId={transaction.id}
         onManage={() => setPartiesOpen(true)}
@@ -123,7 +136,10 @@ export default function TransactionDetailPage() {
         transaction={transaction}
         highlightConditionId={highlightId}
       />
-      <DocumentsSection
+      <DocumentsDrawer
+        isOpen={docsDrawerOpen}
+        onClose={() => setDocsDrawerOpen(false)}
+        filter={docsDrawerFilter}
         transactionId={transaction.id}
         onUpload={() => setUploadOpen(true)}
         onViewProof={(doc) => setProofDoc(doc)}
