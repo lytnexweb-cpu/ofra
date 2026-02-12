@@ -493,6 +493,108 @@
     "successDates": "Échéances alignées sur l'étape — modifiables individuellement",
     "backToTransaction": "Retour à la transaction"
   },
+  "editTransaction": {
+    "title": "Éditer la transaction",
+    "save": "Enregistrer",
+    "noChanges": "Aucun changement détecté",
+    "tabs": {
+      "property": "Bien",
+      "parties": "Parties",
+      "dates": "Dates"
+    },
+    "breadcrumb": {
+      "transactions": "Transactions",
+      "edit": "Éditer"
+    },
+    "fields": {
+      "address": "Adresse",
+      "city": "Ville",
+      "cityPlaceholder": "Sélectionner une ville",
+      "postalCode": "Code postal",
+      "province": "Province",
+      "type": "Type de transaction",
+      "listPrice": "Prix affiché",
+      "propertyType": "Type de bien",
+      "propertyContext": "Contexte",
+      "isFinanced": "Financé",
+      "hasWell": "Puits privé",
+      "hasSeptic": "Fosse septique",
+      "closingDate": "Date de closing",
+      "offerExpiry": "Expiration offre",
+      "inspection": "Date limite inspection",
+      "financing": "Date limite financement"
+    },
+    "property": {
+      "title": "Informations du bien"
+    },
+    "profile": {
+      "title": "Profil de la propriété"
+    },
+    "propertyType": {
+      "house": "Maison",
+      "condo": "Condo",
+      "land": "Terrain"
+    },
+    "propertyContext": {
+      "urban": "Urbain",
+      "suburban": "Banlieue",
+      "rural": "Rural"
+    },
+    "type": {
+      "purchase": "Achat",
+      "sale": "Vente"
+    },
+    "parties": {
+      "buyer": "Acheteur(s)",
+      "seller": "Vendeur(s)",
+      "add": "Ajouter",
+      "fullName": "Nom complet",
+      "email": "Courriel",
+      "phone": "Téléphone",
+      "address": "Adresse",
+      "addressPlaceholder": "Adresse du client",
+      "hint": "Pour gérer toutes les parties (vendeur, avocat, courtier), utilisez la gestion des parties depuis la page transaction."
+    },
+    "dates": {
+      "title": "Dates clés"
+    },
+    "status": {
+      "active": "Active",
+      "archived": "Archivée",
+      "cancelled": "Annulée"
+    },
+    "locked": {
+      "title": "Édition verrouillée",
+      "desc": "Transaction archivée. Restaurez pour modifier.",
+      "restore": "Restaurer"
+    },
+    "errors": {
+      "title": "{{count}} erreur(s) de validation",
+      "desc": "Corrigez les erreurs ci-dessous avant de pouvoir enregistrer."
+    },
+    "sidebar": {
+      "title": "Résumé des changements",
+      "noChanges": "Aucune modification",
+      "changesCount": "champ(s) modifié(s)",
+      "viewSummary": "Voir le résumé"
+    },
+    "confirm": {
+      "title": "Confirmer les modifications",
+      "subtitle": "Vérifiez les changements avant d'enregistrer",
+      "count": "{{count}} modification(s)",
+      "impact": "Impact sur le workflow",
+      "impactDesc": "Le changement de date de closing peut affecter les échéances des conditions en cours.",
+      "checkbox": "Je confirme que ces modifications sont exactes et souhaite les enregistrer",
+      "back": "Retour au formulaire",
+      "save": "Enregistrer les modifications"
+    },
+    "success": {
+      "title": "Modifications enregistrées",
+      "desc": "{{count}} champ(s) mis à jour avec succès",
+      "summary": "Résumé",
+      "back": "Retour à la transaction"
+    }
+  },
   "transaction": {
     "type": "Type",
     "address": "Adresse",

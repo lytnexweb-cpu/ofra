@@ -493,6 +493,108 @@
     "successDates": "Due dates aligned with step — individually editable",
     "backToTransaction": "Back to transaction"
   },
+  "editTransaction": {
+    "title": "Edit transaction",
+    "save": "Save",
+    "noChanges": "No changes detected",
+    "tabs": {
+      "property": "Property",
+      "parties": "Parties",
+      "dates": "Dates"
+    },
+    "breadcrumb": {
+      "transactions": "Transactions",
+      "edit": "Edit"
+    },
+    "fields": {
+      "address": "Address",
+      "city": "City",
+      "cityPlaceholder": "Select a city",
+      "postalCode": "Postal Code",
+      "province": "Province",
+      "type": "Transaction type",
+      "listPrice": "List price",
+      "propertyType": "Property type",
+      "propertyContext": "Context",
+      "isFinanced": "Financed",
+      "hasWell": "Private well",
+      "hasSeptic": "Septic system",
+      "closingDate": "Closing date",
+      "offerExpiry": "Offer expiry",
+      "inspection": "Inspection deadline",
+      "financing": "Financing deadline"
+    },
+    "property": {
+      "title": "Property information"
+    },
+    "profile": {
+      "title": "Property profile"
+    },
+    "propertyType": {
+      "house": "House",
+      "condo": "Condo",
+      "land": "Land"
+    },
+    "propertyContext": {
+      "urban": "Urban",
+      "suburban": "Suburban",
+      "rural": "Rural"
+    },
+    "type": {
+      "purchase": "Purchase",
+      "sale": "Sale"
+    },
+    "parties": {
+      "buyer": "Buyer(s)",
+      "seller": "Seller(s)",
+      "add": "Add",
+      "fullName": "Full name",
+      "email": "Email",
+      "phone": "Phone",
+      "address": "Address",
+      "addressPlaceholder": "Client address",
+      "hint": "To manage all parties (seller, lawyer, broker), use party management from the transaction page."
+    },
+    "dates": {
+      "title": "Key dates"
+    },
+    "status": {
+      "active": "Active",
+      "archived": "Archived",
+      "cancelled": "Cancelled"
+    },
+    "locked": {
+      "title": "Editing locked",
+      "desc": "Archived transaction. Restore to edit.",
+      "restore": "Restore"
+    },
+    "errors": {
+      "title": "{{count}} validation error(s)",
+      "desc": "Fix the errors below before saving."
+    },
+    "sidebar": {
+      "title": "Changes summary",
+      "noChanges": "No changes",
+      "changesCount": "field(s) modified",
+      "viewSummary": "View summary"
+    },
+    "confirm": {
+      "title": "Confirm changes",
+      "subtitle": "Review changes before saving",
+      "count": "{{count}} change(s)",
+      "impact": "Workflow impact",
+      "impactDesc": "Changing the closing date may affect deadlines for conditions in progress.",
+      "checkbox": "I confirm these changes are correct and wish to save them",
+      "back": "Back to form",
+      "save": "Save changes"
+    },
+    "success": {
+      "title": "Changes saved",
+      "desc": "{{count}} field(s) updated successfully",
+      "summary": "Summary",
+      "back": "Back to transaction"
+    }
+  },
   "transaction": {
     "type": "Type",
     "address": "Address",
