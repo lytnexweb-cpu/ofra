@@ -1619,6 +1619,7 @@
     "proofModal": {
       "title": "Proof",
       "subtitle": "Blocking condition — Step",
+      "subtitleStep": "Step {{step}}",
       "proofRequiredYes": "Proof required: YES",
       "lifecycle": "Document lifecycle",
       "stepMissing": "Missing",

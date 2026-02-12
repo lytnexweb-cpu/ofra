@@ -10,6 +10,8 @@ interface DocumentProofModalProps {
   onClose: () => void
   document: TransactionDocument | null
   transactionId: number
+  /** Current step order for "Étape N" display */
+  stepOrder?: number
 }
 
 function formatSize(bytes: number | null): string {
@@ -30,6 +32,7 @@ export default function DocumentProofModal({
   onClose,
   document: doc,
   transactionId,
+  stepOrder,
 }: DocumentProofModalProps) {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
@@ -143,7 +146,7 @@ export default function DocumentProofModal({
                   {t('documents.proofModal.title', 'Preuve')} — {conditionTitle}
                 </h2>
                 <p className="text-xs text-stone-500 mt-0.5">
-                  {levelBadge.label} — {t('documents.proofModal.subtitle', 'Condition bloquante — Étape')}
+                  {levelBadge.label} — {t('documents.proofModal.subtitleStep', 'Étape {{step}}', { step: stepOrder ?? '?' })}
                 </p>
               </div>
             </div>
@@ -165,6 +168,15 @@ export default function DocumentProofModal({
               <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${levelBadge.classes}`}>
                 {levelBadge.label}
               </span>
+              {doc.condition?.sourceType && (
+                <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${
+                  doc.condition.sourceType === 'industry' ? 'bg-sky-100 text-sky-700'
+                  : doc.condition.sourceType === 'legal' || doc.condition.sourceType === 'government' ? 'bg-indigo-100 text-indigo-700'
+                  : 'bg-stone-100 text-stone-600'
+                }`}>
+                  {doc.condition.sourceType === 'legal' ? 'Légal' : doc.condition.sourceType === 'government' ? 'Gouvernement' : doc.condition.sourceType === 'industry' ? 'Industry' : 'Best practice'}
+                </span>
+              )}
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm font-semibold text-stone-900">{conditionTitle}</span>

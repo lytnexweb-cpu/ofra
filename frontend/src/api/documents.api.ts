@@ -21,7 +21,7 @@ export interface TransactionDocument {
   validatedAt: string | null
   uploadedBy: number
   uploader?: { id: number; firstName: string; lastName: string }
-  condition?: { id: number; title: string; level: string; isBlocking: boolean }
+  condition?: { id: number; title: string; level: string; isBlocking: boolean; dueDate: string | null; sourceType: string | null }
   createdAt: string
   updatedAt: string
 }

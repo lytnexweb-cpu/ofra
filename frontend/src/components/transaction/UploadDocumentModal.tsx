@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { CloudUpload, X, FileText, Plus, AlertTriangle, Wifi, Ban, Info } from 'lucide-react'
+import { CloudUpload, X, FileText, Plus, AlertTriangle, Wifi, Ban, Info, RefreshCw } from 'lucide-react'
 import {
   documentsApi,
   type DocumentCategory,
@@ -365,6 +365,14 @@ export default function UploadDocumentModal({
               </div>
             </div>
           </div>
+
+          {/* Info formats */}
+          <div className="rounded-lg border border-stone-200 bg-stone-50 px-3 py-2.5 flex items-center gap-2">
+            <Info className="w-4 h-4 text-stone-400 shrink-0" />
+            <p className="text-xs text-stone-500">
+              <strong>{t('documents.errors.infoFormats', 'Formats')}</strong> : PDF, JPG, PNG, DOCX · <strong>{t('documents.errors.infoMaxSize', 'Taille max')}</strong> : 10 Mo · <strong>{t('documents.errors.infoTip', 'Conseil')}</strong> : {t('documents.errors.infoTipText', 'nommez vos fichiers clairement')}
+            </p>
+          </div>
         </div>
 
         {/* Footer */}
@@ -499,6 +507,7 @@ function UploadErrorCard({
             onClick={onRetry}
             className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-amber-700 bg-amber-100 hover:bg-amber-200 rounded-lg transition-colors"
           >
+            <RefreshCw className="w-3.5 h-3.5" />
             {t('documents.errors.retry', 'Réessayer')}
           </button>
         </div>

@@ -1619,6 +1619,7 @@
     "proofModal": {
       "title": "Preuve",
       "subtitle": "Condition bloquante — Étape",
+      "subtitleStep": "Étape {{step}}",
       "proofRequiredYes": "Preuve requise : OUI",
       "lifecycle": "Cycle de vie du document",
       "stepMissing": "Manquant",

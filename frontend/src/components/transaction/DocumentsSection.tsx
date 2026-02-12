@@ -103,7 +103,7 @@ export default function DocumentsSection({
   }
 
   return (
-    <div className="bg-stone-50 min-h-0">
+    <div className="bg-stone-50 min-h-[80vh]">
       <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
@@ -313,12 +313,15 @@ function DocumentCard({
               </span>
             )}
           </div>
-          <div className="flex items-center gap-1 mt-0.5">
+          <div className="flex items-center gap-1 mt-0.5 flex-wrap">
             <span className="text-[10px] text-red-600 font-medium">
               {t('documents.proofRequired', 'Preuve requise : OUI')}
             </span>
+            {doc.condition?.dueDate && (
+              <span className="text-[10px] text-stone-400">· {t('documents.deadline', 'Échéance')} {formatShortDate(doc.condition.dueDate)}</span>
+            )}
             {doc.condition && (
-              <span className="text-[10px] text-stone-400">→ {doc.condition.title}</span>
+              <span className="text-[10px] text-stone-400">· → {doc.condition.title}</span>
             )}
           </div>
         </div>

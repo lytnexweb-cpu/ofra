@@ -160,6 +160,7 @@ export default function TransactionDetailPage() {
         onClose={() => setProofDoc(null)}
         document={proofDoc}
         transactionId={transaction.id}
+        stepOrder={transaction.currentStep?.stepOrder}
       />
       <DocumentVersionModal
         isOpen={!!versionDoc}
