@@ -16,11 +16,11 @@ import {
   DocumentProofModal,
   DocumentVersionModal,
   DocumentStatusBar,
-  DocumentsDrawer,
+  DocumentsSection,
 } from '../components/transaction'
 import type { DocumentFilter } from '../components/transaction/DocumentStatusBar'
 import { Button } from '../components/ui/Button'
-import { AlertCircle, Loader2, RefreshCw } from 'lucide-react'
+import { AlertCircle, Loader2, RefreshCw, ChevronUp } from 'lucide-react'
 import VerticalTimeline from '../components/transaction/VerticalTimeline'
 
 export default function TransactionDetailPage() {
@@ -36,17 +36,24 @@ export default function TransactionDetailPage() {
   const [partiesOpen, setPartiesOpen] = useState(false)
   const [exportOpen, setExportOpen] = useState(false)
 
-  // M08: Documents modals + drawer
+  // M08: Documents modals
   const [uploadOpen, setUploadOpen] = useState(false)
   const [proofDoc, setProofDoc] = useState<TransactionDocument | null>(null)
   const [versionDoc, setVersionDoc] = useState<TransactionDocument | null>(null)
-  const [docsDrawerOpen, setDocsDrawerOpen] = useState(false)
-  const [docsDrawerFilter, setDocsDrawerFilter] = useState<DocumentFilter>('all')
+
+  // C1: Inline collapsible documents (replaces drawer)
+  const [docsExpanded, setDocsExpanded] = useState(false)
+  const [docsFilter, setDocsFilter] = useState<DocumentFilter>('all')
 
   const handleBadgeClick = useCallback((filter: DocumentFilter) => {
-    setDocsDrawerFilter(filter)
-    setDocsDrawerOpen(true)
-  }, [])
+    if (docsExpanded && docsFilter === filter) {
+      // Same filter clicked again → collapse
+      setDocsExpanded(false)
+    } else {
+      setDocsFilter(filter)
+      setDocsExpanded(true)
+    }
+  }, [docsExpanded, docsFilter])
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['transaction', transactionId],
@@ -122,27 +129,44 @@ export default function TransactionDetailPage() {
         currentStepOrder={transaction.currentStep?.stepOrder}
         onEdit={() => navigate(`/transactions/${transaction.id}/edit`)}
       />
-      <DocumentStatusBar
-        transactionId={transaction.id}
-        onBadgeClick={handleBadgeClick}
-      />
       <PartiesCard
         transactionId={transaction.id}
         onManage={() => setPartiesOpen(true)}
       />
       <OffersPanel transaction={transaction} />
+
+      {/* C1: DocumentStatusBar + inline collapsible section (after OffersPanel) */}
+      <DocumentStatusBar
+        transactionId={transaction.id}
+        onBadgeClick={handleBadgeClick}
+      />
+      {docsExpanded && (
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-2">
+          <div className="rounded-xl border border-stone-200 bg-white overflow-hidden">
+            <DocumentsSection
+              transactionId={transaction.id}
+              onUpload={() => setUploadOpen(true)}
+              onViewProof={(doc) => setProofDoc(doc)}
+              onViewVersions={(doc) => setVersionDoc(doc)}
+              initialFilter={docsFilter}
+              compact
+            />
+            <div className="border-t border-stone-100 px-4 py-2 flex justify-center">
+              <button
+                onClick={() => setDocsExpanded(false)}
+                className="flex items-center gap-1 text-xs text-stone-400 hover:text-stone-600 transition-colors"
+              >
+                <ChevronUp className="w-3.5 h-3.5" />
+                {t('common.close', 'Fermer')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <VerticalTimeline
         transaction={transaction}
         highlightConditionId={highlightId}
-      />
-      <DocumentsDrawer
-        isOpen={docsDrawerOpen}
-        onClose={() => setDocsDrawerOpen(false)}
-        filter={docsDrawerFilter}
-        transactionId={transaction.id}
-        onUpload={() => setUploadOpen(true)}
-        onViewProof={(doc) => setProofDoc(doc)}
-        onViewVersions={(doc) => setVersionDoc(doc)}
       />
       <MembersPanel
         isOpen={membersOpen}

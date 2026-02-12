@@ -15,15 +15,14 @@ import {
 import { exportApi, type ExportPdfOptions } from '../../api/export.api'
 import { shareLinksApi } from '../../api/share-links.api'
 import { toast } from '../../hooks/use-toast'
-import { useMediaQuery } from '../../hooks/useMediaQuery'
 import { Button } from '../ui/Button'
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetFooter,
-} from '../ui/Sheet'
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '../ui/Dialog'
 
 interface ExportSharePanelProps {
   isOpen: boolean
@@ -33,7 +32,6 @@ interface ExportSharePanelProps {
 
 export default function ExportSharePanel({ isOpen, onClose, transactionId }: ExportSharePanelProps) {
   const { t, i18n } = useTranslation()
-  const isDesktop = useMediaQuery('(min-width: 640px)')
   const queryClient = useQueryClient()
 
   // PDF export state
@@ -151,223 +149,216 @@ export default function ExportSharePanel({ isOpen, onClose, transactionId }: Exp
   const inputClass =
     'w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 bg-background'
 
-  const panelContent = (
-    <div className="flex-1 overflow-y-auto py-4 space-y-6">
-      {/* Section 1: Export PDF */}
-      <div className="rounded-lg border border-border p-4 space-y-3">
-        <h4 className="text-sm font-semibold flex items-center gap-2">
-          <FileDown className="w-4 h-4" />
-          {t('export.pdfTitle')}
-        </h4>
-        <p className="text-xs text-muted-foreground">{t('export.pdfDescription')}</p>
-
-        <div className="space-y-2">
-          <label className="text-xs font-medium">{t('export.sections')}</label>
-          {(['offers', 'conditions', 'documents', 'history'] as const).map((section) => (
-            <label key={section} className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={pdfSections[section]}
-                onChange={(e) =>
-                  setPdfSections({ ...pdfSections, [section]: e.target.checked })
-                }
-                className="h-4 w-4 rounded border-gray-300 accent-blue-600"
-              />
-              <span className="text-sm">{t(`export.section.${section}`)}</span>
-            </label>
-          ))}
-        </div>
-
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={pdfWatermark}
-            onChange={(e) => setPdfWatermark(e.target.checked)}
-            className="h-4 w-4 rounded border-gray-300 accent-blue-600"
-          />
-          <span className="text-sm">{t('export.watermark')}</span>
-        </label>
-
-        <div>
-          <label className="block text-xs font-medium mb-1">{t('export.language')}</label>
-          <select
-            value={pdfLanguage}
-            onChange={(e) => setPdfLanguage(e.target.value as 'fr' | 'en')}
-            className={inputClass}
-          >
-            <option value="fr">{t('settings.language.french')}</option>
-            <option value="en">{t('settings.language.english')}</option>
-          </select>
-        </div>
-
-        <Button
-          onClick={handleExportPdf}
-          disabled={pdfExporting}
-          className="w-full gap-2"
-        >
-          {pdfExporting ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              {t('export.generating')}
-            </>
-          ) : pdfSuccess ? (
-            <>
-              <Check className="w-4 h-4" />
-              {t('export.pdfReady')}
-            </>
-          ) : (
-            <>
-              <Download className="w-4 h-4" />
-              {t('export.generatePdf')}
-            </>
-          )}
-        </Button>
-      </div>
-
-      {/* Section 2: Share Link */}
-      <div className="rounded-lg border border-border p-4 space-y-3">
-        <h4 className="text-sm font-semibold flex items-center gap-2">
-          <Link2 className="w-4 h-4" />
-          {t('shareLink.title')}
-        </h4>
-        <p className="text-xs text-muted-foreground">{t('shareLink.description')}</p>
-
-        {shareLink ? (
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={shareLink.isActive}
-                  onChange={() => toggleLinkMutation.mutate()}
-                  className="h-4 w-4 rounded border-gray-300 accent-blue-600"
-                />
-                <span className="text-sm font-medium">
-                  {shareLink.isActive ? t('shareLink.active') : t('shareLink.inactive')}
-                </span>
-              </label>
-            </div>
-
-            {shareLink.isActive && (
-              <>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    readOnly
-                    value={`${window.location.origin}/shared/${shareLink.token}`}
-                    className={`${inputClass} text-xs font-mono`}
-                  />
-                  <Button variant="outline" size="icon" onClick={handleCopyLink} className="flex-shrink-0">
-                    {copied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
-                  </Button>
-                </div>
-
-                <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                  {shareLink.expiresAt && (
-                    <span>{t('shareLink.expiresAt')}: {new Date(shareLink.expiresAt).toLocaleDateString()}</span>
-                  )}
-                  {shareLink.password && (
-                    <span className="flex items-center gap-1">
-                      <Lock className="w-3 h-3" />
-                      {t('shareLink.passwordProtected')}
-                    </span>
-                  )}
-                  <span className="flex items-center gap-1">
-                    <Eye className="w-3 h-3" />
-                    {shareLink.accessCount} {t('shareLink.views')}
-                  </span>
-                </div>
-              </>
-            )}
-          </div>
-        ) : (
-          <div className="space-y-3">
-            <div>
-              <label className="block text-xs font-medium mb-1">{t('shareLink.expiryDate')}</label>
-              <input
-                type="date"
-                value={linkExpiry}
-                onChange={(e) => setLinkExpiry(e.target.value)}
-                className={inputClass}
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium mb-1">{t('shareLink.password')}</label>
-              <input
-                type="text"
-                value={linkPassword}
-                onChange={(e) => setLinkPassword(e.target.value)}
-                className={inputClass}
-                placeholder={t('shareLink.passwordPlaceholder')}
-              />
-            </div>
-            <Button
-              variant="outline"
-              onClick={() => createLinkMutation.mutate()}
-              disabled={createLinkMutation.isPending}
-              className="w-full gap-2"
-            >
-              <Link2 className="w-4 h-4" />
-              {createLinkMutation.isPending ? t('common.loading') : t('shareLink.create')}
-            </Button>
-          </div>
-        )}
-      </div>
-
-      {/* Section 3: Email Recap */}
-      <div className="rounded-lg border border-border p-4 space-y-3">
-        <h4 className="text-sm font-semibold flex items-center gap-2">
-          <Mail className="w-4 h-4" />
-          {t('export.emailTitle')}
-        </h4>
-        <p className="text-xs text-muted-foreground">{t('export.emailDescription')}</p>
-
-        <div className="flex items-center gap-2">
-          <input
-            type="email"
-            value={emailAddress}
-            onChange={(e) => setEmailAddress(e.target.value)}
-            className={inputClass}
-            placeholder="courtier@example.com"
-          />
-          <Button
-            variant="outline"
-            onClick={() => emailMutation.mutate()}
-            disabled={!emailAddress.trim() || emailMutation.isPending}
-            className="flex-shrink-0"
-          >
-            {emailMutation.isPending ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Mail className="w-4 h-4" />
-            )}
-          </Button>
-        </div>
-      </div>
-    </div>
-  )
-
-  const side = isDesktop ? 'right' : 'bottom'
-  const contentClass = isDesktop
-    ? 'w-[420px] sm:max-w-[420px] flex flex-col'
-    : 'max-h-[85vh] flex flex-col'
-
   return (
-    <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent side={side} className={contentClass}>
-        <SheetHeader>
-          <SheetTitle className="flex items-center gap-2">
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-md max-h-[85vh] flex flex-col" aria-describedby={undefined}>
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
             <Download className="w-5 h-5" />
             {t('export.title')}
-          </SheetTitle>
-        </SheetHeader>
-        {panelContent}
-        <SheetFooter className="border-t pt-3">
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="flex-1 overflow-y-auto space-y-6">
+          {/* Section 1: Export PDF */}
+          <div className="rounded-lg border border-border p-4 space-y-3">
+            <h4 className="text-sm font-semibold flex items-center gap-2">
+              <FileDown className="w-4 h-4" />
+              {t('export.pdfTitle')}
+            </h4>
+            <p className="text-xs text-muted-foreground">{t('export.pdfDescription')}</p>
+
+            <div className="space-y-2">
+              <label className="text-xs font-medium">{t('export.sections')}</label>
+              {(['offers', 'conditions', 'documents', 'history'] as const).map((section) => (
+                <label key={section} className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={pdfSections[section]}
+                    onChange={(e) =>
+                      setPdfSections({ ...pdfSections, [section]: e.target.checked })
+                    }
+                    className="h-4 w-4 rounded border-gray-300 accent-blue-600"
+                  />
+                  <span className="text-sm">{t(`export.section.${section}`)}</span>
+                </label>
+              ))}
+            </div>
+
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={pdfWatermark}
+                onChange={(e) => setPdfWatermark(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300 accent-blue-600"
+              />
+              <span className="text-sm">{t('export.watermark')}</span>
+            </label>
+
+            <div>
+              <label className="block text-xs font-medium mb-1">{t('export.language')}</label>
+              <select
+                value={pdfLanguage}
+                onChange={(e) => setPdfLanguage(e.target.value as 'fr' | 'en')}
+                className={inputClass}
+              >
+                <option value="fr">{t('settings.language.french')}</option>
+                <option value="en">{t('settings.language.english')}</option>
+              </select>
+            </div>
+
+            <Button
+              onClick={handleExportPdf}
+              disabled={pdfExporting}
+              className="w-full gap-2"
+            >
+              {pdfExporting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  {t('export.generating')}
+                </>
+              ) : pdfSuccess ? (
+                <>
+                  <Check className="w-4 h-4" />
+                  {t('export.pdfReady')}
+                </>
+              ) : (
+                <>
+                  <Download className="w-4 h-4" />
+                  {t('export.generatePdf')}
+                </>
+              )}
+            </Button>
+          </div>
+
+          {/* Section 2: Share Link */}
+          <div className="rounded-lg border border-border p-4 space-y-3">
+            <h4 className="text-sm font-semibold flex items-center gap-2">
+              <Link2 className="w-4 h-4" />
+              {t('shareLink.title')}
+            </h4>
+            <p className="text-xs text-muted-foreground">{t('shareLink.description')}</p>
+
+            {shareLink ? (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={shareLink.isActive}
+                      onChange={() => toggleLinkMutation.mutate()}
+                      className="h-4 w-4 rounded border-gray-300 accent-blue-600"
+                    />
+                    <span className="text-sm font-medium">
+                      {shareLink.isActive ? t('shareLink.active') : t('shareLink.inactive')}
+                    </span>
+                  </label>
+                </div>
+
+                {shareLink.isActive && (
+                  <>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        readOnly
+                        value={`${window.location.origin}/shared/${shareLink.token}`}
+                        className={`${inputClass} text-xs font-mono`}
+                      />
+                      <Button variant="outline" size="icon" onClick={handleCopyLink} className="flex-shrink-0">
+                        {copied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
+                      </Button>
+                    </div>
+
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                      {shareLink.expiresAt && (
+                        <span>{t('shareLink.expiresAt')}: {new Date(shareLink.expiresAt).toLocaleDateString()}</span>
+                      )}
+                      {shareLink.password && (
+                        <span className="flex items-center gap-1">
+                          <Lock className="w-3 h-3" />
+                          {t('shareLink.passwordProtected')}
+                        </span>
+                      )}
+                      <span className="flex items-center gap-1">
+                        <Eye className="w-3 h-3" />
+                        {shareLink.accessCount} {t('shareLink.views')}
+                      </span>
+                    </div>
+                  </>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs font-medium mb-1">{t('shareLink.expiryDate')}</label>
+                  <input
+                    type="date"
+                    value={linkExpiry}
+                    onChange={(e) => setLinkExpiry(e.target.value)}
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium mb-1">{t('shareLink.password')}</label>
+                  <input
+                    type="text"
+                    value={linkPassword}
+                    onChange={(e) => setLinkPassword(e.target.value)}
+                    className={inputClass}
+                    placeholder={t('shareLink.passwordPlaceholder')}
+                  />
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={() => createLinkMutation.mutate()}
+                  disabled={createLinkMutation.isPending}
+                  className="w-full gap-2"
+                >
+                  <Link2 className="w-4 h-4" />
+                  {createLinkMutation.isPending ? t('common.loading') : t('shareLink.create')}
+                </Button>
+              </div>
+            )}
+          </div>
+
+          {/* Section 3: Email Recap */}
+          <div className="rounded-lg border border-border p-4 space-y-3">
+            <h4 className="text-sm font-semibold flex items-center gap-2">
+              <Mail className="w-4 h-4" />
+              {t('export.emailTitle')}
+            </h4>
+            <p className="text-xs text-muted-foreground">{t('export.emailDescription')}</p>
+
+            <div className="flex items-center gap-2">
+              <input
+                type="email"
+                value={emailAddress}
+                onChange={(e) => setEmailAddress(e.target.value)}
+                className={inputClass}
+                placeholder="courtier@example.com"
+              />
+              <Button
+                variant="outline"
+                onClick={() => emailMutation.mutate()}
+                disabled={!emailAddress.trim() || emailMutation.isPending}
+                className="flex-shrink-0"
+              >
+                {emailMutation.isPending ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Mail className="w-4 h-4" />
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        <DialogFooter className="border-t pt-3">
           <Button variant="outline" onClick={onClose} className="w-full">
             {t('common.close')}
           </Button>
-        </SheetFooter>
-      </SheetContent>
-    </Sheet>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }

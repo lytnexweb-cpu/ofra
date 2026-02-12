@@ -163,6 +163,10 @@ export const router = createBrowserRouter([
         element: <TransactionsPage />,
       },
       {
+        path: 'transactions/new',
+        element: <EditTransactionPage />,
+      },
+      {
         path: 'transactions/:id',
         element: <TransactionDetailPage />,
       },

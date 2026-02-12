@@ -103,6 +103,61 @@ Moncton, Fredericton, Saint John, Dieppe, Riverview, Miramichi, Bathurst, Edmund
 | B2-B8 | 0c6ea8e | Page edit complète — 3 onglets + sidebar + 5 états |
 | B9 | 2c267ea | i18n FR/EN complet |
 
+### PHASE C : UX Overhaul (validé Sally — hybride Murat)
+
+**Problème identifié** : Les Sheet latéraux droits (DocumentsDrawer, MembersPanel, ExportSharePanel) combinés au menu vertical gauche créent un effet « deux barres verticales » étouffant sur desktop.
+
+**Décision validée** :
+- ❌ **Zéro Sheet côté droit** sur desktop
+- ✅ **Documents** → section inline collapsible dans la page (compteurs toujours visibles, détails extensibles)
+- ✅ **Members** → Dialog centré large (max-w-2xl)
+- ✅ **Export** → Dialog centré compact (max-w-md)
+- ✅ **Profil propriété (edit page)** → cartes cliquables avec icônes (au lieu de dropdowns)
+- ✅ **CreateTransactionModal** → supprimé, navigation vers `/transactions/new`
+- ✅ **autoConditionsEnabled** → toggle ajouté dans la page create/edit
+
+#### Étape C1 : Documents inline collapsible ✅
+**Fichiers** : `TransactionDetailPage.tsx` (modifié), `DocumentsDrawer.tsx` (supprimé)
+- DocumentStatusBar déplacé après OffersPanel
+- Clic badge → expand/collapse section inline avec filtre correspondant
+- DocumentsSection réutilisé en mode compact à l'intérieur
+- Clic même badge = collapse, clic autre badge = change filtre
+**Status** : ✅ Fait
+
+#### Étape C2 : MembersPanel → Dialog centré ✅
+**Fichier** : `MembersPanel.tsx` (modifié)
+- Sheet → Dialog (max-w-2xl), contenu identique
+- Suppression useMediaQuery + logique side
+**Status** : ✅ Fait
+
+#### Étape C3 : ExportSharePanel → Dialog centré ✅
+**Fichier** : `ExportSharePanel.tsx` (modifié)
+- Sheet → Dialog (max-w-md), contenu identique
+- Suppression useMediaQuery + logique side
+**Status** : ✅ Fait
+
+#### Étape C4 : Profil propriété en cartes icônes ✅
+**Fichier** : `EditTransactionPage.tsx` (modifié)
+- propertyType : Maison (Home), Condo (Building2), Terrain (TreePine) → cartes cliquables
+- propertyContext : Urbain (Building), Banlieue (Home), Rural (Mountain) → cartes cliquables
+- Style : border-2, selected = primary/5, modified = amber bg
+**Status** : ✅ Fait
+
+#### Étape C5 : Supprimer CreateTransactionModal ✅
+**Fichiers** : `CreateTransactionModal.tsx` (supprimé), `TransactionsPage.tsx` (modifié), `router.tsx` (modifié), `EditTransactionPage.tsx` (modifié)
+- Bouton « Nouvelle transaction » → `navigate('/transactions/new')`
+- Route `/transactions/new` → EditTransactionPage (mode create)
+- Mode create : sélection client, champs vides, workflow auto-select, profil complet, confirmation modal
+- Mode edit : change tracking conservé tel quel
+**Status** : ✅ Fait
+
+#### Étape C6 : Toggle autoConditionsEnabled ✅
+**Fichier** : `EditTransactionPage.tsx` (modifié)
+- Toggle dans CreateSidebar (visible en mode create, sidebar desktop)
+- autoConditionsEnabled fait partie du FormData, envoyé dans CreateTransactionRequest
+- Default = user.preferAutoConditions (from onboarding)
+**Status** : ✅ Fait
+
 ## Design tokens (cohérence)
 - Primary : `#1e3a5f`
 - Accent : `#e07a2f`

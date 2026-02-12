@@ -26,7 +26,6 @@ export { default as EvidenceUploader } from './EvidenceUploader'
 export { default as EvidenceBadge } from './EvidenceBadge'
 
 // D34: Maquettes 07-12
-export { default as EditTransactionModal } from './EditTransactionModal'
 export { default as DocumentsSection } from './DocumentsSection'
 export { default as UploadDocumentModal } from './UploadDocumentModal'
 export { default as MembersPanel } from './MembersPanel'
@@ -53,6 +52,5 @@ export { default as ValidateStepModal } from './ValidateStepModal'
 export { default as DocumentProofModal } from './DocumentProofModal'
 export { default as DocumentVersionModal } from './DocumentVersionModal'
 
-// M08 refactor: StatusBar + Drawer
+// M08 refactor: StatusBar + inline collapsible (C1: drawer removed)
 export { default as DocumentStatusBar } from './DocumentStatusBar'
-export { default as DocumentsDrawer } from './DocumentsDrawer'

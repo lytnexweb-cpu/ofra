@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { differenceInDays, parseISO } from '../lib/date'
 import { transactionsApi, type Transaction } from '../api/transactions.api'
@@ -9,7 +10,6 @@ import { TransactionCard, TransactionCardSkeleton, WeeklySummary, EmptyState, Re
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
 import { AlertCircle, Plus, RefreshCw, Search, X } from 'lucide-react'
-import CreateTransactionModal from '../components/CreateTransactionModal'
 
 const STEP_SLUGS = [
   'consultation',
@@ -50,7 +50,7 @@ function sortByUrgency(transactions: Transaction[]): Transaction[] {
 
 export default function TransactionsPage() {
   const { t } = useTranslation()
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const navigate = useNavigate()
   const [searchQuery, setSearchQuery] = useState('')
   const [stepFilter, setStepFilter] = useState('')
 
@@ -98,7 +98,7 @@ export default function TransactionsPage() {
           {t('nav.transactions')}
         </h1>
         <Button
-          onClick={() => setIsCreateModalOpen(true)}
+          onClick={() => navigate('/transactions/new')}
           className="hidden sm:inline-flex bg-primary hover:bg-primary/90"
           data-testid="create-transaction-btn"
         >
@@ -194,7 +194,7 @@ export default function TransactionsPage() {
 
       {/* Empty state — no transactions (FR25) */}
       {!isLoading && !error && transactions.length === 0 && (
-        <EmptyState onCreateClick={() => setIsCreateModalOpen(true)} />
+        <EmptyState onCreateClick={() => navigate('/transactions/new')} />
       )}
 
       {/* Empty filter results */}
@@ -229,14 +229,9 @@ export default function TransactionsPage() {
         </div>
       )}
 
-      <CreateTransactionModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-      />
-
       {/* FAB for mobile - positioned above fixed footer */}
       <button
-        onClick={() => setIsCreateModalOpen(true)}
+        onClick={() => navigate('/transactions/new')}
         className="fixed bottom-16 right-4 z-20 w-14 h-14 rounded-full shadow-lg hover:shadow-xl active:scale-95 transition-all flex items-center justify-center sm:hidden bg-primary"
         data-testid="fab-create"
         aria-label={t('transaction.new')}
