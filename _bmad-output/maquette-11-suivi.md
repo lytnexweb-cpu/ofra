@@ -79,9 +79,9 @@
 ## Commits
 | # | Hash | Description |
 |---|------|-------------|
-| 1 | — | Étapes 1-8 : page complète + i18n + routing |
+| 1 | bfdeb2b | Étapes 1-8 : page complète + i18n + routing |
 
-## Status final : MAQUETTE 11 — EN COURS
+## Status final : MAQUETTE 11 — IMPLÉMENTÉE ✅
 
 ## Design tokens
 - Primary : `#1e3a5f`
