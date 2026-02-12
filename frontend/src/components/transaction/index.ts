@@ -48,3 +48,6 @@ export { default as PartiesCard } from './PartiesCard'
 
 // Maquette 03: Validate step modal
 export { default as ValidateStepModal } from './ValidateStepModal'
+
+// Maquette 08: Document proof modal
+export { default as DocumentProofModal } from './DocumentProofModal'
