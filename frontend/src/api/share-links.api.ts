@@ -4,13 +4,13 @@ export interface TransactionShareLink {
   id: number
   transactionId: number
   token: string
+  role: 'viewer' | 'editor'
   isActive: boolean
   expiresAt: string | null
-  password: string | null
+  hasPassword: boolean
   accessCount: number
-  createdByUserId: number
+  lastAccessedAt: string | null
   createdAt: string
-  updatedAt: string
 }
 
 export interface CreateShareLinkRequest {

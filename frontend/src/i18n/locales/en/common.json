@@ -1821,6 +1821,74 @@
     "emailDescription": "Send a summary by email.",
     "emailSent": "Email sent"
   },
+  "exportPage": {
+    "pdf": {
+      "subtitle": "Complete transaction summary",
+      "include": "Include",
+      "offerAccepted": "Accepted offer details",
+      "active": "active",
+      "files": "files",
+      "watermark": "\"Confidential\" watermark",
+      "language": "Language",
+      "preview": "Preview"
+    },
+    "generating": {
+      "title": "Generating PDF",
+      "subtitle": "Compiling transaction data...",
+      "loading": "Loading data...",
+      "conditions": "Generating conditions...",
+      "documents": "Compiling documents...",
+      "finalizing": "Finalizing PDF..."
+    },
+    "pdfReady": {
+      "title": "PDF generated successfully",
+      "download": "Download",
+      "openTab": "Open in new tab",
+      "watermarkActive": "Watermark active",
+      "noWatermark": "No watermark"
+    },
+    "link": {
+      "subtitle": "Web access without account required",
+      "activeLabel": "Link active",
+      "readOnly": "Read only",
+      "comment": "Comment",
+      "7days": "7 days",
+      "30days": "30 days",
+      "revoked": "Link revoked"
+    },
+    "linkCreated": {
+      "title": "Shareable link created",
+      "expiresIn": "Expires on",
+      "copy": "Copy",
+      "copied": "Copied!",
+      "role": "Role",
+      "expiration": "Expiration",
+      "set": "Set",
+      "none": "None",
+      "visits": "Visits",
+      "revoke": "Revoke link"
+    },
+    "email": {
+      "subtitle": "Send a summary by email",
+      "recipients": "Recipients",
+      "recipientCount": "recipient(s)",
+      "addPlaceholder": "Add an email...",
+      "enterHint": "Press Enter to add",
+      "subject": "Subject",
+      "message": "Message",
+      "messagePlaceholder": "Custom message (optional)...",
+      "send": "Send recap"
+    },
+    "emailSent": {
+      "title": "Recap sent successfully",
+      "subtitle": "The transaction summary has been sent"
+    },
+    "errors": {
+      "pdfTitle": "PDF generation failed",
+      "pdfMessage": "An error occurred while generating the PDF.",
+      "retry": "Retry"
+    }
+  },
   "shareLink": {
     "title": "Shareable Link",
     "description": "Create a sharing link for this transaction.",

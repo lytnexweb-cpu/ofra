@@ -18,6 +18,7 @@ import ClientDetailsPage from '../pages/ClientDetailsPage'
 import TransactionsPage from '../pages/TransactionsPage'
 import TransactionDetailPage from '../pages/TransactionDetailPage'
 import EditTransactionPage from '../pages/EditTransactionPage'
+import ExportSharePage from '../pages/ExportSharePage'
 import SettingsPage from '../pages/SettingsPage'
 import AccountPage from '../pages/AccountPage'
 import Layout from '../components/Layout'
@@ -173,6 +174,10 @@ export const router = createBrowserRouter([
       {
         path: 'transactions/:id/edit',
         element: <EditTransactionPage />,
+      },
+      {
+        path: 'transactions/:id/export',
+        element: <ExportSharePage />,
       },
       {
         path: 'settings',

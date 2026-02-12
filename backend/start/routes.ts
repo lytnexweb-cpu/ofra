@@ -88,6 +88,7 @@ router.group(() => {
 
   // Transactions — export (viewer+ can export)
   router.post('/transactions/:id/export/pdf', '#controllers/export_controller.pdf').use(middleware.txPermission({ minRole: 'viewer' }))
+  router.post('/transactions/:id/export/email', '#controllers/export_controller.email').use(middleware.txPermission({ minRole: 'viewer' }))
 
   // Transactions — admin+ (cancel/archive/restore)
   router.patch('/transactions/:id/cancel', '#controllers/transactions_controller.cancel').use(middleware.txPermission({ minRole: 'admin' }))

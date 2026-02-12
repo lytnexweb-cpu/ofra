@@ -1821,6 +1821,74 @@
     "emailDescription": "Envoyez un récapitulatif par courriel.",
     "emailSent": "Courriel envoyé"
   },
+  "exportPage": {
+    "pdf": {
+      "subtitle": "Récap complet de la transaction",
+      "include": "Inclure",
+      "offerAccepted": "Détails de l'offre acceptée",
+      "active": "actives",
+      "files": "fichiers",
+      "watermark": "Filigrane « Confidentiel »",
+      "language": "Langue",
+      "preview": "Aperçu"
+    },
+    "generating": {
+      "title": "Génération du PDF en cours",
+      "subtitle": "Compilation des données de la transaction...",
+      "loading": "Chargement des données...",
+      "conditions": "Génération des conditions...",
+      "documents": "Compilation des documents...",
+      "finalizing": "Finalisation du PDF..."
+    },
+    "pdfReady": {
+      "title": "PDF généré avec succès",
+      "download": "Télécharger",
+      "openTab": "Ouvrir dans un nouvel onglet",
+      "watermarkActive": "Filigrane actif",
+      "noWatermark": "Sans filigrane"
+    },
+    "link": {
+      "subtitle": "Accès web sans compte requis",
+      "activeLabel": "Lien actif",
+      "readOnly": "Lecture seule",
+      "comment": "Commentaire",
+      "7days": "7 jours",
+      "30days": "30 jours",
+      "revoked": "Lien révoqué"
+    },
+    "linkCreated": {
+      "title": "Lien partageable créé",
+      "expiresIn": "Expire le",
+      "copy": "Copier",
+      "copied": "Copié !",
+      "role": "Rôle",
+      "expiration": "Expiration",
+      "set": "Défini",
+      "none": "Aucun",
+      "visits": "Visites",
+      "revoke": "Révoquer le lien"
+    },
+    "email": {
+      "subtitle": "Envoyer un résumé par courriel",
+      "recipients": "Destinataires",
+      "recipientCount": "destinataire(s)",
+      "addPlaceholder": "Ajouter un courriel...",
+      "enterHint": "Appuyez Entrée pour ajouter",
+      "subject": "Objet",
+      "message": "Message",
+      "messagePlaceholder": "Message personnalisé (optionnel)...",
+      "send": "Envoyer le récap"
+    },
+    "emailSent": {
+      "title": "Récap envoyé avec succès",
+      "subtitle": "Le résumé de la transaction a été envoyé"
+    },
+    "errors": {
+      "pdfTitle": "Échec de génération PDF",
+      "pdfMessage": "Une erreur est survenue lors de la génération du PDF.",
+      "retry": "Réessayer"
+    }
+  },
   "shareLink": {
     "title": "Lien partageable",
     "description": "Créez un lien de partage pour cette transaction.",

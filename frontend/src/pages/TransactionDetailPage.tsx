@@ -7,7 +7,6 @@ import { documentsApi, type TransactionDocument } from '../api/documents.api'
 import {
   TransactionHeader,
   MembersPanel,
-  ExportSharePanel,
   PropertyProfileCard,
   PartiesCard,
   OffersPanel,
@@ -34,7 +33,6 @@ export default function TransactionDetailPage() {
   // D34: Maquettes 07-12 panel states
   const [membersOpen, setMembersOpen] = useState(false)
   const [partiesOpen, setPartiesOpen] = useState(false)
-  const [exportOpen, setExportOpen] = useState(false)
 
   // M08: Documents modals
   const [uploadOpen, setUploadOpen] = useState(false)
@@ -122,7 +120,7 @@ export default function TransactionDetailPage() {
         onOpenEdit={() => navigate(`/transactions/${transaction.id}/edit`)}
         onOpenMembers={() => setMembersOpen(true)}
         onOpenParties={() => setPartiesOpen(true)}
-        onOpenExport={() => setExportOpen(true)}
+        onOpenExport={() => navigate(`/transactions/${transaction.id}/export`)}
       />
       <PropertyProfileCard
         transactionId={transaction.id}
@@ -177,11 +175,6 @@ export default function TransactionDetailPage() {
       <PartiesModal
         isOpen={partiesOpen}
         onClose={() => setPartiesOpen(false)}
-        transactionId={transaction.id}
-      />
-      <ExportSharePanel
-        isOpen={exportOpen}
-        onClose={() => setExportOpen(false)}
         transactionId={transaction.id}
       />
       <UploadDocumentModal

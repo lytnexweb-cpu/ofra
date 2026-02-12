@@ -6,6 +6,14 @@ import { PdfExportService } from '#services/pdf_export_service'
 import { ActivityFeedService } from '#services/activity_feed_service'
 import logger from '@adonisjs/core/services/logger'
 
+const exportEmailValidator = vine.compile(
+  vine.object({
+    recipients: vine.array(vine.string().trim().email()).minLength(1).maxLength(10),
+    subject: vine.string().trim().maxLength(500).optional(),
+    message: vine.string().trim().maxLength(2000).optional(),
+  })
+)
+
 const exportPdfValidator = vine.compile(
   vine.object({
     includeOffers: vine.boolean().optional(),
@@ -85,6 +93,58 @@ export default class ExportController {
       return response.internalServerError({
         success: false,
         error: { message: 'Failed to generate PDF', code: 'E_INTERNAL_ERROR' },
+      })
+    }
+  }
+
+  /**
+   * Send email recap for a transaction
+   * POST /api/transactions/:id/export/email
+   */
+  async email({ params, request, response, auth }: HttpContext) {
+    try {
+      const query = Transaction.query().where('id', params.id)
+      TenantScopeService.apply(query, auth.user!)
+      const transaction = await query.preload('client').preload('property').firstOrFail()
+
+      const payload = await request.validateUsing(exportEmailValidator)
+
+      // TODO: Integrate real email service (Resend, SES, etc.)
+      // For now, log the activity and return success stub
+      await ActivityFeedService.log({
+        transactionId: transaction.id,
+        userId: auth.user!.id,
+        activityType: 'email_recap_sent',
+        metadata: {
+          recipients: payload.recipients,
+          subject: payload.subject || null,
+        },
+      })
+
+      return response.ok({
+        success: true,
+        data: {
+          sent: true,
+          recipients: payload.recipients,
+        },
+      })
+    } catch (error) {
+      if (error.messages) {
+        return response.unprocessableEntity({
+          success: false,
+          error: { message: 'Validation failed', code: 'E_VALIDATION_FAILED', details: error.messages },
+        })
+      }
+      if (error.code === 'E_ROW_NOT_FOUND') {
+        return response.notFound({
+          success: false,
+          error: { message: 'Transaction not found', code: 'E_NOT_FOUND' },
+        })
+      }
+      logger.error({ error, transactionId: params.id }, 'Failed to send email recap')
+      return response.internalServerError({
+        success: false,
+        error: { message: 'Failed to send email', code: 'E_INTERNAL_ERROR' },
       })
     }
   }

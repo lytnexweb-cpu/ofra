@@ -32,9 +32,9 @@ export const exportApi = {
     return { success: true as const, data: { blob } }
   },
 
-  sendEmail: (transactionId: number, email: string) =>
-    apiRequest<{ sent: boolean }>(`/api/transactions/${transactionId}/export/email`, {
+  sendEmail: (transactionId: number, data: { recipients: string[]; subject?: string; message?: string }) =>
+    apiRequest<{ sent: boolean; recipients: string[] }>(`/api/transactions/${transactionId}/export/email`, {
       method: 'POST',
-      body: JSON.stringify({ email }),
+      body: JSON.stringify(data),
     }),
 }

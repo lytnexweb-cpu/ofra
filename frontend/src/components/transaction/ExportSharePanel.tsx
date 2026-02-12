@@ -95,7 +95,7 @@ export default function ExportSharePanel({ isOpen, onClose, transactionId }: Exp
 
   // Email
   const emailMutation = useMutation({
-    mutationFn: () => exportApi.sendEmail(transactionId, emailAddress),
+    mutationFn: () => exportApi.sendEmail(transactionId, { recipients: [emailAddress] }),
     onSuccess: () => {
       toast({ title: t('export.emailSent'), variant: 'success' })
       setEmailAddress('')
@@ -273,7 +273,7 @@ export default function ExportSharePanel({ isOpen, onClose, transactionId }: Exp
                       {shareLink.expiresAt && (
                         <span>{t('shareLink.expiresAt')}: {new Date(shareLink.expiresAt).toLocaleDateString()}</span>
                       )}
-                      {shareLink.password && (
+                      {shareLink.hasPassword && (
                         <span className="flex items-center gap-1">
                           <Lock className="w-3 h-3" />
                           {t('shareLink.passwordProtected')}
