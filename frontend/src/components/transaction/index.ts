@@ -28,6 +28,7 @@ export { default as EvidenceBadge } from './EvidenceBadge'
 // D34: Maquettes 07-12
 export { default as EditTransactionModal } from './EditTransactionModal'
 export { default as DocumentsSection } from './DocumentsSection'
+export { default as UploadDocumentModal } from './UploadDocumentModal'
 export { default as MembersPanel } from './MembersPanel'
 export { default as ExportSharePanel } from './ExportSharePanel'
 
