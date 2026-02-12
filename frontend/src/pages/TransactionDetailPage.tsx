@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useParams, Link, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { transactionsApi } from '../api/transactions.api'
+import { documentsApi, type TransactionDocument } from '../api/documents.api'
 import {
   TransactionHeader,
   EditTransactionModal,
@@ -12,6 +13,10 @@ import {
   PartiesCard,
   OffersPanel,
   PartiesModal,
+  DocumentsSection,
+  UploadDocumentModal,
+  DocumentProofModal,
+  DocumentVersionModal,
 } from '../components/transaction'
 import { Button } from '../components/ui/Button'
 import { AlertCircle, Loader2, RefreshCw } from 'lucide-react'
@@ -30,6 +35,11 @@ export default function TransactionDetailPage() {
   const [partiesOpen, setPartiesOpen] = useState(false)
   const [exportOpen, setExportOpen] = useState(false)
 
+  // M08: Documents modals
+  const [uploadOpen, setUploadOpen] = useState(false)
+  const [proofDoc, setProofDoc] = useState<TransactionDocument | null>(null)
+  const [versionDoc, setVersionDoc] = useState<TransactionDocument | null>(null)
+
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['transaction', transactionId],
     queryFn: () => transactionsApi.get(transactionId),
@@ -38,6 +48,22 @@ export default function TransactionDetailPage() {
   })
 
   const transaction = data?.data?.transaction
+
+  // M08: Documents query (TanStack deduplicates with DocumentsSection internal query)
+  const { data: docsData } = useQuery({
+    queryKey: ['documents', transactionId],
+    queryFn: () => documentsApi.list(transactionId),
+    enabled: !!id,
+  })
+  const allDocuments = docsData?.data?.documents ?? []
+
+  // Previous versions for the version modal
+  const previousVersions = useMemo(() => {
+    if (!versionDoc) return []
+    return allDocuments
+      .filter((d) => d.parentDocumentId === versionDoc.id || (versionDoc.parentDocumentId && d.parentDocumentId === versionDoc.parentDocumentId && d.id !== versionDoc.id))
+      .sort((a, b) => b.version - a.version)
+  }, [versionDoc, allDocuments])
 
   // Loading
   if (isLoading) {
@@ -97,6 +123,12 @@ export default function TransactionDetailPage() {
         transaction={transaction}
         highlightConditionId={highlightId}
       />
+      <DocumentsSection
+        transactionId={transaction.id}
+        onUpload={() => setUploadOpen(true)}
+        onViewProof={(doc) => setProofDoc(doc)}
+        onViewVersions={(doc) => setVersionDoc(doc)}
+      />
       <EditTransactionModal
         isOpen={editModalOpen}
         onClose={() => setEditModalOpen(false)}
@@ -117,6 +149,27 @@ export default function TransactionDetailPage() {
         isOpen={exportOpen}
         onClose={() => setExportOpen(false)}
         transactionId={transaction.id}
+      />
+      <UploadDocumentModal
+        isOpen={uploadOpen}
+        onClose={() => setUploadOpen(false)}
+        transactionId={transaction.id}
+      />
+      <DocumentProofModal
+        isOpen={!!proofDoc}
+        onClose={() => setProofDoc(null)}
+        document={proofDoc}
+        transactionId={transaction.id}
+      />
+      <DocumentVersionModal
+        isOpen={!!versionDoc}
+        onClose={() => setVersionDoc(null)}
+        document={versionDoc}
+        previousVersions={previousVersions}
+        onReplace={() => {
+          setVersionDoc(null)
+          setUploadOpen(true)
+        }}
       />
     </div>
   )
