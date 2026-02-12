@@ -1,12 +1,11 @@
 import { useState, useMemo, useCallback } from 'react'
-import { useParams, Link, useSearchParams } from 'react-router-dom'
+import { useParams, Link, useSearchParams, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { transactionsApi } from '../api/transactions.api'
 import { documentsApi, type TransactionDocument } from '../api/documents.api'
 import {
   TransactionHeader,
-  EditTransactionModal,
   MembersPanel,
   ExportSharePanel,
   PropertyProfileCard,
@@ -27,12 +26,12 @@ import VerticalTimeline from '../components/transaction/VerticalTimeline'
 export default function TransactionDetailPage() {
   const { t } = useTranslation()
   const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
   const transactionId = Number(id)
   const [searchParams] = useSearchParams()
   const highlightId = searchParams.get('highlight')
 
   // D34: Maquettes 07-12 panel states
-  const [editModalOpen, setEditModalOpen] = useState(false)
   const [membersOpen, setMembersOpen] = useState(false)
   const [partiesOpen, setPartiesOpen] = useState(false)
   const [exportOpen, setExportOpen] = useState(false)
@@ -113,7 +112,7 @@ export default function TransactionDetailPage() {
     <div data-testid="transaction-detail-page" className="pb-8">
       <TransactionHeader
         transaction={transaction}
-        onOpenEdit={() => setEditModalOpen(true)}
+        onOpenEdit={() => navigate(`/transactions/${transaction.id}/edit`)}
         onOpenMembers={() => setMembersOpen(true)}
         onOpenParties={() => setPartiesOpen(true)}
         onOpenExport={() => setExportOpen(true)}
@@ -121,7 +120,7 @@ export default function TransactionDetailPage() {
       <PropertyProfileCard
         transactionId={transaction.id}
         currentStepOrder={transaction.currentStep?.stepOrder}
-        onEdit={() => setEditModalOpen(true)}
+        onEdit={() => navigate(`/transactions/${transaction.id}/edit`)}
       />
       <DocumentStatusBar
         transactionId={transaction.id}
@@ -144,11 +143,6 @@ export default function TransactionDetailPage() {
         onUpload={() => setUploadOpen(true)}
         onViewProof={(doc) => setProofDoc(doc)}
         onViewVersions={(doc) => setVersionDoc(doc)}
-      />
-      <EditTransactionModal
-        isOpen={editModalOpen}
-        onClose={() => setEditModalOpen(false)}
-        transaction={transaction}
       />
       <MembersPanel
         isOpen={membersOpen}
