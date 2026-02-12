@@ -77,7 +77,7 @@
 - "Remplacer" ferme version modal et ouvre upload modal
 - TypeScript compile ✅
 - Clés i18n logValidated/logUploaded/logRejected/logAdded corrigées dans FR+EN
-**Status** : ✅ Commit (pending)
+**Status** : ✅ Commit 3c23012
 
 ## Commits
 | # | Hash | Description |
@@ -87,7 +87,19 @@
 | 2 | a399d56 | Étape 2 : État B+E — Modal upload + erreurs |
 | 3 | 6de69f2 | Étape 3 : État C — Modal preuve |
 | 4 | bd874b9 | Étape 4 : État D — Modal versioning |
-| 5 | — | Étape 5+6 : Câblage final |
+| 5 | 3c23012 | Étape 5+6 : Câblage final |
+| 6 | fe3d269 | fix: 6 écarts maquette corrigés — conformité 100% |
+
+## Audit conformité post-implémentation ✅
+6 écarts identifiés et corrigés (commit fe3d269) :
+1. ✅ dueDate affiché pour docs manquants dans DocumentsSection
+2. ✅ min-h-[80vh] sur conteneur principal DocumentsSection
+3. ✅ Carte info formats ajoutée dans UploadDocumentModal
+4. ✅ Badges sourceType (legal/industry/government/best_practice) dans DocumentProofModal
+5. ✅ Numéro d'étape dynamique ("Étape N") dans DocumentProofModal
+6. ✅ Icône RefreshCw sur bouton Réessayer dans erreur réseau
+
+**Status final : MAQUETTE 08 — 100% CONFORME** ✅
 
 ## Design tokens (cohérence)
 - Primary : `#1e3a5f`
