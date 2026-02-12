@@ -24,9 +24,18 @@ export interface InviteMemberRequest {
   message?: string
 }
 
+export interface OwnerEntry {
+  id: 'owner'
+  role: 'owner'
+  status: 'active'
+  fullName: string | null
+  email: string
+  userId: number
+}
+
 export const membersApi = {
   list: (transactionId: number) =>
-    http.get<{ members: TransactionMember[] }>(`/api/transactions/${transactionId}/members`),
+    http.get<{ owner: OwnerEntry; members: TransactionMember[] }>(`/api/transactions/${transactionId}/members`),
 
   invite: (transactionId: number, data: InviteMemberRequest) =>
     http.post<{ member: TransactionMember }>(`/api/transactions/${transactionId}/members`, data),

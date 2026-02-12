@@ -119,7 +119,10 @@ export default function ExportSharePage() {
 
     try {
       const options: ExportPdfOptions = {
-        sections: pdfSections,
+        includeOffers: pdfSections.offers,
+        includeConditions: pdfSections.conditions,
+        includeDocuments: pdfSections.documents,
+        includeActivity: pdfSections.history,
         watermark: pdfWatermark,
         language: pdfLanguage,
       }

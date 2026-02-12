@@ -1,12 +1,10 @@
 import { apiRequest } from './http'
 
 export interface ExportPdfOptions {
-  sections?: {
-    offers?: boolean
-    conditions?: boolean
-    documents?: boolean
-    history?: boolean
-  }
+  includeOffers?: boolean
+  includeConditions?: boolean
+  includeDocuments?: boolean
+  includeActivity?: boolean
   watermark?: boolean
   language?: 'fr' | 'en'
 }
