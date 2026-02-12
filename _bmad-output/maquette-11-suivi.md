@@ -80,8 +80,9 @@
 | # | Hash | Description |
 |---|------|-------------|
 | 1 | bfdeb2b | Étapes 1-8 : page complète + i18n + routing |
+| 2 | 82ab396 | Audit conformité — 6 écarts corrigés |
 
-## Status final : MAQUETTE 11 — IMPLÉMENTÉE ✅
+## Status final : MAQUETTE 11 — CONFORME 100% ✅
 
 ## Design tokens
 - Primary : `#1e3a5f`
