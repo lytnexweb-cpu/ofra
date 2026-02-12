@@ -1642,10 +1642,10 @@
       "activityLog": "Journal d'activité",
       "close": "Fermer",
       "replace": "Remplacer (uploader v{{version}})",
-      "validated": "a validé la",
-      "uploaded": "a uploadé la",
-      "rejected": "a refusé la",
-      "added": "a ajouté la"
+      "logValidated": "a validé la v{{v}}",
+      "logUploaded": "a uploadé la v{{v}} (remplacement)",
+      "logRejected": "a refusé la v{{v}}",
+      "logAdded": "a ajouté la v{{v}}"
     },
     "errors": {
       "tooLarge": "Fichier trop volumineux",

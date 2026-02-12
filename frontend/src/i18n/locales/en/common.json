@@ -1642,10 +1642,10 @@
       "activityLog": "Activity log",
       "close": "Close",
       "replace": "Replace (upload v{{version}})",
-      "validated": "validated",
-      "uploaded": "uploaded",
-      "rejected": "rejected",
-      "added": "added"
+      "logValidated": "validated v{{v}}",
+      "logUploaded": "uploaded v{{v}} (replacement)",
+      "logRejected": "rejected v{{v}}",
+      "logAdded": "added v{{v}}"
     },
     "errors": {
       "tooLarge": "File too large",
