@@ -5,17 +5,16 @@ import { useTranslation } from 'react-i18next'
 import {
   transactionsApi,
   type Transaction,
+  type TransactionProfile,
   type UpdateTransactionRequest,
 } from '../api/transactions.api'
 import { toast } from '../hooks/use-toast'
 import {
   Pencil,
-  X,
   Check,
   Home,
   Users,
   Calendar,
-  Settings,
   Loader2,
   AlertCircle,
   Lock,
@@ -28,7 +27,7 @@ import {
   ArrowRight,
 } from 'lucide-react'
 
-type TabKey = 'property' | 'parties' | 'dates' | 'params'
+type TabKey = 'property' | 'parties' | 'dates'
 
 interface FormData {
   // Property
@@ -39,22 +38,22 @@ interface FormData {
   // Transaction
   type: string
   listPrice: string
+  // Profile
+  propertyType: string
+  propertyContext: string
+  isFinanced: boolean
+  hasWell: boolean
+  hasSeptic: boolean
   // Dates
   closingDate: string
   offerExpiryDate: string
   inspectionDeadline: string
   financingDeadline: string
-  // Params
-  language: string
-  notesText: string
-  tags: string[]
-  // Custom dates
-  customDates: { label: string; date: string }[]
 }
 
 interface OriginalData extends FormData {}
 
-function getInitialForm(t: Transaction): FormData {
+function getInitialForm(t: Transaction, profile?: TransactionProfile | null): FormData {
   return {
     address: t.property?.address ?? '',
     city: t.property?.city ?? '',
@@ -62,16 +61,32 @@ function getInitialForm(t: Transaction): FormData {
     province: t.property?.province ?? 'Nouveau-Brunswick',
     type: t.type ?? 'purchase',
     listPrice: t.listPrice != null ? String(t.listPrice) : '',
+    propertyType: profile?.propertyType ?? 'house',
+    propertyContext: profile?.propertyContext ?? 'urban',
+    isFinanced: profile?.isFinanced ?? false,
+    hasWell: profile?.hasWell ?? false,
+    hasSeptic: profile?.hasSeptic ?? false,
     closingDate: t.closingDate?.split('T')[0] ?? '',
     offerExpiryDate: t.offerExpiryDate?.split('T')[0] ?? '',
     inspectionDeadline: t.inspectionDeadline?.split('T')[0] ?? '',
     financingDeadline: t.financingDeadline?.split('T')[0] ?? '',
-    language: t.language ?? 'fr',
-    notesText: t.notesText ?? '',
-    tags: t.tags ?? [],
-    customDates: [],
   }
 }
+
+const NB_CITIES = [
+  'Alma', 'Atholville', 'Baker Brook', 'Bathurst', 'Beresford', 'Bertrand',
+  'Blackville', 'Bouctouche', 'Campbellton', 'Cap-Pelé', 'Caraquet', 'Chipman',
+  'Clair', 'Cocagne', 'Dalhousie', 'Dieppe', 'Doaktown', 'Drummond',
+  'Edmundston', 'Florenceville-Bristol', 'Fredericton', 'Grand Bay-Westfield',
+  'Grand Falls', 'Grande-Anse', 'Hampton', 'Hartland', 'Hillsborough',
+  'Kedgwick', 'Lamèque', 'McAdam', 'Memramcook', 'Miramichi', 'Moncton',
+  'Neguac', 'Nigadoo', 'Norton', 'Oromocto', 'Paquetville', 'Perth-Andover',
+  'Petit-Rocher', 'Petitcodiac', 'Plaster Rock', 'Quispamsis', 'Rexton',
+  'Richibucto', 'Riverview', 'Rogersville', 'Rothesay', 'Sackville',
+  'Saint Andrews', 'Saint John', 'Saint-François-de-Madawaska', 'Saint-Léonard',
+  'Saint-Louis de Kent', 'Saint-Quentin', 'Salisbury', 'Shediac', 'Shippagan',
+  'St. Stephen', 'Sussex', 'Tide Head', 'Tracadie', 'Woodstock',
+]
 
 type FieldChange = { field: string; label: string; oldValue: string; newValue: string }
 
@@ -84,12 +99,12 @@ function computeChanges(original: OriginalData, current: FormData, t: (k: string
     { key: 'province', label: t('editTransaction.fields.province', 'Province') },
     { key: 'type', label: t('editTransaction.fields.type', 'Type') },
     { key: 'listPrice', label: t('editTransaction.fields.listPrice', 'Prix affiché') },
+    { key: 'propertyType', label: t('editTransaction.fields.propertyType', 'Type de bien') },
+    { key: 'propertyContext', label: t('editTransaction.fields.propertyContext', 'Contexte') },
     { key: 'closingDate', label: t('editTransaction.fields.closingDate', 'Date de closing') },
     { key: 'offerExpiryDate', label: t('editTransaction.fields.offerExpiry', 'Expiration offre') },
     { key: 'inspectionDeadline', label: t('editTransaction.fields.inspection', 'Date limite inspection') },
     { key: 'financingDeadline', label: t('editTransaction.fields.financing', 'Date limite financement') },
-    { key: 'language', label: t('editTransaction.fields.language', 'Langue') },
-    { key: 'notesText', label: t('editTransaction.fields.notes', 'Notes') },
   ]
   for (const f of fields) {
     const o = String(original[f.key] ?? '')
@@ -98,11 +113,16 @@ function computeChanges(original: OriginalData, current: FormData, t: (k: string
       changes.push({ field: f.key, label: f.label, oldValue: o || '—', newValue: c || '—' })
     }
   }
-  // Tags
-  const oTags = (original.tags ?? []).join(', ')
-  const cTags = (current.tags ?? []).join(', ')
-  if (oTags !== cTags) {
-    changes.push({ field: 'tags', label: 'Tags', oldValue: oTags || '—', newValue: cTags || '—' })
+  // Boolean fields
+  const boolFields: { key: keyof FormData; label: string }[] = [
+    { key: 'isFinanced', label: t('editTransaction.fields.isFinanced', 'Financé') },
+    { key: 'hasWell', label: t('editTransaction.fields.hasWell', 'Puits privé') },
+    { key: 'hasSeptic', label: t('editTransaction.fields.hasSeptic', 'Fosse septique') },
+  ]
+  for (const f of boolFields) {
+    if (original[f.key] !== current[f.key]) {
+      changes.push({ field: f.key, label: f.label, oldValue: original[f.key] ? 'Oui' : 'Non', newValue: current[f.key] ? 'Oui' : 'Non' })
+    }
   }
   return changes
 }
@@ -128,7 +148,6 @@ export default function EditTransactionPage() {
   const [showSuccess, setShowSuccess] = useState(false)
   const [savedChanges, setSavedChanges] = useState<FieldChange[]>([])
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
-  const [tagInput, setTagInput] = useState('')
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['transaction', transactionId],
@@ -138,13 +157,21 @@ export default function EditTransactionPage() {
 
   const transaction = data?.data?.transaction
 
+  const { data: profileData } = useQuery({
+    queryKey: ['transaction', transactionId, 'profile'],
+    queryFn: () => transactionsApi.getProfile(transactionId),
+    enabled: !!transaction,
+  })
+
+  const profile = profileData?.data?.profile
+
   useEffect(() => {
     if (transaction && !form) {
-      const initial = getInitialForm(transaction)
+      const initial = getInitialForm(transaction, profile)
       setForm(initial)
       setOriginal({ ...initial })
     }
-  }, [transaction, form])
+  }, [transaction, profile, form])
 
   const updateField = useCallback(<K extends keyof FormData>(key: K, value: FormData[K]) => {
     setForm((prev) => prev ? { ...prev, [key]: value } : prev)
@@ -183,7 +210,7 @@ export default function EditTransactionPage() {
     setConfirmChecked(false)
   }
 
-  const handleConfirmSave = () => {
+  const handleConfirmSave = async () => {
     if (!form || !confirmChecked) return
     const payload: UpdateTransactionRequest = {}
     if (form.address !== original?.address) payload.address = form.address
@@ -199,11 +226,23 @@ export default function EditTransactionPage() {
     if (form.offerExpiryDate !== original?.offerExpiryDate) payload.offerExpiryDate = form.offerExpiryDate || null
     if (form.inspectionDeadline !== original?.inspectionDeadline) payload.inspectionDeadline = form.inspectionDeadline || null
     if (form.financingDeadline !== original?.financingDeadline) payload.financingDeadline = form.financingDeadline || null
-    if (form.language !== original?.language) payload.language = form.language
-    if (form.notesText !== original?.notesText) payload.notesText = form.notesText
-    const oTags = (original?.tags ?? []).join(',')
-    const cTags = (form.tags ?? []).join(',')
-    if (oTags !== cTags) payload.tags = form.tags
+
+    // Profile update (if any profile field changed)
+    const profileChanged = form.propertyType !== original?.propertyType ||
+      form.propertyContext !== original?.propertyContext ||
+      form.isFinanced !== original?.isFinanced ||
+      form.hasWell !== original?.hasWell ||
+      form.hasSeptic !== original?.hasSeptic
+    if (profileChanged) {
+      await transactionsApi.upsertProfile(transactionId, {
+        propertyType: form.propertyType as 'house' | 'condo' | 'land',
+        propertyContext: form.propertyContext as 'urban' | 'suburban' | 'rural',
+        isFinanced: form.isFinanced,
+        hasWell: form.hasWell,
+        hasSeptic: form.hasSeptic,
+      })
+    }
+
     updateMutation.mutate(payload)
   }
 
@@ -280,7 +319,6 @@ export default function EditTransactionPage() {
     { key: 'property', label: t('editTransaction.tabs.property', 'Bien'), icon: Home },
     { key: 'parties', label: t('editTransaction.tabs.parties', 'Parties'), icon: Users },
     { key: 'dates', label: t('editTransaction.tabs.dates', 'Dates'), icon: Calendar },
-    { key: 'params', label: t('editTransaction.tabs.params', 'Params'), icon: Settings },
   ]
 
   const hasErrors = Object.keys(validationErrors).length > 0
@@ -415,9 +453,6 @@ export default function EditTransactionPage() {
             )}
             {activeTab === 'dates' && (
               <DatesTab form={form} original={original} updateField={updateField} validationErrors={validationErrors} t={t} isLocked={isLocked} />
-            )}
-            {activeTab === 'params' && (
-              <ParamsTab form={form} original={original} updateField={updateField} tagInput={tagInput} setTagInput={setTagInput} t={t} isLocked={isLocked} />
             )}
           </div>
         </div>
@@ -646,10 +681,13 @@ function PropertyTab({ form, original, updateField, validationErrors, t, isLocke
           {validationErrors.address && <p className="text-[10px] text-red-600 mt-1">{validationErrors.address}</p>}
           <ChangeNote original={original.address} current={form.address} />
         </div>
-        {/* City */}
+        {/* City — NB dropdown */}
         <div>
           <FieldLabel label={t('editTransaction.fields.city', 'Ville')} />
-          <input type="text" value={form.city} onChange={(e) => updateField('city', e.target.value)} className={fieldClasses(form.city !== original.city, !!validationErrors.city)} disabled={isLocked} />
+          <select value={form.city} onChange={(e) => updateField('city', e.target.value)} className={fieldClasses(form.city !== original.city, !!validationErrors.city)} disabled={isLocked}>
+            <option value="">{t('editTransaction.fields.cityPlaceholder', 'Sélectionner une ville')}</option>
+            {NB_CITIES.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
           {validationErrors.city && <p className="text-[10px] text-red-600 mt-1">{validationErrors.city}</p>}
         </div>
         {/* Postal Code */}
@@ -661,11 +699,8 @@ function PropertyTab({ form, original, updateField, validationErrors, t, isLocke
         {/* Province */}
         <div>
           <FieldLabel label={t('editTransaction.fields.province', 'Province')} />
-          <select value={form.province} onChange={(e) => updateField('province', e.target.value)} className={fieldClasses(form.province !== original.province, false)} disabled={isLocked}>
+          <select value={form.province} onChange={(e) => updateField('province', e.target.value)} className={fieldClasses(form.province !== original.province, false)} disabled>
             <option value="Nouveau-Brunswick">Nouveau-Brunswick</option>
-            <option value="Ontario">Ontario</option>
-            <option value="Québec">Québec</option>
-            <option value="Nouvelle-Écosse">Nouvelle-Écosse</option>
           </select>
         </div>
         {/* Type */}
@@ -684,6 +719,49 @@ function PropertyTab({ form, original, updateField, validationErrors, t, isLocke
             <input type="text" value={form.listPrice} onChange={(e) => updateField('listPrice', e.target.value.replace(/[^\d\s]/g, ''))} className={`${fieldClasses(form.listPrice !== original.listPrice, false)} pl-7`} disabled={isLocked} />
           </div>
           <ChangeNote original={original.listPrice ? `${formatPrice(original.listPrice)} $` : '—'} current={form.listPrice} />
+        </div>
+      </div>
+
+      {/* Profile propriété */}
+      <h3 className="text-sm font-semibold text-stone-900 mt-6 mb-4">
+        {t('editTransaction.profile.title', 'Profil de la propriété')}
+      </h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <FieldLabel label={t('editTransaction.fields.propertyType', 'Type de bien')} required modified={form.propertyType !== original.propertyType} />
+          <select value={form.propertyType} onChange={(e) => updateField('propertyType', e.target.value)} className={fieldClasses(form.propertyType !== original.propertyType, false)} disabled={isLocked}>
+            <option value="house">{t('editTransaction.propertyType.house', 'Maison')}</option>
+            <option value="condo">{t('editTransaction.propertyType.condo', 'Condo')}</option>
+            <option value="land">{t('editTransaction.propertyType.land', 'Terrain')}</option>
+          </select>
+          <ChangeNote original={original.propertyType} current={form.propertyType} />
+        </div>
+        <div>
+          <FieldLabel label={t('editTransaction.fields.propertyContext', 'Contexte')} required modified={form.propertyContext !== original.propertyContext} />
+          <select value={form.propertyContext} onChange={(e) => updateField('propertyContext', e.target.value)} className={fieldClasses(form.propertyContext !== original.propertyContext, false)} disabled={isLocked}>
+            <option value="urban">{t('editTransaction.propertyContext.urban', 'Urbain')}</option>
+            <option value="suburban">{t('editTransaction.propertyContext.suburban', 'Banlieue')}</option>
+            <option value="rural">{t('editTransaction.propertyContext.rural', 'Rural')}</option>
+          </select>
+          <ChangeNote original={original.propertyContext} current={form.propertyContext} />
+        </div>
+        <div className="sm:col-span-2 flex flex-wrap gap-4">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" checked={form.isFinanced} onChange={(e) => updateField('isFinanced', e.target.checked)} className="rounded border-stone-300 text-[#1e3a5f] focus:ring-[#1e3a5f]/30" disabled={isLocked} />
+            <span className="text-sm text-stone-700">{t('editTransaction.fields.isFinanced', 'Financé')}</span>
+          </label>
+          {form.propertyContext === 'rural' && (
+            <>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" checked={form.hasWell} onChange={(e) => updateField('hasWell', e.target.checked)} className="rounded border-stone-300 text-[#1e3a5f] focus:ring-[#1e3a5f]/30" disabled={isLocked} />
+                <span className="text-sm text-stone-700">{t('editTransaction.fields.hasWell', 'Puits privé')}</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" checked={form.hasSeptic} onChange={(e) => updateField('hasSeptic', e.target.checked)} className="rounded border-stone-300 text-[#1e3a5f] focus:ring-[#1e3a5f]/30" disabled={isLocked} />
+                <span className="text-sm text-stone-700">{t('editTransaction.fields.hasSeptic', 'Fosse septique')}</span>
+              </label>
+            </>
+          )}
         </div>
       </div>
     </div>
@@ -754,18 +832,6 @@ function DatesTab({ form, original, updateField, validationErrors, t, isLocked }
   form: FormData; original: OriginalData; updateField: <K extends keyof FormData>(k: K, v: FormData[K]) => void
   validationErrors: Record<string, string>; t: (k: string, f?: string) => string; isLocked: boolean
 }) {
-  const addCustomDate = () => {
-    updateField('customDates', [...form.customDates, { label: '', date: '' }])
-  }
-  const removeCustomDate = (idx: number) => {
-    updateField('customDates', form.customDates.filter((_, i) => i !== idx))
-  }
-  const updateCustomDate = (idx: number, field: 'label' | 'date', value: string) => {
-    const updated = [...form.customDates]
-    updated[idx] = { ...updated[idx], [field]: value }
-    updateField('customDates', updated)
-  }
-
   return (
     <div className={`bg-white rounded-xl border ${Object.keys(validationErrors).some(k => k.includes('Date') || k.includes('deadline')) ? 'border-red-200' : 'border-stone-200'} p-5`}>
       <h3 className="text-sm font-semibold text-stone-900 mb-4 flex items-center gap-2">
@@ -793,121 +859,7 @@ function DatesTab({ form, original, updateField, validationErrors, t, isLocked }
           <input type="date" value={form.financingDeadline} onChange={(e) => updateField('financingDeadline', e.target.value)} className={fieldClasses(form.financingDeadline !== original.financingDeadline, false)} disabled={isLocked} />
         </div>
       </div>
-      {/* Custom dates */}
-      {(form.customDates.length > 0 || !isLocked) && (
-        <div className="border-t border-stone-100 pt-4 mt-4">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-semibold text-stone-600 uppercase tracking-wide">
-              {t('editTransaction.dates.other', 'Autres dates')}
-            </span>
-            {!isLocked && (
-              <button onClick={addCustomDate} className="text-xs text-[#1e3a5f] font-medium flex items-center gap-1 hover:underline">
-                <Plus className="w-3 h-3" />
-                {t('editTransaction.dates.addDate', 'Ajouter une date')}
-              </button>
-            )}
-          </div>
-          <div className="space-y-2">
-            {form.customDates.map((cd, idx) => (
-              <div key={idx} className="grid grid-cols-[1fr_1fr_auto] gap-2 bg-stone-50 p-2 rounded-lg items-center">
-                <input type="text" value={cd.label} onChange={(e) => updateCustomDate(idx, 'label', e.target.value)} placeholder={t('editTransaction.dates.labelPlaceholder', 'Libellé')} className="px-3 py-2 text-sm border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]/20" />
-                <input type="date" value={cd.date} onChange={(e) => updateCustomDate(idx, 'date', e.target.value)} className="px-3 py-2 text-sm border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]/20" />
-                <button onClick={() => removeCustomDate(idx)} className="p-1.5 rounded-lg text-stone-400 hover:text-red-500 hover:bg-red-50">
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   )
 }
 
-/* ─── Params Tab ─── */
-
-function ParamsTab({ form, original, updateField, tagInput, setTagInput, t, isLocked }: {
-  form: FormData; original: OriginalData; updateField: <K extends keyof FormData>(k: K, v: FormData[K]) => void
-  tagInput: string; setTagInput: (v: string) => void; t: (k: string, f?: string) => string; isLocked: boolean
-}) {
-  const addTag = () => {
-    const tag = tagInput.trim()
-    if (tag && !form.tags.includes(tag)) {
-      updateField('tags', [...form.tags, tag])
-    }
-    setTagInput('')
-  }
-  const removeTag = (tag: string) => {
-    updateField('tags', form.tags.filter((t) => t !== tag))
-  }
-
-  return (
-    <div className="bg-white rounded-xl border border-stone-200 p-5">
-      <h3 className="text-sm font-semibold text-stone-900 mb-4 flex items-center gap-2">
-        {isLocked && <Lock className="w-3.5 h-3.5 text-stone-400" />}
-        {t('editTransaction.params.title', 'Paramètres')}
-      </h3>
-      <div className="space-y-4">
-        {/* Language */}
-        <div>
-          <FieldLabel label={t('editTransaction.fields.language', 'Langue principale')} />
-          <select value={form.language} onChange={(e) => updateField('language', e.target.value)} className={fieldClasses(form.language !== original.language, false)} disabled={isLocked}>
-            <option value="fr">Français</option>
-            <option value="en">English</option>
-          </select>
-          <p className="text-[10px] text-stone-400 mt-1">
-            {t('editTransaction.params.languageHelper', 'Langue utilisée pour les notifications et documents générés')}
-          </p>
-        </div>
-        {/* Notes */}
-        <div>
-          <FieldLabel label={t('editTransaction.fields.notes', 'Notes internes')} />
-          <textarea
-            value={form.notesText}
-            onChange={(e) => updateField('notesText', e.target.value)}
-            rows={3}
-            placeholder={t('editTransaction.params.notesPlaceholder', 'Notes visibles uniquement par vous...')}
-            className={`${fieldClasses(form.notesText !== original.notesText, false)} resize-none`}
-            disabled={isLocked}
-          />
-          <p className="text-[10px] text-stone-400 mt-1">
-            {t('editTransaction.params.notesHelper', 'Visibles uniquement par vous et votre équipe')}
-          </p>
-        </div>
-        {/* Tags */}
-        <div>
-          <FieldLabel label="Tags" />
-          <div className="flex flex-wrap gap-2">
-            {form.tags.map((tag) => (
-              <span key={tag} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs bg-[#1e3a5f]/10 text-[#1e3a5f]">
-                {tag}
-                {!isLocked && (
-                  <button onClick={() => removeTag(tag)} className="text-[#1e3a5f]/50 hover:text-red-500">
-                    <X className="w-3 h-3" />
-                  </button>
-                )}
-              </span>
-            ))}
-            {!isLocked && (
-              <div className="inline-flex items-center gap-1">
-                <input
-                  type="text"
-                  value={tagInput}
-                  onChange={(e) => setTagInput(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addTag() } }}
-                  placeholder={form.tags.length === 0 ? t('editTransaction.params.addTag', 'Ajouter un tag') : ''}
-                  className="w-24 px-2 py-1 text-xs border-0 outline-none bg-transparent"
-                />
-                {tagInput.trim() && (
-                  <button onClick={addTag} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border border-dashed border-stone-300 text-stone-400 hover:text-[#1e3a5f] hover:border-[#1e3a5f]">
-                    <Plus className="w-3 h-3" />
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
