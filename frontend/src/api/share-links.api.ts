@@ -1,9 +1,12 @@
 import { http } from './http'
 
+export type ShareLinkType = 'viewer' | 'offer_intake'
+
 export interface TransactionShareLink {
   id: number
   transactionId: number
   token: string
+  linkType: ShareLinkType
   role: 'viewer' | 'editor'
   isActive: boolean
   expiresAt: string | null
@@ -14,6 +17,7 @@ export interface TransactionShareLink {
 }
 
 export interface CreateShareLinkRequest {
+  linkType?: ShareLinkType
   expiresAt?: string | null
   password?: string | null
 }
@@ -25,8 +29,10 @@ export interface UpdateShareLinkRequest {
 }
 
 export const shareLinksApi = {
-  get: (transactionId: number) =>
-    http.get<{ shareLink: TransactionShareLink | null }>(`/api/transactions/${transactionId}/share-link`),
+  get: (transactionId: number, linkType?: ShareLinkType) =>
+    http.get<{ shareLink: TransactionShareLink | null }>(
+      `/api/transactions/${transactionId}/share-link${linkType ? `?linkType=${linkType}` : ''}`
+    ),
 
   create: (transactionId: number, data: CreateShareLinkRequest) =>
     http.post<{ shareLink: TransactionShareLink }>(`/api/transactions/${transactionId}/share-link`, data),

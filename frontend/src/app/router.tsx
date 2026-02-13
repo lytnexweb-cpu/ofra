@@ -21,6 +21,7 @@ import TransactionsPage from '../pages/TransactionsPage'
 import TransactionDetailPage from '../pages/TransactionDetailPage'
 import EditTransactionPage from '../pages/EditTransactionPage'
 import ExportSharePage from '../pages/ExportSharePage'
+import OfferIntakePage from '../pages/OfferIntakePage'
 import PermissionsPage from '../pages/PermissionsPage'
 import SettingsPage from '../pages/SettingsPage'
 import AccountPage from '../pages/AccountPage'
@@ -199,6 +200,11 @@ export const router = createBrowserRouter([
         element: <AccountPage />,
       },
     ],
+  },
+  // D35: Public offer intake page (no auth required)
+  {
+    path: '/offer/:token',
+    element: <OfferIntakePage />,
   },
   {
     path: '/admin/login',

@@ -54,18 +54,31 @@ export default function UploadDocumentModal({
   const isBlocking = selectedCondition?.isBlocking || selectedCondition?.level === 'blocking'
 
   const createMutation = useMutation({
-    mutationFn: (data: { name: string; category: DocumentCategory; conditionId?: number | null }) =>
+    mutationFn: (data: { name: string; category: DocumentCategory; conditionId?: number | null; fileSize?: number; mimeType?: string }) =>
       documentsApi.create(transactionId, {
         name: data.name,
         category: data.category,
         conditionId: data.conditionId ?? null,
+        fileSize: data.fileSize,
+        mimeType: data.mimeType,
       }),
     onSuccess: (response) => {
       if (response.success) {
         toast({ title: t('documents.addSuccess', 'Document ajouté'), variant: 'success' })
         queryClient.invalidateQueries({ queryKey: ['documents', transactionId] })
         queryClient.invalidateQueries({ queryKey: ['transaction', transactionId] })
+        queryClient.invalidateQueries({ queryKey: ['subscription'] })
         resetAndClose()
+      } else if (response.error?.code === 'E_STORAGE_LIMIT_EXCEEDED') {
+        toast({
+          title: t('documents.storageFull', 'Stockage plein'),
+          description: t('documents.storageFullDesc', {
+            used: (response.error as any).meta?.usedStorageGb ?? '?',
+            max: (response.error as any).meta?.maxStorageGb ?? '?',
+            defaultValue: 'Vous avez utilisé {{used}} Go sur {{max}} Go. Supprimez des fichiers ou passez au forfait supérieur.',
+          }),
+          variant: 'destructive',
+        })
       }
     },
     onError: () => {
@@ -154,6 +167,8 @@ export default function UploadDocumentModal({
       name: name.trim(),
       category: category as DocumentCategory,
       conditionId,
+      fileSize: file?.size,
+      mimeType: file?.type,
     })
   }
 

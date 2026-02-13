@@ -1,12 +1,15 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Package, ChevronDown, ChevronUp } from 'lucide-react'
 import { offersApi, type CreateOfferRequest } from '../api/offers.api'
 import { packsApi, type ConditionPack, type PackTemplate } from '../api/packs.api'
+import { partiesApi, type TransactionParty } from '../api/parties.api'
 import { parseApiError, isSessionExpired, type ParsedError } from '../utils/apiError'
 import { useMediaQuery } from '../hooks/useMediaQuery'
+import { useSubscription } from '../hooks/useSubscription'
+import UpgradePrompt from './ui/UpgradePrompt'
 
 interface CreateOfferModalProps {
   isOpen: boolean
@@ -32,6 +35,8 @@ export default function CreateOfferModal({
 }: CreateOfferModalProps) {
   const { t } = useTranslation()
   const isDesktop = useMediaQuery('(min-width: 640px)')
+  const { meetsMinimum } = useSubscription()
+  const canUseSpecializedPacks = meetsMinimum('solo')
   const [formData, setFormData] = useState({
     price: '',
     deposit: '',
@@ -47,12 +52,44 @@ export default function CreateOfferModal({
     message: '',
     notes: '',
   })
+  const [selectedFromPartyId, setSelectedFromPartyId] = useState<string>('')
+  const [selectedToPartyId, setSelectedToPartyId] = useState<string>('')
   const [error, setError] = useState<ParsedError | null>(null)
   const [selectedPack, setSelectedPack] = useState<string | null>(null)
   const [packTemplates, setPackTemplates] = useState<PackTemplate[]>([])
   const [packsExpanded, setPacksExpanded] = useState(false)
   const queryClient = useQueryClient()
   const navigate = useNavigate()
+
+  // Fetch parties for auto-fill
+  const { data: partiesData } = useQuery({
+    queryKey: ['parties', transactionId],
+    queryFn: () => partiesApi.list(transactionId),
+    enabled: isOpen,
+    staleTime: 30_000,
+  })
+
+  const parties: TransactionParty[] = partiesData?.data?.parties ?? []
+  const buyers = useMemo(() => parties.filter((p) => p.role === 'buyer'), [parties])
+  const sellers = useMemo(() => parties.filter((p) => p.role === 'seller'), [parties])
+
+  // Auto-fill: compute fromPartyId and toPartyId based on direction and available parties
+  const autoFrom = formData.direction === 'buyer_to_seller'
+    ? (buyers.length === 1 ? buyers[0].id : null)
+    : (sellers.length === 1 ? sellers[0].id : null)
+  const autoTo = formData.direction === 'buyer_to_seller'
+    ? (sellers.length === 1 ? sellers[0].id : null)
+    : (buyers.length === 1 ? buyers[0].id : null)
+
+  const needsFromSelect = formData.direction === 'buyer_to_seller'
+    ? buyers.length > 1
+    : sellers.length > 1
+  const needsToSelect = formData.direction === 'buyer_to_seller'
+    ? sellers.length > 1
+    : buyers.length > 1
+
+  const fromOptions = formData.direction === 'buyer_to_seller' ? buyers : sellers
+  const toOptions = formData.direction === 'buyer_to_seller' ? sellers : buyers
 
   // Fetch available packs
   const { data: packsData } = useQuery({
@@ -132,6 +169,8 @@ export default function CreateOfferModal({
       notes: '',
     })
     setError(null)
+    setSelectedFromPartyId('')
+    setSelectedToPartyId('')
     setSelectedPack(null)
     setPackTemplates([])
   }
@@ -157,6 +196,14 @@ export default function CreateOfferModal({
       ? parseInt(formData.inspectionDelay, 10)
       : null
 
+    // Resolve party IDs: explicit selection > auto-fill > undefined
+    const fromPartyId = selectedFromPartyId
+      ? parseInt(selectedFromPartyId, 10)
+      : autoFrom ?? undefined
+    const toPartyId = selectedToPartyId
+      ? parseInt(selectedToPartyId, 10)
+      : autoTo ?? undefined
+
     createMutation.mutate({
       price,
       deposit: deposit && !isNaN(deposit) ? deposit : null,
@@ -170,6 +217,8 @@ export default function CreateOfferModal({
       inclusions: formData.inclusions.trim() || null,
       message: formData.message.trim() || null,
       notes: formData.notes.trim() || null,
+      fromPartyId,
+      toPartyId,
     })
   }
 
@@ -288,15 +337,79 @@ export default function CreateOfferModal({
         <select
           id="offer-direction"
           value={formData.direction}
-          onChange={(e) =>
+          onChange={(e) => {
             setFormData({ ...formData, direction: e.target.value as CreateOfferRequest['direction'] })
-          }
+            setSelectedFromPartyId('')
+            setSelectedToPartyId('')
+          }}
           className={inputClass}
         >
           <option value="buyer_to_seller">{t('offers.buyerToSeller')}</option>
           <option value="seller_to_buyer">{t('offers.sellerToBuyer')}</option>
         </select>
       </div>
+
+      {/* Party selection (only when multiple parties per role) */}
+      {(needsFromSelect || needsToSelect) && (
+        <div className="grid grid-cols-2 gap-4">
+          {needsFromSelect ? (
+            <div>
+              <label htmlFor="offer-from-party" className={labelClass}>
+                {t('offers.fromParty')}
+              </label>
+              <select
+                id="offer-from-party"
+                value={selectedFromPartyId}
+                onChange={(e) => setSelectedFromPartyId(e.target.value)}
+                className={inputClass}
+              >
+                <option value="">{t('offers.selectParty')}</option>
+                {fromOptions.map((p) => (
+                  <option key={p.id} value={p.id}>{p.fullName}</option>
+                ))}
+              </select>
+            </div>
+          ) : (
+            <div>
+              <label className={labelClass}>{t('offers.fromParty')}</label>
+              <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                {fromOptions[0]?.fullName ?? '—'}
+              </p>
+            </div>
+          )}
+          {needsToSelect ? (
+            <div>
+              <label htmlFor="offer-to-party" className={labelClass}>
+                {t('offers.toParty')}
+              </label>
+              <select
+                id="offer-to-party"
+                value={selectedToPartyId}
+                onChange={(e) => setSelectedToPartyId(e.target.value)}
+                className={inputClass}
+              >
+                <option value="">{t('offers.selectParty')}</option>
+                {toOptions.map((p) => (
+                  <option key={p.id} value={p.id}>{p.fullName}</option>
+                ))}
+              </select>
+            </div>
+          ) : (
+            <div>
+              <label className={labelClass}>{t('offers.toParty')}</label>
+              <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                {toOptions[0]?.fullName ?? '—'}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+      {/* Auto-fill indicator when single buyer + single seller */}
+      {!needsFromSelect && !needsToSelect && autoFrom && autoTo && (
+        <p className="text-xs text-muted-foreground italic">
+          {t('offers.autoFilledParties')}
+        </p>
+      )}
 
       {/* Financing toggle */}
       <div className="space-y-2">
@@ -429,21 +542,32 @@ export default function CreateOfferModal({
 
       {/* Pack chips */}
       <div className="flex flex-wrap gap-2">
-        {packs.map((pack: ConditionPack) => (
-          <button
-            key={pack.packType}
-            type="button"
-            onClick={() => handleSelectPack(pack.packType)}
-            className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-colors ${
-              selectedPack === pack.packType
-                ? 'bg-primary text-primary-foreground border-primary'
-                : 'bg-background border-border hover:bg-accent'
-            }`}
-          >
-            {pack.label}
-          </button>
-        ))}
+        {packs.map((pack: ConditionPack) => {
+          const isSpecialized = pack.packType !== 'universal'
+          const locked = isSpecialized && !canUseSpecializedPacks
+          return (
+            <button
+              key={pack.packType}
+              type="button"
+              onClick={() => !locked && handleSelectPack(pack.packType)}
+              disabled={locked}
+              className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-colors ${
+                locked
+                  ? 'bg-stone-100 border-stone-200 text-stone-400 cursor-not-allowed'
+                  : selectedPack === pack.packType
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'bg-background border-border hover:bg-accent'
+              }`}
+            >
+              {pack.label}
+            </button>
+          )
+        })}
       </div>
+
+      {!canUseSpecializedPacks && (
+        <UpgradePrompt feature="specialized_packs" targetPlan="solo" />
+      )}
 
       {/* Pack loaded state */}
       {selectedPack && packTemplates.length > 0 && (

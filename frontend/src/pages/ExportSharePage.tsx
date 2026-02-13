@@ -26,6 +26,8 @@ import { transactionsApi } from '../api/transactions.api'
 import { exportApi, type ExportPdfOptions } from '../api/export.api'
 import { shareLinksApi } from '../api/share-links.api'
 import { toast } from '../hooks/use-toast'
+import { useSubscription } from '../hooks/useSubscription'
+import UpgradePrompt from '../components/ui/UpgradePrompt'
 
 // ─── Types ───────────────────────────────────────────────────
 type ModalState =
@@ -43,6 +45,11 @@ export default function ExportSharePage() {
   const { t, i18n } = useTranslation()
   const queryClient = useQueryClient()
   const transactionId = Number(id)
+  const { planSlug, usage, meetsMinimum } = useSubscription()
+  const isStarter = planSlug === 'starter'
+  const pdfUsed = usage?.pdfExportsThisMonth ?? 0
+  const pdfLimit = usage?.pdfExportsLimit ?? null
+  const pdfLimitReached = pdfLimit !== null && pdfUsed >= pdfLimit
 
   // Fetch transaction
   const { data: txData, isLoading } = useQuery({
@@ -454,14 +461,23 @@ export default function ExportSharePage() {
             </div>
 
             {/* Footer */}
-            <div className="px-5 pb-5">
-              <button
-                onClick={handleGeneratePdf}
-                className="w-full px-4 py-2.5 text-xs font-medium text-white bg-[#1e3a5f] hover:bg-[#1e3a5f]/90 rounded-lg shadow-sm flex items-center justify-center gap-1.5"
-              >
-                <Download className="w-3.5 h-3.5" />
-                {t('export.generatePdf', 'Générer PDF')}
-              </button>
+            <div className="px-5 pb-5 space-y-2">
+              {pdfLimit !== null && (
+                <p className="text-[10px] text-stone-500 text-center">
+                  {t('export.usageCounter', '{{used}}/{{limit}} exports ce mois', { used: pdfUsed, limit: pdfLimit })}
+                </p>
+              )}
+              {pdfLimitReached ? (
+                <UpgradePrompt feature="pdf_exports" targetPlan="solo" />
+              ) : (
+                <button
+                  onClick={handleGeneratePdf}
+                  className="w-full px-4 py-2.5 text-xs font-medium text-white bg-[#1e3a5f] hover:bg-[#1e3a5f]/90 rounded-lg shadow-sm flex items-center justify-center gap-1.5"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  {t('export.generatePdf', 'Générer PDF')}
+                </button>
+              )}
             </div>
           </div>
 
@@ -573,23 +589,27 @@ export default function ExportSharePage() {
             </div>
 
             {/* Footer */}
-            <div className="px-5 pb-5">
-              <button
-                onClick={() => createLinkMutation.mutate()}
-                disabled={!linkActive || createLinkMutation.isPending}
-                className={`w-full px-4 py-2.5 text-xs font-medium text-white rounded-lg shadow-sm flex items-center justify-center gap-1.5 ${
-                  linkActive
-                    ? 'bg-blue-600 hover:bg-blue-700'
-                    : 'bg-stone-300 cursor-not-allowed'
-                }`}
-              >
-                {createLinkMutation.isPending ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                ) : (
-                  <Link2 className="w-3.5 h-3.5" />
-                )}
-                {t('shareLink.create', 'Créer le lien')}
-              </button>
+            <div className="px-5 pb-5 space-y-2">
+              {isStarter && existingLink ? (
+                <UpgradePrompt feature="share_links" targetPlan="solo" />
+              ) : (
+                <button
+                  onClick={() => createLinkMutation.mutate()}
+                  disabled={!linkActive || createLinkMutation.isPending}
+                  className={`w-full px-4 py-2.5 text-xs font-medium text-white rounded-lg shadow-sm flex items-center justify-center gap-1.5 ${
+                    linkActive
+                      ? 'bg-blue-600 hover:bg-blue-700'
+                      : 'bg-stone-300 cursor-not-allowed'
+                  }`}
+                >
+                  {createLinkMutation.isPending ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Link2 className="w-3.5 h-3.5" />
+                  )}
+                  {t('shareLink.create', 'Créer le lien')}
+                </button>
+              )}
             </div>
           </div>
 

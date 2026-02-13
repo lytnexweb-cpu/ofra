@@ -368,6 +368,7 @@ export default function EditTransactionPage() {
           hasWell: form.hasWell,
           hasSeptic: form.hasSeptic,
         })
+        queryClient.invalidateQueries({ queryKey: ['transaction-profile', transactionId] })
       }
 
       updateMutation.mutate(payload)

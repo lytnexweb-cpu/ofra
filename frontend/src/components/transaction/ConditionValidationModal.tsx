@@ -6,6 +6,8 @@ import EvidenceUploader, { type SelectedFile } from './EvidenceUploader'
 import { conditionsApi, type Condition, type ConditionLevel, type ResolutionType } from '../../api/conditions.api'
 import { toast } from '../../hooks/use-toast'
 import { formatDate, differenceInDays } from '../../lib/date'
+import { useSubscription } from '../../hooks/useSubscription'
+import UpgradePrompt from '../ui/UpgradePrompt'
 
 interface ConditionValidationModalProps {
   condition: Condition
@@ -55,6 +57,8 @@ export default function ConditionValidationModal({
 }: ConditionValidationModalProps) {
   const { t, i18n } = useTranslation()
   const queryClient = useQueryClient()
+  const { meetsMinimum } = useSubscription()
+  const canUseEvidence = meetsMinimum('pro')
 
   const [resolutionType, setResolutionType] = useState<ResolutionType>('completed')
   const [selectedFile, setSelectedFile] = useState<SelectedFile | null>(null)
@@ -323,13 +327,17 @@ export default function ConditionValidationModal({
             <label className="block text-xs font-semibold text-stone-600 mb-2 uppercase tracking-wide">
               {t('resolveCondition.evidenceLabel')}
             </label>
-            <EvidenceUploader
-              selectedFile={selectedFile}
-              onFileSelect={setSelectedFile}
-              isUploading={uploadMutation.isPending}
-              accept=".pdf,.jpg,.jpeg,.png"
-              compact
-            />
+            {canUseEvidence ? (
+              <EvidenceUploader
+                selectedFile={selectedFile}
+                onFileSelect={setSelectedFile}
+                isUploading={uploadMutation.isPending}
+                accept=".pdf,.jpg,.jpeg,.png"
+                compact
+              />
+            ) : (
+              <UpgradePrompt feature="condition_evidence" targetPlan="pro" />
+            )}
           </div>
 
           {/* D41 escape (blocking, no file) — Fix #7/#8/#9/#13 */}

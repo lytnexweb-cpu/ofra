@@ -10,8 +10,13 @@ import {
   Check,
   Zap,
   Clock,
+  Link2,
+  Copy,
+  CheckCircle2,
+  XCircle,
 } from 'lucide-react'
 import { offersApi } from '../../api/offers.api'
+import { shareLinksApi } from '../../api/share-links.api'
 import type { Offer, OfferRevision, OfferStatus, Transaction } from '../../api/transactions.api'
 import { parseApiError, isSessionExpired } from '../../utils/apiError'
 import { formatDate, parseISO } from '../../lib/date'
@@ -112,6 +117,23 @@ export default function OffersPanel({ transaction }: OffersPanelProps) {
     offerId: null,
   })
   const [createConfirmOpen, setCreateConfirmOpen] = useState(false)
+  const [showOfferLinkForm, setShowOfferLinkForm] = useState(false)
+  const [offerLinkExpiry, setOfferLinkExpiry] = useState<string>('14')
+  const [copied, setCopied] = useState(false)
+
+  // Offer intake link query
+  const { data: offerLinkData } = useQuery({
+    queryKey: ['share-link', transaction.id, 'offer_intake'],
+    queryFn: () => shareLinksApi.get(transaction.id, 'offer_intake'),
+    enabled: transaction.status === 'active',
+  })
+
+  const activeOfferLink = useMemo(() => {
+    const link = (offerLinkData as any)?.data?.shareLink ?? null
+    if (!link || !link.isActive) return null
+    if (link.expiresAt && new Date(link.expiresAt) < new Date()) return null
+    return link
+  }, [offerLinkData])
 
   const { data: offersData, isLoading } = useQuery({
     queryKey: ['offers', transaction.id],
@@ -158,6 +180,37 @@ export default function OffersPanel({ transaction }: OffersPanelProps) {
     if (isSessionExpired(err)) {
       setTimeout(() => navigate('/login'), 2000)
     }
+  }
+
+  const createOfferLinkMutation = useMutation({
+    mutationFn: () => {
+      const days = parseInt(offerLinkExpiry)
+      const expiresAt = days > 0
+        ? new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString()
+        : null
+      return shareLinksApi.create(transaction.id, { linkType: 'offer_intake', expiresAt })
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['share-link', transaction.id, 'offer_intake'] })
+      setShowOfferLinkForm(false)
+    },
+    onError: handleMutationError,
+  })
+
+  const disableOfferLinkMutation = useMutation({
+    mutationFn: (linkId: number) => shareLinksApi.disable(transaction.id, linkId),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['share-link', transaction.id, 'offer_intake'] })
+    },
+    onError: handleMutationError,
+  })
+
+  const copyOfferLink = () => {
+    if (!activeOfferLink) return
+    const url = `${window.location.origin}/offer/${activeOfferLink.token}`
+    navigator.clipboard.writeText(url)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
   }
 
   const rejectMutation = useMutation({
@@ -470,6 +523,86 @@ export default function OffersPanel({ transaction }: OffersPanelProps) {
           </button>
         )}
       </div>
+
+      {/* Offer intake link section */}
+      {transaction.status === 'active' && (
+        <div className="mb-3 rounded-lg border border-dashed border-stone-200 bg-stone-50/50 px-3 py-2.5">
+          {activeOfferLink ? (
+            <div className="flex items-center gap-2 flex-wrap">
+              <Link2 className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+              <span className="text-xs font-medium text-stone-700">{t('offerLink.activeLink')}</span>
+              <button
+                onClick={copyOfferLink}
+                className="ml-auto inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
+              >
+                {copied ? (
+                  <>
+                    <CheckCircle2 className="w-3 h-3" />
+                    {t('offerLink.copied')}
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3 h-3" />
+                    {t('offerLink.copyLink')}
+                  </>
+                )}
+              </button>
+              <button
+                onClick={() => disableOfferLinkMutation.mutate(activeOfferLink.id)}
+                disabled={disableOfferLinkMutation.isPending}
+                className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md text-stone-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+              >
+                <XCircle className="w-3 h-3" />
+                {t('offerLink.disableLink')}
+              </button>
+            </div>
+          ) : showOfferLinkForm ? (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Link2 className="w-3.5 h-3.5 text-stone-400" />
+                <span className="text-xs font-medium text-stone-700">{t('offerLink.generate')}</span>
+              </div>
+              <p className="text-xs text-stone-500">{t('offerLink.description')}</p>
+              <div className="flex items-center gap-2">
+                <label className="text-xs text-stone-500">{t('offerLink.expiration')}</label>
+                <select
+                  value={offerLinkExpiry}
+                  onChange={(e) => setOfferLinkExpiry(e.target.value)}
+                  className="text-xs border border-stone-200 rounded-md px-2 py-1 bg-white"
+                >
+                  <option value="7">{t('offerLink.days7')}</option>
+                  <option value="14">{t('offerLink.days14')}</option>
+                  <option value="30">{t('offerLink.days30')}</option>
+                  <option value="0">{t('offerLink.noExpiry')}</option>
+                </select>
+                <button
+                  onClick={() => createOfferLinkMutation.mutate()}
+                  disabled={createOfferLinkMutation.isPending}
+                  className="ml-auto px-3 py-1 text-xs font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                >
+                  {createOfferLinkMutation.isPending ? t('offerLink.creating') : t('offerLink.createButton')}
+                </button>
+                <button
+                  onClick={() => setShowOfferLinkForm(false)}
+                  className="px-2 py-1 text-xs text-stone-400 hover:text-stone-600"
+                >
+                  {t('common.cancel')}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowOfferLinkForm(true)}
+              className="w-full flex items-center gap-2 text-xs text-stone-500 hover:text-blue-600 transition-colors"
+            >
+              <Link2 className="w-3.5 h-3.5" />
+              <span>{t('offerLink.generate')}</span>
+              <span className="text-stone-300">—</span>
+              <span className="text-stone-400">{t('offerLink.description')}</span>
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Active offers */}
       {activeOffers.map((offer) => renderActiveCard(offer))}

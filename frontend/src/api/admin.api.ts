@@ -163,6 +163,7 @@ export interface AdminPlan {
   annualPrice: number
   maxTransactions: number | null // null = unlimited
   maxStorageGb: number
+  maxUsers: number
   historyMonths: number | null // null = unlimited
   isActive: boolean
   displayOrder: number
@@ -190,6 +191,7 @@ export interface UpdatePlanRequest {
   annualPrice?: number
   maxTransactions?: number | null
   maxStorageGb?: number
+  maxUsers?: number
   historyMonths?: number | null
   isActive?: boolean
   displayOrder?: number

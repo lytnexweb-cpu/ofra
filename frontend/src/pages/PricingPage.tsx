@@ -1,11 +1,14 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { MarketingLayout } from '../components/marketing/MarketingLayout'
 import { Button } from '../components/ui/Button'
 import { Check, Zap, ChevronDown, ChevronUp, Loader2, HardHat, Infinity } from 'lucide-react'
 import { plansApi, type PublicPlan } from '../api/plans.api'
+import { authApi } from '../api/auth.api'
+import { subscriptionApi } from '../api/subscription.api'
+import { toast } from '../hooks/use-toast'
 
 // Plan metadata not stored in DB
 const PLAN_META: Record<string, {
@@ -37,10 +40,16 @@ function PlanCard({
   plan,
   isAnnual,
   isFr,
+  currentPlanSlug,
+  onChangePlan,
+  isChanging,
 }: {
   plan: PublicPlan
   isAnnual: boolean
   isFr: boolean
+  currentPlanSlug?: string | null
+  onChangePlan?: (slug: string) => void
+  isChanging?: boolean
 }) {
   const { t } = useTranslation()
   const meta = PLAN_META[plan.slug] || {}
@@ -138,6 +147,24 @@ function PlanCard({
       {meta.comingSoon ? (
         <Button variant="outline" className="w-full" disabled>
           {t('pricing.comingSoon', 'Bientôt disponible')}
+        </Button>
+      ) : currentPlanSlug === plan.slug ? (
+        <Button variant="outline" className="w-full" disabled>
+          {t('pricing.currentPlan', 'Forfait actuel')}
+        </Button>
+      ) : currentPlanSlug && onChangePlan ? (
+        <Button
+          className={`w-full ${
+            meta.popular
+              ? 'bg-primary hover:bg-primary/90 dark:bg-accent dark:hover:bg-accent/90'
+              : ''
+          }`}
+          variant={meta.popular ? 'default' : 'outline'}
+          onClick={() => onChangePlan(plan.slug)}
+          disabled={isChanging}
+        >
+          {isChanging ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+          {t('pricing.selectPlan', 'Choisir ce forfait')}
         </Button>
       ) : (
         <Link to="/register" className="block">
@@ -257,11 +284,60 @@ export default function PricingPage() {
   const { t, i18n } = useTranslation()
   const [isAnnual, setIsAnnual] = useState(false)
   const isFr = i18n.language === 'fr'
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
 
   const { data, isLoading } = useQuery({
     queryKey: ['plans'],
     queryFn: plansApi.list,
     staleTime: 5 * 60 * 1000,
+  })
+
+  // Check if user is logged in
+  const { data: authData } = useQuery({
+    queryKey: ['auth', 'me'],
+    queryFn: authApi.me,
+    retry: false,
+    staleTime: 5 * 60 * 1000,
+  })
+  const isLoggedIn = authData?.success === true
+
+  // Get current plan if logged in
+  const { data: subData } = useQuery({
+    queryKey: ['subscription'],
+    queryFn: subscriptionApi.get,
+    enabled: isLoggedIn,
+    staleTime: 2 * 60 * 1000,
+  })
+  const currentPlanSlug = subData?.data?.plan?.slug ?? null
+
+  // Change plan mutation
+  const changePlanMutation = useMutation({
+    mutationFn: (slug: string) => subscriptionApi.changePlan(slug, isAnnual ? 'annual' : 'monthly'),
+    onSuccess: (response) => {
+      if (response.success) {
+        toast({
+          title: t('pricing.planChanged', 'Forfait changé avec succès!'),
+          variant: 'success',
+        })
+        queryClient.invalidateQueries({ queryKey: ['subscription'] })
+        queryClient.invalidateQueries({ queryKey: ['auth', 'me'] })
+        navigate('/account')
+      } else if (response.error?.code === 'E_DOWNGRADE_BLOCKED') {
+        const meta = (response.error as any).meta
+        toast({
+          title: t('pricing.downgradeBlocked', {
+            count: meta?.archiveNeeded ?? '?',
+            plan: meta?.planName ?? '',
+            defaultValue: 'Archivez {{count}} transaction(s) d\'abord.',
+          }),
+          variant: 'destructive',
+        })
+      }
+    },
+    onError: () => {
+      toast({ title: t('common.error'), variant: 'destructive' })
+    },
   })
 
   const plans = data?.data?.plans ?? []
@@ -307,6 +383,9 @@ export default function PricingPage() {
                   plan={plan}
                   isAnnual={isAnnual}
                   isFr={isFr}
+                  currentPlanSlug={isLoggedIn ? currentPlanSlug : undefined}
+                  onChangePlan={isLoggedIn ? (slug) => changePlanMutation.mutate(slug) : undefined}
+                  isChanging={changePlanMutation.isPending}
                 />
               ))}
             </div>

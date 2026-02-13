@@ -5,6 +5,12 @@ export type TransactionType = 'purchase' | 'sale'
 export type TransactionStatus = 'active' | 'cancelled' | 'archived'
 export type TransactionStepStatus = 'pending' | 'active' | 'completed' | 'skipped'
 
+export interface OfferRevisionParty {
+  id: number
+  fullName: string
+  role: string
+}
+
 export interface OfferRevision {
   id: number
   offerId: number
@@ -22,6 +28,10 @@ export interface OfferRevision {
   notes: string | null
   direction: 'buyer_to_seller' | 'seller_to_buyer'
   createdByUserId: number | null
+  fromPartyId: number | null
+  toPartyId: number | null
+  fromParty?: OfferRevisionParty | null
+  toParty?: OfferRevisionParty | null
   createdAt: string
 }
 

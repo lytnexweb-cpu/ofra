@@ -99,6 +99,10 @@ export default function CounterOfferModal({
     const deposit = formData.deposit ? parseFloat(formData.deposit) : null
     const financingAmount = formData.financingAmount ? parseFloat(formData.financingAmount) : null
 
+    // Auto-invert party IDs from last revision
+    const fromPartyId = lastRevision.toPartyId ?? undefined
+    const toPartyId = lastRevision.fromPartyId ?? undefined
+
     counterMutation.mutate({
       price,
       deposit: deposit && !isNaN(deposit) ? deposit : null,
@@ -106,6 +110,8 @@ export default function CounterOfferModal({
       expiryAt: formData.expiryAt || null,
       direction: formData.direction,
       notes: formData.notes.trim() || null,
+      fromPartyId,
+      toPartyId,
     })
   }
 

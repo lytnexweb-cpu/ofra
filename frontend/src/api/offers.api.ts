@@ -15,6 +15,8 @@ export interface CreateOfferRequest {
   inclusions?: string | null
   message?: string | null
   conditionIds?: number[]
+  fromPartyId?: number
+  toPartyId?: number
 }
 
 export interface AddRevisionRequest {
@@ -31,6 +33,8 @@ export interface AddRevisionRequest {
   inclusions?: string | null
   message?: string | null
   conditionIds?: number[]
+  fromPartyId?: number
+  toPartyId?: number
 }
 
 export const offersApi = {

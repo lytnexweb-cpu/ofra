@@ -8,6 +8,7 @@ export interface PublicPlan {
   annualPrice: number
   maxTransactions: number | null // null = unlimited
   maxStorageGb: number
+  maxUsers: number
   historyMonths: number | null // null = unlimited
   displayOrder: number
 }

@@ -6,6 +6,7 @@ export interface SubscriptionPlan {
   slug: string
   maxTransactions: number | null
   maxStorageGb: number
+  maxUsers: number
   historyMonths: number | null
 }
 
@@ -24,6 +25,8 @@ export interface SubscriptionData {
     maxTransactions: number | null
     storageUsedGb: number
     maxStorageGb: number
+    pdfExportsThisMonth?: number
+    pdfExportsLimit?: number | null
   }
   grace: {
     active: boolean
@@ -34,4 +37,6 @@ export interface SubscriptionData {
 
 export const subscriptionApi = {
   get: () => http.get<SubscriptionData>('/api/me/subscription'),
+  changePlan: (planSlug: string, billingCycle?: 'monthly' | 'annual') =>
+    http.post<SubscriptionData>('/api/me/plan', { planSlug, billingCycle }),
 }

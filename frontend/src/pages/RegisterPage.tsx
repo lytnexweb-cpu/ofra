@@ -1,40 +1,39 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation } from '@tanstack/react-query'
 import { authApi } from '../api/auth.api'
 import { useTranslation } from 'react-i18next'
 import { Eye, EyeOff } from 'lucide-react'
-import { OfraLogoFull } from '../components/OfraLogo'
+import { OfraLogo, OfraLogoFull } from '../components/OfraLogo'
+
+const NB_PROVINCES = [
+  { code: 'NB', label: 'Nouveau-Brunswick' },
+  { code: 'NS', label: 'Nouvelle-Écosse' },
+  { code: 'PE', label: 'Île-du-Prince-Édouard' },
+  { code: 'QC', label: 'Québec' },
+  { code: 'ON', label: 'Ontario' },
+]
 
 export default function RegisterPage() {
   const { t } = useTranslation()
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
+  const [address, setAddress] = useState('')
+  const [city, setCity] = useState('')
+  const [provinceCode, setProvinceCode] = useState('NB')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [error, setError] = useState('')
-  const [isLoggingIn, setIsLoggingIn] = useState(false)
   const navigate = useNavigate()
-  const queryClient = useQueryClient()
 
   const registerMutation = useMutation({
     mutationFn: authApi.register,
     onSuccess: async (data) => {
       if (data.success) {
-        setIsLoggingIn(true)
-        try {
-          const loginResult = await authApi.login({ email: email.trim(), password })
-          if (loginResult.success) {
-            queryClient.clear()
-            setTimeout(() => navigate('/'), 100)
-          } else {
-            navigate('/login', { state: { registered: true } })
-          }
-        } catch {
-          navigate('/login', { state: { registered: true } })
-        }
+        navigate('/verify-email', { state: { email: email.trim() } })
       } else {
         if (data.error?.code === 'E_RATE_LIMIT') {
           const retryAfter = data.error?.retryAfter || 300
@@ -57,7 +56,7 @@ export default function RegisterPage() {
     },
   })
 
-  const isPending = registerMutation.isPending || isLoggingIn
+  const isPending = registerMutation.isPending
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -82,6 +81,10 @@ export default function RegisterPage() {
       fullName: fullName.trim(),
       email: email.trim(),
       password,
+      phone: phone.trim() || undefined,
+      address: address.trim() || undefined,
+      city: city.trim() || undefined,
+      provinceCode,
     })
   }
 
@@ -91,108 +94,220 @@ export default function RegisterPage() {
     password.trim().length >= 8 &&
     password === confirmPassword
 
+  const inputClass = "w-full px-3.5 py-2.5 rounded-md border border-stone-300 dark:border-stone-600 bg-white dark:bg-stone-800 text-stone-900 dark:text-white placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors text-sm"
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-stone-50 dark:bg-stone-900 py-12 px-4 sm:px-6 lg:px-8 transition-colors">
-      <div className="w-full max-w-md">
-        {/* Card */}
-        <div className="bg-white dark:bg-stone-800 rounded-2xl shadow-xl p-10">
-          {/* Logo + Tagline */}
-          <OfraLogoFull className="mb-8" />
+    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2">
+      {/* Left Panel — Hero branding (hidden on mobile) */}
+      <div className="hidden lg:flex relative overflow-hidden bg-[#1E3A5F] flex-col items-center justify-center px-12">
+        {/* Geometric pattern overlay */}
+        <svg
+          className="absolute inset-0 w-full h-full opacity-[0.04]"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <defs>
+            <pattern id="geo" width="60" height="60" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+              <line x1="0" y1="0" x2="0" y2="60" stroke="#D97706" strokeWidth="1" />
+              <line x1="0" y1="0" x2="60" y2="0" stroke="#D97706" strokeWidth="0.5" />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#geo)" />
+        </svg>
+
+        {/* Radial glow */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(217,119,6,0.08)_0%,transparent_70%)]" />
+
+        {/* Content */}
+        <div className="relative z-10 flex flex-col items-center text-center max-w-sm">
+          <OfraLogo size={80} variant="white" className="mb-6 drop-shadow-lg" />
+          <h1 className="text-4xl font-extrabold tracking-tight text-white font-outfit mb-3">
+            OFRA
+          </h1>
+          <p className="text-white/85 text-lg font-medium leading-relaxed">
+            {t('app.tagline')}
+          </p>
+
+          {/* Golden separator */}
+          <div className="w-20 h-px bg-[#D97706]/40 my-8" />
+
+          <p className="text-white/60 text-sm leading-relaxed">
+            {t('register.heroTagline', 'Le premier gestionnaire transactionnel du Nouveau-Brunswick')}
+          </p>
+          <p className="text-white/40 text-xs mt-2">
+            {t('register.heroOrigin', 'Entreprise 100% néo-brunswickoise')}
+          </p>
+        </div>
+      </div>
+
+      {/* Right Panel — Registration form */}
+      <div className="flex items-center justify-center bg-white dark:bg-stone-900 py-8 px-6 sm:px-12 lg:px-16 transition-colors">
+        <div className="w-full max-w-sm">
+          {/* Logo — small, no tagline */}
+          <OfraLogoFull className="mb-8" showTagline={false} iconSize={32} />
+
+          <h2 className="text-2xl font-semibold text-stone-900 dark:text-white mb-1">
+            {t('auth.createAccount')}
+          </h2>
+          <p className="text-sm text-stone-500 dark:text-stone-400 mb-6">
+            {t('auth.alreadyHaveAccount').split('?')[0]}?{' '}
+            <Link to="/login" className="text-primary hover:underline font-medium">
+              {t('auth.login')}
+            </Link>
+          </p>
 
           {/* Error Message */}
           {error && (
-            <div className="mb-6 rounded-lg bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 p-4">
+            <div className="mb-5 rounded-md bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 px-4 py-3">
               <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
             </div>
           )}
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-3.5">
             <div>
+              <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">
+                {t('auth.fullName')}
+              </label>
               <input
                 type="text"
                 required
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-stone-200 dark:border-stone-600 bg-white dark:bg-stone-700 text-stone-900 dark:text-white placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-shadow"
-                placeholder={t('auth.fullName')}
+                className={inputClass}
+                placeholder="Jean Dupont"
               />
             </div>
             <div>
+              <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">
+                {t('auth.email')}
+              </label>
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-stone-200 dark:border-stone-600 bg-white dark:bg-stone-700 text-stone-900 dark:text-white placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-shadow"
-                placeholder={t('auth.email')}
+                className={inputClass}
+                placeholder="vous@exemple.com"
               />
             </div>
-            <div className="relative">
+            <div>
+              <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">
+                {t('auth.phone', 'Téléphone')}
+              </label>
               <input
-                type={showPassword ? 'text' : 'password'}
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 pr-12 rounded-lg border border-stone-200 dark:border-stone-600 bg-white dark:bg-stone-700 text-stone-900 dark:text-white placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-shadow"
-                placeholder={t('auth.password')}
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className={inputClass}
+                placeholder="(506) 555-1234"
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 flex items-center pr-4 text-stone-400 hover:text-stone-600 dark:hover:text-stone-300"
-                tabIndex={-1}
-              >
-                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-              </button>
             </div>
-            <div className="relative">
+            <div>
+              <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">
+                {t('auth.address', 'Adresse')}
+              </label>
               <input
-                type={showConfirmPassword ? 'text' : 'password'}
-                required
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full px-4 py-3 pr-12 rounded-lg border border-stone-200 dark:border-stone-600 bg-white dark:bg-stone-700 text-stone-900 dark:text-white placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-shadow"
-                placeholder={t('auth.confirmPassword')}
+                type="text"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                className={inputClass}
+                placeholder="123 rue Principale"
               />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute inset-y-0 right-0 flex items-center pr-4 text-stone-400 hover:text-stone-600 dark:hover:text-stone-300"
-                tabIndex={-1}
-              >
-                {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">
+                  {t('auth.city', 'Ville')}
+                </label>
+                <input
+                  type="text"
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  className={inputClass}
+                  placeholder="Moncton"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">
+                  {t('auth.province', 'Province')}
+                </label>
+                <select
+                  value={provinceCode}
+                  onChange={(e) => setProvinceCode(e.target.value)}
+                  className={inputClass}
+                >
+                  {NB_PROVINCES.map((p) => (
+                    <option key={p.code} value={p.code}>{p.label}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="pt-1">
+              <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">
+                {t('auth.password')}
+              </label>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className={`${inputClass} pr-10`}
+                  placeholder="••••••••"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-stone-400 hover:text-stone-600 dark:hover:text-stone-300"
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">
+                {t('auth.confirmPassword')}
+              </label>
+              <div className="relative">
+                <input
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  required
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className={`${inputClass} pr-10`}
+                  placeholder="••••••••"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-stone-400 hover:text-stone-600 dark:hover:text-stone-300"
+                  tabIndex={-1}
+                >
+                  {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
             </div>
 
             <button
               type="submit"
               disabled={isPending || !isFormValid}
-              className="w-full py-3 px-4 rounded-lg text-white font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:translate-y-[-1px] hover:shadow-lg active:translate-y-0 bg-primary hover:bg-primary/90"
+              className="w-full py-2.5 px-4 rounded-md text-white text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed bg-primary hover:bg-primary/90"
             >
               {isPending ? (
                 <span className="flex items-center justify-center gap-2">
-                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
+                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
                   </svg>
-                  {isLoggingIn ? t('auth.loggingIn') : t('auth.creatingAccount')}
+                  {t('auth.creatingAccount')}
                 </span>
               ) : (
                 t('auth.register')
               )}
             </button>
           </form>
-
-          {/* Link */}
-          <div className="mt-6 text-center">
-            <Link
-              to="/login"
-              className="text-sm text-primary hover:underline"
-            >
-              {t('auth.alreadyHaveAccount')}
-            </Link>
-          </div>
         </div>
       </div>
     </div>

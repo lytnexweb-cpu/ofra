@@ -1161,19 +1161,31 @@
   },
   "landing": {
     "nav": {
+      "features": "Features",
       "pricing": "Pricing",
+      "founder": "Founder",
+      "faq": "FAQ",
       "login": "Sign in",
+      "freeTrial": "Free trial",
       "getStarted": "Get Started"
     },
     "hero": {
+      "badge": "AI Platform · New Brunswick",
+      "titleLine1": "Every transaction,",
+      "titleLine2": "mastered.",
+      "subtitle": "Auto-generated conditions, centralized documents, 8-step tracking — OFRA is the AI copilot for New Brunswick real estate agents.",
+      "cta": "Free trial →",
+      "demo": "Watch demo",
+      "trust1": "Hosted in Canada",
+      "trust2": "NBREA compliant",
+      "trust3": "100% bilingual",
       "title": "Manage your real estate transactions with confidence",
-      "subtitle": "Ofra guides you through every step of the transaction, from offer to keys. Never miss a deadline again.",
-      "cta": "Start for free",
       "pricing": "See pricing",
       "badge1": "No credit card required",
       "badge2": "14-day free trial",
       "badge3": "Cancel anytime"
     },
+    "scroll": "Discover",
     "features": {
       "title": "Everything you need to close more deals",
       "subtitle": "Powerful tools designed specifically for New Brunswick real estate professionals",
@@ -1213,6 +1225,10 @@
       "1": "Ofra has transformed how I manage my transactions. I never miss a deadline anymore!",
       "2": "The blocking conditions feature saved me from a costly mistake. Worth every penny.",
       "3": "Finally, a tool that understands how we work in New Brunswick. Highly recommended!"
+    },
+    "productTour": {
+      "title": "Your transaction, at a glance",
+      "subtitle": "A complete dashboard to track every step, condition, and document in real time."
     },
     "cta": {
       "title": "Ready to streamline your transactions?",
@@ -1356,6 +1372,10 @@
     "validPriceRequired": "A valid price is required.",
     "failedCreate": "Failed to create offer",
     "failedCounter": "Failed to submit counter-offer",
+    "fromParty": "From (sender)",
+    "toParty": "To (recipient)",
+    "selectParty": "Select party",
+    "autoFilledParties": "Parties detected automatically",
     "createModal": {
       "vsListPrice": "vs list price",
       "depositDeadline": "Deposit Deadline",
@@ -1849,7 +1869,9 @@
     "pdfFailed": "Failed to generate PDF",
     "emailTitle": "Email recap",
     "emailDescription": "Send a summary by email.",
-    "emailSent": "Email sent"
+    "emailSent": "Email sent",
+    "limitReached": "Limit reached",
+    "usageCounter": "{{used}}/{{limit}} exports this month"
   },
   "exportPage": {
     "pdf": {
@@ -2213,5 +2235,66 @@
     "markAllRead": "Mark all read",
     "empty": "No notifications",
     "emailSentTo": "Email sent to"
+  },
+  "plans": {
+    "upgradeRequired": "This feature requires a higher plan",
+    "upgradeToSolo": "Available from Solo plan ($49/mo)",
+    "upgradeToPro": "Available from Pro plan ($79/mo)",
+    "upgradeToAgence": "Available from Agency plan ($149/mo)",
+    "upgradeForPacks": "Specialized condition packs require Solo plan or higher",
+    "upgradeForEvidence": "Adding evidence to conditions requires Pro plan or higher",
+    "upgradeForHistory": "Condition audit history requires Pro plan or higher",
+    "upgradeForExports": "PDF export limit reached. Upgrade to Solo for unlimited exports.",
+    "upgradeForShareLinks": "Share link limit reached. Upgrade to Solo for unlimited links.",
+    "viewPlans": "View plans"
+  },
+  "shareLinks": {
+    "limitReached": "Share link limit reached for this transaction"
+  },
+  "offerIntake": {
+    "headerSubtitle": "Submit an offer",
+    "propertyLabel": "Property",
+    "askingPrice": "Asking price",
+    "listedBy": "Listed by:",
+    "formTitle": "Submit your offer",
+    "formSubtitle": "Fill out the form below. The broker will be notified immediately.",
+    "fullName": "Full name",
+    "fullNamePlaceholder": "John Smith",
+    "email": "Email",
+    "phone": "Phone",
+    "offerPrice": "Offer price ($)",
+    "message": "Message (optional)",
+    "messagePlaceholder": "Special conditions, comments...",
+    "submitButton": "Submit my offer",
+    "submitting": "Submitting...",
+    "submitError": "Submission error. Please try again.",
+    "successTitle": "Offer sent!",
+    "successMessage": "The broker has been notified and will get back to you shortly.",
+    "errorTitle": "Invalid link",
+    "errorGeneric": "This link is not valid. Contact the broker for a new link.",
+    "expiredTitle": "Link expired",
+    "expiredMessage": "This offer link has expired. Contact the broker for a new one.",
+    "disabledTitle": "Link disabled",
+    "disabledMessage": "This link has been disabled by the broker.",
+    "notFoundTitle": "Link not found",
+    "notFoundMessage": "This offer link does not exist. Check the URL or contact the broker.",
+    "poweredBy": "Powered by OFRA — Real estate transaction management"
+  },
+  "offerLink": {
+    "generate": "Offer link",
+    "description": "Share this link to receive offers directly.",
+    "expiration": "Expiration",
+    "days7": "7 days",
+    "days14": "14 days",
+    "days30": "30 days",
+    "noExpiry": "No expiration",
+    "creating": "Creating...",
+    "createButton": "Generate link",
+    "linkReady": "Link ready!",
+    "copyLink": "Copy link",
+    "copied": "Copied!",
+    "activeLink": "Active offer link",
+    "disableLink": "Disable",
+    "noActiveLink": "No active offer link"
   }
 }

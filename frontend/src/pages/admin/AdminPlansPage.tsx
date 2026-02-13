@@ -31,6 +31,7 @@ function PlanCard({ plan, onSave, isSaving }: {
     annualPrice: String(plan.annualPrice),
     maxTransactions: plan.maxTransactions === null ? '' : String(plan.maxTransactions),
     maxStorageGb: String(plan.maxStorageGb),
+    maxUsers: String(plan.maxUsers),
     historyMonths: plan.historyMonths === null ? '' : String(plan.historyMonths),
     isActive: plan.isActive,
   })
@@ -52,6 +53,9 @@ function PlanCard({ plan, onSave, isSaving }: {
 
     const storage = parseFloat(form.maxStorageGb)
     if (!isNaN(storage) && storage !== plan.maxStorageGb) data.maxStorageGb = storage
+
+    const users = parseInt(form.maxUsers)
+    if (!isNaN(users) && users !== plan.maxUsers) data.maxUsers = users
 
     const history = form.historyMonths === '' ? null : parseInt(form.historyMonths)
     if (history !== plan.historyMonths) data.historyMonths = history
@@ -131,7 +135,7 @@ function PlanCard({ plan, onSave, isSaving }: {
       </div>
 
       {/* Limits row */}
-      <div className="grid grid-cols-3 gap-3 mb-4">
+      <div className="grid grid-cols-4 gap-3 mb-4">
         <div>
           <label className="text-xs font-medium text-muted-foreground block mb-1">
             TX max
@@ -163,6 +167,19 @@ function PlanCard({ plan, onSave, isSaving }: {
             />
             <span className="text-xs text-muted-foreground shrink-0">Go</span>
           </div>
+        </div>
+        <div>
+          <label className="text-xs font-medium text-muted-foreground block mb-1">
+            {t('admin.plans.maxUsers', 'Utilisateurs')}
+          </label>
+          <Input
+            value={form.maxUsers}
+            onChange={(e) => {
+              setForm({ ...form, maxUsers: e.target.value })
+              setEditing(true)
+            }}
+            inputMode="numeric"
+          />
         </div>
         <div>
           <label className="text-xs font-medium text-muted-foreground block mb-1">
@@ -235,6 +252,7 @@ function PlanCard({ plan, onSave, isSaving }: {
                   annualPrice: String(plan.annualPrice),
                   maxTransactions: plan.maxTransactions === null ? '' : String(plan.maxTransactions),
                   maxStorageGb: String(plan.maxStorageGb),
+                  maxUsers: String(plan.maxUsers),
                   historyMonths: plan.historyMonths === null ? '' : String(plan.historyMonths),
                   isActive: plan.isActive,
                 })
@@ -261,6 +279,7 @@ function ChangeLogRow({ log }: { log: PlanChangeLog }) {
     annualPrice: 'annuel',
     maxTransactions: 'TX max',
     maxStorageGb: 'stockage',
+    maxUsers: 'utilisateurs max',
     historyMonths: 'historique',
     isActive: 'statut',
     name: 'nom',
@@ -303,7 +322,7 @@ function MobileReadOnly({ plans }: { plans: AdminPlan[] }) {
             </span>
           </div>
           <div className="text-sm mt-2 space-y-0.5 text-muted-foreground">
-            <p>{plan.monthlyPrice}$/mo · {plan.maxTransactions ?? String.fromCodePoint(0x221E)} TX · {plan.maxStorageGb} Go</p>
+            <p>{plan.monthlyPrice}$/mo · {plan.maxTransactions ?? String.fromCodePoint(0x221E)} TX · {plan.maxStorageGb} Go · {plan.maxUsers} user(s)</p>
             <p>{plan.subscriberCount} {t('admin.plans.subscribers', 'abonnés')}</p>
           </div>
         </div>

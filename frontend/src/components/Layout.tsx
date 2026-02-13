@@ -11,10 +11,10 @@ import {
   ClientsIcon,
   TransactionsIcon,
   SettingsIcon,
-  BellIcon,
   MenuIcon,
   CloseIcon,
 } from './ui/Icons'
+import NotificationBell from './NotificationBell'
 import { ShieldCheck } from 'lucide-react'
 import SoftLimitBanner from './SoftLimitBanner'
 
@@ -186,12 +186,7 @@ export default function Layout() {
           </Link>
 
           <div className="flex items-center gap-2">
-            <button
-              className="p-2 rounded-lg text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors"
-              aria-label={t('common.notifications')}
-            >
-              <BellIcon className="w-5 h-5" />
-            </button>
+            <NotificationBell />
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2 rounded-lg text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors"
@@ -222,12 +217,7 @@ export default function Layout() {
       <div className="flex-1 w-full min-w-0 lg:pl-64 flex flex-col h-screen lg:h-auto lg:min-h-screen">
         {/* Desktop top bar */}
         <header className="hidden lg:flex items-center justify-end h-16 px-8 bg-white dark:bg-stone-800 border-b border-stone-200 dark:border-stone-700 shrink-0">
-          <button
-            className="p-2 rounded-lg text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors"
-            aria-label={t('common.notifications')}
-          >
-            <BellIcon className="w-5 h-5" />
-          </button>
+          <NotificationBell />
         </header>
 
         {/* K2: Soft limit banner */}

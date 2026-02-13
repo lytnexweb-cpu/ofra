@@ -1161,19 +1161,31 @@
   },
   "landing": {
     "nav": {
+      "features": "Fonctionnalités",
       "pricing": "Tarifs",
+      "founder": "Fondateur",
+      "faq": "FAQ",
       "login": "Connexion",
+      "freeTrial": "Essai gratuit",
       "getStarted": "Commencer"
     },
     "hero": {
+      "badge": "Plateforme IA · Nouveau-Brunswick",
+      "titleLine1": "Chaque transaction,",
+      "titleLine2": "maîtrisée.",
+      "subtitle": "Conditions auto-générées, documents centralisés, suivi en 8 étapes — OFRA est le copilote IA des agents immobiliers du Nouveau-Brunswick.",
+      "cta": "Essai gratuit →",
+      "demo": "Voir la démo",
+      "trust1": "Hébergé au Canada",
+      "trust2": "Conforme NBREA",
+      "trust3": "100% bilingue",
       "title": "Gérez vos transactions immobilières en toute confiance",
-      "subtitle": "Ofra vous guide à chaque étape de la transaction, de l'offre jusqu'aux clés. Ne manquez plus jamais une échéance.",
-      "cta": "Commencer gratuitement",
       "pricing": "Voir les tarifs",
       "badge1": "Sans carte de crédit",
       "badge2": "Essai gratuit 14 jours",
       "badge3": "Annulez à tout moment"
     },
+    "scroll": "Découvrir",
     "features": {
       "title": "Tout ce qu'il faut pour conclure plus de ventes",
       "subtitle": "Des outils puissants conçus spécifiquement pour les professionnels de l'immobilier au Nouveau-Brunswick",
@@ -1213,6 +1225,10 @@
       "1": "Ofra a transformé ma façon de gérer mes transactions. Je ne manque plus jamais une échéance!",
       "2": "La fonction de conditions bloquantes m'a évité une erreur coûteuse. Ça vaut chaque sou.",
       "3": "Enfin, un outil qui comprend comment on travaille au Nouveau-Brunswick. Hautement recommandé!"
+    },
+    "productTour": {
+      "title": "Votre transaction, en un coup d'oeil",
+      "subtitle": "Un tableau de bord complet pour suivre chaque étape, condition et document en temps réel."
     },
     "cta": {
       "title": "Prêt à simplifier vos transactions?",
@@ -1356,6 +1372,10 @@
     "validPriceRequired": "Un prix valide est requis.",
     "failedCreate": "Échec de la création de l'offre",
     "failedCounter": "Échec de la soumission de la contre-offre",
+    "fromParty": "De (émetteur)",
+    "toParty": "À (destinataire)",
+    "selectParty": "Sélectionner la partie",
+    "autoFilledParties": "Parties détectées automatiquement",
     "createModal": {
       "vsListPrice": "vs prix demandé",
       "depositDeadline": "Date limite dépôt",
@@ -1849,7 +1869,9 @@
     "pdfFailed": "Échec de la génération du PDF",
     "emailTitle": "Récap par courriel",
     "emailDescription": "Envoyez un récapitulatif par courriel.",
-    "emailSent": "Courriel envoyé"
+    "emailSent": "Courriel envoyé",
+    "limitReached": "Limite atteinte",
+    "usageCounter": "{{used}}/{{limit}} exports ce mois"
   },
   "exportPage": {
     "pdf": {
@@ -2213,5 +2235,66 @@
     "markAllRead": "Tout marquer lu",
     "empty": "Aucune notification",
     "emailSentTo": "Courriel envoyé à"
+  },
+  "plans": {
+    "upgradeRequired": "Fonctionnalité réservée à un forfait supérieur",
+    "upgradeToSolo": "Disponible à partir du forfait Solo (49$/mois)",
+    "upgradeToPro": "Disponible à partir du forfait Pro (79$/mois)",
+    "upgradeToAgence": "Disponible à partir du forfait Agence (149$/mois)",
+    "upgradeForPacks": "Les packs de conditions spécialisés nécessitent le forfait Solo ou supérieur",
+    "upgradeForEvidence": "L'ajout de preuves sur les conditions nécessite le forfait Pro ou supérieur",
+    "upgradeForHistory": "L'historique d'audit des conditions nécessite le forfait Pro ou supérieur",
+    "upgradeForExports": "Limite d'exports PDF atteinte. Passez au forfait Solo pour des exports illimités.",
+    "upgradeForShareLinks": "Limite de liens de partage atteinte. Passez au forfait Solo pour des liens illimités.",
+    "viewPlans": "Voir les forfaits"
+  },
+  "shareLinks": {
+    "limitReached": "Limite de liens atteinte pour cette transaction"
+  },
+  "offerIntake": {
+    "headerSubtitle": "Soumettre une offre",
+    "propertyLabel": "Propriété",
+    "askingPrice": "Prix demandé",
+    "listedBy": "Courtier :",
+    "formTitle": "Soumettre votre offre",
+    "formSubtitle": "Remplissez le formulaire ci-dessous. Le courtier sera notifié immédiatement.",
+    "fullName": "Nom complet",
+    "fullNamePlaceholder": "Jean Dupont",
+    "email": "Courriel",
+    "phone": "Téléphone",
+    "offerPrice": "Prix offert ($)",
+    "message": "Message (optionnel)",
+    "messagePlaceholder": "Conditions particulières, commentaires...",
+    "submitButton": "Soumettre mon offre",
+    "submitting": "Envoi en cours...",
+    "submitError": "Erreur lors de la soumission. Veuillez réessayer.",
+    "successTitle": "Offre envoyée!",
+    "successMessage": "Le courtier a été notifié et reviendra vers vous sous peu.",
+    "errorTitle": "Lien invalide",
+    "errorGeneric": "Ce lien n'est pas valide. Contactez le courtier pour obtenir un nouveau lien.",
+    "expiredTitle": "Lien expiré",
+    "expiredMessage": "Ce lien d'offre a expiré. Contactez le courtier pour en obtenir un nouveau.",
+    "disabledTitle": "Lien désactivé",
+    "disabledMessage": "Ce lien a été désactivé par le courtier.",
+    "notFoundTitle": "Lien introuvable",
+    "notFoundMessage": "Ce lien d'offre n'existe pas. Vérifiez l'URL ou contactez le courtier.",
+    "poweredBy": "Propulsé par OFRA — Gestion de transactions immobilières"
+  },
+  "offerLink": {
+    "generate": "Lien d'offre",
+    "description": "Partagez ce lien pour recevoir des offres directement.",
+    "expiration": "Expiration",
+    "days7": "7 jours",
+    "days14": "14 jours",
+    "days30": "30 jours",
+    "noExpiry": "Sans expiration",
+    "creating": "Création...",
+    "createButton": "Générer le lien",
+    "linkReady": "Lien prêt!",
+    "copyLink": "Copier le lien",
+    "copied": "Copié!",
+    "activeLink": "Lien d'offre actif",
+    "disableLink": "Désactiver",
+    "noActiveLink": "Aucun lien d'offre actif"
   }
 }

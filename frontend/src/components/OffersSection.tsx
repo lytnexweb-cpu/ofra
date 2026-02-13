@@ -145,14 +145,20 @@ export default function OffersSection({ transactionId, transactionStatus: _trans
     return t(`offers.status.${status}`)
   }
 
-  const getDirectionLabel = (dir: string): string => {
-    return dir === 'buyer_to_seller'
+  const getDirectionLabel = (rev: OfferRevision): string => {
+    if (rev.fromParty && rev.toParty) {
+      return `${rev.fromParty.fullName} → ${rev.toParty.fullName}`
+    }
+    return rev.direction === 'buyer_to_seller'
       ? t('offers.direction.buyerToSellerShort')
       : t('offers.direction.sellerToBuyerShort')
   }
 
-  const getDirectionLabelFull = (dir: string): string => {
-    return dir === 'buyer_to_seller'
+  const getDirectionLabelFull = (rev: OfferRevision): string => {
+    if (rev.fromParty && rev.toParty) {
+      return `${rev.fromParty.fullName} → ${rev.toParty.fullName}`
+    }
+    return rev.direction === 'buyer_to_seller'
       ? t('offers.direction.buyerToSeller')
       : t('offers.direction.sellerToBuyer')
   }
@@ -203,7 +209,7 @@ export default function OffersSection({ transactionId, transactionStatus: _trans
                       </span>
                       {lastRev && (
                         <span className="text-xs text-gray-500 dark:text-gray-400">
-                          {getDirectionLabelFull(lastRev.direction)}
+                          {getDirectionLabelFull(lastRev)}
                         </span>
                       )}
                     </div>
@@ -257,7 +263,7 @@ export default function OffersSection({ transactionId, transactionStatus: _trans
                                             {new Date(rev.createdAt).toLocaleDateString('en-CA', { month: 'short', day: 'numeric' })}
                                           </span>
                                           <span className="text-gray-500 dark:text-gray-400">
-                                            {getDirectionLabel(rev.direction)}
+                                            {getDirectionLabel(rev)}
                                           </span>
                                           <span className="font-semibold text-gray-900 dark:text-white">
                                             {formatCAD(rev.price)}

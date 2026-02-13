@@ -72,6 +72,21 @@ export default function MembersPanel({ isOpen, onClose, transactionId, ownerUser
         queryClient.invalidateQueries({ queryKey: ['members', transactionId] })
         setInviteForm({ email: '', role: 'viewer', message: '' })
         setShowInviteForm(false)
+      } else if (response.error?.code === 'E_MAX_MEMBERS_REACHED') {
+        toast({
+          title: t('members.maxReached', 'Limite de collaborateurs atteinte'),
+          description: t('members.maxReachedDesc', {
+            max: (response.error as any).meta?.maxUsers ?? '?',
+            defaultValue: 'Votre forfait permet {{max}} collaborateur(s). Passez au forfait supérieur.',
+          }),
+          variant: 'destructive',
+        })
+      } else if (response.error?.code === 'E_ALREADY_INVITED') {
+        toast({
+          title: t('members.alreadyInvited', 'Déjà invité'),
+          description: response.error.message,
+          variant: 'destructive',
+        })
       }
     },
     onError: () => {

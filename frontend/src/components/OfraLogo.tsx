@@ -5,9 +5,11 @@ import { useTranslation } from 'react-i18next'
 interface OfraLogoProps {
   size?: number
   className?: string
+  variant?: 'default' | 'white'
 }
 
-export function OfraLogo({ size = 42, className }: OfraLogoProps) {
+export function OfraLogo({ size = 42, className, variant = 'default' }: OfraLogoProps) {
+  const isWhite = variant === 'white'
   return (
     <svg
       width={size}
@@ -18,11 +20,11 @@ export function OfraLogo({ size = 42, className }: OfraLogoProps) {
       aria-label="OFRA logo"
     >
       {/* House body */}
-      <path d="M24 8L8 22V40H40V22L24 8Z" fill="#1E3A5F"/>
+      <path d="M24 8L8 22V40H40V22L24 8Z" fill={isWhite ? '#FFFFFF' : '#1E3A5F'}/>
       {/* Golden roof accent */}
       <path d="M24 4L2 22L8 22L24 8L40 22L46 22L24 4Z" fill="#D97706"/>
       {/* Circle window / O symbol */}
-      <circle cx="24" cy="28" r="6" fill="#FAFAF9"/>
+      <circle cx="24" cy="28" r="6" fill={isWhite ? '#1E3A5F' : '#FAFAF9'}/>
     </svg>
   )
 }

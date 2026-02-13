@@ -49,6 +49,10 @@ export interface RegisterRequest {
   fullName: string
   email: string
   password: string
+  phone?: string
+  address?: string
+  city?: string
+  provinceCode?: string
 }
 
 export interface ForgotPasswordRequest {

@@ -30,6 +30,8 @@ export interface CreateDocumentRequest {
   name: string
   category: DocumentCategory
   fileUrl?: string
+  fileSize?: number
+  mimeType?: string
   conditionId?: number | null
 }
 
