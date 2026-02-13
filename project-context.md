@@ -38,7 +38,8 @@ _This file contains critical rules and patterns that AI agents must follow when 
 - **Target**: Individual real estate agents (solo, high-volume 15-40 transactions/year)
 - **Future**: National expansion (province-by-province via configurable workflow templates)
 - **Language**: NB is officially bilingual (FR/EN) — both languages are a real product advantage
-- **Compliance**: FINTRAC is mandatory for Canadian real estate transactions
+- **Compliance**: FINTRAC is mandatory for Canadian real estate transactions (module planned — see `_bmad-output/fintrac-spec.md`)
+- **MLS**: NOT used in New Brunswick — removed from codebase (commit 8078e18). No MLS/PID integration planned for V1
 
 ## 3. Domain Terminology (from NB broker source)
 
@@ -283,6 +284,7 @@ All routes prefixed with `/api`. Protected routes require session auth.
 | Condition CRUD | Working | Create, update, complete, delete |
 | Blocking conditions | Working | Prevents step advancement when blocking conditions pending |
 | Offers system | Working | Create, revise, accept, reject, withdraw |
+| Offer gate | Working | Blocks step advancement on `offer-submitted` slug unless an accepted offer exists |
 | Notes CRUD | Working | Create, list, delete per transaction |
 | Activity feed | Working | Unified log of all transaction events |
 | Dashboard summary | Working | KPIs, pipeline, revenue, deadlines |
@@ -292,6 +294,22 @@ All routes prefixed with `/api`. Protected routes require session auth.
 | Dark mode | Working | Auto (prefers-color-scheme) + manual toggle |
 | Automation execution | Working | `automation_executor_service.ts` | Sends emails and logs tasks via `AutomationExecutorService`. Wired to `WorkflowEngineService.executeAutomations()` |
 | Email templates (5/5) | Working | `backend/app/mails/` | All 5 templates: `offer_accepted`, `firm_confirmed`, `fintrac_reminder`, `celebration`, `google_review_reminder` |
+| Auto conditions engine | Working | 52 templates across 4 packs (Universal, Rural NB, Condo NB, Financé NB). Controlled by `autoConditionsEnabled` flag |
+| Property profile | Working | Type/Context/Financed at creation, locked after step 1 (frontend only — backend guard in Sprint 2) |
+| Parties management | Working | Full CRUD, 7 roles, PartiesCard inline on detail page, PartiesModal for editing |
+| ValidateStepModal | Working | 3 states: conditions OK (green), offer gate blocked (amber), blocking conditions (red) |
+| Documents & Preuves (M08) | Working | DocumentsSection (list by category), UploadDocumentModal, DocumentProofModal, DocumentVersionModal. 100% maquette-conforme |
+| Document StatusBar | Working | Inline collapsible on detail page (Phase C). Badges: validated/pending/missing. Counts conditions only, not general docs |
+| Edit/Create Transaction (M09) | Working | Unified page at `/transactions/:id/edit` (edit) and `/transactions/new` (create). 3 tabs (Property, Parties, Dates), sidebar, 5 states. Icon cards for profile, autoConditionsEnabled toggle |
+| MembersPanel | Working | Converted from Sheet to centered Dialog (max-w-2xl) in Phase C |
+| ExportSharePanel | Working | Converted from Sheet to centered Dialog (max-w-md) in Phase C |
+
+### Removed Components
+
+| Component | Reason | Replaced By |
+|-----------|--------|-------------|
+| `CreateTransactionModal.tsx` | Phase C (C5) — modal replaced by full page | `EditTransactionPage.tsx` at `/transactions/new` |
+| `DocumentsDrawer.tsx` | Phase C (C1) — right-side Sheet eliminated | Inline collapsible section in `TransactionDetailPage.tsx` |
 
 ### Stub / Not Implemented
 
@@ -301,6 +319,7 @@ All routes prefixed with `/api`. Protected routes require session auth.
 | CSV Import API | ✅ DONE | `backend/app/services/csv_import_service.ts` | Bilingual headers, duplicate detection |
 | CSV Import UI | Not implemented | Epic 5 | Drag & drop frontend needed |
 | Document uploads | Not implemented | Epic 5 | S3 storage, quota per tier |
+| FINTRAC module | **Spec validated** | `_bmad-output/fintrac-spec.md` | FintracRecord model, blocking condition at firm-pending, FintracComplianceModal, PDF export section. Override autoConditionsEnabled. |
 | Birthday reminder | Not implemented | From broker requirements | "Register client birthday in CRM after FINTRAC complete" |
 | Social media reminders | Not implemented | From broker requirements | Triggered at Offer Accepted, SOLD, Key Day |
 | Conditional follow-ups | Not implemented | From broker requirements | Financing + inspection follow-up during conditional period |
@@ -382,6 +401,13 @@ expect(results).toHaveNoViolations()
 - **Recharts in JSDOM** — `ResponsiveContainer` renders nothing (no container dimensions). Text content is testable but chart elements are not
 - **Timezone in tests** — Use `vi.setSystemTime()` with UTC dates to avoid CI/local timezone mismatches
 - **Tailwind v4** — Uses `@tailwindcss/postcss` plugin, NOT the v3 `tailwindcss` PostCSS plugin. CSS variables for theming, not `tailwind.config.js`
+- **Workflow step slugs** — The slug in DB is `offer-submitted`, NOT `negotiation` or `en-negociation`. Always verify slugs against actual DB data before coding guards
+- **autoConditionsEnabled** — Default `true`. Controls whether conditions are auto-generated at creation AND at step advancement. Both `advanceStep` and `skipStep` check this flag. **Exception**: FINTRAC conditions are ALWAYS created regardless of this flag (compliance override)
+- **Offer gate** — Backend is source of truth (throws `E_ACCEPTED_OFFER_REQUIRED`). Frontend reads `requiresAcceptedOffer` + `hasAcceptedOffer` from advance-check endpoint
+- **FINTRAC compliance** — Triggers at `firm-pending` step as `blocking` condition. 1 condition per buyer (purchase) or seller (sale). Cannot be escaped/skipped. Data stored in dedicated `fintrac_records` table (not on Party model). See `_bmad-output/fintrac-spec.md`
+- **No right-side Sheets on desktop** — Phase C decision: all right-side drawers eliminated. Documents = inline collapsible, MembersPanel = Dialog (max-w-2xl), ExportSharePanel = Dialog (max-w-md)
+- **CreateTransactionModal deleted** — Replaced by `/transactions/new` route pointing to `EditTransactionPage.tsx` in create mode. Do NOT recreate a modal for transaction creation
+- **EditTransactionPage dual mode** — `isCreateMode = !id`. Create mode loads clients, auto-selects workflow template, shows client picker. Edit mode loads transaction data with change tracking
 
 ## 10. Roadmap (Validated Epics)
 
@@ -396,8 +422,14 @@ expect(results).toHaveNoViolations()
 | Dashboard coverage | Done | KPI, pipeline, revenue, activity, deadlines tests |
 | Epic 3: Automations & Reminders | Done | Email templates, BullMQ, auth hardening, multi-tenant |
 | Epic 4: CSV Import API | Done | Backend API only, UI in Epic 5 |
-| **Epic 5: UI Import + Uploads** | **Next** | Frontend import CSV, S3 documents, quota per tier |
-| Epic 6: Landing Page | Backlog | Marketing page, pricing, founder signup |
+| Maquettes 01-09 + 13 | Done | 10/13 maquettes implemented |
+| Maquette 10: Export & Partage | Done | 100% conforme, audité (12 écarts corrigés) |
+| Maquette 11: Permissions & Rôles | Done | 100% conforme, audité (6 écarts corrigés) |
+| Maquette 12: Ajouter Offre | To verify | Component exists, conformité maquette non vérifiée |
+| Phase C UX Overhaul | Done | Zero right-side Sheets on desktop. Documents inline, MembersPanel/ExportSharePanel as centered Dialogs |
+| **FINTRAC Module** | **Next** | Spec validée (`_bmad-output/fintrac-spec.md`). FintracRecord model, FintracService, FintracComplianceModal, PDF section |
+| Epic 5: UI Import + Uploads | Backlog | Frontend import CSV, S3 documents, quota per tier |
+| Epic 6: Landing Page | In Progress | Marketing page H1 — hero en cours |
 | Epic 7: Stripe Billing | Backlog | Subscriptions, webhooks, plan enforcement |
 
 ### Epic 3 Completed
@@ -448,5 +480,33 @@ These automations are defined in the seeder (`nb_workflow_template_seeder.ts`) b
 
 ---
 
-_Updated 2026-01-29 by BMAD team. Source: broker email, codebase audit, decision documents._
+## 12. Conditions/Profile Pipeline — Sprint Plan
+
+### Sprint 1 (DONE — commit 49ab4d7)
+- `autoConditionsEnabled` boolean flag on transactions table
+- Property profile (type/context/financed) sent atomically at creation
+- Condition packs auto-generate only when flag is ON
+- Offer gate: blocks advancement on `offer-submitted` without accepted offer
+- ValidateStepModal with 3 states (green/amber/red)
+- PartiesCard inline on detail page
+- PropertyProfileCard locked visually after step 1
+
+### Sprint 2 (TODO)
+- Backend guard: reject profile/flag modifications after step 1
+- Toggle in ValidateStepModal: "Load next step conditions" when `autoConditionsEnabled=true`
+- Unit tests for backend guards
+
+### Sprint 3 (TODO)
+- Admin override with type-to-confirm (`OVERRIDE`)
+- Recalculate conditions after profile change (admin only)
+- Audit log for overrides
+
+### Sprint 4 (TODO)
+- E2E tests for full pipeline
+- Edge cases (empty profile, template with no conditions, etc.)
+- UX polish
+
+---
+
+_Updated 2026-02-11 by Paige (BMAD). Source: broker email, codebase audit, decision documents, M08+M09+Phase C implementation._
 _This file MUST be updated when features move from stub to functional._

@@ -80,6 +80,6 @@
 ## Commits
 | # | Hash | Description |
 |---|------|-------------|
-| 1 | — | Étapes 1-8 : réécriture complète + i18n |
+| 1 | 275cf25 | Étapes 1-8 + audit conformité 7/7 corrigé |
 
-## Status : EN COURS — Étapes 1-8 implémentées, audit conformité à suivre
+## Status final : MAQUETTE 12 — CONFORME 100% ✅
