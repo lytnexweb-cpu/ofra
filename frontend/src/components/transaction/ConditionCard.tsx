@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { Pencil, CheckCircle2, Ban, SkipForward, FileWarning } from 'lucide-react'
+import { Pencil, CheckCircle2, Ban, SkipForward, FileWarning, ShieldCheck } from 'lucide-react'
 import EvidenceBadge from './EvidenceBadge'
 import type { Condition, ConditionLevel, ResolutionType } from '../../api/conditions.api'
 import { differenceInDays } from '../../lib/date'
@@ -10,6 +10,7 @@ interface ConditionCardProps {
   isToggling?: boolean
   onToggle?: (condition: Condition) => void
   onEdit?: (condition: Condition) => void
+  onFintracClick?: (condition: Condition) => void
   showResolution?: boolean
 }
 
@@ -77,6 +78,7 @@ export default function ConditionCard({
   isToggling = false,
   onToggle,
   onEdit,
+  onFintracClick,
   showResolution = false,
 }: ConditionCardProps) {
   const { t, i18n } = useTranslation()
@@ -85,6 +87,7 @@ export default function ConditionCard({
   const isArchived = condition.archived === true
   const canEdit = !isArchived && onEdit
   const level: ConditionLevel | null = condition.level ?? (condition.isBlocking ? 'blocking' : null)
+  const isFintrac = condition.title.startsWith('FINTRAC') && condition.sourceType === 'legal'
 
   // Localized title
   const title = i18n.language === 'fr' && condition.labelFr
@@ -229,8 +232,18 @@ export default function ConditionCard({
         )}
       </div>
 
-      {/* Edit button */}
-      {canEdit && (
+      {/* FINTRAC CTA button — replaces edit for pending FINTRAC conditions */}
+      {isFintrac && !isDone && !isArchived && onFintracClick ? (
+        <button
+          type="button"
+          onClick={() => onFintracClick(condition)}
+          className="shrink-0 px-2 py-1 rounded-md text-xs font-semibold text-red-700 bg-red-100 hover:bg-red-200 transition-colors flex items-center gap-1"
+          data-testid={`fintrac-cta-${condition.id}`}
+        >
+          <ShieldCheck className="w-3.5 h-3.5" />
+          {t('fintrac.completeFintrac')}
+        </button>
+      ) : canEdit && (
         <button
           type="button"
           onClick={() => onEdit(condition)}

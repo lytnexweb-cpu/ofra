@@ -28,6 +28,8 @@ router.post('/api/register', '#controllers/auth_controller.register').use(middle
 router.post('/api/login', '#controllers/auth_controller.login').use(middleware.rateLimit())
 router.post('/api/forgot-password', '#controllers/auth_controller.forgotPassword').use(middleware.rateLimit())
 router.post('/api/reset-password', '#controllers/auth_controller.resetPassword').use(middleware.rateLimit())
+router.get('/api/verify-email', '#controllers/auth_controller.verifyEmail')
+router.post('/api/resend-verification', '#controllers/auth_controller.resendVerification').use(middleware.rateLimit())
 
 // Public share link access (D34 P1.5)
 router.get('/api/share/:token', '#controllers/transaction_share_links_controller.publicAccess')
@@ -50,6 +52,7 @@ router.group(() => {
 
   // K2: Subscription
   router.get('/me/subscription', '#controllers/profile_controller.subscription')
+  router.post('/me/plan', '#controllers/profile_controller.changePlan')
 
   // Dashboard
   router.get('/dashboard/summary', '#controllers/dashboard_controller.summary')
@@ -145,6 +148,12 @@ router.group(() => {
   router.get('/conditions/templates/by-pack', '#controllers/condition_templates_controller.byPack')
   router.get('/conditions/templates/:id', '#controllers/condition_templates_controller.show')
 
+  // FINTRAC Compliance — viewer+ (read), editor+ (modify)
+  router.get('/transactions/:id/fintrac', '#controllers/fintrac_controller.index').use(middleware.txPermission({ minRole: 'viewer' }))
+  router.get('/fintrac/:id', '#controllers/fintrac_controller.show')
+  router.patch('/fintrac/:id/complete', '#controllers/fintrac_controller.complete')
+  router.post('/fintrac/:id/resolve', '#controllers/fintrac_controller.resolve')
+
   // Transaction Parties (D34 P1.3) — viewer+ (read), editor+ (modify)
   router.get('/transactions/:id/parties', '#controllers/transaction_parties_controller.index').use(middleware.txPermission({ minRole: 'viewer' }))
   router.post('/transactions/:id/parties', '#controllers/transaction_parties_controller.store').use(middleware.txPermission({ minRole: 'editor' }))
@@ -179,6 +188,12 @@ router.group(() => {
   router.post('/transactions/:id/notes', '#controllers/notes_controller.store').use(middleware.txPermission({ minRole: 'editor' }))
   // Note sub-resource (no transaction ID in URL — internal check)
   router.delete('/notes/:id', '#controllers/notes_controller.destroy')
+
+  // Notifications
+  router.get('/notifications', '#controllers/notifications_controller.index')
+  router.get('/notifications/unread-count', '#controllers/notifications_controller.unreadCount')
+  router.patch('/notifications/:id/read', '#controllers/notifications_controller.markRead')
+  router.post('/notifications/read-all', '#controllers/notifications_controller.markAllRead')
 }).prefix('/api').use(middleware.auth())
 
 // Admin routes (require admin or superadmin role)

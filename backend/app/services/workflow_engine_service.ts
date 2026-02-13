@@ -9,6 +9,7 @@ import TransactionProfile from '#models/transaction_profile'
 import { ActivityFeedService } from '#services/activity_feed_service'
 import { AutomationExecutorService } from '#services/automation_executor_service'
 import { ConditionsEngineService } from '#services/conditions_engine_service'
+import { FintracService } from '#services/fintrac_service'
 import type { ResolutionType } from '#models/condition'
 import logger from '@adonisjs/core/services/logger'
 import { DateTime } from 'luxon'
@@ -369,6 +370,13 @@ export class WorkflowEngineService {
     // Execute on_enter automations
     await this.executeAutomations(nextWfStep, 'on_enter', transactionId)
 
+    // FINTRAC: Create compliance conditions at firm-pending (ignores autoConditionsEnabled)
+    try {
+      await FintracService.onStepEnter(transaction, nextStep, userId)
+    } catch (fintracError) {
+      logger.error({ transactionId, fintracError }, 'FINTRAC condition creation failed — non-blocking')
+    }
+
     await ActivityFeedService.log({
       transactionId,
       userId,
@@ -476,6 +484,13 @@ export class WorkflowEngineService {
     }
 
     await this.executeAutomations(nextWfStep, 'on_enter', transactionId)
+
+    // FINTRAC: Create compliance conditions at firm-pending (ignores autoConditionsEnabled)
+    try {
+      await FintracService.onStepEnter(transaction, nextStep, userId)
+    } catch (fintracError) {
+      logger.error({ transactionId, fintracError }, 'FINTRAC condition creation failed on skip — non-blocking')
+    }
 
     await ActivityFeedService.log({
       transactionId,

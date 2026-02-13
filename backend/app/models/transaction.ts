@@ -15,6 +15,7 @@ import TransactionParty from './transaction_party.js'
 import TransactionDocument from './transaction_document.js'
 import TransactionMember from './transaction_member.js'
 import TransactionShareLink from './transaction_share_link.js'
+import FintracRecord from './fintrac_record.js'
 
 export type TransactionType = 'purchase' | 'sale'
 export type TransactionStatus = 'active' | 'cancelled' | 'archived'
@@ -157,4 +158,7 @@ export default class Transaction extends BaseModel {
 
   @hasMany(() => TransactionShareLink, { foreignKey: 'transactionId' })
   declare shareLinks: HasMany<typeof TransactionShareLink>
+
+  @hasMany(() => FintracRecord, { foreignKey: 'transactionId' })
+  declare fintracRecords: HasMany<typeof FintracRecord>
 }

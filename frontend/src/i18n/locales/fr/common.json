@@ -2174,5 +2174,44 @@
     "resolutionWaived": "Renoncée",
     "resolutionNotApplicable": "Non applicable",
     "resolutionSkipped": "Ignorée (risque)"
+  },
+  "fintrac": {
+    "modalTitle": "Conformité FINTRAC",
+    "complianceNotice": "La vérification d'identité FINTRAC est une obligation légale fédérale pour toute transaction immobilière. Cette condition est bloquante et ne peut pas être contournée.",
+    "alreadyVerified": "Déjà vérifié",
+    "alreadyVerifiedDesc": "Cette vérification a déjà été complétée. Vous pouvez mettre à jour les informations si nécessaire.",
+    "idType": "Type de pièce d'identité",
+    "selectIdType": "Sélectionnez un type...",
+    "idTypes": {
+      "drivers_license": "Permis de conduire",
+      "canadian_passport": "Passeport canadien",
+      "foreign_passport": "Passeport étranger",
+      "citizenship_card": "Carte de citoyenneté",
+      "other_government_id": "Autre pièce d'identité gouvernementale"
+    },
+    "idNumber": "Numéro de la pièce",
+    "idNumberPlaceholder": "Ex : AB-1234-5678",
+    "dateOfBirth": "Date de naissance",
+    "occupation": "Profession (optionnel)",
+    "occupationPlaceholder": "Ex : Ingénieur, Enseignant...",
+    "sourceOfFunds": "Source des fonds (optionnel)",
+    "sourceOfFundsPlaceholder": "Ex : Épargne, Vente d'un bien...",
+    "identityDocument": "Pièce d'identité (copie)",
+    "dropzone": "Glissez la copie ici ou",
+    "browse": "parcourez",
+    "formats": "PDF, JPG, PNG — max 10 Mo",
+    "fileTooLarge": "Le fichier dépasse la limite de 10 Mo.",
+    "notes": "Notes (optionnel)",
+    "notesPlaceholder": "Remarques ou observations...",
+    "submit": "Valider la conformité",
+    "submitting": "Validation en cours...",
+    "success": "Conformité FINTRAC validée",
+    "completeFintrac": "Compléter FINTRAC",
+    "fintracBadge": "FINTRAC"
+  },
+  "notificationBell": {
+    "markAllRead": "Tout marquer lu",
+    "empty": "Aucune notification",
+    "emailSentTo": "Courriel envoyé à"
   }
 }

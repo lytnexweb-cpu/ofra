@@ -1,6 +1,7 @@
 import PDFDocument from 'pdfkit'
 import { DateTime } from 'luxon'
 import Transaction from '#models/transaction'
+import FintracRecord from '#models/fintrac_record'
 
 export interface PdfExportOptions {
   includeOffers: boolean
@@ -52,6 +53,21 @@ const LABELS = {
     noData: 'Aucune donnée',
     keyDates: 'Dates clés',
     parties: 'Parties prenantes',
+    fintrac: 'Conformité FINTRAC',
+    fintracParty: 'Partie',
+    fintracDob: 'Date de naissance',
+    fintracIdType: 'Type de pièce',
+    fintracIdNumber: 'Numéro',
+    fintracOccupation: 'Profession',
+    fintracSourceOfFunds: 'Source des fonds',
+    fintracVerifiedAt: 'Vérifié le',
+    fintracVerifiedBy: 'Vérifié par',
+    fintracPending: 'En attente de vérification',
+    fintracDriversLicense: 'Permis de conduire',
+    fintracCanadianPassport: 'Passeport canadien',
+    fintracForeignPassport: 'Passeport étranger',
+    fintracCitizenshipCard: 'Carte de citoyenneté',
+    fintracOtherGovId: 'Autre pièce gouvernementale',
   },
   en: {
     title: 'Transaction Report',
@@ -89,6 +105,21 @@ const LABELS = {
     noData: 'No data',
     keyDates: 'Key Dates',
     parties: 'Stakeholders',
+    fintrac: 'FINTRAC Compliance',
+    fintracParty: 'Party',
+    fintracDob: 'Date of Birth',
+    fintracIdType: 'ID Type',
+    fintracIdNumber: 'ID Number',
+    fintracOccupation: 'Occupation',
+    fintracSourceOfFunds: 'Source of Funds',
+    fintracVerifiedAt: 'Verified on',
+    fintracVerifiedBy: 'Verified by',
+    fintracPending: 'Pending verification',
+    fintracDriversLicense: "Driver's license",
+    fintracCanadianPassport: 'Canadian passport',
+    fintracForeignPassport: 'Foreign passport',
+    fintracCitizenshipCard: 'Citizenship card',
+    fintracOtherGovId: 'Other government ID',
   },
 }
 
@@ -206,6 +237,49 @@ export class PdfExportService {
           doc.fontSize(10).font('Helvetica')
           doc.text(`  ${l.level}: ${cond.level} | ${l.conditionStatus}: ${cond.status}`)
           if (cond.dueDate) doc.text(`  ${l.dueDate}: ${formatDate(cond.dueDate)}`)
+          doc.moveDown(0.3)
+        }
+      }
+    }
+
+    // ---- FINTRAC ----
+    {
+      const fintracRecords = await FintracRecord.query()
+        .where('transactionId', transaction.id)
+        .preload('party')
+        .preload('verifiedBy')
+        .orderBy('createdAt', 'asc')
+
+      if (fintracRecords.length > 0) {
+        doc.addPage()
+        if (options.watermark) addWatermark(doc, l.confidential)
+        doc.fontSize(16).font('Helvetica-Bold').text(l.fintrac)
+        doc.moveDown(0.5)
+
+        for (const rec of fintracRecords) {
+          doc.fontSize(11).font('Helvetica-Bold')
+            .text(`${l.fintracParty}: ${rec.party?.fullName ?? '-'}`)
+          doc.fontSize(10).font('Helvetica')
+
+          if (rec.verifiedAt) {
+            const idTypeMap: Record<string, string> = {
+              drivers_license: l.fintracDriversLicense,
+              canadian_passport: l.fintracCanadianPassport,
+              foreign_passport: l.fintracForeignPassport,
+              citizenship_card: l.fintracCitizenshipCard,
+              other_government_id: l.fintracOtherGovId,
+            }
+            const idTypeLabel = rec.idType ? (idTypeMap[rec.idType] ?? rec.idType) : '-'
+            doc.text(`  ${l.fintracIdType}: ${idTypeLabel}`)
+            doc.text(`  ${l.fintracIdNumber}: ${rec.idNumber ?? '-'}`)
+            if (rec.dateOfBirth) doc.text(`  ${l.fintracDob}: ${formatDate(rec.dateOfBirth)}`)
+            if (rec.occupation) doc.text(`  ${l.fintracOccupation}: ${rec.occupation}`)
+            if (rec.sourceOfFunds) doc.text(`  ${l.fintracSourceOfFunds}: ${rec.sourceOfFunds}`)
+            doc.text(`  ${l.fintracVerifiedAt}: ${formatDate(rec.verifiedAt)}`)
+            if (rec.verifiedBy) doc.text(`  ${l.fintracVerifiedBy}: ${rec.verifiedBy.fullName}`)
+          } else {
+            doc.text(`  ${l.fintracPending}`)
+          }
           doc.moveDown(0.3)
         }
       }

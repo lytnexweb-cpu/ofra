@@ -2174,5 +2174,44 @@
     "resolutionWaived": "Waived",
     "resolutionNotApplicable": "Not applicable",
     "resolutionSkipped": "Skipped (risk)"
+  },
+  "fintrac": {
+    "modalTitle": "FINTRAC Compliance",
+    "complianceNotice": "FINTRAC identity verification is a federal legal requirement for all real estate transactions. This condition is blocking and cannot be bypassed.",
+    "alreadyVerified": "Already verified",
+    "alreadyVerifiedDesc": "This verification has already been completed. You can update the information if needed.",
+    "idType": "ID document type",
+    "selectIdType": "Select a type...",
+    "idTypes": {
+      "drivers_license": "Driver's license",
+      "canadian_passport": "Canadian passport",
+      "foreign_passport": "Foreign passport",
+      "citizenship_card": "Citizenship card",
+      "other_government_id": "Other government-issued ID"
+    },
+    "idNumber": "ID number",
+    "idNumberPlaceholder": "E.g.: AB-1234-5678",
+    "dateOfBirth": "Date of birth",
+    "occupation": "Occupation (optional)",
+    "occupationPlaceholder": "E.g.: Engineer, Teacher...",
+    "sourceOfFunds": "Source of funds (optional)",
+    "sourceOfFundsPlaceholder": "E.g.: Savings, Property sale...",
+    "identityDocument": "Identity document (copy)",
+    "dropzone": "Drop the copy here or",
+    "browse": "browse",
+    "formats": "PDF, JPG, PNG — max 10 MB",
+    "fileTooLarge": "File exceeds the 10 MB limit.",
+    "notes": "Notes (optional)",
+    "notesPlaceholder": "Remarks or observations...",
+    "submit": "Validate compliance",
+    "submitting": "Validating...",
+    "success": "FINTRAC compliance validated",
+    "completeFintrac": "Complete FINTRAC",
+    "fintracBadge": "FINTRAC"
+  },
+  "notificationBell": {
+    "markAllRead": "Mark all read",
+    "empty": "No notifications",
+    "emailSentTo": "Email sent to"
   }
 }

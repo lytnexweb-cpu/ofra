@@ -307,6 +307,28 @@ export default class ConditionsController {
 
       const payload = await request.validateUsing(resolveConditionValidator)
 
+      // FINTRAC: Block escape and skip_with_risk on FINTRAC conditions
+      if (condition.title.startsWith('FINTRAC') && condition.sourceType === 'legal') {
+        if (payload.escapedWithoutProof) {
+          return response.unprocessableEntity({
+            success: false,
+            error: {
+              message: 'FINTRAC conditions cannot be escaped — compliance is mandatory',
+              code: 'E_FINTRAC_NO_ESCAPE',
+            },
+          })
+        }
+        if (payload.resolutionType === 'skipped_with_risk' || payload.resolutionType === 'waived' || payload.resolutionType === 'not_applicable') {
+          return response.unprocessableEntity({
+            success: false,
+            error: {
+              message: 'FINTRAC conditions can only be resolved as "completed" with evidence',
+              code: 'E_FINTRAC_MUST_COMPLETE',
+            },
+          })
+        }
+      }
+
       // D41: Pass complete options to resolve
       try {
         await condition.resolve(payload.resolutionType, auth.user!.id, {

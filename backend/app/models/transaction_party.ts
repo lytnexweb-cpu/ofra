@@ -1,7 +1,8 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column, belongsTo } from '@adonisjs/lucid/orm'
-import type { BelongsTo } from '@adonisjs/lucid/types/relations'
+import { BaseModel, column, belongsTo, hasOne } from '@adonisjs/lucid/orm'
+import type { BelongsTo, HasOne } from '@adonisjs/lucid/types/relations'
 import Transaction from './transaction.js'
+import FintracRecord from './fintrac_record.js'
 
 export type PartyRole = 'buyer' | 'seller' | 'lawyer' | 'notary' | 'agent' | 'broker' | 'other'
 
@@ -41,4 +42,7 @@ export default class TransactionParty extends BaseModel {
 
   @belongsTo(() => Transaction, { foreignKey: 'transactionId' })
   declare transaction: BelongsTo<typeof Transaction>
+
+  @hasOne(() => FintracRecord, { foreignKey: 'partyId' })
+  declare fintracRecord: HasOne<typeof FintracRecord>
 }

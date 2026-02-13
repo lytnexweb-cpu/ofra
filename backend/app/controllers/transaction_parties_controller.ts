@@ -3,6 +3,7 @@ import Transaction from '#models/transaction'
 import TransactionParty from '#models/transaction_party'
 import { createPartyValidator, updatePartyValidator } from '#validators/transaction_party_validator'
 import { TenantScopeService } from '#services/tenant_scope_service'
+import { FintracService } from '#services/fintrac_service'
 import logger from '@adonisjs/core/services/logger'
 
 export default class TransactionPartiesController {
@@ -47,6 +48,13 @@ export default class TransactionPartiesController {
         ...payload,
         transactionId: transaction.id,
       })
+
+      // FINTRAC: Auto-create condition if transaction is at/past firm-pending
+      try {
+        await FintracService.onPartyAdded(transaction, party, auth.user!.id)
+      } catch (fintracError) {
+        logger.error({ fintracError, partyId: party.id }, 'FINTRAC onPartyAdded failed — non-blocking')
+      }
 
       return response.created({
         success: true,
@@ -117,6 +125,14 @@ export default class TransactionPartiesController {
       const txQuery = Transaction.query().where('id', party.transactionId)
       TenantScopeService.apply(txQuery, auth.user!)
       await txQuery.firstOrFail()
+
+      // FINTRAC: Archive condition if party is removed
+      const transaction = await Transaction.findOrFail(party.transactionId)
+      try {
+        await FintracService.onPartyRemoved(transaction, party, auth.user!.id)
+      } catch (fintracError) {
+        logger.error({ fintracError, partyId: party.id }, 'FINTRAC onPartyRemoved failed — non-blocking')
+      }
 
       await party.delete()
       return response.noContent()

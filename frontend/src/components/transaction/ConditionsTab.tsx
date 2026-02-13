@@ -1,15 +1,17 @@
 import { useState, useMemo, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ChevronDown, ChevronRight, Plus } from 'lucide-react'
 import type { Transaction } from '../../api/transactions.api'
 import { conditionsApi, type Condition } from '../../api/conditions.api'
+import { fintracApi, type FintracRecord } from '../../api/fintrac.api'
 import { toast } from '../../hooks/use-toast'
 import { Button } from '../ui/Button'
 import ConditionCard from './ConditionCard'
 import CreateConditionModal from '../CreateConditionModal'
 import EditConditionModal from './EditConditionModal'
 import ConditionValidationModal from './ConditionValidationModal'
+import FintracComplianceModal from './FintracComplianceModal'
 
 interface ConditionsTabProps {
   transaction: Transaction
@@ -35,6 +37,9 @@ export default function ConditionsTab({ transaction, filterStepId }: ConditionsT
   const [editingCondition, setEditingCondition] = useState<Condition | null>(null)
   // D41: Validation modal for blocking/required conditions
   const [validatingCondition, setValidatingCondition] = useState<Condition | null>(null)
+  // FINTRAC compliance modal state
+  const [fintracCondition, setFintracCondition] = useState<Condition | null>(null)
+  const [fintracRecordId, setFintracRecordId] = useState<number | null>(null)
 
   // Compute step name for validation modal subtitle
   const validatingStepName = useMemo(() => {
@@ -56,6 +61,28 @@ export default function ConditionsTab({ transaction, filterStepId }: ConditionsT
   const steps = transaction.transactionSteps ?? []
   const currentStepId = transaction.currentStepId
   const transactionKey = ['transaction', transaction.id]
+
+  // FINTRAC: Check if any FINTRAC conditions exist, and fetch records if so
+  const hasFintracConditions = allConditions.some(
+    (c) => c.title.startsWith('FINTRAC') && c.sourceType === 'legal'
+  )
+  const { data: fintracData } = useQuery({
+    queryKey: ['fintrac', transaction.id],
+    queryFn: () => fintracApi.list(transaction.id),
+    enabled: hasFintracConditions,
+  })
+  const fintracRecords: FintracRecord[] = fintracData?.data?.records ?? []
+
+  // FINTRAC: Handle CTA click — find matching FintracRecord by party name
+  const handleFintracClick = useCallback((condition: Condition) => {
+    // Extract party name from condition title: "FINTRAC — PartyName"
+    const partyName = condition.title.replace('FINTRAC — ', '')
+    const record = fintracRecords.find((r) => r.party?.fullName === partyName)
+    if (record) {
+      setFintracCondition(condition)
+      setFintracRecordId(record.id)
+    }
+  }, [fintracRecords])
 
   // D32: Get selected step name for display
   const selectedStep = filterStepId != null
@@ -259,13 +286,13 @@ export default function ConditionsTab({ transaction, filterStepId }: ConditionsT
         </Button>
       </div>
       {currentGroups.map((group) => (
-        <StepSection key={group.stepId} group={group} togglingId={togglingId} onToggle={handleToggle} onEdit={handleEdit} />
+        <StepSection key={group.stepId} group={group} togglingId={togglingId} onToggle={handleToggle} onEdit={handleEdit} onFintracClick={handleFintracClick} />
       ))}
       {futureGroups.map((group) => (
-        <StepSection key={group.stepId} group={group} togglingId={togglingId} onToggle={handleToggle} onEdit={handleEdit} />
+        <StepSection key={group.stepId} group={group} togglingId={togglingId} onToggle={handleToggle} onEdit={handleEdit} onFintracClick={handleFintracClick} />
       ))}
       {unassignedGroups.map((group) => (
-        <StepSection key="unassigned" group={group} togglingId={togglingId} onToggle={handleToggle} onEdit={handleEdit} />
+        <StepSection key="unassigned" group={group} togglingId={togglingId} onToggle={handleToggle} onEdit={handleEdit} onFintracClick={handleFintracClick} />
       ))}
 
       {pastGroups.length > 0 && (
@@ -280,7 +307,7 @@ export default function ConditionsTab({ transaction, filterStepId }: ConditionsT
           </button>
           {showPastSteps &&
             pastGroups.map((group) => (
-              <StepSection key={group.stepId} group={group} togglingId={togglingId} onToggle={handleToggle} onEdit={handleEdit} />
+              <StepSection key={group.stepId} group={group} togglingId={togglingId} onToggle={handleToggle} onEdit={handleEdit} onFintracClick={handleFintracClick} />
             ))}
         </div>
       )}
@@ -319,6 +346,18 @@ export default function ConditionsTab({ transaction, filterStepId }: ConditionsT
           }}
         />
       )}
+
+      {/* FINTRAC Compliance Modal */}
+      {fintracCondition && fintracRecordId && (
+        <FintracComplianceModal
+          isOpen={!!fintracCondition}
+          onClose={() => { setFintracCondition(null); setFintracRecordId(null) }}
+          transactionId={transaction.id}
+          conditionId={fintracCondition.id}
+          fintracRecordId={fintracRecordId}
+          partyName={fintracCondition.title.replace('FINTRAC — ', '')}
+        />
+      )}
     </div>
   )
 }
@@ -328,11 +367,13 @@ function StepSection({
   togglingId,
   onToggle,
   onEdit,
+  onFintracClick,
 }: {
   group: StepGroup
   togglingId: number | null
   onToggle: (c: Condition) => void
   onEdit: (c: Condition) => void
+  onFintracClick?: (c: Condition) => void
 }) {
   return (
     <div data-testid={`step-group-${group.stepOrder}`}>
@@ -354,6 +395,7 @@ function StepSection({
             isToggling={togglingId === condition.id}
             onToggle={onToggle}
             onEdit={onEdit}
+            onFintracClick={onFintracClick}
           />
         ))}
       </div>
