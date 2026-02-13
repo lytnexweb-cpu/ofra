@@ -7,6 +7,7 @@ export const updatePlanValidator = vine.compile(
     annualPrice: vine.number().min(0).optional(),
     maxTransactions: vine.number().positive().optional().nullable(),
     maxStorageGb: vine.number().min(0).optional(),
+    maxUsers: vine.number().positive().optional(),
     historyMonths: vine.number().positive().optional().nullable(),
     isActive: vine.boolean().optional(),
     displayOrder: vine.number().min(0).optional(),

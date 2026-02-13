@@ -1,5 +1,6 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import { DateTime } from 'luxon'
+import mail from '@adonisjs/mail/services/main'
 import Transaction from '#models/transaction'
 import Property from '#models/property'
 import {
@@ -8,7 +9,10 @@ import {
 } from '#validators/transaction_validator'
 import { WorkflowEngineService } from '#services/workflow_engine_service'
 import { ActivityFeedService } from '#services/activity_feed_service'
+import { NotificationService } from '#services/notification_service'
 import { TenantScopeService } from '#services/tenant_scope_service'
+import StepAdvancedMail from '#mails/step_advanced_mail'
+import TransactionCancelledMail from '#mails/transaction_cancelled_mail'
 import logger from '@adonisjs/core/services/logger'
 
 export default class TransactionsController {
@@ -35,7 +39,7 @@ export default class TransactionsController {
         })
         .preload('offers', (offerQuery) => {
           offerQuery.preload('revisions', (revQuery) =>
-            revQuery.orderBy('revision_number', 'desc').limit(1)
+            revQuery.preload('fromParty').preload('toParty').orderBy('revision_number', 'desc').limit(1)
           )
         })
 
@@ -167,7 +171,9 @@ export default class TransactionsController {
         .preload('conditions')
         .preload('offers', (offerQuery) => {
           offerQuery
-            .preload('revisions', (revQuery) => revQuery.orderBy('revision_number', 'asc'))
+            .preload('revisions', (revQuery) =>
+              revQuery.preload('fromParty').preload('toParty').orderBy('revision_number', 'asc')
+            )
             .orderBy('created_at', 'desc')
         })
         .preload('notes', (nq) => {
@@ -266,6 +272,37 @@ export default class TransactionsController {
       await result.transaction.load('currentStep', (sq) => sq.preload('workflowStep'))
       await result.transaction.load('transactionSteps', (sq) => sq.orderBy('step_order', 'asc'))
 
+      // Email confirmation to broker (fire-and-forget)
+      const fromStepName = result.newStep?.workflowStep?.name ?? 'N/A'
+      const toStepName = result.transaction.currentStep?.workflowStep?.name ?? 'N/A'
+      mail.send(new StepAdvancedMail({
+        to: auth.user!.email,
+        fromStepName,
+        toStepName,
+        transactionId: transaction.id,
+        language: auth.user!.language,
+      })).catch((mailError) => {
+        logger.error({ mailError, transactionId: transaction.id }, 'Failed to send step advanced email — non-blocking')
+      })
+
+      // Notification twin for the broker
+      const advLang = auth.user!.language?.substring(0, 2) || 'fr'
+      try {
+        await NotificationService.notify({
+          userId: auth.user!.id,
+          transactionId: transaction.id,
+          type: 'step_advanced',
+          icon: '📈',
+          severity: 'info',
+          title: advLang === 'fr'
+            ? `Étape avancée: ${toStepName}`
+            : `Step advanced: ${toStepName}`,
+          link: `/transactions/${transaction.id}`,
+        })
+      } catch (notifError) {
+        logger.error({ notifError }, 'Failed to create step advanced notification — non-blocking')
+      }
+
       return response.ok({
         success: true,
         data: {
@@ -332,6 +369,25 @@ export default class TransactionsController {
 
       await result.transaction.load('currentStep', (sq) => sq.preload('workflowStep'))
       await result.transaction.load('transactionSteps', (sq) => sq.orderBy('step_order', 'asc'))
+
+      // Notification twin for the broker (skip = no email, just bell)
+      const skipLang = auth.user!.language?.substring(0, 2) || 'fr'
+      const skipStepName = result.transaction.currentStep?.workflowStep?.name ?? ''
+      try {
+        await NotificationService.notify({
+          userId: auth.user!.id,
+          transactionId: transaction.id,
+          type: 'step_skipped',
+          icon: '⏭️',
+          severity: 'info',
+          title: skipLang === 'fr'
+            ? `Étape sautée → ${skipStepName}`
+            : `Step skipped → ${skipStepName}`,
+          link: `/transactions/${transaction.id}`,
+        })
+      } catch (notifError) {
+        logger.error({ notifError }, 'Failed to create step skipped notification — non-blocking')
+      }
 
       return response.ok({
         success: true,
@@ -458,6 +514,35 @@ export default class TransactionsController {
 
       await transaction.load('client')
       await transaction.load('currentStep', (sq) => sq.preload('workflowStep'))
+
+      // Email confirmation to broker (fire-and-forget)
+      mail.send(new TransactionCancelledMail({
+        to: auth.user!.email,
+        reason: reason || null,
+        transactionId: transaction.id,
+        language: auth.user!.language,
+      })).catch((mailError) => {
+        logger.error({ mailError, transactionId: transaction.id }, 'Failed to send transaction cancelled email — non-blocking')
+      })
+
+      // Notification twin for the broker
+      const cancelLang = auth.user!.language?.substring(0, 2) || 'fr'
+      try {
+        await NotificationService.notify({
+          userId: auth.user!.id,
+          transactionId: transaction.id,
+          type: 'transaction_cancelled',
+          icon: '🚫',
+          severity: 'warning',
+          title: cancelLang === 'fr'
+            ? 'Transaction annulée'
+            : 'Transaction cancelled',
+          body: reason || undefined,
+          link: `/transactions/${transaction.id}`,
+        })
+      } catch (notifError) {
+        logger.error({ notifError }, 'Failed to create transaction cancelled notification — non-blocking')
+      }
 
       return response.ok({
         success: true,

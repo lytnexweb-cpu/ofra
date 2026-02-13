@@ -3,6 +3,7 @@ import vine from '@vinejs/vine'
 export const createShareLinkValidator = vine.compile(
   vine.object({
     role: vine.enum(['viewer', 'editor']).optional(),
+    linkType: vine.enum(['viewer', 'offer_intake']).optional(),
     expiresAt: vine.string().trim().optional(),
     password: vine.string().trim().minLength(4).maxLength(100).optional(),
   })

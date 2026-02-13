@@ -10,17 +10,29 @@ import WorkflowStepAutomation from '#models/workflow_step_automation'
 import WorkflowStep from '#models/workflow_step'
 import WorkflowTemplate from '#models/workflow_template'
 import Organization from '#models/organization'
+import Notification from '#models/notification'
+import TransactionShareLink from '#models/transaction_share_link'
+import TransactionParty from '#models/transaction_party'
+import OfferRevision from '#models/offer_revision'
+import Offer from '#models/offer'
+import Property from '#models/property'
 
 /**
  * Truncate all tables in correct order (respecting FK constraints)
  */
 export async function truncateAll() {
+  await Notification.query().delete()
   await ActivityFeed.query().delete()
   await Note.query().delete()
+  await TransactionShareLink.query().delete()
+  await OfferRevision.query().delete()
+  await Offer.query().delete()
+  await TransactionParty.query().delete()
   await Condition.query().delete()
   // Remove FK reference before deleting transaction steps
   await Transaction.query().update({ currentStepId: null })
   await TransactionStep.query().delete()
+  await Property.query().delete()
   await Transaction.query().delete()
   await Client.query().delete()
   await WorkflowStepCondition.query().delete()

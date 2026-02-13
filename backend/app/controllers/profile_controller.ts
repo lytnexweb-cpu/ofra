@@ -1,14 +1,18 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import hash from '@adonisjs/core/services/hash'
 import User from '#models/user'
+import Plan from '#models/plan'
 import Transaction from '#models/transaction'
+import ActivityFeed from '#models/activity_feed'
 import {
   changePasswordValidator,
   updateProfileValidator,
   updateProfileInfoValidator,
   onboardingValidator,
 } from '#validators/profile_validator'
+import { changePlanValidator } from '#validators/change_plan_validator'
 import { DateTime } from 'luxon'
+import db from '@adonisjs/lucid/services/db'
 
 export default class ProfileController {
   /**
@@ -312,6 +316,27 @@ export default class ProfileController {
       .first()
     const activeTransactions = Number(activeResult?.$extras?.total ?? 0)
 
+    // Calculate storage used
+    const storageResult = await db
+      .from('transaction_documents')
+      .join('transactions', 'transactions.id', 'transaction_documents.transaction_id')
+      .where('transactions.owner_user_id', user.id)
+      .sum('transaction_documents.file_size as total_bytes')
+      .first()
+    const storageUsedGb = Number(
+      (Number(storageResult?.total_bytes ?? 0) / (1024 ** 3)).toFixed(2)
+    )
+
+    // PDF exports this month (for Starter plan gate display)
+    const startOfMonth = DateTime.now().startOf('month')
+    const pdfExportResult = await ActivityFeed.query()
+      .where('userId', user.id)
+      .where('activityType', 'pdf_exported')
+      .where('createdAt', '>=', startOfMonth.toSQL()!)
+      .count('* as total')
+      .first()
+    const pdfExportsThisMonth = Number(pdfExportResult?.$extras?.total ?? 0)
+
     // Grace period info
     let graceDaysRemaining: number | null = null
     if (user.gracePeriodStart) {
@@ -331,6 +356,7 @@ export default class ProfileController {
               slug: plan.slug,
               maxTransactions: plan.maxTransactions,
               maxStorageGb: plan.maxStorageGb,
+              maxUsers: plan.maxUsers,
               historyMonths: plan.historyMonths,
             }
           : null,
@@ -345,14 +371,92 @@ export default class ProfileController {
         usage: {
           activeTransactions,
           maxTransactions: plan?.maxTransactions ?? null,
-          storageUsedGb: 0, // TODO: implement storage tracking
+          storageUsedGb,
           maxStorageGb: plan?.maxStorageGb ?? 0,
+          pdfExportsThisMonth,
+          pdfExportsLimit: plan?.slug === 'starter' ? 3 : null,
         },
         grace: {
           active: user.gracePeriodStart !== null,
           startedAt: user.gracePeriodStart?.toISO() ?? null,
           daysRemaining: graceDaysRemaining,
         },
+      },
+    })
+  }
+
+  /**
+   * POST /api/me/plan
+   * Change user's plan (non-paying test endpoint)
+   */
+  async changePlan({ request, response, auth }: HttpContext) {
+    const user = auth.user!
+    const payload = await request.validateUsing(changePlanValidator)
+
+    const newPlan = await Plan.query()
+      .where('slug', payload.planSlug)
+      .where('isActive', true)
+      .first()
+
+    if (!newPlan) {
+      return response.notFound({
+        success: false,
+        error: { message: 'Plan not found', code: 'E_NOT_FOUND' },
+      })
+    }
+
+    // Downgrade check: block if too many active TX
+    if (newPlan.maxTransactions !== null) {
+      const activeResult = await Transaction.query()
+        .where('owner_user_id', user.id)
+        .where('status', 'active')
+        .count('* as total')
+        .first()
+      const activeTx = Number(activeResult?.$extras?.total ?? 0)
+
+      if (activeTx > newPlan.maxTransactions) {
+        return response.unprocessableEntity({
+          success: false,
+          error: {
+            message: 'Too many active transactions for this plan',
+            code: 'E_DOWNGRADE_BLOCKED',
+            meta: {
+              activeTransactions: activeTx,
+              maxTransactions: newPlan.maxTransactions,
+              archiveNeeded: activeTx - newPlan.maxTransactions,
+            },
+          },
+        })
+      }
+    }
+
+    // Apply plan change
+    user.planId = newPlan.id
+    if (payload.billingCycle) {
+      user.billingCycle = payload.billingCycle
+    }
+    user.gracePeriodStart = null
+    await user.save()
+
+    // Return updated subscription data
+    await user.load('plan')
+    const plan = user.plan
+
+    return response.ok({
+      success: true,
+      data: {
+        plan: plan
+          ? {
+              id: plan.id,
+              name: plan.name,
+              slug: plan.slug,
+              maxTransactions: plan.maxTransactions,
+              maxStorageGb: plan.maxStorageGb,
+              maxUsers: plan.maxUsers,
+              historyMonths: plan.historyMonths,
+            }
+          : null,
+        message: `Plan changed to ${newPlan.name}`,
       },
     })
   }

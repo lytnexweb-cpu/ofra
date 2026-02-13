@@ -44,6 +44,15 @@ export default class User extends compose(BaseModel, AuthFinder) {
   declare phone: string | null
 
   @column()
+  declare address: string | null
+
+  @column()
+  declare city: string | null
+
+  @column()
+  declare provinceCode: string | null
+
+  @column()
   declare agency: string | null
 
   @column()
@@ -86,6 +95,16 @@ export default class User extends compose(BaseModel, AuthFinder) {
 
   @column.dateTime()
   declare subscriptionEndsAt: DateTime | null
+
+  // Email verification
+  @column()
+  declare emailVerified: boolean
+
+  @column()
+  declare emailVerificationToken: string | null
+
+  @column.dateTime()
+  declare emailVerificationExpires: DateTime | null
 
   // Password reset
   @column()

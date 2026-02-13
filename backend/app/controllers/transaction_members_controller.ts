@@ -1,11 +1,14 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import { DateTime } from 'luxon'
+import mail from '@adonisjs/mail/services/main'
 import Transaction from '#models/transaction'
 import TransactionMember from '#models/transaction_member'
 import User from '#models/user'
 import { inviteMemberValidator, updateMemberRoleValidator } from '#validators/transaction_member_validator'
 import { TenantScopeService } from '#services/tenant_scope_service'
 import { ActivityFeedService } from '#services/activity_feed_service'
+import { NotificationService } from '#services/notification_service'
+import MemberInvitationMail from '#mails/member_invitation_mail'
 import logger from '@adonisjs/core/services/logger'
 
 export default class TransactionMembersController {
@@ -90,6 +93,45 @@ export default class TransactionMembersController {
         })
       }
 
+      // maxUsers enforcement
+      const owner = transaction.owner
+      await owner.load('plan')
+
+      if (owner.plan) {
+        if (owner.plan.maxUsers <= 1) {
+          return response.forbidden({
+            success: false,
+            error: {
+              message: 'Your plan does not allow team members',
+              code: 'E_MAX_MEMBERS_REACHED',
+              meta: { maxUsers: owner.plan.maxUsers, planName: owner.plan.name },
+            },
+          })
+        }
+
+        const memberCount = await TransactionMember.query()
+          .where('transaction_id', transaction.id)
+          .whereIn('status', ['active', 'pending'])
+          .count('* as total')
+          .first()
+        const currentMembers = Number(memberCount?.$extras?.total ?? 0)
+
+        if (currentMembers >= owner.plan.maxUsers - 1) {
+          return response.forbidden({
+            success: false,
+            error: {
+              message: 'Maximum team members reached for this transaction',
+              code: 'E_MAX_MEMBERS_REACHED',
+              meta: {
+                maxUsers: owner.plan.maxUsers,
+                currentMembers,
+                planName: owner.plan.name,
+              },
+            },
+          })
+        }
+      }
+
       // Check if a user exists with this email
       const existingUser = await User.findBy('email', payload.email)
 
@@ -110,6 +152,40 @@ export default class TransactionMembersController {
         activityType: 'member_invited',
         metadata: { memberId: member.id, email: payload.email, role: payload.role },
       })
+
+      // Send invitation email to the invited member
+      try {
+        await mail.send(new MemberInvitationMail({
+          to: payload.email,
+          inviterName: auth.user!.fullName,
+          role: payload.role,
+          transactionId: transaction.id,
+          language: auth.user!.language,
+        }))
+      } catch (mailError) {
+        logger.error({ mailError, email: payload.email }, 'Failed to send member invitation email — non-blocking')
+      }
+
+      // Notification twin for the broker
+      try {
+        await NotificationService.notify({
+          userId: auth.user!.id,
+          transactionId: transaction.id,
+          type: 'member_invited',
+          icon: '🤝',
+          severity: 'info',
+          title: (auth.user!.language?.substring(0, 2) || 'fr') === 'fr'
+            ? `Invitation envoyée à ${payload.email}`
+            : `Invitation sent to ${payload.email}`,
+          body: (auth.user!.language?.substring(0, 2) || 'fr') === 'fr'
+            ? `Rôle: ${payload.role}`
+            : `Role: ${payload.role}`,
+          link: `/transactions/${transaction.id}`,
+          emailRecipients: [payload.email],
+        })
+      } catch (notifError) {
+        logger.error({ notifError }, 'Failed to create member invitation notification — non-blocking')
+      }
 
       await member.load('user')
       await member.load('inviter')

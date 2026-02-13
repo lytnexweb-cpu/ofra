@@ -276,6 +276,456 @@ export const emailTranslations = {
   },
 
   // ============================================
+  // EMAIL VERIFICATION
+  // ============================================
+  emailVerification: {
+    fr: {
+      subject: 'Confirmez votre adresse courriel',
+      title: 'Confirmez votre courriel',
+      intro: 'Merci de vous être inscrit sur Ofra! Pour activer votre compte, veuillez confirmer votre adresse courriel en cliquant sur le bouton ci-dessous.',
+      cta: 'Confirmer mon courriel',
+      expiryWarning: 'Ce lien expire dans 24 heures.',
+      ignoreNotice: "Si vous n'avez pas créé de compte sur Ofra, vous pouvez ignorer cet email.",
+      linkFallback: 'Si le bouton ne fonctionne pas, copiez et collez ce lien dans votre navigateur:',
+    },
+    en: {
+      subject: 'Confirm your email address',
+      title: 'Confirm your email',
+      intro: 'Thank you for signing up for Ofra! To activate your account, please confirm your email address by clicking the button below.',
+      cta: 'Confirm my email',
+      expiryWarning: 'This link expires in 24 hours.',
+      ignoreNotice: "If you didn't create an account on Ofra, you can safely ignore this email.",
+      linkFallback: "If the button doesn't work, copy and paste this link into your browser:",
+    },
+  },
+
+  // ============================================
+  // MEMBER INVITATION EMAIL
+  // ============================================
+  memberInvitation: {
+    fr: {
+      subject: 'Vous êtes invité à collaborer sur une transaction',
+      title: 'Invitation à collaborer',
+      intro: 'vous a invité à collaborer sur une transaction immobilière dans Ofra.',
+      roleLabel: 'Rôle attribué',
+      roles: {
+        admin: 'Administrateur',
+        editor: 'Éditeur',
+        viewer: 'Lecteur',
+      },
+      cta: 'Accéder à la transaction',
+      noAccountNotice: "Si vous n'avez pas encore de compte Ofra, créez-en un avec cette adresse courriel pour accéder à la transaction.",
+    },
+    en: {
+      subject: 'You are invited to collaborate on a transaction',
+      title: 'Collaboration Invitation',
+      intro: 'has invited you to collaborate on a real estate transaction in Ofra.',
+      roleLabel: 'Assigned role',
+      roles: {
+        admin: 'Administrator',
+        editor: 'Editor',
+        viewer: 'Viewer',
+      },
+      cta: 'Access Transaction',
+      noAccountNotice: "If you don't have an Ofra account yet, create one with this email address to access the transaction.",
+    },
+  },
+
+  // ============================================
+  // PARTY ADDED EMAIL
+  // ============================================
+  partyAdded: {
+    fr: {
+      subject: 'Vous avez été ajouté à une transaction immobilière',
+      title: 'Nouvelle transaction',
+      intro: 'Vous avez été ajouté comme partie dans une transaction immobilière gérée par',
+      roleLabel: 'Votre rôle',
+      roles: {
+        buyer: 'Acheteur',
+        seller: 'Vendeur',
+        lawyer: 'Avocat',
+        notary: 'Notaire',
+        agent: 'Agent',
+        broker: 'Courtier',
+        other: 'Autre',
+      },
+      transactionDetails: 'Détails de la transaction',
+      stayInformed: 'Vous recevrez les mises à jour importantes concernant cette transaction.',
+      cta: 'En savoir plus',
+    },
+    en: {
+      subject: 'You have been added to a real estate transaction',
+      title: 'New Transaction',
+      intro: 'You have been added as a party in a real estate transaction managed by',
+      roleLabel: 'Your role',
+      roles: {
+        buyer: 'Buyer',
+        seller: 'Seller',
+        lawyer: 'Lawyer',
+        notary: 'Notary',
+        agent: 'Agent',
+        broker: 'Broker',
+        other: 'Other',
+      },
+      transactionDetails: 'Transaction details',
+      stayInformed: 'You will receive important updates about this transaction.',
+      cta: 'Learn more',
+    },
+  },
+
+  // ============================================
+  // SHARE LINK EMAIL
+  // ============================================
+  shareLink: {
+    fr: {
+      subject: 'Un lien de partage a été créé pour votre transaction',
+      title: 'Lien de partage créé',
+      intro: 'Un lien de partage a été créé pour donner accès à votre transaction.',
+      accessLevel: "Niveau d'accès",
+      roles: {
+        viewer: 'Lecture seule',
+        editor: 'Modification',
+        admin: 'Administration',
+      },
+      passwordProtected: 'Protégé par mot de passe',
+      yes: 'Oui',
+      no: 'Non',
+      expiresAt: 'Expire le',
+      noExpiry: 'Pas d\'expiration',
+      securityNotice: 'Partagez ce lien uniquement avec les personnes autorisées. Vous pouvez le désactiver à tout moment depuis Ofra.',
+      cta: 'Gérer le lien',
+    },
+    en: {
+      subject: 'A share link has been created for your transaction',
+      title: 'Share Link Created',
+      intro: 'A share link has been created to give access to your transaction.',
+      accessLevel: 'Access level',
+      roles: {
+        viewer: 'View only',
+        editor: 'Edit',
+        admin: 'Admin',
+      },
+      passwordProtected: 'Password protected',
+      yes: 'Yes',
+      no: 'No',
+      expiresAt: 'Expires on',
+      noExpiry: 'No expiration',
+      securityNotice: 'Share this link only with authorized people. You can disable it anytime from Ofra.',
+      cta: 'Manage Link',
+    },
+  },
+
+  // ============================================
+  // TRANSACTION CANCELLED EMAIL (confirmation to broker)
+  // ============================================
+  transactionCancelled: {
+    fr: {
+      subject: 'Transaction annulée',
+      title: 'Transaction annulée',
+      intro: 'Votre transaction a été annulée.',
+      reasonLabel: 'Raison',
+      noReason: 'Aucune raison fournie',
+      cta: 'Voir le tableau de bord',
+      archiveNotice: 'Les données de cette transaction restent accessibles depuis votre tableau de bord.',
+    },
+    en: {
+      subject: 'Transaction cancelled',
+      title: 'Transaction Cancelled',
+      intro: 'Your transaction has been cancelled.',
+      reasonLabel: 'Reason',
+      noReason: 'No reason provided',
+      cta: 'View Dashboard',
+      archiveNotice: 'This transaction data remains accessible from your dashboard.',
+    },
+  },
+
+  // ============================================
+  // TRANSACTION RECAP EMAIL
+  // ============================================
+  transactionRecap: {
+    fr: {
+      subject: 'Récapitulatif de votre transaction',
+      title: 'Récapitulatif',
+      intro: 'Voici le récapitulatif de votre transaction.',
+      clientLabel: 'Client',
+      propertyLabel: 'Propriété',
+      statusLabel: 'Statut',
+      statuses: {
+        active: 'Active',
+        cancelled: 'Annulée',
+        completed: 'Complétée',
+        archived: 'Archivée',
+      },
+      closingDateLabel: 'Date de clôture',
+      salePriceLabel: 'Prix de vente',
+      noData: 'N/A',
+      customMessageLabel: 'Message',
+      sentByBroker: 'Envoyé par votre courtier via Ofra.',
+    },
+    en: {
+      subject: 'Your transaction summary',
+      title: 'Summary',
+      intro: 'Here is the summary of your transaction.',
+      clientLabel: 'Client',
+      propertyLabel: 'Property',
+      statusLabel: 'Status',
+      statuses: {
+        active: 'Active',
+        cancelled: 'Cancelled',
+        completed: 'Completed',
+        archived: 'Archived',
+      },
+      closingDateLabel: 'Closing date',
+      salePriceLabel: 'Sale price',
+      noData: 'N/A',
+      customMessageLabel: 'Message',
+      sentByBroker: 'Sent by your broker via Ofra.',
+    },
+  },
+
+  // ============================================
+  // STEP ADVANCED EMAIL (confirmation to broker)
+  // ============================================
+  stepAdvanced: {
+    fr: {
+      subject: 'Étape avancée sur votre transaction',
+      title: 'Étape avancée',
+      intro: 'Votre transaction a progressé vers une nouvelle étape.',
+      fromStepLabel: 'Étape précédente',
+      toStepLabel: 'Nouvelle étape',
+      cta: 'Voir la transaction',
+      progressNotice: 'Continuez à suivre vos conditions et échéances depuis Ofra.',
+    },
+    en: {
+      subject: 'Step advanced on your transaction',
+      title: 'Step Advanced',
+      intro: 'Your transaction has progressed to a new step.',
+      fromStepLabel: 'Previous step',
+      toStepLabel: 'New step',
+      cta: 'View Transaction',
+      progressNotice: 'Continue tracking your conditions and deadlines from Ofra.',
+    },
+  },
+
+  // ============================================
+  // CONDITION RESOLVED EMAIL (confirmation to broker)
+  // ============================================
+  conditionResolved: {
+    fr: {
+      subject: 'Condition résolue sur votre transaction',
+      title: 'Condition résolue',
+      intro: 'Une condition a été résolue sur votre transaction.',
+      conditionLabel: 'Condition',
+      resolutionLabel: 'Résolution',
+      resolutionTypes: {
+        completed: 'Complétée',
+        waived: 'Levée',
+        not_applicable: 'Non applicable',
+        skipped_with_risk: 'Ignorée avec risque',
+      },
+      cta: 'Voir la transaction',
+      progressNotice: 'Vérifiez les conditions restantes pour avancer à la prochaine étape.',
+    },
+    en: {
+      subject: 'Condition resolved on your transaction',
+      title: 'Condition Resolved',
+      intro: 'A condition has been resolved on your transaction.',
+      conditionLabel: 'Condition',
+      resolutionLabel: 'Resolution',
+      resolutionTypes: {
+        completed: 'Completed',
+        waived: 'Waived',
+        not_applicable: 'Not applicable',
+        skipped_with_risk: 'Skipped with risk',
+      },
+      cta: 'View Transaction',
+      progressNotice: 'Check remaining conditions to advance to the next step.',
+    },
+  },
+
+  // ============================================
+  // BLOCKING CONDITION ALERT EMAIL (warning to broker)
+  // ============================================
+  blockingConditionAlert: {
+    fr: {
+      subject: 'Condition bloquante ajoutée à votre transaction',
+      title: 'Condition bloquante',
+      intro: 'Une condition bloquante a été ajoutée à votre transaction. Elle doit être résolue avant de pouvoir avancer.',
+      conditionLabel: 'Condition',
+      levelLabel: 'Niveau',
+      levelValue: 'Bloquante',
+      dueDateLabel: 'Échéance',
+      noDueDate: 'Aucune échéance',
+      cta: 'Voir la transaction',
+      urgentNotice: 'Cette condition bloque l\'avancement de la transaction. Résolvez-la dès que possible.',
+    },
+    en: {
+      subject: 'Blocking condition added to your transaction',
+      title: 'Blocking Condition',
+      intro: 'A blocking condition has been added to your transaction. It must be resolved before you can advance.',
+      conditionLabel: 'Condition',
+      levelLabel: 'Level',
+      levelValue: 'Blocking',
+      dueDateLabel: 'Due date',
+      noDueDate: 'No due date',
+      cta: 'View Transaction',
+      urgentNotice: 'This condition blocks transaction advancement. Resolve it as soon as possible.',
+    },
+  },
+
+  // ============================================
+  // CONDITION ASSIGNED EMAIL (confirmation to broker)
+  // ============================================
+  conditionAssigned: {
+    fr: {
+      subject: 'Nouvelle condition ajoutée à votre transaction',
+      title: 'Nouvelle condition',
+      intro: 'Une nouvelle condition a été ajoutée à votre transaction.',
+      conditionLabel: 'Condition',
+      levelLabel: 'Niveau',
+      levels: {
+        blocking: 'Bloquante',
+        required: 'Requise',
+        recommended: 'Recommandée',
+      },
+      dueDateLabel: 'Échéance',
+      noDueDate: 'Aucune échéance',
+      cta: 'Voir la transaction',
+      trackNotice: 'Suivez cette condition depuis votre tableau de bord Ofra.',
+    },
+    en: {
+      subject: 'New condition added to your transaction',
+      title: 'New Condition',
+      intro: 'A new condition has been added to your transaction.',
+      conditionLabel: 'Condition',
+      levelLabel: 'Level',
+      levels: {
+        blocking: 'Blocking',
+        required: 'Required',
+        recommended: 'Recommended',
+      },
+      dueDateLabel: 'Due date',
+      noDueDate: 'No due date',
+      cta: 'View Transaction',
+      trackNotice: 'Track this condition from your Ofra dashboard.',
+    },
+  },
+
+  // ============================================
+  // OFFER SUBMITTED EMAIL (confirmation to broker)
+  // ============================================
+  offerSubmitted: {
+    fr: {
+      subject: 'Offre soumise avec succès',
+      title: 'Offre soumise',
+      intro: 'Une nouvelle offre a été soumise sur votre transaction.',
+      priceLabel: 'Montant',
+      directionLabel: 'Direction',
+      directions: {
+        buyer_to_seller: 'Acheteur → Vendeur',
+        seller_to_buyer: 'Vendeur → Acheteur',
+      },
+      cta: 'Voir la transaction',
+      trackNotice: 'Vous pouvez suivre le statut de cette offre depuis votre tableau de bord Ofra.',
+    },
+    en: {
+      subject: 'Offer submitted successfully',
+      title: 'Offer Submitted',
+      intro: 'A new offer has been submitted on your transaction.',
+      priceLabel: 'Amount',
+      directionLabel: 'Direction',
+      directions: {
+        buyer_to_seller: 'Buyer → Seller',
+        seller_to_buyer: 'Seller → Buyer',
+      },
+      cta: 'View Transaction',
+      trackNotice: 'You can track this offer status from your Ofra dashboard.',
+    },
+  },
+
+  // ============================================
+  // OFFER COUNTERED EMAIL (confirmation to broker)
+  // ============================================
+  offerCountered: {
+    fr: {
+      subject: 'Contre-offre enregistrée',
+      title: 'Contre-offre',
+      intro: 'Une contre-offre a été ajoutée à votre transaction.',
+      revisionLabel: 'Révision #',
+      priceLabel: 'Nouveau montant',
+      directionLabel: 'Direction',
+      directions: {
+        buyer_to_seller: 'Acheteur → Vendeur',
+        seller_to_buyer: 'Vendeur → Acheteur',
+      },
+      cta: 'Voir l\'offre',
+      negotiationNotice: 'La négociation est en cours. Répondez dans Ofra pour continuer.',
+    },
+    en: {
+      subject: 'Counter-offer recorded',
+      title: 'Counter-Offer',
+      intro: 'A counter-offer has been added to your transaction.',
+      revisionLabel: 'Revision #',
+      priceLabel: 'New amount',
+      directionLabel: 'Direction',
+      directions: {
+        buyer_to_seller: 'Buyer → Seller',
+        seller_to_buyer: 'Seller → Buyer',
+      },
+      cta: 'View Offer',
+      negotiationNotice: 'Negotiation is in progress. Reply in Ofra to continue.',
+    },
+  },
+
+  // ============================================
+  // OFFER REJECTED EMAIL (confirmation to broker)
+  // ============================================
+  offerRejected: {
+    fr: {
+      subject: 'Offre refusée',
+      title: 'Offre refusée',
+      intro: 'Une offre a été refusée sur votre transaction.',
+      statusLabel: 'Statut',
+      statusValue: 'Refusée',
+      cta: 'Voir la transaction',
+      nextStepsNotice: 'Vous pouvez soumettre une nouvelle offre ou poursuivre les négociations depuis Ofra.',
+    },
+    en: {
+      subject: 'Offer rejected',
+      title: 'Offer Rejected',
+      intro: 'An offer has been rejected on your transaction.',
+      statusLabel: 'Status',
+      statusValue: 'Rejected',
+      cta: 'View Transaction',
+      nextStepsNotice: 'You can submit a new offer or continue negotiations from Ofra.',
+    },
+  },
+
+  // ============================================
+  // OFFER WITHDRAWN EMAIL (confirmation to broker)
+  // ============================================
+  offerWithdrawn: {
+    fr: {
+      subject: 'Offre retirée',
+      title: 'Offre retirée',
+      intro: 'Une offre a été retirée de votre transaction.',
+      statusLabel: 'Statut',
+      statusValue: 'Retirée',
+      cta: 'Voir la transaction',
+      nextStepsNotice: 'Vous pouvez soumettre une nouvelle offre depuis Ofra si nécessaire.',
+    },
+    en: {
+      subject: 'Offer withdrawn',
+      title: 'Offer Withdrawn',
+      intro: 'An offer has been withdrawn from your transaction.',
+      statusLabel: 'Status',
+      statusValue: 'Withdrawn',
+      cta: 'View Transaction',
+      nextStepsNotice: 'You can submit a new offer from Ofra if needed.',
+    },
+  },
+
+  // ============================================
   // GOOGLE REVIEW REMINDER EMAIL
   // ============================================
   googleReview: {

@@ -7,6 +7,7 @@ import Condition from '#models/condition'
 import Transaction from '#models/transaction'
 import DailyDigestMail from '#mails/daily_digest_mail'
 import DeadlineWarningMail from '#mails/deadline_warning_mail'
+import { NotificationService } from '#services/notification_service'
 import { DailyDigestPayload, DeadlineWarningPayload } from '#services/queue_service'
 
 interface ConditionWithTransaction {
@@ -119,6 +120,28 @@ export class ReminderService {
     } catch (err) {
       logger.warn({ conditionId, userId: user.id, err }, 'Failed to send deadline warning email — SMTP may be unavailable')
     }
+
+    // Notification twin — urgent bell for 48h deadline
+    const lang = user.language?.substring(0, 2) || 'fr'
+    try {
+      await NotificationService.notify({
+        userId: user.id,
+        transactionId,
+        type: 'deadline_warning',
+        icon: '⏰',
+        severity: 'urgent',
+        title: lang === 'fr'
+          ? `Deadline dans 48h : ${condition.title}`
+          : `48h deadline: ${condition.title}`,
+        body: lang === 'fr'
+          ? `${clientName} — ${propertyAddress ?? 'N/A'}`
+          : `${clientName} — ${propertyAddress ?? 'N/A'}`,
+        link: `/transactions/${transactionId}`,
+        emailRecipients: [user.email],
+      })
+    } catch (notifError) {
+      logger.error({ notifError }, 'Failed to create deadline warning notification — non-blocking')
+    }
   }
 
   /**
@@ -218,6 +241,28 @@ export class ReminderService {
       )
     } catch (err) {
       logger.warn({ userId: user.id, err }, 'Failed to send daily digest email — SMTP may be unavailable')
+    }
+
+    // Notification twin — daily digest summary
+    const lang = user.language?.substring(0, 2) || 'fr'
+    const severity = overdue.length > 0 ? 'warning' as const : 'info' as const
+    try {
+      await NotificationService.notify({
+        userId: user.id,
+        type: 'daily_digest',
+        icon: '📊',
+        severity,
+        title: lang === 'fr'
+          ? `Résumé quotidien`
+          : `Daily digest`,
+        body: lang === 'fr'
+          ? `${overdue.length} en retard, ${upcoming.length} à venir`
+          : `${overdue.length} overdue, ${upcoming.length} upcoming`,
+        link: '/dashboard',
+        emailRecipients: [user.email],
+      })
+    } catch (notifError) {
+      logger.error({ notifError }, 'Failed to create daily digest notification — non-blocking')
     }
   }
 

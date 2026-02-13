@@ -4,6 +4,7 @@ import type { BelongsTo, ManyToMany } from '@adonisjs/lucid/types/relations'
 import Offer from './offer.js'
 import User from './user.js'
 import Condition from './condition.js'
+import TransactionParty from './transaction_party.js'
 
 export type OfferDirection = 'buyer_to_seller' | 'seller_to_buyer'
 
@@ -56,6 +57,12 @@ export default class OfferRevision extends BaseModel {
   @column()
   declare createdByUserId: number | null
 
+  @column()
+  declare fromPartyId: number | null
+
+  @column()
+  declare toPartyId: number | null
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 
@@ -64,6 +71,12 @@ export default class OfferRevision extends BaseModel {
 
   @belongsTo(() => User, { foreignKey: 'createdByUserId' })
   declare createdBy: BelongsTo<typeof User>
+
+  @belongsTo(() => TransactionParty, { foreignKey: 'fromPartyId' })
+  declare fromParty: BelongsTo<typeof TransactionParty>
+
+  @belongsTo(() => TransactionParty, { foreignKey: 'toPartyId' })
+  declare toParty: BelongsTo<typeof TransactionParty>
 
   @manyToMany(() => Condition, {
     pivotTable: 'offer_revision_conditions',

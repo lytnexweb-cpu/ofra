@@ -5,6 +5,7 @@ import Transaction from './transaction.js'
 import User from './user.js'
 
 export type ShareLinkRole = 'viewer' | 'editor'
+export type ShareLinkType = 'viewer' | 'offer_intake'
 
 export default class TransactionShareLink extends BaseModel {
   @column({ isPrimary: true })
@@ -15,6 +16,9 @@ export default class TransactionShareLink extends BaseModel {
 
   @column()
   declare token: string
+
+  @column()
+  declare linkType: ShareLinkType
 
   @column()
   declare role: ShareLinkRole

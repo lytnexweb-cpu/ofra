@@ -1,9 +1,14 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import vine from '@vinejs/vine'
+import { DateTime } from 'luxon'
+import mail from '@adonisjs/mail/services/main'
 import Transaction from '#models/transaction'
+import ActivityFeed from '#models/activity_feed'
 import { TenantScopeService } from '#services/tenant_scope_service'
 import { PdfExportService } from '#services/pdf_export_service'
 import { ActivityFeedService } from '#services/activity_feed_service'
+import { NotificationService } from '#services/notification_service'
+import TransactionRecapMail from '#mails/transaction_recap_mail'
 import logger from '@adonisjs/core/services/logger'
 
 const exportEmailValidator = vine.compile(
@@ -32,6 +37,30 @@ export default class ExportController {
    */
   async pdf({ params, request, response, auth }: HttpContext) {
     try {
+      // Gate: Starter plan limited to 3 PDF exports per month
+      const user = auth.user!
+      await user.load('plan')
+      if (user.plan?.slug === 'starter') {
+        const startOfMonth = DateTime.now().startOf('month')
+        const exportCount = await ActivityFeed.query()
+          .where('userId', user.id)
+          .where('activityType', 'pdf_exported')
+          .where('createdAt', '>=', startOfMonth.toSQL()!)
+          .count('* as total')
+          .first()
+        const used = Number(exportCount?.$extras?.total ?? 0)
+        if (used >= 3) {
+          return response.forbidden({
+            success: false,
+            error: {
+              message: 'Monthly PDF export limit reached',
+              code: 'E_PLAN_LIMIT_PDF_EXPORTS',
+              meta: { used, limit: 3, currentPlan: 'starter', requiredPlan: 'solo' },
+            },
+          })
+        }
+      }
+
       const query = Transaction.query().where('id', params.id)
       TenantScopeService.apply(query, auth.user!)
       const transaction = await query
@@ -109,17 +138,63 @@ export default class ExportController {
 
       const payload = await request.validateUsing(exportEmailValidator)
 
-      // TODO: Integrate real email service (Resend, SES, etc.)
-      // For now, log the activity and return success stub
+      // Build transaction data for the recap
+      const clientName = transaction.client
+        ? `${transaction.client.firstName} ${transaction.client.lastName}`
+        : null
+      const propertyAddress = transaction.property?.address ?? null
+
+      // Send recap email to each recipient (fire-and-forget per recipient)
+      const emailRecipients: string[] = []
+      for (const recipient of payload.recipients) {
+        mail.send(new TransactionRecapMail({
+          to: recipient,
+          clientName,
+          propertyAddress,
+          status: transaction.status,
+          closingDate: transaction.closingDate?.toISODate() ?? null,
+          salePrice: transaction.salePrice ?? null,
+          customSubject: payload.subject ?? null,
+          customMessage: payload.message ?? null,
+          transactionId: transaction.id,
+          language: auth.user!.language,
+        })).catch((mailError) => {
+          logger.error({ mailError, recipient, transactionId: transaction.id }, 'Failed to send recap email — non-blocking')
+        })
+        emailRecipients.push(recipient)
+      }
+
       await ActivityFeedService.log({
         transactionId: transaction.id,
         userId: auth.user!.id,
-        activityType: 'email_recap_sent',
+        activityType: 'email_recap_sent' as any,
         metadata: {
           recipients: payload.recipients,
           subject: payload.subject || null,
         },
       })
+
+      // Notification twin for the broker
+      const recapLang = auth.user!.language?.substring(0, 2) || 'fr'
+      try {
+        await NotificationService.notify({
+          userId: auth.user!.id,
+          transactionId: transaction.id,
+          type: 'email_recap_sent',
+          icon: '📄',
+          severity: 'info',
+          title: recapLang === 'fr'
+            ? `Récapitulatif envoyé`
+            : `Summary sent`,
+          body: recapLang === 'fr'
+            ? `Destinataires: ${payload.recipients.join(', ')}`
+            : `Recipients: ${payload.recipients.join(', ')}`,
+          link: `/transactions/${transaction.id}`,
+          emailRecipients,
+        })
+      } catch (notifError) {
+        logger.error({ notifError }, 'Failed to create recap sent notification — non-blocking')
+      }
 
       return response.ok({
         success: true,

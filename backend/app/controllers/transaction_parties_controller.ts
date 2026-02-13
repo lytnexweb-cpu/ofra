@@ -1,9 +1,12 @@
 import type { HttpContext } from '@adonisjs/core/http'
+import mail from '@adonisjs/mail/services/main'
 import Transaction from '#models/transaction'
 import TransactionParty from '#models/transaction_party'
 import { createPartyValidator, updatePartyValidator } from '#validators/transaction_party_validator'
 import { TenantScopeService } from '#services/tenant_scope_service'
 import { FintracService } from '#services/fintrac_service'
+import { NotificationService } from '#services/notification_service'
+import PartyAddedMail from '#mails/party_added_mail'
 import logger from '@adonisjs/core/services/logger'
 
 export default class TransactionPartiesController {
@@ -54,6 +57,48 @@ export default class TransactionPartiesController {
         await FintracService.onPartyAdded(transaction, party, auth.user!.id)
       } catch (fintracError) {
         logger.error({ fintracError, partyId: party.id }, 'FINTRAC onPartyAdded failed — non-blocking')
+      }
+
+      // Send email to party if they have an email
+      const emailRecipients: string[] = []
+      if (party.email) {
+        try {
+          await transaction.load('property')
+          const propertyAddress = transaction.property?.address ?? null
+          await mail.send(new PartyAddedMail({
+            to: party.email,
+            partyName: party.fullName,
+            partyRole: party.role,
+            brokerName: auth.user!.fullName,
+            propertyAddress,
+            language: auth.user!.language,
+          }))
+          emailRecipients.push(`${party.fullName} (${party.role})`)
+        } catch (mailError) {
+          logger.error({ mailError, partyId: party.id }, 'Failed to send party added email — non-blocking')
+        }
+      }
+
+      // Notification twin for the broker
+      const lang = auth.user!.language?.substring(0, 2) || 'fr'
+      try {
+        await NotificationService.notify({
+          userId: auth.user!.id,
+          transactionId: transaction.id,
+          type: 'party_added',
+          icon: '👤',
+          severity: 'info',
+          title: lang === 'fr'
+            ? `Partie ajoutée: ${party.fullName}`
+            : `Party added: ${party.fullName}`,
+          body: lang === 'fr'
+            ? `Rôle: ${party.role}${party.email ? '' : ' — aucun courriel'}`
+            : `Role: ${party.role}${party.email ? '' : ' — no email'}`,
+          link: `/transactions/${transaction.id}`,
+          emailRecipients: emailRecipients.length > 0 ? emailRecipients : undefined,
+        })
+      } catch (notifError) {
+        logger.error({ notifError }, 'Failed to create party added notification — non-blocking')
       }
 
       return response.created({

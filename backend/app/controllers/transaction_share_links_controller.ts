@@ -2,6 +2,7 @@ import type { HttpContext } from '@adonisjs/core/http'
 import { DateTime } from 'luxon'
 import { randomBytes } from 'node:crypto'
 import hash from '@adonisjs/core/services/hash'
+import mail from '@adonisjs/mail/services/main'
 import Transaction from '#models/transaction'
 import TransactionShareLink from '#models/transaction_share_link'
 import {
@@ -10,6 +11,8 @@ import {
 } from '#validators/transaction_share_link_validator'
 import { TenantScopeService } from '#services/tenant_scope_service'
 import { ActivityFeedService } from '#services/activity_feed_service'
+import { NotificationService } from '#services/notification_service'
+import ShareLinkMail from '#mails/share_link_mail'
 import logger from '@adonisjs/core/services/logger'
 
 /**
@@ -23,16 +26,23 @@ export default class TransactionShareLinksController {
   /**
    * Get the active share link for a transaction (or null)
    */
-  async show({ params, response, auth }: HttpContext) {
+  async show({ params, request, response, auth }: HttpContext) {
     try {
       const query = Transaction.query().where('id', params.transactionId)
       TenantScopeService.apply(query, auth.user!)
       const transaction = await query.firstOrFail()
 
-      const link = await TransactionShareLink.query()
+      const linkQuery = TransactionShareLink.query()
         .where('transaction_id', transaction.id)
         .orderBy('created_at', 'desc')
-        .first()
+
+      // Optional filter by link_type (e.g. ?linkType=offer_intake)
+      const linkType = request.input('linkType')
+      if (linkType) {
+        linkQuery.where('link_type', linkType)
+      }
+
+      const link = await linkQuery.first()
 
       return response.ok({
         success: true,
@@ -41,6 +51,7 @@ export default class TransactionShareLinksController {
             ? {
                 id: link.id,
                 token: link.token,
+                linkType: link.linkType,
                 role: link.role,
                 isActive: link.isActive,
                 expiresAt: link.expiresAt,
@@ -78,9 +89,30 @@ export default class TransactionShareLinksController {
 
       const payload = await request.validateUsing(createShareLinkValidator)
 
-      // Deactivate any existing active links
+      // Gate: Starter plan limited to 1 share link per transaction (total, not just active)
+      await auth.user!.load('plan')
+      if (auth.user!.plan?.slug === 'starter') {
+        const existingCount = await TransactionShareLink.query()
+          .where('transactionId', transaction.id)
+          .count('* as total')
+          .first()
+        if (Number(existingCount?.$extras?.total ?? 0) >= 1) {
+          return response.forbidden({
+            success: false,
+            error: {
+              message: 'Share link limit reached',
+              code: 'E_PLAN_LIMIT_SHARE_LINKS',
+              meta: { limit: 1, currentPlan: 'starter', requiredPlan: 'solo' },
+            },
+          })
+        }
+      }
+
+      // Deactivate existing active links of the same type
+      const newLinkType = payload.linkType || 'viewer'
       await TransactionShareLink.query()
         .where('transaction_id', transaction.id)
+        .where('link_type', newLinkType)
         .where('is_active', true)
         .update({ is_active: false })
 
@@ -94,6 +126,7 @@ export default class TransactionShareLinksController {
       const link = await TransactionShareLink.create({
         transactionId: transaction.id,
         token,
+        linkType: payload.linkType || 'viewer',
         role: payload.role || 'viewer',
         isActive: true,
         expiresAt: payload.expiresAt ? DateTime.fromISO(payload.expiresAt) : null,
@@ -109,12 +142,49 @@ export default class TransactionShareLinksController {
         metadata: { linkId: link.id, role: link.role },
       })
 
+      // Send confirmation email to broker
+      try {
+        await mail.send(new ShareLinkMail({
+          to: auth.user!.email,
+          role: link.role,
+          hasPassword: !!link.passwordHash,
+          expiresAt: link.expiresAt?.toISO() ?? null,
+          transactionId: transaction.id,
+          language: auth.user!.language,
+        }))
+      } catch (mailError) {
+        logger.error({ mailError }, 'Failed to send share link email — non-blocking')
+      }
+
+      // Notification twin for the broker
+      const lang = auth.user!.language?.substring(0, 2) || 'fr'
+      try {
+        await NotificationService.notify({
+          userId: auth.user!.id,
+          transactionId: transaction.id,
+          type: 'share_link_created',
+          icon: '🔗',
+          severity: 'info',
+          title: lang === 'fr'
+            ? 'Lien de partage créé'
+            : 'Share link created',
+          body: lang === 'fr'
+            ? `Accès: ${link.role}${link.passwordHash ? ' (protégé)' : ''}`
+            : `Access: ${link.role}${link.passwordHash ? ' (protected)' : ''}`,
+          link: `/transactions/${transaction.id}`,
+          emailRecipients: [auth.user!.email],
+        })
+      } catch (notifError) {
+        logger.error({ notifError }, 'Failed to create share link notification — non-blocking')
+      }
+
       return response.created({
         success: true,
         data: {
           shareLink: {
             id: link.id,
             token: link.token,
+            linkType: link.linkType,
             role: link.role,
             isActive: link.isActive,
             expiresAt: link.expiresAt,
@@ -175,6 +245,7 @@ export default class TransactionShareLinksController {
           shareLink: {
             id: link.id,
             token: link.token,
+            linkType: link.linkType,
             role: link.role,
             isActive: link.isActive,
             expiresAt: link.expiresAt,

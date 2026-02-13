@@ -26,6 +26,9 @@ export default class Plan extends BaseModel {
   declare maxStorageGb: number
 
   @column()
+  declare maxUsers: number
+
+  @column()
   declare historyMonths: number | null // null = unlimited
 
   @column()

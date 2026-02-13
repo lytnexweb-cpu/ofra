@@ -35,9 +35,9 @@ export const OFRA_COLORS = {
 // SVG Logo embedded (from OfraLogo.tsx)
 export const OFRA_LOGO_SVG = `
 <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path d="M24 8L8 22V40H40V22L24 8Z" fill="#1E3A5F"/>
+  <path d="M24 8L8 22V40H40V22L24 8Z" fill="#FFFFFF"/>
   <path d="M24 4L2 22L8 22L24 8L40 22L46 22L24 4Z" fill="#D97706"/>
-  <circle cx="24" cy="28" r="6" fill="#FAFAF9"/>
+  <circle cx="24" cy="28" r="6" fill="#1E3A5F"/>
 </svg>
 `
 

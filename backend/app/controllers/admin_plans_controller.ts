@@ -96,6 +96,7 @@ export default class AdminPlansController {
         'annualPrice',
         'maxTransactions',
         'maxStorageGb',
+        'maxUsers',
         'historyMonths',
         'isActive',
         'displayOrder',

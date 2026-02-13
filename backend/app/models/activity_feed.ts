@@ -32,6 +32,7 @@ export type ActivityType =
   | 'automation_scheduled'
   | 'email_sent'
   | 'task_created'
+  | 'offer_intake_received'
 
 export default class ActivityFeed extends BaseModel {
   static table = 'activity_feed'

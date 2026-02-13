@@ -15,6 +15,8 @@ export const createOfferValidator = vine.compile(
     notes: vine.string().trim().optional(),
     direction: vine.enum(['buyer_to_seller', 'seller_to_buyer']).optional(),
     conditionIds: vine.array(vine.number()).optional(),
+    fromPartyId: vine.number().positive().optional(),
+    toPartyId: vine.number().positive().optional(),
   })
 )
 
@@ -33,5 +35,7 @@ export const addRevisionValidator = vine.compile(
     notes: vine.string().trim().optional(),
     direction: vine.enum(['buyer_to_seller', 'seller_to_buyer']),
     conditionIds: vine.array(vine.number()).optional(),
+    fromPartyId: vine.number().positive().optional(),
+    toPartyId: vine.number().positive().optional(),
   })
 )

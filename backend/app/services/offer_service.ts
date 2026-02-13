@@ -2,6 +2,7 @@ import { DateTime } from 'luxon'
 import Offer, { type OfferStatus } from '#models/offer'
 import OfferRevision from '#models/offer_revision'
 import Transaction from '#models/transaction'
+import TransactionParty from '#models/transaction_party'
 import { WorkflowEngineService } from '#services/workflow_engine_service'
 
 /**
@@ -20,6 +21,50 @@ export class OfferService {
   /**
    * Create a new offer for a transaction with an initial revision.
    */
+  /**
+   * Validate that fromPartyId/toPartyId are coherent with the direction and transaction.
+   */
+  private static async validatePartyCoherence(
+    transactionId: number,
+    direction: 'buyer_to_seller' | 'seller_to_buyer',
+    fromPartyId?: number | null,
+    toPartyId?: number | null
+  ): Promise<{ fromPartyId: number | null; toPartyId: number | null }> {
+    if (!fromPartyId && !toPartyId) {
+      return { fromPartyId: null, toPartyId: null }
+    }
+
+    if (fromPartyId) {
+      const fromParty = await TransactionParty.find(fromPartyId)
+      if (!fromParty) {
+        throw new Error(`Party not found: fromPartyId=${fromPartyId}`)
+      }
+      if (fromParty.transactionId !== transactionId) {
+        throw new Error('fromParty must belong to the same transaction')
+      }
+      const expectedRole = direction === 'buyer_to_seller' ? 'buyer' : 'seller'
+      if (fromParty.role !== expectedRole) {
+        throw new Error(`Direction ${direction} requires fromParty role=${expectedRole}, got ${fromParty.role}`)
+      }
+    }
+
+    if (toPartyId) {
+      const toParty = await TransactionParty.find(toPartyId)
+      if (!toParty) {
+        throw new Error(`Party not found: toPartyId=${toPartyId}`)
+      }
+      if (toParty.transactionId !== transactionId) {
+        throw new Error('toParty must belong to the same transaction')
+      }
+      const expectedRole = direction === 'buyer_to_seller' ? 'seller' : 'buyer'
+      if (toParty.role !== expectedRole) {
+        throw new Error(`Direction ${direction} requires toParty role=${expectedRole}, got ${toParty.role}`)
+      }
+    }
+
+    return { fromPartyId: fromPartyId ?? null, toPartyId: toPartyId ?? null }
+  }
+
   public static async createOffer(params: {
     transactionId: number
     price: number
@@ -30,7 +75,18 @@ export class OfferService {
     direction?: 'buyer_to_seller' | 'seller_to_buyer'
     createdByUserId: number
     conditionIds?: number[]
+    fromPartyId?: number
+    toPartyId?: number
   }): Promise<Offer> {
+    const direction = params.direction || 'buyer_to_seller'
+
+    const { fromPartyId, toPartyId } = await this.validatePartyCoherence(
+      params.transactionId,
+      direction,
+      params.fromPartyId,
+      params.toPartyId
+    )
+
     const offer = await Offer.create({
       transactionId: params.transactionId,
       status: 'received',
@@ -44,15 +100,19 @@ export class OfferService {
       financingAmount: params.financingAmount ?? null,
       expiryAt: params.expiryAt ?? null,
       notes: params.notes ?? null,
-      direction: params.direction || 'buyer_to_seller',
+      direction,
       createdByUserId: params.createdByUserId,
+      fromPartyId,
+      toPartyId,
     })
 
     if (params.conditionIds && params.conditionIds.length > 0) {
       await revision.related('conditions').attach(params.conditionIds)
     }
 
-    await offer.load('revisions', (query) => query.preload('conditions'))
+    await offer.load('revisions', (query) =>
+      query.preload('conditions').preload('fromParty').preload('toParty')
+    )
     return offer
   }
 
@@ -70,6 +130,8 @@ export class OfferService {
     direction: 'buyer_to_seller' | 'seller_to_buyer'
     createdByUserId: number
     conditionIds?: number[]
+    fromPartyId?: number
+    toPartyId?: number
   }): Promise<OfferRevision> {
     const offer = await Offer.findOrFail(params.offerId)
 
@@ -86,6 +148,22 @@ export class OfferService {
 
     const nextRevisionNumber = (lastRevision?.revisionNumber ?? 0) + 1
 
+    // Auto-invert party IDs from last revision if not explicitly provided
+    let fromPartyId = params.fromPartyId ?? null
+    let toPartyId = params.toPartyId ?? null
+    if (!params.fromPartyId && !params.toPartyId && lastRevision) {
+      fromPartyId = lastRevision.toPartyId
+      toPartyId = lastRevision.fromPartyId
+    }
+
+    // Validate coherence if we have party IDs
+    const validated = await this.validatePartyCoherence(
+      offer.transactionId,
+      params.direction,
+      fromPartyId,
+      toPartyId
+    )
+
     const revision = await OfferRevision.create({
       offerId: offer.id,
       revisionNumber: nextRevisionNumber,
@@ -96,6 +174,8 @@ export class OfferService {
       notes: params.notes ?? null,
       direction: params.direction,
       createdByUserId: params.createdByUserId,
+      fromPartyId: validated.fromPartyId,
+      toPartyId: validated.toPartyId,
     })
 
     if (params.conditionIds && params.conditionIds.length > 0) {
@@ -168,7 +248,9 @@ export class OfferService {
       console.warn('[OfferService] Auto-advance failed after offer accept:', (error as Error).message)
     }
 
-    await offer.load('revisions')
+    await offer.load('revisions', (query) =>
+      query.preload('fromParty').preload('toParty')
+    )
     return { offer, advanceResult }
   }
 
@@ -224,7 +306,9 @@ export class OfferService {
     return Offer.query()
       .where('transaction_id', transactionId)
       .where('status', 'accepted')
-      .preload('revisions', (query) => query.orderBy('revision_number', 'asc'))
+      .preload('revisions', (query) =>
+        query.preload('fromParty').preload('toParty').orderBy('revision_number', 'asc')
+      )
       .first()
   }
 
@@ -234,7 +318,13 @@ export class OfferService {
   public static async getOffers(transactionId: number): Promise<Offer[]> {
     return Offer.query()
       .where('transaction_id', transactionId)
-      .preload('revisions', (query) => query.preload('conditions').orderBy('revision_number', 'asc'))
+      .preload('revisions', (query) =>
+        query
+          .preload('conditions')
+          .preload('fromParty')
+          .preload('toParty')
+          .orderBy('revision_number', 'asc')
+      )
       .orderBy('created_at', 'desc')
   }
 

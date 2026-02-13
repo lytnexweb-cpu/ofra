@@ -1,5 +1,6 @@
 import mail from '@adonisjs/mail/services/main'
 import Transaction from '#models/transaction'
+import User from '#models/user'
 import WorkflowStepAutomation from '#models/workflow_step_automation'
 import OfferAcceptedMail from '#mails/offer_accepted_mail'
 import FirmConfirmedMail from '#mails/firm_confirmed_mail'
@@ -7,7 +8,16 @@ import FintracReminderMail from '#mails/fintrac_reminder_mail'
 import CelebrationMail from '#mails/celebration_mail'
 import GoogleReviewReminderMail from '#mails/google_review_reminder_mail'
 import { ActivityFeedService } from '#services/activity_feed_service'
+import { NotificationService } from '#services/notification_service'
 import logger from '@adonisjs/core/services/logger'
+
+const automationNotifMeta: Record<string, { icon: string; titleFr: string; titleEn: string }> = {
+  offer_accepted: { icon: '🎉', titleFr: 'Offre acceptée envoyée', titleEn: 'Offer accepted email sent' },
+  firm_confirmed: { icon: '✅', titleFr: 'Confirmation ferme envoyée', titleEn: 'Firm confirmation sent' },
+  fintrac_reminder: { icon: '📋', titleFr: 'Rappel FINTRAC envoyé', titleEn: 'FINTRAC reminder sent' },
+  celebration: { icon: '🎊', titleFr: 'Célébration envoyée', titleEn: 'Celebration email sent' },
+  google_review_reminder: { icon: '⭐', titleFr: 'Rappel avis Google envoyé', titleEn: 'Google review reminder sent' },
+}
 
 interface AutomationContext {
   stepName: string
@@ -178,6 +188,28 @@ export class AutomationExecutorService {
       activityType: 'email_sent',
       metadata,
     })
+
+    // Notification twin for the broker
+    const notifMeta = automation.templateRef ? automationNotifMeta[automation.templateRef] : undefined
+    if (notifMeta) {
+      try {
+        const owner = await User.find(transaction.ownerUserId)
+        const lang = owner?.language?.substring(0, 2) || 'fr'
+        await NotificationService.notify({
+          userId: transaction.ownerUserId,
+          transactionId,
+          type: `automation_${automation.templateRef}`,
+          icon: notifMeta.icon,
+          severity: 'info',
+          title: lang === 'fr' ? notifMeta.titleFr : notifMeta.titleEn,
+          body: `→ ${client.email}`,
+          link: `/transactions/${transactionId}`,
+          emailRecipients: [client.email],
+        })
+      } catch (notifError) {
+        logger.error({ notifError }, 'Failed to create automation notification — non-blocking')
+      }
+    }
 
     return { sent: true, skipped: false }
   }

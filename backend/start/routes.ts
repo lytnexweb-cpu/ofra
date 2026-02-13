@@ -34,6 +34,10 @@ router.post('/api/resend-verification', '#controllers/auth_controller.resendVeri
 // Public share link access (D34 P1.5)
 router.get('/api/share/:token', '#controllers/transaction_share_links_controller.publicAccess')
 
+// Public offer intake (D35)
+router.get('/api/offer-intake/:token', '#controllers/offer_intake_controller.info')
+router.post('/api/offer-intake/:token', '#controllers/offer_intake_controller.submit').use(middleware.rateLimit())
+
 // Routes protégées
 router.group(() => {
   // Auth

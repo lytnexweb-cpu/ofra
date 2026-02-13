@@ -1,14 +1,21 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import { DateTime } from 'luxon'
+import mail from '@adonisjs/mail/services/main'
 import Transaction from '#models/transaction'
 import Offer from '#models/offer'
 import { OfferService } from '#services/offer_service'
 import { ActivityFeedService } from '#services/activity_feed_service'
+import { NotificationService } from '#services/notification_service'
 import { TenantScopeService } from '#services/tenant_scope_service'
 import {
   createOfferValidator,
   addRevisionValidator,
 } from '#validators/offer_validator'
+import OfferSubmittedMail from '#mails/offer_submitted_mail'
+import OfferCounteredMail from '#mails/offer_countered_mail'
+import OfferRejectedMail from '#mails/offer_rejected_mail'
+import OfferWithdrawnMail from '#mails/offer_withdrawn_mail'
+import logger from '@adonisjs/core/services/logger'
 
 export default class OffersController {
   async index({ params, response, auth }: HttpContext) {
@@ -53,6 +60,8 @@ export default class OffersController {
         direction: payload.direction || 'buyer_to_seller',
         createdByUserId: auth.user!.id,
         conditionIds: payload.conditionIds,
+        fromPartyId: payload.fromPartyId,
+        toPartyId: payload.toPartyId,
       })
 
       await ActivityFeedService.log({
@@ -61,6 +70,41 @@ export default class OffersController {
         activityType: 'offer_created',
         metadata: { offerId: offer.id, price: payload.price },
       })
+
+      // Email confirmation to broker
+      try {
+        await mail.send(new OfferSubmittedMail({
+          to: auth.user!.email,
+          price: payload.price,
+          direction: payload.direction || 'buyer_to_seller',
+          transactionId: transaction.id,
+          language: auth.user!.language,
+        }))
+      } catch (mailError) {
+        logger.error({ mailError, offerId: offer.id }, 'Failed to send offer submitted email — non-blocking')
+      }
+
+      // Notification twin for the broker
+      const lang = auth.user!.language?.substring(0, 2) || 'fr'
+      const formattedPrice = new Intl.NumberFormat(lang === 'fr' ? 'fr-CA' : 'en-CA', {
+        style: 'currency', currency: 'CAD', maximumFractionDigits: 0,
+      }).format(payload.price)
+      try {
+        await NotificationService.notify({
+          userId: auth.user!.id,
+          transactionId: transaction.id,
+          type: 'offer_created',
+          icon: '📨',
+          severity: 'info',
+          title: lang === 'fr'
+            ? `Offre soumise: ${formattedPrice}`
+            : `Offer submitted: ${formattedPrice}`,
+          body: undefined,
+          link: `/transactions/${transaction.id}`,
+        })
+      } catch (notifError) {
+        logger.error({ notifError }, 'Failed to create offer submitted notification — non-blocking')
+      }
 
       return response.created({
         success: true,
@@ -83,6 +127,12 @@ export default class OffersController {
           error: { message: 'Transaction not found', code: 'E_NOT_FOUND' },
         })
       }
+      if (error.message?.includes('Party') || error.message?.includes('party') || error.message?.includes('Direction')) {
+        return response.badRequest({
+          success: false,
+          error: { message: error.message, code: 'E_PARTY_COHERENCE' },
+        })
+      }
       return response.internalServerError({
         success: false,
         error: { message: 'Failed to create offer', code: 'E_INTERNAL_ERROR' },
@@ -94,7 +144,12 @@ export default class OffersController {
     const offer = await Offer.query()
       .where('id', offerId)
       .preload('revisions', (query) => {
-        query.preload('createdBy').preload('conditions').orderBy('revision_number', 'asc')
+        query
+          .preload('createdBy')
+          .preload('conditions')
+          .preload('fromParty')
+          .preload('toParty')
+          .orderBy('revision_number', 'asc')
       })
       .firstOrFail()
 
@@ -151,11 +206,51 @@ export default class OffersController {
         direction: payload.direction,
         createdByUserId: auth.user!.id,
         conditionIds: payload.conditionIds,
+        fromPartyId: payload.fromPartyId,
+        toPartyId: payload.toPartyId,
       })
 
       // Refresh offer to get updated status
       await offer.refresh()
-      await offer.load('revisions', (query) => query.preload('conditions').orderBy('revision_number', 'asc'))
+      await offer.load('revisions', (query) =>
+        query.preload('conditions').preload('fromParty').preload('toParty').orderBy('revision_number', 'asc')
+      )
+
+      // Email confirmation to broker
+      try {
+        await mail.send(new OfferCounteredMail({
+          to: auth.user!.email,
+          price: payload.price,
+          revisionNumber: revision.revisionNumber,
+          direction: payload.direction,
+          transactionId: offer.transactionId,
+          language: auth.user!.language,
+        }))
+      } catch (mailError) {
+        logger.error({ mailError, offerId: offer.id }, 'Failed to send offer countered email — non-blocking')
+      }
+
+      // Notification twin for the broker
+      const lang = auth.user!.language?.substring(0, 2) || 'fr'
+      const formattedPrice = new Intl.NumberFormat(lang === 'fr' ? 'fr-CA' : 'en-CA', {
+        style: 'currency', currency: 'CAD', maximumFractionDigits: 0,
+      }).format(payload.price)
+      try {
+        await NotificationService.notify({
+          userId: auth.user!.id,
+          transactionId: offer.transactionId,
+          type: 'offer_countered',
+          icon: '🔄',
+          severity: 'info',
+          title: lang === 'fr'
+            ? `Contre-offre #${revision.revisionNumber}: ${formattedPrice}`
+            : `Counter-offer #${revision.revisionNumber}: ${formattedPrice}`,
+          body: undefined,
+          link: `/transactions/${offer.transactionId}`,
+        })
+      } catch (notifError) {
+        logger.error({ notifError }, 'Failed to create offer countered notification — non-blocking')
+      }
 
       return response.created({
         success: true,
@@ -184,6 +279,12 @@ export default class OffersController {
           error: { message: error.message, code: 'E_INVALID_OFFER_STATUS' },
         })
       }
+      if (error.message?.includes('Party') || error.message?.includes('party') || error.message?.includes('Direction')) {
+        return response.badRequest({
+          success: false,
+          error: { message: error.message, code: 'E_PARTY_COHERENCE' },
+        })
+      }
       return response.internalServerError({
         success: false,
         error: { message: 'Failed to add revision', code: 'E_INTERNAL_ERROR' },
@@ -209,6 +310,27 @@ export default class OffersController {
         activityType: 'offer_accepted',
         metadata: { offerId: acceptedOffer.id },
       })
+
+      // Notification twin for the broker (OfferAcceptedMail to client sent via automation)
+      const acceptLang = auth.user!.language?.substring(0, 2) || 'fr'
+      try {
+        await NotificationService.notify({
+          userId: auth.user!.id,
+          transactionId: transaction.id,
+          type: 'offer_accepted',
+          icon: '🎉',
+          severity: 'info',
+          title: acceptLang === 'fr'
+            ? 'Offre acceptée'
+            : 'Offer accepted',
+          body: acceptLang === 'fr'
+            ? 'La transaction avance automatiquement.'
+            : 'Transaction advances automatically.',
+          link: `/transactions/${transaction.id}`,
+        })
+      } catch (notifError) {
+        logger.error({ notifError }, 'Failed to create offer accepted notification — non-blocking')
+      }
 
       return response.ok({
         success: true,
@@ -250,6 +372,37 @@ export default class OffersController {
         metadata: { offerId: rejectedOffer.id },
       })
 
+      // Email confirmation to broker
+      try {
+        await mail.send(new OfferRejectedMail({
+          to: auth.user!.email,
+          transactionId: transaction.id,
+          offerId: rejectedOffer.id,
+          language: auth.user!.language,
+        }))
+      } catch (mailError) {
+        logger.error({ mailError, offerId: rejectedOffer.id }, 'Failed to send offer rejected email — non-blocking')
+      }
+
+      // Notification twin for the broker
+      const rejectLang = auth.user!.language?.substring(0, 2) || 'fr'
+      try {
+        await NotificationService.notify({
+          userId: auth.user!.id,
+          transactionId: transaction.id,
+          type: 'offer_rejected',
+          icon: '❌',
+          severity: 'info',
+          title: rejectLang === 'fr'
+            ? 'Offre refusée'
+            : 'Offer rejected',
+          body: undefined,
+          link: `/transactions/${transaction.id}`,
+        })
+      } catch (notifError) {
+        logger.error({ notifError }, 'Failed to create offer rejected notification — non-blocking')
+      }
+
       return response.ok({
         success: true,
         data: { offer: rejectedOffer },
@@ -289,6 +442,37 @@ export default class OffersController {
         activityType: 'offer_withdrawn',
         metadata: { offerId: withdrawnOffer.id },
       })
+
+      // Email confirmation to broker
+      try {
+        await mail.send(new OfferWithdrawnMail({
+          to: auth.user!.email,
+          transactionId: transaction.id,
+          offerId: withdrawnOffer.id,
+          language: auth.user!.language,
+        }))
+      } catch (mailError) {
+        logger.error({ mailError, offerId: withdrawnOffer.id }, 'Failed to send offer withdrawn email — non-blocking')
+      }
+
+      // Notification twin for the broker
+      const withdrawLang = auth.user!.language?.substring(0, 2) || 'fr'
+      try {
+        await NotificationService.notify({
+          userId: auth.user!.id,
+          transactionId: transaction.id,
+          type: 'offer_withdrawn',
+          icon: '🚫',
+          severity: 'info',
+          title: withdrawLang === 'fr'
+            ? 'Offre retirée'
+            : 'Offer withdrawn',
+          body: undefined,
+          link: `/transactions/${transaction.id}`,
+        })
+      } catch (notifError) {
+        logger.error({ notifError }, 'Failed to create offer withdrawn notification — non-blocking')
+      }
 
       return response.ok({
         success: true,

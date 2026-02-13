@@ -31,6 +31,11 @@ const LABELS = {
     inspectionDeadline: 'Date limite d\'inspection',
     financingDeadline: 'Date limite de financement',
     offers: 'Offres',
+    offerFrom: 'De',
+    offerTo: 'À',
+    offerDirection: 'Direction',
+    buyerToSeller: 'Acheteur → Vendeur',
+    sellerToBuyer: 'Vendeur → Acheteur',
     conditions: 'Conditions',
     documents: 'Documents',
     activity: 'Historique d\'activité',
@@ -83,6 +88,11 @@ const LABELS = {
     inspectionDeadline: 'Inspection Deadline',
     financingDeadline: 'Financing Deadline',
     offers: 'Offers',
+    offerFrom: 'From',
+    offerTo: 'To',
+    offerDirection: 'Direction',
+    buyerToSeller: 'Buyer → Seller',
+    sellerToBuyer: 'Seller → Buyer',
     conditions: 'Conditions',
     documents: 'Documents',
     activity: 'Activity History',
@@ -212,10 +222,20 @@ export class PdfExportService {
           doc.fontSize(11).font('Helvetica-Bold')
             .text(`${l.offerStatus}: ${offer.status}`)
           if (offer.revisions && offer.revisions.length > 0) {
-            const latest = offer.revisions[0]
-            doc.fontSize(10).font('Helvetica')
-            doc.text(`  ${l.price}: ${formatMoney(latest.price)}`)
-            if (latest.deposit) doc.text(`  ${l.deposit}: ${formatMoney(latest.deposit)}`)
+            for (const rev of offer.revisions) {
+              doc.fontSize(10).font('Helvetica')
+              // Nominative display with fallback
+              const fromName = rev.fromParty?.fullName
+              const toName = rev.toParty?.fullName
+              if (fromName || toName) {
+                doc.text(`  #${rev.revisionNumber} — ${fromName ?? '?'} → ${toName ?? '?'}`)
+              } else {
+                const dirLabel = rev.direction === 'buyer_to_seller' ? l.buyerToSeller : l.sellerToBuyer
+                doc.text(`  #${rev.revisionNumber} — ${dirLabel}`)
+              }
+              doc.text(`  ${l.price}: ${formatMoney(rev.price)}`)
+              if (rev.deposit) doc.text(`  ${l.deposit}: ${formatMoney(rev.deposit)}`)
+            }
           }
           doc.moveDown(0.5)
         }

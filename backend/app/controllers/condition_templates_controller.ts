@@ -3,6 +3,7 @@ import ConditionTemplate from '#models/condition_template'
 import TransactionProfile from '#models/transaction_profile'
 import Condition from '#models/condition'
 import { ConditionsEngineService } from '#services/conditions_engine_service'
+import { PlanService } from '#services/plan_service'
 
 /**
  * Condition Templates Controller
@@ -98,13 +99,19 @@ export default class ConditionTemplatesController {
       )
 
       // Filter out templates that are already used (by templateId OR by matching title)
-      const availableTemplates = templates.filter((t) => {
+      let availableTemplates = templates.filter((t) => {
         // Check by templateId first
         if (usedTemplateIds.has(t.id)) return false
         // Check by title match (for conditions created before templateId linking)
         if (usedTitles.has(t.labelFr?.toLowerCase()) || usedTitles.has(t.labelEn?.toLowerCase())) return false
         return true
       })
+
+      // Gate: Starter plan can only see universal pack
+      await auth.user!.load('plan')
+      if (!PlanService.meetsMinimum(auth.user!.plan?.slug, 'solo')) {
+        availableTemplates = availableTemplates.filter((t) => t.pack === 'universal')
+      }
 
       return response.ok({
         success: true,
@@ -155,12 +162,16 @@ export default class ConditionTemplatesController {
    * Get templates grouped by pack
    * GET /api/conditions/templates/by-pack
    */
-  async byPack({ response }: HttpContext) {
+  async byPack({ response, auth }: HttpContext) {
     try {
       const templates = await ConditionTemplate.query()
         .where('isActive', true)
         .orderBy('step', 'asc')
         .orderBy('order', 'asc')
+
+      // Gate: Starter plan can only see universal pack
+      await auth.user!.load('plan')
+      const starterOnly = !PlanService.meetsMinimum(auth.user!.plan?.slug, 'solo')
 
       const grouped: Record<string, typeof templates> = {
         universal: [],
@@ -173,6 +184,7 @@ export default class ConditionTemplatesController {
 
       for (const template of templates) {
         const pack = template.pack || 'universal'
+        if (starterOnly && pack !== 'universal') continue
         if (!grouped[pack]) {
           grouped[pack] = []
         }

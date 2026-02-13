@@ -12,6 +12,7 @@ export default class PlansSeeder extends BaseSeeder {
         annualPrice: 290,
         maxTransactions: 5,
         maxStorageGb: 1,
+        maxUsers: 1,
         historyMonths: 6,
         isActive: true,
         displayOrder: 1,
@@ -23,6 +24,7 @@ export default class PlansSeeder extends BaseSeeder {
         annualPrice: 490,
         maxTransactions: 12,
         maxStorageGb: 3,
+        maxUsers: 1,
         historyMonths: 12,
         isActive: true,
         displayOrder: 2,
@@ -34,6 +36,7 @@ export default class PlansSeeder extends BaseSeeder {
         annualPrice: 790,
         maxTransactions: 25,
         maxStorageGb: 10,
+        maxUsers: 1,
         historyMonths: null, // Unlimited
         isActive: true,
         displayOrder: 3,
@@ -45,6 +48,7 @@ export default class PlansSeeder extends BaseSeeder {
         annualPrice: 1490,
         maxTransactions: null, // Unlimited
         maxStorageGb: 25,
+        maxUsers: 3,
         historyMonths: null, // Unlimited
         isActive: true,
         displayOrder: 4,

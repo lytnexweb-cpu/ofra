@@ -3,6 +3,7 @@ import TransactionProfile from '#models/transaction_profile'
 import vine from '@vinejs/vine'
 import { DateTime } from 'luxon'
 import { ConditionsEngineService } from '#services/conditions_engine_service'
+import { PlanService } from '#services/plan_service'
 
 /**
  * Validators for transaction profile
@@ -192,6 +193,14 @@ export default class TransactionProfilesController {
    */
   async loadPack({ params, request, response, auth }: HttpContext) {
     try {
+      // Gate: specialized packs require Solo+
+      await auth.user!.load('plan')
+      if (!PlanService.meetsMinimum(auth.user!.plan?.slug, 'solo')) {
+        return response.forbidden(
+          PlanService.formatUpgradeError('specialized_packs', auth.user!.plan?.slug ?? 'none', 'solo')
+        )
+      }
+
       // txPermission middleware already validated access
       const profile = await TransactionProfile.find(params.id)
       if (!profile) {

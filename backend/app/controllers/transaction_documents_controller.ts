@@ -7,8 +7,10 @@ import {
   updateDocumentValidator,
   rejectDocumentValidator,
 } from '#validators/transaction_document_validator'
+import User from '#models/user'
 import { TenantScopeService } from '#services/tenant_scope_service'
 import { ActivityFeedService } from '#services/activity_feed_service'
+import db from '@adonisjs/lucid/services/db'
 import logger from '@adonisjs/core/services/logger'
 
 export default class TransactionDocumentsController {
@@ -50,6 +52,39 @@ export default class TransactionDocumentsController {
       const transaction = await query.firstOrFail()
 
       const payload = await request.validateUsing(createDocumentValidator)
+
+      // Storage enforcement
+      if (payload.fileSize && payload.fileSize > 0) {
+        const owner = await User.findOrFail(transaction.ownerUserId)
+        await owner.load('plan')
+
+        if (owner.plan) {
+          const maxBytes = owner.plan.maxStorageGb * 1024 ** 3
+          const storageResult = await db
+            .from('transaction_documents')
+            .join('transactions', 'transactions.id', 'transaction_documents.transaction_id')
+            .where('transactions.owner_user_id', owner.id)
+            .sum('transaction_documents.file_size as total_bytes')
+            .first()
+          const usedBytes = Number(storageResult?.total_bytes ?? 0)
+
+          if (usedBytes + payload.fileSize > maxBytes) {
+            return response.forbidden({
+              success: false,
+              error: {
+                message: 'Storage limit exceeded',
+                code: 'E_STORAGE_LIMIT_EXCEEDED',
+                meta: {
+                  maxStorageGb: owner.plan.maxStorageGb,
+                  usedStorageGb: Number((usedBytes / 1024 ** 3).toFixed(2)),
+                  planName: owner.plan.name,
+                },
+              },
+            })
+          }
+        }
+      }
+
       const document = await TransactionDocument.create({
         ...payload,
         transactionId: transaction.id,

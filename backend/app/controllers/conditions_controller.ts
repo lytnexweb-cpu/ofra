@@ -1,6 +1,7 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import app from '@adonisjs/core/services/app'
 import { cuid } from '@adonisjs/core/helpers'
+import mail from '@adonisjs/mail/services/main'
 import Condition from '#models/condition'
 import ConditionEvidence from '#models/condition_evidence'
 import ConditionEvent from '#models/condition_event'
@@ -11,9 +12,14 @@ import {
   updateConditionValidator,
 } from '#validators/condition_validator'
 import { ActivityFeedService } from '#services/activity_feed_service'
+import { NotificationService } from '#services/notification_service'
 import { ConditionsEngineService } from '#services/conditions_engine_service'
+import { PlanService } from '#services/plan_service'
+import BlockingConditionAlertMail from '#mails/blocking_condition_alert_mail'
+import ConditionResolvedMail from '#mails/condition_resolved_mail'
 import vine from '@vinejs/vine'
 import { DateTime } from 'luxon'
+import logger from '@adonisjs/core/services/logger'
 
 /**
  * Premium validators
@@ -76,6 +82,40 @@ export default class ConditionsController {
         activityType: 'condition_created',
         metadata: { conditionId: condition.id, title: condition.title },
       })
+
+      // Email + notification for blocking conditions (warning severity)
+      const storeLang = auth.user!.language?.substring(0, 2) || 'fr'
+      if (level === 'blocking') {
+        mail.send(new BlockingConditionAlertMail({
+          to: auth.user!.email,
+          conditionTitle: condition.title,
+          dueDate: condition.dueDate?.toISODate() ?? null,
+          transactionId: transaction.id,
+          language: auth.user!.language,
+        })).catch((mailError) => {
+          logger.error({ mailError, conditionId: condition.id }, 'Failed to send blocking condition alert email — non-blocking')
+        })
+      }
+
+      // Notification twin for the broker
+      try {
+        await NotificationService.notify({
+          userId: auth.user!.id,
+          transactionId: transaction.id,
+          type: 'condition_created',
+          icon: level === 'blocking' ? '🚨' : '📋',
+          severity: level === 'blocking' ? 'warning' : 'info',
+          title: storeLang === 'fr'
+            ? `Condition ajoutée: ${condition.title}`
+            : `Condition added: ${condition.title}`,
+          body: level === 'blocking'
+            ? (storeLang === 'fr' ? 'Bloquante — résolution requise' : 'Blocking — resolution required')
+            : undefined,
+          link: `/transactions/${transaction.id}`,
+        })
+      } catch (notifError) {
+        logger.error({ notifError }, 'Failed to create condition created notification — non-blocking')
+      }
 
       return response.created({
         success: true,
@@ -219,6 +259,24 @@ export default class ConditionsController {
         activityType: 'condition_completed',
         metadata: { conditionId: condition.id, title: condition.title },
       })
+
+      // Notification twin for the broker
+      const compLang = auth.user!.language?.substring(0, 2) || 'fr'
+      try {
+        await NotificationService.notify({
+          userId: auth.user!.id,
+          transactionId: transaction.id,
+          type: 'condition_completed',
+          icon: '✅',
+          severity: 'info',
+          title: compLang === 'fr'
+            ? `Condition complétée: ${condition.title}`
+            : `Condition completed: ${condition.title}`,
+          link: `/transactions/${transaction.id}`,
+        })
+      } catch (notifError) {
+        logger.error({ notifError }, 'Failed to create condition completed notification — non-blocking')
+      }
 
       return response.ok({
         success: true,
@@ -366,6 +424,38 @@ export default class ConditionsController {
 
       await condition.refresh()
 
+      // Email confirmation to broker (fire-and-forget)
+      mail.send(new ConditionResolvedMail({
+        to: auth.user!.email,
+        conditionTitle: condition.title,
+        resolutionType: payload.resolutionType,
+        transactionId: transaction.id,
+        language: auth.user!.language,
+      })).catch((mailError) => {
+        logger.error({ mailError, conditionId: condition.id }, 'Failed to send condition resolved email — non-blocking')
+      })
+
+      // Notification twin for the broker
+      const resLang = auth.user!.language?.substring(0, 2) || 'fr'
+      try {
+        await NotificationService.notify({
+          userId: auth.user!.id,
+          transactionId: transaction.id,
+          type: 'condition_resolved',
+          icon: '✅',
+          severity: 'info',
+          title: resLang === 'fr'
+            ? `Condition résolue: ${condition.title}`
+            : `Condition resolved: ${condition.title}`,
+          body: resLang === 'fr'
+            ? `Type: ${payload.resolutionType}`
+            : `Type: ${payload.resolutionType}`,
+          link: `/transactions/${transaction.id}`,
+        })
+      } catch (notifError) {
+        logger.error({ notifError }, 'Failed to create condition resolved notification — non-blocking')
+      }
+
       return response.ok({
         success: true,
         data: { condition },
@@ -400,6 +490,14 @@ export default class ConditionsController {
    */
   async history({ params, response, auth }: HttpContext) {
     try {
+      // Gate: condition audit history requires Pro+
+      await auth.user!.load('plan')
+      if (!PlanService.meetsMinimum(auth.user!.plan?.slug, 'pro')) {
+        return response.forbidden(
+          PlanService.formatUpgradeError('condition_history', auth.user!.plan?.slug ?? 'none', 'pro')
+        )
+      }
+
       const condition = await Condition.findOrFail(params.id)
 
       const transaction = await Transaction.query()
@@ -452,6 +550,14 @@ export default class ConditionsController {
    */
   async listEvidence({ params, response, auth }: HttpContext) {
     try {
+      // Gate: evidence requires Pro+
+      await auth.user!.load('plan')
+      if (!PlanService.meetsMinimum(auth.user!.plan?.slug, 'pro')) {
+        return response.forbidden(
+          PlanService.formatUpgradeError('condition_evidence', auth.user!.plan?.slug ?? 'none', 'pro')
+        )
+      }
+
       const condition = await Condition.findOrFail(params.id)
 
       const transaction = await Transaction.query()
@@ -499,6 +605,14 @@ export default class ConditionsController {
    */
   async addEvidence({ params, request, response, auth }: HttpContext) {
     try {
+      // Gate: evidence requires Pro+
+      await auth.user!.load('plan')
+      if (!PlanService.meetsMinimum(auth.user!.plan?.slug, 'pro')) {
+        return response.forbidden(
+          PlanService.formatUpgradeError('condition_evidence', auth.user!.plan?.slug ?? 'none', 'pro')
+        )
+      }
+
       const condition = await Condition.findOrFail(params.id)
 
       const transaction = await Transaction.query()
@@ -608,6 +722,14 @@ export default class ConditionsController {
    */
   async removeEvidence({ params, response, auth }: HttpContext) {
     try {
+      // Gate: evidence requires Pro+
+      await auth.user!.load('plan')
+      if (!PlanService.meetsMinimum(auth.user!.plan?.slug, 'pro')) {
+        return response.forbidden(
+          PlanService.formatUpgradeError('condition_evidence', auth.user!.plan?.slug ?? 'none', 'pro')
+        )
+      }
+
       const condition = await Condition.findOrFail(params.id)
 
       const transaction = await Transaction.query()

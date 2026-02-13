@@ -13,6 +13,7 @@ import {
 } from '#validators/auth_validator'
 import WelcomeMail from '#mails/welcome_mail'
 import PasswordResetMail from '#mails/password_reset_mail'
+import EmailVerificationMail from '#mails/email_verification_mail'
 
 export default class AuthController {
   async register({ request, response }: HttpContext) {
@@ -44,6 +45,9 @@ export default class AuthController {
         password: data.password,
         fullName: data.fullName,
         phone: data.phone ?? null,
+        address: data.address ?? null,
+        city: data.city ?? null,
+        provinceCode: data.provinceCode ?? 'NB',
         agency: data.agency ?? null,
         licenseNumber: data.licenseNumber ?? null,
         preferredLanguage: data.preferredLanguage ?? 'en',
@@ -53,14 +57,24 @@ export default class AuthController {
         organizationId: organization.id,
       })
 
-      // Send welcome email (non-blocking)
+      // Generate email verification token
+      const verificationToken = randomBytes(32).toString('hex')
+      const tokenHash = createHash('sha256').update(verificationToken).digest('hex')
+      user.emailVerificationToken = tokenHash
+      user.emailVerificationExpires = DateTime.now().plus({ hours: 24 })
+      await user.save()
+
+      // Send verification email
       const frontendUrl = env.get('FRONTEND_URL', 'https://ofra.app')
+      const verifyUrl = `${frontendUrl}/verify-email?token=${verificationToken}`
+
       mail
         .send(
-          new WelcomeMail({
+          new EmailVerificationMail({
             to: user.email,
             userName: user.fullName ?? 'there',
-            loginUrl: frontendUrl,
+            verifyUrl,
+            language: data.preferredLanguage,
           })
         )
         .catch(() => {
@@ -71,6 +85,7 @@ export default class AuthController {
         success: true,
         data: {
           message: 'If this email is available, your account has been created. Please check your email.',
+          requiresVerification: true,
         },
       })
     } catch (error) {
@@ -94,6 +109,18 @@ export default class AuthController {
 
       try {
         const user = (await User.verifyCredentials(email, password)) as User
+
+        // Block login if email not verified (admins/superadmins bypass)
+        if (!user.emailVerified && user.role === 'user') {
+          return response.forbidden({
+            success: false,
+            error: {
+              message: 'Please verify your email address before logging in.',
+              code: 'E_EMAIL_NOT_VERIFIED',
+            },
+          })
+        }
+
         await auth.use('web').login(user)
 
         return response.ok({
@@ -305,5 +332,98 @@ export default class AuthController {
       }
       throw error
     }
+  }
+
+  async verifyEmail({ request, response }: HttpContext) {
+    const token = request.input('token')
+    if (!token) {
+      return response.badRequest({
+        success: false,
+        error: { message: 'Token is required', code: 'E_MISSING_TOKEN' },
+      })
+    }
+
+    const tokenHash = createHash('sha256').update(token).digest('hex')
+
+    const user = await User.query()
+      .where('emailVerificationToken', tokenHash)
+      .where('emailVerificationExpires', '>', DateTime.now().toSQL())
+      .first()
+
+    if (!user) {
+      return response.badRequest({
+        success: false,
+        error: { message: 'Invalid or expired verification link', code: 'E_INVALID_TOKEN' },
+      })
+    }
+
+    user.emailVerified = true
+    user.emailVerificationToken = null
+    user.emailVerificationExpires = null
+    await user.save()
+
+    // Send welcome email now that they're verified
+    const frontendUrl = env.get('FRONTEND_URL', 'https://ofra.app')
+    mail
+      .send(
+        new WelcomeMail({
+          to: user.email,
+          userName: user.fullName ?? 'there',
+          loginUrl: frontendUrl,
+          language: user.preferredLanguage,
+        })
+      )
+      .catch(() => {})
+
+    return response.ok({
+      success: true,
+      data: { message: 'Email verified successfully' },
+    })
+  }
+
+  async resendVerification({ request, response }: HttpContext) {
+    const email = request.input('email')
+    if (!email) {
+      return response.badRequest({
+        success: false,
+        error: { message: 'Email is required', code: 'E_MISSING_EMAIL' },
+      })
+    }
+
+    const user = await User.findBy('email', email)
+
+    // Always return success to prevent enumeration
+    if (!user || user.emailVerified) {
+      return response.ok({
+        success: true,
+        data: { message: 'If the account exists and is unverified, a new verification email has been sent.' },
+      })
+    }
+
+    // Generate new token
+    const verificationToken = randomBytes(32).toString('hex')
+    const tokenHash = createHash('sha256').update(verificationToken).digest('hex')
+    user.emailVerificationToken = tokenHash
+    user.emailVerificationExpires = DateTime.now().plus({ hours: 24 })
+    await user.save()
+
+    const frontendUrl = env.get('FRONTEND_URL', 'https://ofra.app')
+    const verifyUrl = `${frontendUrl}/verify-email?token=${verificationToken}`
+
+    mail
+      .send(
+        new EmailVerificationMail({
+          to: user.email,
+          userName: user.fullName ?? 'there',
+          verifyUrl,
+          language: user.preferredLanguage,
+        })
+      )
+      .catch(() => {})
+
+    return response.ok({
+      success: true,
+      data: { message: 'If the account exists and is unverified, a new verification email has been sent.' },
+    })
   }
 }

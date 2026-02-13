@@ -18,6 +18,7 @@ export default class PlansController {
         'annual_price',
         'max_transactions',
         'max_storage_gb',
+        'max_users',
         'history_months',
         'display_order',
       ])
