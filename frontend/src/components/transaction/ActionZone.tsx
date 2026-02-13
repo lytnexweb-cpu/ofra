@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { differenceInDays, parseISO } from '../../lib/date'
-import { AlertTriangle, CheckCircle2, SkipForward, MoreVertical, Info } from 'lucide-react'
+import { AlertTriangle, CheckCircle2, SkipForward, MoreVertical, Info, Lock } from 'lucide-react'
 import { transactionsApi, type Transaction } from '../../api/transactions.api'
 import { conditionsApi, type Condition } from '../../api/conditions.api'
 import { toast } from '../../hooks/use-toast'
@@ -216,10 +216,19 @@ export default function ActionZone({ transaction }: ActionZoneProps) {
           <div className="flex-1">
             <button
               onClick={() => setValidateModalOpen(true)}
-              className="w-full px-4 py-2.5 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-colors bg-primary text-white hover:bg-primary/90"
+              disabled={blockingCount > 0 || requiredCount > 0}
+              className={`w-full px-4 py-2.5 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-colors ${
+                blockingCount > 0 || requiredCount > 0
+                  ? 'bg-stone-300 text-stone-500 cursor-not-allowed'
+                  : 'bg-primary text-white hover:bg-primary/90'
+              }`}
               data-testid="advance-step-btn"
             >
-              <CheckCircle2 className="w-4 h-4" />
+              {blockingCount > 0 || requiredCount > 0 ? (
+                <Lock className="w-4 h-4" />
+              ) : (
+                <CheckCircle2 className="w-4 h-4" />
+              )}
               {t('actionZone.validateStep')}
             </button>
           </div>

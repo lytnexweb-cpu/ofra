@@ -15,8 +15,11 @@ interface CreateConditionModalProps {
   onClose: () => void
   transactionId: number
   currentStepOrder?: number
+  currentStepName?: string
   /** Existing conditions on transaction (for "already present" check) */
   existingConditions?: Condition[]
+  /** Start in pack mode instead of manual */
+  initialMode?: ModalMode
 }
 
 type ModalMode = 'manual' | 'pack' | 'packSuccess'
@@ -34,7 +37,7 @@ interface PackResult {
 const LEVEL_BADGES: Record<ConditionLevel, { classes: string }> = {
   blocking: { classes: 'bg-red-100 text-red-700' },
   required: { classes: 'bg-amber-100 text-amber-700' },
-  recommended: { classes: 'bg-emerald-100 text-emerald-700' },
+  recommended: { classes: 'bg-stone-200 text-stone-600' },
 }
 
 export default function CreateConditionModal({
@@ -42,12 +45,14 @@ export default function CreateConditionModal({
   onClose,
   transactionId,
   currentStepOrder,
+  currentStepName,
   existingConditions,
+  initialMode = 'manual',
 }: CreateConditionModalProps) {
   const { t, i18n } = useTranslation()
   const queryClient = useQueryClient()
 
-  const [mode, setMode] = useState<ModalMode>('manual')
+  const [mode, setMode] = useState<ModalMode>(initialMode)
 
   // Manual mode state
   const [name, setName] = useState('')
@@ -101,7 +106,7 @@ export default function CreateConditionModal({
 
   // Step name for subtitle
   const stepSubtitle = currentStepOrder
-    ? `${t('addCondition.stepPrefix', 'Étape')} ${currentStepOrder}`
+    ? `${t('addCondition.stepPrefix', 'Étape')} ${currentStepOrder}${currentStepName ? ` — ${currentStepName}` : ''}`
     : undefined
 
   // Manual CTA validation
@@ -190,7 +195,7 @@ export default function CreateConditionModal({
   const isLoading = manualMutation.isPending || packMutation.isPending
 
   const resetAndClose = useCallback(() => {
-    setMode('manual')
+    setMode(initialMode)
     setName('')
     setLevel(null)
     setDueDate(() => {

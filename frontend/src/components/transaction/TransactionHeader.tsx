@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, Link } from 'react-router-dom'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   ArrowLeft,
   MoreVertical,
@@ -27,6 +27,7 @@ import {
   UserCheck,
 } from 'lucide-react'
 import { transactionsApi, type Transaction } from '../../api/transactions.api'
+import { authApi } from '../../api/auth.api'
 import { formatDate, parseISO, differenceInDays } from '../../lib/date'
 import { toast } from '../../hooks/use-toast'
 import { Button } from '../ui/Button'
@@ -69,6 +70,8 @@ export default function TransactionHeader({ transaction, onOpenEdit, onOpenMembe
   const { t } = useTranslation()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const { data: authData } = useQuery({ queryKey: ['auth', 'me'], queryFn: authApi.me })
+  const isAdmin = authData?.data?.user?.role === 'admin' || authData?.data?.user?.role === 'superadmin'
 
   // Cancel modal state
   const [cancelModalOpen, setCancelModalOpen] = useState(false)
@@ -408,15 +411,19 @@ export default function TransactionHeader({ transaction, onOpenEdit, onOpenMembe
               <DropdownMenuSeparator />
 
               {/* Delete */}
-              <DropdownMenuItem onClick={() => setDeleteModalOpen(true)} className="px-3 py-2.5 flex items-center gap-3">
+              <DropdownMenuItem
+                onClick={() => isAdmin && setDeleteModalOpen(true)}
+                disabled={!isAdmin}
+                className={`px-3 py-2.5 flex items-center gap-3 ${!isAdmin ? 'opacity-40 cursor-not-allowed' : ''}`}
+              >
                 <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
                   <Trash2 className="w-4 h-4 text-red-500" />
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-stone-800">{t('transaction.actions.delete')}</span>
-                    <span className="text-[9px] font-medium px-1.5 py-0.5 rounded bg-stone-100 text-stone-400 uppercase">
-                      {t('transaction.actions.adminRequired')}
+                    <span className="text-sm font-medium text-red-600">{t('transaction.actions.delete')}</span>
+                    <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded uppercase ${isAdmin ? 'bg-emerald-100 text-emerald-700' : 'bg-stone-100 text-stone-400'}`}>
+                      {isAdmin ? t('transaction.actions.adminOn', 'Admin ON') : t('transaction.actions.adminRequired')}
                     </span>
                   </div>
                   <p className="text-[10px] text-stone-400">{t('transaction.actions.deleteDescription')}</p>
@@ -998,17 +1005,22 @@ export default function TransactionHeader({ transaction, onOpenEdit, onOpenMembe
       <Dialog open={deleteModalOpen} onOpenChange={(open) => !open && handleDeleteModalClose()}>
         <DialogContent className="sm:max-w-lg border-2 border-red-200">
           {/* Danger banner */}
-          <div className="flex items-center gap-2 px-4 py-2.5 -mx-6 -mt-6 mb-2 bg-red-50 border-b border-red-200 rounded-t-lg">
+          <div className="flex items-center gap-2 px-5 sm:px-6 py-2.5 -mx-6 -mt-6 mb-2 bg-red-50 border-b border-red-200 rounded-t-2xl sm:rounded-t-2xl">
             <AlertTriangle className="w-4 h-4 text-red-600" />
             <span className="text-xs font-bold text-red-700 uppercase tracking-wide">
-              {t('transaction.deleteModal.dangerBanner')}
+              {t('transaction.deleteModal.dangerBanner')} — Mode Admin
             </span>
           </div>
 
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-red-600">
-              <Trash2 className="w-5 h-5" />
-              {t('transaction.deleteModal.title')}
+            <DialogTitle className="flex items-center gap-2 text-red-800">
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+                <Trash2 className="w-5 h-5 text-red-600" />
+              </div>
+              <div>
+                <span>{t('transaction.deleteModal.title')}</span>
+                <p className="text-xs text-stone-500 font-normal mt-0.5">{clientName} — {propertyAddress || ''}</p>
+              </div>
             </DialogTitle>
           </DialogHeader>
 

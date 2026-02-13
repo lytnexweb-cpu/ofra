@@ -15,7 +15,7 @@ interface EditConditionModalProps {
 const LEVEL_BADGE: Record<ConditionLevel, { classes: string }> = {
   blocking: { classes: 'bg-red-100 text-red-700' },
   required: { classes: 'bg-amber-100 text-amber-700' },
-  recommended: { classes: 'bg-emerald-100 text-emerald-700' },
+  recommended: { classes: 'bg-stone-200 text-stone-600' },
 }
 
 export default function EditConditionModal({

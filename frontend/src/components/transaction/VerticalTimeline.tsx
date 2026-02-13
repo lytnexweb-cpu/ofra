@@ -14,6 +14,7 @@ import {
   AlertTriangle,
   Lightbulb,
   Info,
+  Sparkles,
 } from 'lucide-react'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '../ui/Sheet'
 import type { Transaction, TransactionStep } from '../../api/transactions.api'
@@ -124,6 +125,7 @@ export default function VerticalTimeline({
   )
   const [historyOpen, setHistoryOpen] = useState(false)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [isPackModalOpen, setIsPackModalOpen] = useState(false)
   const [editingCondition, setEditingCondition] = useState<Condition | null>(
     null
   )
@@ -543,6 +545,14 @@ export default function VerticalTimeline({
                       <Plus className="w-3 h-3" />
                       {t('timeline.addCondition')}
                     </button>
+                    <button
+                      onClick={() => setIsPackModalOpen(true)}
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-accent hover:bg-accent/5 rounded-lg border border-stone-200"
+                      title={t('timeline.loadRecommendedPack', 'Charger le pack recommandé (additif)')}
+                    >
+                      <Sparkles className="w-3 h-3" />
+                      {t('timeline.packRecommended', 'Pack recommandé')}
+                    </button>
                   </div>
 
                   {/* Action Zone */}
@@ -631,7 +641,19 @@ export default function VerticalTimeline({
         onClose={() => setIsCreateModalOpen(false)}
         transactionId={transaction.id}
         currentStepOrder={transaction.currentStep?.stepOrder}
+        currentStepName={transaction.currentStep?.workflowStep?.name}
         existingConditions={allConditions}
+      />
+
+      {/* Pack Recommandé Modal */}
+      <CreateConditionModal
+        isOpen={isPackModalOpen}
+        onClose={() => setIsPackModalOpen(false)}
+        transactionId={transaction.id}
+        currentStepOrder={transaction.currentStep?.stepOrder}
+        currentStepName={transaction.currentStep?.workflowStep?.name}
+        existingConditions={allConditions}
+        initialMode="pack"
       />
 
       {/* Edit Condition Modal */}

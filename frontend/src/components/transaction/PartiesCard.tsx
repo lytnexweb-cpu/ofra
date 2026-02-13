@@ -1,7 +1,20 @@
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Users, Plus, AlertCircle } from 'lucide-react'
-import { partiesApi, type TransactionParty } from '../../api/parties.api'
+import { partiesApi, type TransactionParty, type PartyRole } from '../../api/parties.api'
+
+/** Role-specific badge colors per maquette M13 */
+function getRoleBadgeClasses(role: PartyRole): string {
+  switch (role) {
+    case 'buyer': return 'bg-blue-100 text-blue-700'
+    case 'seller': return 'bg-emerald-100 text-emerald-700'
+    case 'lawyer': return 'bg-amber-100 text-amber-700'
+    case 'notary': return 'bg-indigo-100 text-indigo-700'
+    case 'agent': return 'bg-violet-100 text-violet-700'
+    case 'broker': return 'bg-cyan-100 text-cyan-700'
+    default: return 'bg-stone-100 text-stone-500'
+  }
+}
 
 interface PartiesCardProps {
   transactionId: number
@@ -62,7 +75,7 @@ export default function PartiesCard({ transactionId, onManage }: PartiesCardProp
                 onClick={onManage}
               >
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className="px-1.5 py-0.5 rounded text-[10px] font-medium uppercase tracking-wide bg-stone-100 text-stone-500 shrink-0">
+                  <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold shrink-0 ${getRoleBadgeClasses(party.role)}`}>
                     {t(`parties.role.${party.role}`, party.role)}
                   </span>
                   <span className="text-xs text-stone-700 truncate">{party.fullName}</span>
@@ -72,9 +85,12 @@ export default function PartiesCard({ transactionId, onManage }: PartiesCardProp
                     </span>
                   )}
                 </div>
-                {!party.email && (
-                  <AlertCircle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                )}
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <div className={`w-1.5 h-1.5 rounded-full ${party.email ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+                  {!party.email && (
+                    <AlertCircle className="w-3.5 h-3.5 text-amber-500" />
+                  )}
+                </div>
               </div>
             ))}
 

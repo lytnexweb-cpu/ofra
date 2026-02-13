@@ -254,6 +254,7 @@ export default function ConditionsTab({ transaction, filterStepId }: ConditionsT
           onClose={() => setIsCreateModalOpen(false)}
           transactionId={transaction.id}
           currentStepOrder={transaction.currentStep?.stepOrder}
+          currentStepName={transaction.currentStep?.workflowStep?.name}
           existingConditions={allConditions}
         />
       </div>
@@ -318,6 +319,7 @@ export default function ConditionsTab({ transaction, filterStepId }: ConditionsT
         onClose={() => setIsCreateModalOpen(false)}
         transactionId={transaction.id}
         currentStepOrder={transaction.currentStep?.stepOrder}
+        currentStepName={transaction.currentStep?.workflowStep?.name}
         existingConditions={allConditions}
       />
 

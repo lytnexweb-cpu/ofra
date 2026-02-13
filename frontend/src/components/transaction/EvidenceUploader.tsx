@@ -119,17 +119,17 @@ export default function EvidenceUploader({
     const FileIcon = getFileIcon(selectedFile.file.type)
 
     return (
-      <div className="relative rounded-lg border border-border bg-muted/30 p-3">
+      <div className="relative rounded-lg border border-green-200 bg-green-50 p-3">
         <div className="flex items-center gap-3">
           {selectedFile.preview ? (
             <img
               src={selectedFile.preview}
               alt="Preview"
-              className="w-12 h-12 object-cover rounded"
+              className="w-8 h-8 object-cover rounded"
             />
           ) : (
-            <div className="w-12 h-12 rounded bg-muted flex items-center justify-center">
-              <FileIcon className="w-6 h-6 text-muted-foreground" />
+            <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
+              <FileIcon className="w-4 h-4 text-green-600" />
             </div>
           )}
           <div className="flex-1 min-w-0">
@@ -137,15 +137,13 @@ export default function EvidenceUploader({
             <p className="text-xs text-muted-foreground">{formatFileSize(selectedFile.file.size)}</p>
           </div>
           {!isUploading && (
-            <Button
+            <button
               type="button"
-              variant="ghost"
-              size="sm"
               onClick={handleRemove}
-              className="shrink-0"
+              className="p-1 rounded hover:bg-red-100 text-stone-400 hover:text-red-500 shrink-0"
             >
               <X className="w-4 h-4" />
-            </Button>
+            </button>
           )}
         </div>
         {isUploading && (

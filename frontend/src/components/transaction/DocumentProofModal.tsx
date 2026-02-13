@@ -93,7 +93,7 @@ export default function DocumentProofModal({
       ? { classes: 'bg-red-100 text-red-700', label: t('resolveCondition.level.blocking', 'Bloquante') }
       : conditionLevel === 'required'
         ? { classes: 'bg-amber-100 text-amber-700', label: t('resolveCondition.level.required', 'Requise') }
-        : { classes: 'bg-emerald-100 text-emerald-700', label: t('resolveCondition.level.recommended', 'Recommandée') }
+        : { classes: 'bg-stone-200 text-stone-600', label: t('resolveCondition.level.recommended', 'Recommandée') }
 
   // Lifecycle steps
   const steps = [

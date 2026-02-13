@@ -21,14 +21,14 @@ const MIN_ESCAPE_LENGTH = 10
 const LEVEL_BADGE: Record<ConditionLevel, { label: string; classes: string }> = {
   blocking: { label: 'blocking', classes: 'bg-red-100 text-red-700' },
   required: { label: 'required', classes: 'bg-amber-100 text-amber-700' },
-  recommended: { label: 'recommended', classes: 'bg-emerald-100 text-emerald-700' },
+  recommended: { label: 'recommended', classes: 'bg-stone-200 text-stone-600' },
 }
 
 // Fix #12/#15: match maquette icon bg exactly (recommended = bg-stone-100)
 const LEVEL_HEADER: Record<ConditionLevel, { icon: React.ElementType; bg: string; iconColor: string }> = {
   blocking: { icon: Lock, bg: 'bg-red-100', iconColor: 'text-red-600' },
   required: { icon: AlertTriangle, bg: 'bg-amber-100', iconColor: 'text-amber-600' },
-  recommended: { icon: Info, bg: 'bg-emerald-100', iconColor: 'text-emerald-600' },
+  recommended: { icon: Info, bg: 'bg-stone-100', iconColor: 'text-stone-500' },
 }
 
 const PACK_LABELS: Record<string, string> = {
@@ -352,12 +352,10 @@ export default function ConditionValidationModal({
                 rows={2}
                 disabled={isLoading}
               />
-              {escapeRemaining > 0 && (
-                <p className="text-xs text-amber-500 mt-1 flex items-center gap-1">
-                  <Info className="w-3 h-3" />
-                  {t('resolveCondition.d41.minChars', { count: escapeRemaining })}
-                </p>
-              )}
+              <p className="text-xs text-amber-500 mt-1 flex items-center gap-1">
+                <Info className="w-3 h-3" />
+                {t('resolveCondition.d41.minChars', { count: Math.max(0, escapeRemaining) })}
+              </p>
               <label className="flex items-start gap-2 mt-2 cursor-pointer">
                 <input
                   type="checkbox"
