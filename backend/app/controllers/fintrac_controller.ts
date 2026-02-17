@@ -1,10 +1,32 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import { FintracService } from '#services/fintrac_service'
+import { PlanService } from '#services/plan_service'
+import { TenantScopeService } from '#services/tenant_scope_service'
 import { completeFintracValidator } from '#validators/fintrac_validator'
 import FintracRecord from '#models/fintrac_record'
+import Transaction from '#models/transaction'
 import logger from '@adonisjs/core/services/logger'
 
 export default class FintracController {
+  /**
+   * Load a FINTRAC record and verify the authenticated user
+   * has access to its parent transaction via TenantScope.
+   */
+  private async loadRecordWithOwnershipCheck(recordId: number, auth: HttpContext['auth']) {
+    const record = await FintracRecord.query()
+      .where('id', recordId)
+      .preload('party')
+      .preload('verifiedBy')
+      .firstOrFail()
+
+    const transaction = await Transaction.findOrFail(record.transactionId)
+
+    if (!TenantScopeService.canAccess(transaction, auth.user!)) {
+      throw { code: 'E_AUTHORIZATION_FAILURE', status: 403 }
+    }
+
+    return record
+  }
   /**
    * List all FINTRAC records for a transaction
    * GET /api/transactions/:id/fintrac
@@ -33,19 +55,21 @@ export default class FintracController {
    * Get a single FINTRAC record
    * GET /api/fintrac/:id
    */
-  async show({ params, response }: HttpContext) {
+  async show({ params, response, auth }: HttpContext) {
     try {
-      const record = await FintracRecord.query()
-        .where('id', params.id)
-        .preload('party')
-        .preload('verifiedBy')
-        .firstOrFail()
+      const record = await this.loadRecordWithOwnershipCheck(params.id, auth)
 
       return response.ok({
         success: true,
         data: { record },
       })
     } catch (error) {
+      if (error.code === 'E_AUTHORIZATION_FAILURE') {
+        return response.forbidden({
+          success: false,
+          error: { message: 'Access denied', code: 'E_AUTHORIZATION_FAILURE' },
+        })
+      }
       if (error.code === 'E_ROW_NOT_FOUND') {
         return response.notFound({
           success: false,
@@ -66,6 +90,17 @@ export default class FintracController {
    */
   async complete({ params, request, response, auth }: HttpContext) {
     try {
+      // Ownership check: verify user can access parent transaction
+      await this.loadRecordWithOwnershipCheck(params.id, auth)
+
+      // Gate: FINTRAC identity verification requires Solo+
+      await auth.user!.load('plan')
+      if (!PlanService.meetsMinimum(auth.user!.plan?.slug, 'solo')) {
+        return response.forbidden(
+          PlanService.formatUpgradeError('fintrac_identity', auth.user!.plan?.slug ?? 'none', 'solo')
+        )
+      }
+
       const payload = await request.validateUsing(completeFintracValidator)
 
       const record = await FintracService.complete(params.id, payload, auth.user!.id)
@@ -75,6 +110,12 @@ export default class FintracController {
         data: { record },
       })
     } catch (error) {
+      if (error.code === 'E_AUTHORIZATION_FAILURE') {
+        return response.forbidden({
+          success: false,
+          error: { message: 'Access denied', code: 'E_AUTHORIZATION_FAILURE' },
+        })
+      }
       if (error.messages) {
         return response.unprocessableEntity({
           success: false,
@@ -101,6 +142,17 @@ export default class FintracController {
    */
   async resolve({ params, response, auth }: HttpContext) {
     try {
+      // Ownership check: verify user can access parent transaction
+      await this.loadRecordWithOwnershipCheck(params.id, auth)
+
+      // Gate: FINTRAC identity verification requires Solo+
+      await auth.user!.load('plan')
+      if (!PlanService.meetsMinimum(auth.user!.plan?.slug, 'solo')) {
+        return response.forbidden(
+          PlanService.formatUpgradeError('fintrac_identity', auth.user!.plan?.slug ?? 'none', 'solo')
+        )
+      }
+
       const record = await FintracRecord.findOrFail(params.id)
 
       if (!record.verifiedAt) {
@@ -121,6 +173,12 @@ export default class FintracController {
         data: { message: 'FINTRAC condition resolved' },
       })
     } catch (error) {
+      if (error.code === 'E_AUTHORIZATION_FAILURE') {
+        return response.forbidden({
+          success: false,
+          error: { message: 'Access denied', code: 'E_AUTHORIZATION_FAILURE' },
+        })
+      }
       if (error.code === 'E_ROW_NOT_FOUND') {
         return response.notFound({
           success: false,

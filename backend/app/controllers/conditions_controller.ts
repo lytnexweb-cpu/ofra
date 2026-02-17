@@ -6,6 +6,7 @@ import Condition from '#models/condition'
 import ConditionEvidence from '#models/condition_evidence'
 import ConditionEvent from '#models/condition_event'
 import Offer from '#models/offer'
+import FintracRecord from '#models/fintrac_record'
 import Transaction from '#models/transaction'
 import {
   createConditionValidator,
@@ -15,6 +16,7 @@ import { ActivityFeedService } from '#services/activity_feed_service'
 import { NotificationService } from '#services/notification_service'
 import { ConditionsEngineService } from '#services/conditions_engine_service'
 import { PlanService } from '#services/plan_service'
+import { TenantScopeService } from '#services/tenant_scope_service'
 import BlockingConditionAlertMail from '#mails/blocking_condition_alert_mail'
 import ConditionResolvedMail from '#mails/condition_resolved_mail'
 import vine from '@vinejs/vine'
@@ -54,10 +56,10 @@ const addEvidenceValidator = vine.compile(
 export default class ConditionsController {
   async store({ params, request, response, auth }: HttpContext) {
     try {
-      const transaction = await Transaction.query()
-        .where('id', params.id)
-        .where('owner_user_id', auth.user!.id)
-        .firstOrFail()
+      const transaction = await TenantScopeService.apply(
+        Transaction.query().where('id', params.id),
+        auth.user!
+      ).firstOrFail()
 
       const payload = await request.validateUsing(createConditionValidator)
 
@@ -149,10 +151,10 @@ export default class ConditionsController {
     try {
       const condition = await Condition.findOrFail(params.id)
 
-      const transaction = await Transaction.query()
-        .where('id', condition.transactionId)
-        .where('owner_user_id', auth.user!.id)
-        .first()
+      const transaction = await TenantScopeService.apply(
+        Transaction.query().where('id', condition.transactionId),
+        auth.user!
+      ).first()
 
       if (!transaction) {
         return response.notFound({
@@ -237,10 +239,10 @@ export default class ConditionsController {
     try {
       const condition = await Condition.findOrFail(params.id)
 
-      const transaction = await Transaction.query()
-        .where('id', condition.transactionId)
-        .where('owner_user_id', auth.user!.id)
-        .first()
+      const transaction = await TenantScopeService.apply(
+        Transaction.query().where('id', condition.transactionId),
+        auth.user!
+      ).first()
 
       if (!transaction) {
         return response.notFound({
@@ -300,10 +302,10 @@ export default class ConditionsController {
     try {
       const condition = await Condition.findOrFail(params.id)
 
-      const transaction = await Transaction.query()
-        .where('id', condition.transactionId)
-        .where('owner_user_id', auth.user!.id)
-        .first()
+      const transaction = await TenantScopeService.apply(
+        Transaction.query().where('id', condition.transactionId),
+        auth.user!
+      ).first()
 
       if (!transaction) {
         return response.notFound({
@@ -340,10 +342,10 @@ export default class ConditionsController {
     try {
       const condition = await Condition.findOrFail(params.id)
 
-      const transaction = await Transaction.query()
-        .where('id', condition.transactionId)
-        .where('owner_user_id', auth.user!.id)
-        .first()
+      const transaction = await TenantScopeService.apply(
+        Transaction.query().where('id', condition.transactionId),
+        auth.user!
+      ).first()
 
       if (!transaction) {
         return response.notFound({
@@ -500,10 +502,10 @@ export default class ConditionsController {
 
       const condition = await Condition.findOrFail(params.id)
 
-      const transaction = await Transaction.query()
-        .where('id', condition.transactionId)
-        .where('owner_user_id', auth.user!.id)
-        .first()
+      const transaction = await TenantScopeService.apply(
+        Transaction.query().where('id', condition.transactionId),
+        auth.user!
+      ).first()
 
       if (!transaction) {
         return response.notFound({
@@ -560,10 +562,10 @@ export default class ConditionsController {
 
       const condition = await Condition.findOrFail(params.id)
 
-      const transaction = await Transaction.query()
-        .where('id', condition.transactionId)
-        .where('owner_user_id', auth.user!.id)
-        .first()
+      const transaction = await TenantScopeService.apply(
+        Transaction.query().where('id', condition.transactionId),
+        auth.user!
+      ).first()
 
       if (!transaction) {
         return response.notFound({
@@ -615,10 +617,10 @@ export default class ConditionsController {
 
       const condition = await Condition.findOrFail(params.id)
 
-      const transaction = await Transaction.query()
-        .where('id', condition.transactionId)
-        .where('owner_user_id', auth.user!.id)
-        .first()
+      const transaction = await TenantScopeService.apply(
+        Transaction.query().where('id', condition.transactionId),
+        auth.user!
+      ).first()
 
       if (!transaction) {
         return response.notFound({
@@ -732,10 +734,10 @@ export default class ConditionsController {
 
       const condition = await Condition.findOrFail(params.id)
 
-      const transaction = await Transaction.query()
-        .where('id', condition.transactionId)
-        .where('owner_user_id', auth.user!.id)
-        .first()
+      const transaction = await TenantScopeService.apply(
+        Transaction.query().where('id', condition.transactionId),
+        auth.user!
+      ).first()
 
       if (!transaction) {
         return response.notFound({
@@ -784,10 +786,10 @@ export default class ConditionsController {
    */
   async timeline({ params, response, auth }: HttpContext) {
     try {
-      const transaction = await Transaction.query()
-        .where('id', params.id)
-        .where('owner_user_id', auth.user!.id)
-        .first()
+      const transaction = await TenantScopeService.apply(
+        Transaction.query().where('id', params.id),
+        auth.user!
+      ).first()
 
       if (!transaction) {
         return response.notFound({
@@ -835,10 +837,10 @@ export default class ConditionsController {
    */
   async active({ params, response, auth }: HttpContext) {
     try {
-      const transaction = await Transaction.query()
-        .where('id', params.id)
-        .where('owner_user_id', auth.user!.id)
-        .first()
+      const transaction = await TenantScopeService.apply(
+        Transaction.query().where('id', params.id),
+        auth.user!
+      ).first()
 
       if (!transaction) {
         return response.notFound({
@@ -875,12 +877,12 @@ export default class ConditionsController {
    * Check what's needed before step advancement
    * GET /api/transactions/:id/conditions/advance-check
    */
-  async advanceCheck({ params, request, response, auth }: HttpContext) {
+  async advanceCheck({ params, response, auth }: HttpContext) {
     try {
-      const transaction = await Transaction.query()
-        .where('id', params.id)
-        .where('owner_user_id', auth.user!.id)
-        .preload('currentStep', (q) => q.preload('workflowStep'))
+      const transaction = await TenantScopeService.apply(
+        Transaction.query().where('id', params.id),
+        auth.user!
+      ).preload('currentStep', (q) => q.preload('workflowStep'))
         .first()
 
       if (!transaction) {
@@ -919,6 +921,67 @@ export default class ConditionsController {
       const conditionsOk = check.canAdvance
       const canAdvance = conditionsOk && (!requiresAcceptedOffer || hasAcceptedOffer)
 
+      // Collect all condition IDs to batch-lookup FINTRAC records
+      const allConditions = [
+        ...check.blockingConditions,
+        ...check.requiredPendingConditions,
+        ...check.recommendedPendingConditions,
+      ]
+      const fintracConditionIds = allConditions
+        .filter((c) => c.title.startsWith('FINTRAC') && c.sourceType === 'legal')
+        .map((c) => c.id)
+
+      // Batch-fetch FINTRAC records for matching conditions
+      let fintracByConditionTitle: Map<string, number> = new Map()
+      if (fintracConditionIds.length > 0) {
+        const fintracRecords = await FintracRecord.query()
+          .where('transactionId', params.id)
+          .preload('party')
+
+        logger.debug(
+          { transactionId: params.id, fintracRecordCount: fintracRecords.length, fintracConditionIds },
+          'advance-check: FINTRAC lookup'
+        )
+
+        for (const rec of fintracRecords) {
+          if (rec.party) {
+            const key = `FINTRAC — ${rec.party.fullName}`
+            fintracByConditionTitle.set(key, rec.id)
+            logger.debug({ key, recordId: rec.id, partyId: rec.partyId }, 'advance-check: FINTRAC map entry')
+          } else {
+            logger.warn({ recordId: rec.id, partyId: rec.partyId }, 'advance-check: FINTRAC record has no party loaded')
+          }
+        }
+
+        // Log condition titles for matching debug
+        for (const cId of fintracConditionIds) {
+          const cond = allConditions.find((c) => c.id === cId)
+          if (cond) {
+            const matched = fintracByConditionTitle.get(cond.title)
+            logger.debug(
+              { conditionId: cId, title: cond.title, matchedRecordId: matched ?? 'NO MATCH' },
+              'advance-check: FINTRAC title match'
+            )
+          }
+        }
+      }
+
+      // Serialize condition with full data for frontend
+      const serializeCondition = (c: Condition) => ({
+        id: c.id,
+        title: c.title,
+        labelFr: c.labelFr,
+        labelEn: c.labelEn,
+        level: c.level,
+        status: c.status,
+        dueDate: c.dueDate,
+        resolutionType: c.resolutionType,
+        sourceType: c.sourceType,
+        isBlocking: c.isBlocking,
+        transactionStepId: c.transactionStepId,
+        fintracRecordId: fintracByConditionTitle.get(c.title) ?? null,
+      })
+
       return response.ok({
         success: true,
         data: {
@@ -930,24 +993,9 @@ export default class ConditionsController {
             name: transaction.currentStep.workflowStep?.name,
             slug: stepSlug,
           },
-          blockingConditions: check.blockingConditions.map((c) => ({
-            id: c.id,
-            title: c.title,
-            labelFr: c.labelFr,
-            labelEn: c.labelEn,
-          })),
-          requiredPendingConditions: check.requiredPendingConditions.map((c) => ({
-            id: c.id,
-            title: c.title,
-            labelFr: c.labelFr,
-            labelEn: c.labelEn,
-          })),
-          recommendedPendingConditions: check.recommendedPendingConditions.map((c) => ({
-            id: c.id,
-            title: c.title,
-            labelFr: c.labelFr,
-            labelEn: c.labelEn,
-          })),
+          blockingConditions: check.blockingConditions.map(serializeCondition),
+          requiredPendingConditions: check.requiredPendingConditions.map(serializeCondition),
+          recommendedPendingConditions: check.recommendedPendingConditions.map(serializeCondition),
         },
       })
     } catch (error) {

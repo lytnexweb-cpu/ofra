@@ -2,14 +2,15 @@ import type { HttpContext } from '@adonisjs/core/http'
 import Note from '#models/note'
 import Transaction from '#models/transaction'
 import { createNoteValidator } from '#validators/note_validator'
+import { TenantScopeService } from '#services/tenant_scope_service'
 
 export default class NotesController {
   async index({ params, response, auth }: HttpContext) {
     try {
-      const transaction = await Transaction.query()
-        .where('id', params.id)
-        .where('owner_user_id', auth.user!.id)
-        .firstOrFail()
+      const transaction = await TenantScopeService.apply(
+        Transaction.query().where('id', params.id),
+        auth.user!
+      ).firstOrFail()
 
       const notes = await Note.query()
         .where('transaction_id', transaction.id)
@@ -42,10 +43,10 @@ export default class NotesController {
 
   async store({ params, request, response, auth }: HttpContext) {
     try {
-      const transaction = await Transaction.query()
-        .where('id', params.id)
-        .where('owner_user_id', auth.user!.id)
-        .firstOrFail()
+      const transaction = await TenantScopeService.apply(
+        Transaction.query().where('id', params.id),
+        auth.user!
+      ).firstOrFail()
 
       const payload = await request.validateUsing(createNoteValidator)
       const note = await Note.create({
@@ -95,11 +96,11 @@ export default class NotesController {
       // Find the note
       const note = await Note.findOrFail(params.id)
 
-      // Verify that the user owns the associated transaction
-      await Transaction.query()
-        .where('id', note.transactionId)
-        .where('owner_user_id', auth.user!.id)
-        .firstOrFail()
+      // Verify that the user has access to the associated transaction
+      await TenantScopeService.apply(
+        Transaction.query().where('id', note.transactionId),
+        auth.user!
+      ).firstOrFail()
 
       // Delete the note
       await note.delete()
