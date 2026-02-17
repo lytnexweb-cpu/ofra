@@ -62,6 +62,8 @@ export default class OffersController {
         conditionIds: payload.conditionIds,
         fromPartyId: payload.fromPartyId,
         toPartyId: payload.toPartyId,
+        buyerPartyId: payload.buyerPartyId,
+        sellerPartyId: payload.sellerPartyId,
       })
 
       await ActivityFeedService.log({

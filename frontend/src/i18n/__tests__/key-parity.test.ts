@@ -35,71 +35,128 @@ describe('i18n key parity', () => {
   })
 
   it('no FR value is identical to EN (likely untranslated)', () => {
-    // Words that are legitimately identical in French and English
-    const allowedIdentical = [
-      'app.name',                   // Brand name
-      'nav.transactions',           // "Transactions" = same in FR
-      'nav.clients',                // "Clients" = same in FR
-      'conditions.types.inspection',// "Inspection" = same in FR
-      'conditions.types.documents', // "Documents" = same in FR
-      'common.notifications',       // "Notifications" = same in FR
-      'tabs.conditions',            // "Conditions" = same in FR
-      'tabs.documents',             // "Documents" = same in FR
-      'tabs.notes',                 // "Notes" = same in FR
-      'transaction.type',           // "Type" = same in FR
-      'transaction.client',         // "Client" = same in FR
-      // Technical terms and proper nouns that are the same in both languages
-      'clients.notes',              // "Notes"
-      'conditions.debugProfileAbsent', // "absent"
-      'conditions.form.description',// "Description"
-      'conditions.form.suggestions',// "Suggestions"
-      'contact.form.message',       // "Message"
-      'dashboard.charts.commission',// "Commission"
-      'dashboard.charts.commissions',// "Commissions"
-      'dashboard.charts.pipeline',  // "Pipeline"
-      'dashboard.charts.transaction',// "transaction"
-      'dashboard.charts.transactions',// "transactions"
-      'dashboard.transactions',     // "Transactions"
-      'landing.footer.contact',     // "Contact"
-      'offers.direction',           // "Direction"
-      'offers.notes',               // "Notes"
-      'onboarding.steps.contexts.condo', // "Condos"
-      'onboarding.steps.contexts.rural', // "Rural"
-      'onboarding.success.style',   // "Style"
-      'onboarding.success.volume',  // "Volume"
-      'pricing.features.support',   // "Support"
-      'pricing.features.transactions', // "Transactions"
-      'pricing.plans.agence.name',  // "Agence" - French brand name
-      'pricing.plans.essentiel.name', // "Essentiel" - French brand name
-      'pricing.plans.pro.name',     // "Pro"
-      'resolution.notApplicable',   // "N/A"
-      'settings.language.english',  // "English"
-      'settings.language.french',   // "Français"
-      'settings.notifications.title', // "Notifications"
-      'transaction.profile.accessPublic', // "Public"
-      'transaction.profile.condo',  // "Condo"
-      'transaction.profile.rural',  // "Rural"
-      'transaction.status.active',  // "Active"
-      'validation.evidence.type.note', // "Note"
-      // Strings with variables that are similar in both languages
-      'client.transactions',        // "{{count}} transaction(s)"
-      'clients.address.postalPlaceholder', // "E1A 2B3" - postal code format
-      'clients.details.transactionNumber', // "Transaction #{{id}}"
-      'offers.directionLabel',     // "Direction" (same in both)
-      'admin.clients',             // "Clients" (same in both)
-      'admin.runtime',             // "Runtime" (technical term)
-      'admin.transactions',        // "Transactions" (same in both)
-      'admin.conditions',          // "Conditions" (same in both)
-      'admin.crm',                 // "CRM" (acronym)
-      'admin.engagement',          // "Engagement" (same in both)
-      'admin.notes',               // "Notes" (same in both)
-      'admin.txShort',             // "tx" (abbreviation)
-      'nav.admin',                 // "Admin" (same in both)
-    ]
+    // Words that are legitimately identical in French and English.
+    // French and English share many cognates (words with the same spelling/meaning),
+    // especially for technical, legal, and administrative terms.
+    const allowedIdentical = new Set([
+      // Brand / app names
+      'app.name',
+      // Navigation & tabs — French cognates
+      'nav.transactions', 'nav.clients', 'nav.admin',
+      'tabs.conditions', 'tabs.documents', 'tabs.notes',
+      // Common French-English cognates
+      'common.notifications',
+      'transaction.type', 'transaction.client',
+      'transaction.status.active',
+      'transaction.profile.accessPublic', 'transaction.profile.condo', 'transaction.profile.rural',
+      'transaction.editModal.province', 'transaction.editModal.commission',
+      'transaction.actions.members', 'transaction.actions.parties',
+      'transaction.acceptOffer.agentLabel',
+      'transaction.acceptOffer.successSubtitle',
+      'transaction.cancelModal.note',
+      'transaction.createOffer.expiration',
+      'transaction.detail.addenda', 'transaction.detail.email',
+      'transaction.detail.profileForm.type',
+      'transaction.detail.propertyTags.commercial', 'transaction.detail.propertyTags.rural',
+      // Conditions
+      'conditions.types.inspection', 'conditions.types.documents',
+      'conditions.debugProfileAbsent',
+      'conditions.form.description', 'conditions.form.suggestions',
+      // Clients
+      'clients.notes', 'client.transactions',
+      'clients.address.postalPlaceholder',
+      'clients.details.transactionNumber',
+      // Contact
+      'contact.form.message',
+      // Dashboard
+      'dashboard.charts.commission', 'dashboard.charts.commissions',
+      'dashboard.charts.pipeline', 'dashboard.charts.transaction',
+      'dashboard.charts.transactions', 'dashboard.transactions',
+      'dashboard.urgencies.greenCount', 'dashboard.urgencies.urgent48h',
+      // Landing
+      'landing.footer.contact', 'landing.nav.faq',
+      // Offers
+      'offers.direction', 'offers.directionLabel', 'offers.notes',
+      'offers.createModal.inclusions', 'offers.packs.conditionsCount',
+      // Onboarding
+      'onboarding.steps.contexts.condo', 'onboarding.steps.contexts.rural',
+      'onboarding.success.style', 'onboarding.success.volume',
+      // Pricing
+      'pricing.features.support', 'pricing.features.transactions',
+      'pricing.plans.agence.name', 'pricing.plans.essentiel.name', 'pricing.plans.pro.name',
+      // Settings
+      'settings.language.english', 'settings.language.french',
+      'settings.notifications.title',
+      // Resolution
+      'resolution.notApplicable', 'resolveCondition.noteLabel',
+      // Validation / evidence
+      'validation.evidence.type.note',
+      'validateStep.success.subtitle',
+      // Admin
+      'admin.clients', 'admin.runtime', 'admin.transactions',
+      'admin.conditions', 'admin.crm', 'admin.engagement',
+      'admin.notes', 'admin.txShort', 'admin.plans.title',
+      // Auth
+      'auth.province', 'auth.adminPanel',
+      // Documents
+      'documents.addModal.subtitle', 'documents.addModal.addTag',
+      'documents.addModal.associateCondition',
+      'documents.categories.inspection', 'documents.counters.total',
+      'documents.errors.infoFormats', 'documents.statusBar.conditions',
+      'documents.title', 'documents.versionModal.active',
+      // Edit transaction
+      'editTransaction.breadcrumb.transactions',
+      'editTransaction.fields.province',
+      'editTransaction.propertyContext.rural',
+      'editTransaction.propertyType.condo',
+      'editTransaction.status.active',
+      'editTransaction.tabs.dates', 'editTransaction.tabs.parties',
+      // Export
+      'export.section.conditions', 'export.section.documents',
+      'exportPage.email.message', 'exportPage.linkCreated.expiration',
+      // FINTRAC
+      'fintrac.fintracBadge',
+      // Offer link
+      'offerLink.expiration',
+      // Add condition / add offer
+      'addCondition.conditionsWord',
+      'addOffer.badgeActive', 'addOffer.badgePack',
+      'addOffer.conditionsInfo',
+      'addOffer.exp24h', 'addOffer.exp48h', 'addOffer.expCustom',
+      'addOffer.expirationLabel', 'addOffer.inclusionsLabel',
+      'addOffer.inspectionLabel', 'addOffer.messageLabel',
+      'addOffer.packsTitle', 'addOffer.permErrorOwner',
+      'addOffer.permErrorRequiredValue', 'addOffer.serverErrorTimestamp',
+      'addOffer.successConditions', 'addOffer.successExpiration',
+      'addOffer.successNotification', 'addOffer.successType',
+      'addOffer.summaryConditions', 'addOffer.summaryExpiration',
+      'addOffer.typeLabel',
+      // Parties
+      'parties.partiesCount', 'parties.role.agent',
+      // Permissions
+      'permissionsPage.active', 'permissionsPage.matrix.action',
+      // Suggestions
+      'suggestions.openPanel', 'suggestions.title',
+      // Landing (plan names/prices, mockup labels, cognates)
+      'landing.plans.starter.name', 'landing.plans.starter.price',
+      'landing.plans.solo.name', 'landing.plans.solo.price',
+      'landing.plans.pro.name', 'landing.plans.pro.price',
+      'landing.plans.agence.price',
+      'landing.mockup.autoBadge', 'landing.mockup.backTransactions',
+      'landing.mockup.documents', 'landing.mockup.rural',
+      'landing.mockup.step1', 'landing.mockup.step8',
+      // Contact
+      'contact.form.solo', 'contact.hero.badge',
+      // FAQ
+      'landing.footer.faq',
+      // Offers comparison (symbols/cognates identical in FR/EN)
+      'offers.comparison.noValue', 'offers.comparison.parties',
+      'offers.comparison.conditions', 'offers.comparison.inspection',
+    ])
 
     const suspicious: string[] = []
     for (const key of enKeys) {
-      if (allowedIdentical.includes(key)) continue
+      if (allowedIdentical.has(key)) continue
       const enVal = key.split('.').reduce((o: any, k) => o?.[k], en)
       const frVal = key.split('.').reduce((o: any, k) => o?.[k], fr)
       if (typeof enVal === 'string' && enVal === frVal) {

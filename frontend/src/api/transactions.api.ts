@@ -41,6 +41,11 @@ export interface Offer {
   id: number
   transactionId: number
   status: OfferStatus
+  buyerPartyId: number | null
+  sellerPartyId: number | null
+  initialDirection: 'buyer_to_seller' | 'seller_to_buyer'
+  buyerParty?: OfferRevisionParty | null
+  sellerParty?: OfferRevisionParty | null
   acceptedAt: string | null
   createdAt: string
   updatedAt: string

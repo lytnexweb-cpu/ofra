@@ -14,6 +14,7 @@ import {
   Copy,
   CheckCircle2,
   XCircle,
+  ArrowLeftRight,
 } from 'lucide-react'
 import { offersApi } from '../../api/offers.api'
 import { shareLinksApi } from '../../api/share-links.api'
@@ -24,6 +25,8 @@ import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '../ui/
 import ConfirmDialog from '../ConfirmDialog'
 import CreateOfferModal from './CreateOfferModal'
 import AcceptOfferModal from './AcceptOfferModal'
+import NegotiationThread from './NegotiationThread'
+import OfferComparison from './OfferComparison'
 
 interface OffersPanelProps {
   transaction: Transaction
@@ -117,6 +120,7 @@ export default function OffersPanel({ transaction }: OffersPanelProps) {
     offerId: null,
   })
   const [createConfirmOpen, setCreateConfirmOpen] = useState(false)
+  const [showComparison, setShowComparison] = useState(false)
   const [showOfferLinkForm, setShowOfferLinkForm] = useState(false)
   const [offerLinkExpiry, setOfferLinkExpiry] = useState<string>('14')
   const [copied, setCopied] = useState(false)
@@ -310,6 +314,9 @@ export default function OffersPanel({ transaction }: OffersPanelProps) {
               )}
             </div>
 
+            {/* Negotiation thread */}
+            <NegotiationThread offer={offer} />
+
             {/* Notes */}
             {lastRev.notes && (
               <p className="text-xs text-stone-500 italic mb-2">&ldquo;{lastRev.notes}&rdquo;</p>
@@ -426,6 +433,9 @@ export default function OffersPanel({ transaction }: OffersPanelProps) {
               )}
             </div>
 
+            {/* Negotiation thread */}
+            <NegotiationThread offer={offer} />
+
             {/* Workflow mapping — Accepted: "A déclenché" */}
             {(() => {
               const acceptedStep = transaction.transactionSteps?.find(s => s.stepOrder === 3)
@@ -502,26 +512,41 @@ export default function OffersPanel({ transaction }: OffersPanelProps) {
           {t('transaction.detail.offersTitle')}
           <span className="text-xs text-stone-400 font-normal">({offers.length})</span>
         </h3>
-        {transaction.status === 'active' && (
-          <button
-            onClick={() => {
-              if (hasAcceptedOffer) {
-                setCreateConfirmOpen(true)
-              } else {
-                setIsCreateModalOpen(true)
-              }
-            }}
-            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg ${
-              hasAcceptedOffer
-                ? 'border border-stone-200 text-stone-400 hover:text-stone-600 hover:bg-stone-50'
-                : 'text-white bg-primary hover:bg-primary/90'
-            }`}
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">{t('transaction.detail.newOffer')}</span>
-            <span className="sm:hidden">{t('transaction.detail.offerMobile')}</span>
-          </button>
-        )}
+        <div className="flex items-center gap-1.5">
+          {activeOffers.length >= 2 && (
+            <button
+              onClick={() => setShowComparison(!showComparison)}
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg border ${
+                showComparison
+                  ? 'border-[#1e3a5f] bg-[#1e3a5f]/5 text-[#1e3a5f]'
+                  : 'border-stone-200 text-stone-500 hover:text-[#1e3a5f] hover:border-[#1e3a5f]'
+              }`}
+            >
+              <ArrowLeftRight className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">{t('offers.compare')}</span>
+            </button>
+          )}
+          {transaction.status === 'active' && (
+            <button
+              onClick={() => {
+                if (hasAcceptedOffer) {
+                  setCreateConfirmOpen(true)
+                } else {
+                  setIsCreateModalOpen(true)
+                }
+              }}
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg ${
+                hasAcceptedOffer
+                  ? 'border border-stone-200 text-stone-400 hover:text-stone-600 hover:bg-stone-50'
+                  : 'text-white bg-primary hover:bg-primary/90'
+              }`}
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">{t('transaction.detail.newOffer')}</span>
+              <span className="sm:hidden">{t('transaction.detail.offerMobile')}</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Offer intake link section */}
@@ -606,6 +631,17 @@ export default function OffersPanel({ transaction }: OffersPanelProps) {
 
       {/* Active offers */}
       {activeOffers.map((offer) => renderActiveCard(offer))}
+
+      {/* Offer comparison */}
+      {showComparison && activeOffers.length >= 2 && (
+        <OfferComparison
+          offers={activeOffers}
+          onAccept={(offer) => {
+            setShowComparison(false)
+            setAcceptOfferTarget(offer)
+          }}
+        />
+      )}
 
       {offers.length === 0 && (
         <p className="text-xs text-stone-400 py-2">{t('offers.empty')}</p>

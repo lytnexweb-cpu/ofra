@@ -828,6 +828,7 @@
       "propertyProfile": "Property profile",
       "editProperty": "Edit",
       "profileLocked": "Locked",
+      "profileLockedError": "The property profile is locked after the Consultation step. Contact support if you need to modify it.",
       "noProfile": "Add property profile",
       "noParties": "No parties added",
       "profileForm": {
@@ -900,7 +901,10 @@
       "successNextStep": "Step {{stepOrder}} \"{{stepName}}\" started — {{count}} conditions activated based on profile (Packs: {{packs}})",
       "successPriceUpdated": "Transaction price updated: {{price}} $",
       "successOffersRejected": "{{count}} offer(s) marked as not retained",
-      "backToTransaction": "Back to transaction"
+      "backToTransaction": "Back to transaction",
+      "buyer": "Buyer",
+      "seller": "Seller",
+      "partiesLabel": "Offer parties"
     },
     "createOffer": {
       "title": "New offer",
@@ -1159,92 +1163,485 @@
       "cta": "Go to my dashboard"
     }
   },
+  "about": {
+    "hero": {
+      "badge": "Our story",
+      "title": "Who is",
+      "titleHighlight": "Ofra?",
+      "subtitle": "Ofra was born from a simple observation: New Brunswick real estate agents deserve a modern, bilingual tool built for their reality."
+    },
+    "mission": {
+      "title": "Our mission",
+      "p1": "In New Brunswick, real estate agents juggle dozens of conditions, critical deadlines, and demanding FINTRAC regulations — often with tools that weren't built for them.",
+      "p2": "Ofra exists to eliminate oversights, reduce stress, and give agents back the time to do what they do best: guide their clients toward the perfect transaction.",
+      "quote": "Every agent should sleep soundly knowing nothing slips through the cracks.",
+      "quoteAuthor": "The Ofra Team"
+    },
+    "problem": {
+      "title": "The problem we solve",
+      "subtitle": "Too many agents lose time and money because of tools that don't fit New Brunswick's reality.",
+      "pain1": {
+        "title": "Forgotten conditions",
+        "desc": "Missed inspections, untracked financing — every oversight can cost an entire transaction."
+      },
+      "pain2": {
+        "title": "Complex compliance",
+        "desc": "FINTRAC, identity verification, funds traceability — the requirements are real and the consequences serious."
+      },
+      "pain3": {
+        "title": "Generic tools",
+        "desc": "American CRMs translated to French that don't understand artesian wells, septic tanks, or the NB market."
+      }
+    },
+    "values": {
+      "title": "What drives us",
+      "subtitle": "Four convictions that shape every feature in Ofra.",
+      "simplicity": {
+        "title": "Simplicity first",
+        "desc": "A powerful tool doesn't need to be complicated. Every screen is designed so the essentials are visible at a glance."
+      },
+      "compliance": {
+        "title": "Built-in compliance",
+        "desc": "FINTRAC compliance and traceability aren't extras — they're woven into every step of the workflow."
+      },
+      "bilingual": {
+        "title": "100% bilingual",
+        "desc": "French and English end to end. Not a rough translation, but a native experience in both languages."
+      },
+      "independence": {
+        "title": "Independence",
+        "desc": "Ofra is an independent tool, built by and for New Brunswick agents. No banner, no franchise."
+      }
+    },
+    "nb": {
+      "title": "Built for",
+      "titleHighlight": "New Brunswick",
+      "subtitle": "Not a generic tool adapted — a tool born here, for agents here.",
+      "local": {
+        "title": "Locally rooted",
+        "desc": "Based in Moncton. We know the market, provincial regulations, and the real challenges NB agents face on the ground."
+      },
+      "community": {
+        "title": "By the community",
+        "desc": "Developed in direct collaboration with active agents. Every feature answers a real need expressed by those in the field."
+      },
+      "mission": {
+        "title": "Local mission",
+        "desc": "Our goal: every NB agent should have access to a professional, modern, and affordable tool — regardless of their practice size."
+      }
+    },
+    "cta": {
+      "title": "Ready to simplify your practice?",
+      "subtitle": "Try Ofra free for 30 days. No credit card, no commitment.",
+      "trial": "Try 30 days free",
+      "contact": "Contact us"
+    }
+  },
+  "founderPage": {
+    "hero": {
+      "badge": "Founder Program",
+      "title": "Become an",
+      "titleHighlight": "Ofra Founder",
+      "subtitle": "Join the first 25 agents shaping the future of Ofra. Lifetime price lock, priority access, and permanent recognition.",
+      "spotsLeft": "{{count}} spots remaining out of {{total}}"
+    },
+    "what": {
+      "title": "What is the Founder Program?",
+      "p1": "The Founder Program is an exclusive invitation for the first 25 agents who believe in our vision. As a Founder, you get a lifetime price lock — no matter how much prices increase in the future.",
+      "p2": "This isn't just a discount. It's a partnership. You shape the tool with us, and in return, you keep the price from the day you joined. Forever.",
+      "cardTitle": "Founder Card",
+      "cardDesc": "What you receive as a founding member:",
+      "perk1": "Lifetime price lock on your plan",
+      "perk2": "Priority access to new features",
+      "perk3": "Founder badge on your profile",
+      "perk4": "Direct line to the development team"
+    },
+    "benefits": {
+      "title": "Founder Benefits",
+      "subtitle": "Four exclusive perks that reward your trust.",
+      "priceLock": {
+        "title": "Lifetime price lock",
+        "desc": "Your monthly price will never change. When our prices go up, you keep your Day 1 rate."
+      },
+      "earlyAccess": {
+        "title": "Priority access",
+        "desc": "Test new features before anyone else. Your feedback directly shapes the product."
+      },
+      "badge": {
+        "title": "Founder badge",
+        "desc": "A permanent badge on your profile recognizing your pioneer status. You were first."
+      },
+      "directSupport": {
+        "title": "Direct support",
+        "desc": "Direct access to the founding team. No queue, no chatbot — real humans who know you."
+      }
+    },
+    "howItWorks": {
+      "title": "How does it work?",
+      "subtitle": "Three simple steps to become a Founder.",
+      "stepLabel": "Step {{n}}",
+      "signup": {
+        "title": "Create your account",
+        "desc": "Sign up for free and enjoy 30 days of trial with all Pro features."
+      },
+      "choose": {
+        "title": "Choose your plan",
+        "desc": "At the end of your trial, select the plan that fits your practice."
+      },
+      "locked": {
+        "title": "Price locked for life",
+        "desc": "Your price is frozen from the moment you subscribe. You'll never pay more, even if our prices increase."
+      }
+    },
+    "faq": {
+      "title": "Frequently asked questions",
+      "q1": "How many Founder spots are left?",
+      "a1": "The program is limited to 25 spots. Once all 25 are taken, the program closes permanently. Remaining spots are shown in real time on this page.",
+      "q2": "What does 'lifetime price lock' mean exactly?",
+      "a2": "The price you pay on the day you subscribe will never change. If you're on the Pro plan at $79/month and we raise it to $99/month in the future, you stay at $79/month — forever.",
+      "q3": "Can I change plans as a Founder?",
+      "a3": "Yes. If you upgrade, you get the current price of that plan, which is also locked for life. If you downgrade, you keep the price of the lower plan as it was when you first signed up.",
+      "q4": "Is the free trial included for Founders?",
+      "a4": "Absolutely. You get the same 30-day free trial with all Pro features. The price locks when you choose your paid plan.",
+      "q5": "How do I know it's really limited to 25 spots?",
+      "a5": "The counter on this page is connected in real time to our database. When it shows 0 spots remaining, the program closes automatically. It's a firm commitment, not a marketing tactic."
+    },
+    "cta": {
+      "title": "Join the pioneers",
+      "subtitle": "Prices will go up. Your price never will.",
+      "button": "Become a Founder",
+      "trust1": "30 days free",
+      "trust2": "No credit card",
+      "trust3": "Lifetime price lock"
+    }
+  },
+  "featuresPage": {
+    "hero": {
+      "badge": "Features",
+      "title": "Everything you need for",
+      "titleHighlight": "zero oversights",
+      "subtitle": "4 pillars designed specifically for New Brunswick real estate agents. Every feature eliminates a risk."
+    },
+    "pillars": {
+      "workflow": {
+        "badge": "Pillar 1",
+        "title": "Guided 8-step workflow",
+        "desc": "From initial consultation to post-closing, every transaction follows a structured path. No more wondering 'what do I need to do now?'",
+        "steps": {
+          "title": "8 structured steps",
+          "desc": "Consultation → Offer Submitted → Offer Accepted → Conditional Period → Firm → Pre-Closing → Closing Day → Post-Closing."
+        },
+        "validation": {
+          "title": "Validation at every step",
+          "desc": "Can't move to the next step without completing required conditions. Blocking conditions must be resolved."
+        },
+        "visibility": {
+          "title": "360° real-time view",
+          "desc": "Conditions, documents, parties, and deadlines — everything visible at a glance from the transaction dashboard."
+        },
+        "check1": "Consultation to post-closing in one journey",
+        "check2": "Mandatory validation of blocking conditions",
+        "check3": "Per-transaction dashboard",
+        "check4": "Complete history of every step"
+      },
+      "conditions": {
+        "badge": "Pillar 2",
+        "title": "Automated conditions",
+        "desc": "52 condition templates auto-generated based on the property profile. Rural with artesian well? Downtown condo? Financed? Ofra knows what to check.",
+        "auto": {
+          "title": "Contextual auto-generation",
+          "desc": "The engine analyzes property type, context (rural, condo), and financing to automatically generate relevant conditions."
+        },
+        "tracking": {
+          "title": "Deadline tracking",
+          "desc": "Every condition has a due date. Ofra alerts you before it's too late — not after."
+        },
+        "alerts": {
+          "title": "Proactive alerts",
+          "desc": "Overdue conditions, unresolved blockers, deadlines within 48h — the urgency dashboard tells you what's burning."
+        },
+        "check1": "52 condition templates (Universal, Rural, Condo, Financed)",
+        "check2": "3 levels: blocking, required, recommended",
+        "check3": "Resolution with supporting evidence",
+        "check4": "Full audit trail of every resolution"
+      },
+      "offers": {
+        "badge": "Pillar 3",
+        "title": "Centralized negotiation",
+        "desc": "Offers, counter-offers, acceptance — the entire negotiation history in one place. No more lost emails or confusing versions.",
+        "intake": {
+          "title": "External offer form",
+          "desc": "Send a secure link to the collaborating agent. They fill in the offer online, you receive it directly in the transaction."
+        },
+        "history": {
+          "title": "Complete history",
+          "desc": "Every offer, every counter-offer, every status — all tracked chronologically. Nothing gets lost."
+        },
+        "parties": {
+          "title": "Party management",
+          "desc": "Buyers, sellers, collaborating agents, notaries — every participant is linked to the transaction with their role."
+        },
+        "check1": "Offer form with shareable link",
+        "check2": "Statuses: pending, accepted, rejected, counter-offer",
+        "check3": "Parties automatically linked to the transaction",
+        "check4": "Chronological negotiation history"
+      },
+      "documents": {
+        "badge": "Pillar 4",
+        "title": "Documents & evidence",
+        "desc": "Every resolved condition can have evidence attached. Versioning, secure upload, and complete traceability for compliance.",
+        "upload": {
+          "title": "Secure upload",
+          "desc": "Drag and drop your files. Support for PDF, images, documents — everything stored securely."
+        },
+        "versioning": {
+          "title": "Document versioning",
+          "desc": "New version of a contract? Upload it. Version history is automatically preserved."
+        },
+        "compliance": {
+          "title": "FINTRAC compliance",
+          "desc": "Identity verification, funds confirmation — FINTRAC evidence is built into the workflow, not in a separate folder."
+        },
+        "check1": "Drag-and-drop upload (PDF, images, docs)",
+        "check2": "Automatic document versioning",
+        "check3": "Evidence linked to conditions",
+        "check4": "Built-in FINTRAC compliance"
+      }
+    },
+    "extras": {
+      "title": "Everything that lets you sleep at night",
+      "subtitle": "Beyond the 4 pillars, Ofra includes everything you need to never stress about a transaction again.",
+      "dashboard": {
+        "title": "Urgency dashboard",
+        "desc": "The moment you log in, see what's burning: overdue conditions, deadlines within 48h, critical transactions. Zero surprises."
+      },
+      "pdfExport": {
+        "title": "Custom PDF export",
+        "desc": "Generate a complete PDF of your transaction: offers, conditions, documents, history. Choose sections, language, and watermark."
+      },
+      "shareLinks": {
+        "title": "Secure share links",
+        "desc": "Share a transaction with a colleague or notary via a secure link. Configurable expiry, optional password, view counter."
+      },
+      "permissions": {
+        "title": "Granular permissions",
+        "desc": "Owner, admin, editor, viewer — control exactly who sees what. Invite collaborators by email with the right access level."
+      },
+      "csvImport": {
+        "title": "CSV client import",
+        "desc": "Migrate your existing clients in one click. Download our CSV template, fill it in, and import. No more manual entry."
+      },
+      "fintrac": {
+        "title": "Built-in FINTRAC compliance",
+        "desc": "Identity verification and funds traceability built into the workflow. Every piece of evidence is linked to its condition — not in a separate folder."
+      },
+      "bilingual": {
+        "title": "100% bilingual FR/EN",
+        "desc": "Native interface in French and English. Switch languages with one click, the entire experience adapts instantly."
+      },
+      "notifications": {
+        "title": "Proactive notifications",
+        "desc": "Get alerted when a condition approaches its deadline, when an offer is received, or when a collaborator modifies your transaction."
+      },
+      "mobile": {
+        "title": "Responsive design",
+        "desc": "Ofra works on mobile, tablet, and desktop. Check a condition, validate a document — even on the go."
+      }
+    },
+    "cta": {
+      "title": "Ready to see it all in action?",
+      "subtitle": "Try Ofra free for 30 days with all Pro features.",
+      "trial": "Try 30 days free",
+      "pricing": "View plans"
+    }
+  },
   "landing": {
     "nav": {
       "features": "Features",
       "pricing": "Pricing",
       "founder": "Founder",
-      "faq": "FAQ",
       "login": "Sign in",
-      "freeTrial": "Free trial",
-      "getStarted": "Get Started"
+      "freeTrial": "Free trial"
     },
     "hero": {
-      "badge": "AI Platform · New Brunswick",
+      "badge": "Built for New Brunswick",
       "titleLine1": "Every transaction,",
       "titleLine2": "mastered.",
-      "subtitle": "Auto-generated conditions, centralized documents, 8-step tracking — OFRA is the AI copilot for New Brunswick real estate agents.",
-      "cta": "Free trial →",
-      "demo": "Watch demo",
-      "trust1": "Hosted in Canada",
-      "trust2": "NBREA compliant",
-      "trust3": "100% bilingual",
-      "title": "Manage your real estate transactions with confidence",
-      "pricing": "See pricing",
-      "badge1": "No credit card required",
-      "badge2": "14-day free trial",
-      "badge3": "Cancel anytime"
+      "subtitle": "8-step workflow, auto-generated conditions, centralized documents — everything NB agents need, in one tool.",
+      "cta": "Try 30 days free",
+      "demo": "Discover",
+      "trust1": "30 days free",
+      "trust2": "No credit card",
+      "trust3": "100% Canadian",
+      "trust4": "No contract"
     },
     "scroll": "Discover",
+    "why": {
+      "title": "Transaction tracking, simplified",
+      "subtitle": "Too many agents still juggle between Excel, emails and sticky notes to track their transactions. Oversights are costly. OFRA changes the game.",
+      "benefit1": "8-step workflow tailored for New Brunswick transactions",
+      "benefit2": "Conditions auto-generated based on the property profile",
+      "benefit3": "Documents and proofs centralized, versioned and validated"
+    },
     "features": {
-      "title": "Everything you need to close more deals",
-      "subtitle": "Powerful tools designed specifically for New Brunswick real estate professionals",
+      "title": "The 4 pillars of OFRA",
+      "subtitle": "Every feature is designed to eliminate oversights and reduce stress.",
       "workflow": {
         "title": "Guided Workflow",
-        "desc": "8-step process from consultation to post-closing, tailored for NB transactions"
+        "desc": "8 structured steps from consultation to post-closing. Validations, conditions and documents at every step."
       },
-      "reminders": {
-        "title": "Smart Reminders",
-        "desc": "Never miss a deadline with automatic alerts for conditions and key dates"
+      "conditions": {
+        "title": "Automated Conditions",
+        "desc": "Auto-generated based on the property profile: rural, condo, financed. No more oversights."
       },
-      "blocking": {
-        "title": "Protection System",
-        "desc": "Blocking conditions prevent costly oversights before advancing steps"
+      "offers": {
+        "title": "Centralized Negotiation",
+        "desc": "Offers, counter-offers, acceptance — the full negotiation history in one place."
       },
-      "clients": {
-        "title": "Client Management",
-        "desc": "Keep all your clients organized with transaction history and contact info"
-      },
-      "timeline": {
-        "title": "Activity Timeline",
-        "desc": "Track every action and change throughout the transaction lifecycle"
-      },
-      "fast": {
-        "title": "Lightning Fast",
-        "desc": "Modern interface designed for speed and efficiency on desktop and mobile"
+      "documents": {
+        "title": "Documents & Proofs",
+        "desc": "Upload, versioning and validation of proofs for every condition. Everything is tracked."
       }
-    },
-    "stats": {
-      "agents": "Real estate agents",
-      "transactions": "Transactions managed",
-      "uptime": "Uptime",
-      "rating": "Average rating"
-    },
-    "testimonials": {
-      "title": "Trusted by top agents in New Brunswick",
-      "1": "Ofra has transformed how I manage my transactions. I never miss a deadline anymore!",
-      "2": "The blocking conditions feature saved me from a costly mistake. Worth every penny.",
-      "3": "Finally, a tool that understands how we work in New Brunswick. Highly recommended!"
     },
     "productTour": {
       "title": "Your transaction, at a glance",
       "subtitle": "A complete dashboard to track every step, condition, and document in real time."
     },
+    "moreFeatures": {
+      "title": "Sleep soundly, we've got the rest",
+      "subtitle": "Beyond workflow and conditions, Ofra protects your commissions on all fronts.",
+      "seeAll": "See all features",
+      "dashboard": {
+        "title": "Urgency dashboard",
+        "desc": "What's burning first: overdue conditions, 48h deadlines, critical transactions."
+      },
+      "pdfExport": {
+        "title": "PDF export",
+        "desc": "Generate a complete transaction summary in PDF. Choose sections, language, and watermark."
+      },
+      "shareLinks": {
+        "title": "Share links",
+        "desc": "Share a transaction via secure link with configurable expiry and optional password."
+      },
+      "permissions": {
+        "title": "Member permissions",
+        "desc": "Control who sees what: owner, admin, editor, or viewer. Email invitations."
+      },
+      "csvImport": {
+        "title": "CSV client import",
+        "desc": "Migrate your existing clients in one click with our ready-to-fill CSV template."
+      },
+      "notifications": {
+        "title": "Proactive alerts",
+        "desc": "Deadlines, offers received, changes — get alerted before it's too late."
+      }
+    },
+    "founder": {
+      "badge": "Founder Program",
+      "title": "Join the pioneers",
+      "subtitle": "Be among the first 25 agents to shape the future of OFRA.",
+      "benefit1": "Price locked for life",
+      "benefit1Desc": "The price you choose will never change, even if our rates increase.",
+      "benefit2": "Priority access",
+      "benefit2Desc": "New features in early access and direct support from the founding team.",
+      "benefit3": "Founder Badge",
+      "benefit3Desc": "Permanent recognition on your profile. You are the first ones.",
+      "spotsLeft": "{{count}} spots left out of 25",
+      "cta": "Become a Founder",
+      "ctaSub": "Limited spots · Price locked for life"
+    },
+    "pricingPreview": {
+      "title": "Simple pricing",
+      "subtitle": "30-day free trial with all Pro features. No credit card required.",
+      "perMonth": "/mo",
+      "popular": "Popular",
+      "allPlans": "Compare all plans",
+      "trialIncluded": "30-day trial included"
+    },
+    "plans": {
+      "starter": { "name": "Starter", "price": "29", "desc": "The essentials to get started" },
+      "solo": { "name": "Solo", "price": "49", "desc": "For independent agents" },
+      "pro": { "name": "Pro", "price": "79", "desc": "For growing agents" },
+      "agence": { "name": "Agency", "price": "149", "desc": "For teams" }
+    },
     "cta": {
-      "title": "Ready to streamline your transactions?",
-      "subtitle": "Join hundreds of agents already using Ofra to close more deals.",
-      "button": "Start your free trial"
+      "title": "Ready to simplify your transactions?",
+      "subtitle": "Start your 30-day free trial. All Pro features, no credit card required.",
+      "button": "Get started for free"
     },
     "footer": {
       "tagline": "Zero oversights. Zero stress.",
       "product": "Product",
+      "company": "Company",
       "legal": "Legal",
       "contact": "Contact",
+      "about": "About",
+      "faq": "FAQ",
       "signup": "Sign up",
       "privacy": "Privacy Policy",
       "terms": "Terms of Service",
       "contactUs": "Contact Us",
       "rights": "All rights reserved."
+    },
+    "mockup": {
+      "closingDateLabel": "Expected closing",
+      "closingDate": "March 15, 2026",
+      "progression": "Progress",
+      "inDays": "in {{count}} days",
+      "stepOf": "Step {{current}} / {{total}}",
+      "steps": "Steps",
+      "currentStep": "Current step",
+      "conditionalPeriod": "Conditional period",
+      "legalCompliance": "Legal compliance",
+      "validated": "Validated",
+      "idVerified": "Identity verified",
+      "fundsConfirmed": "Source of funds confirmed",
+      "wellInspection": "Artesian well inspection",
+      "autoBadge": "Auto",
+      "autoGeneratedWell": "Auto-generated · Rural property with well detected",
+      "blocking": "Blocking",
+      "dueInDays": "Due in {{count}}d",
+      "backTransactions": "Transactions",
+      "residentialPurchase": "Residential purchase",
+      "offerAccepted": "offer accepted",
+      "propertyProfile": "Property profile",
+      "locked": "Locked",
+      "residential": "Residential",
+      "rural": "Rural",
+      "financed": "Financed",
+      "artesianWell": "Artesian well",
+      "septicTank": "Septic tank",
+      "nextActions": "Next actions",
+      "wellWaterTest": "Drinking water test — artesian well",
+      "financingApproval": "Financing approval",
+      "daysRemaining": "{{count}} days remaining",
+      "documents": "Documents",
+      "docValidated": "Validated",
+      "docPending": "Pending",
+      "docMissing": "Missing",
+      "step1": "1. Consultation",
+      "step1Date": "Jan 12",
+      "step2": "2. Offer submitted",
+      "step2Date": "Jan 20",
+      "step3": "3. Offer accepted",
+      "step3Date": "Jan 25",
+      "step4": "4. Conditional period",
+      "step4Since": "Since {{days}} days",
+      "blockingCount": "Blocking ({{count}})",
+      "residentialInspection": "Residential inspection",
+      "completedFeb5": "Completed Feb 5",
+      "proofUploaded": "Proof uploaded",
+      "nDays": "{{count}} days",
+      "requiredCount": "Required ({{count}})",
+      "awaitingLender": "Awaiting lender · Submitted Feb 1",
+      "recommendedCount": "Recommended ({{count}})",
+      "septicInspection": "Septic tank inspection",
+      "completedFeb6": "Completed Feb 6",
+      "reportReceived": "Report received",
+      "step5": "5. Firm pending",
+      "step6": "6. Pre-closing",
+      "step7": "7. Closing day",
+      "step8": "8. Post-closing"
     }
   },
   "legal": {
@@ -1353,6 +1750,33 @@
       "withdrawFailed": "Failed to withdraw offer",
       "deleteFailed": "Failed to delete offer"
     },
+    "compare": "Compare",
+    "compareTitle": "Offer Comparison",
+    "comparison": {
+      "price": "Price",
+      "deposit": "Deposit",
+      "financing": "Financing",
+      "closingDate": "Closing Date",
+      "expiry": "Expiry",
+      "inspection": "Inspection",
+      "conditions": "Conditions",
+      "parties": "Parties",
+      "best": "Best",
+      "selectForAcceptance": "Accept this offer",
+      "buyer": "Buyer",
+      "seller": "Seller",
+      "noValue": "—"
+    },
+    "thread": {
+      "revision": "Revision #{{number}}",
+      "initial": "Initial offer",
+      "counter": "Counter-offer #{{number}}",
+      "latest": "Latest",
+      "from": "From",
+      "to": "To",
+      "showAll": "Show all revisions",
+      "hideAll": "Hide revisions"
+    },
     "counterOffer": "Counter-Offer",
     "price": "Price (CAD)",
     "deposit": "Deposit (CAD)",
@@ -1451,18 +1875,92 @@
       "address": "Address"
     }
   },
+  "faqPage": {
+    "hero": {
+      "title": "Frequently asked questions",
+      "subtitle": "Everything you need to know about Ofra. Can't find your answer? Contact us."
+    },
+    "categories": {
+      "general": "General",
+      "trial": "Free trial",
+      "features": "Features",
+      "billing": "Billing",
+      "security": "Security & compliance"
+    },
+    "general": {
+      "q1": "What is Ofra?",
+      "a1": "Ofra is a real estate transaction management software designed specifically for New Brunswick agents. It covers the complete workflow from consultation to post-closing, with automated conditions, offer management, and built-in FINTRAC compliance.",
+      "q2": "Is Ofra available across Canada?",
+      "a2": "Ofra is currently optimized for the New Brunswick market (specific conditions, provincial regulations, FR/EN bilingualism). We plan to expand coverage to other provinces in the future.",
+      "q3": "Does Ofra replace my current CRM?",
+      "a3": "Ofra is not a generic CRM — it's a transaction tracking tool. It focuses on the workflow of each individual transaction (conditions, offers, documents, steps). It complements your existing CRM rather than replacing it.",
+      "q4": "What languages is Ofra available in?",
+      "a4": "Ofra is 100% bilingual French and English. You can switch languages with one click from your profile, and the entire interface adapts instantly."
+    },
+    "trial": {
+      "q1": "How does the free trial work?",
+      "a1": "You get 30 days free with all Pro plan features. No credit card required to start. At the end of the trial, you choose the plan that fits your practice.",
+      "q2": "What happens at the end of the trial?",
+      "a2": "After 30 days, you choose a paid plan to continue. Your data and transactions are preserved. If you don't choose a plan, your account remains accessible in read-only mode.",
+      "q3": "Can I cancel during the trial?",
+      "a3": "Absolutely. You can cancel at any time during the trial with no charges. No credit card is required at signup."
+    },
+    "features": {
+      "q1": "How many transactions can I manage?",
+      "a1": "It depends on your plan. Starter allows 3 active transactions, Solo 10, Pro 25, and Agency is unlimited. Archived transactions don't count toward the limit.",
+      "q2": "How do automated conditions work?",
+      "a2": "When you create a transaction with the property profile filled in, Ofra automatically analyzes the type (residential, condo, land), context (rural, urban), and financing to generate relevant conditions. 52 templates are available.",
+      "q3": "Can I customize the workflow?",
+      "a3": "The 8-step workflow is standardized to ensure compliance and consistency. However, conditions are fully customizable and you can add manual conditions at any step.",
+      "q4": "How does the external offer form work?",
+      "a4": "You generate a secure link from a transaction. The collaborating agent fills in the form online with the offer details, and it appears directly in your transaction for review."
+    },
+    "billing": {
+      "q1": "Are prices in Canadian dollars?",
+      "a1": "Yes, all displayed prices are in Canadian dollars (CAD). No hidden fees, no surprises.",
+      "q2": "Can I change plans?",
+      "a2": "Yes, you can upgrade at any time. The change takes effect immediately. To downgrade, you may need to archive active transactions to meet the new limit.",
+      "q3": "Is there a long-term contract?",
+      "a3": "No. All plans are monthly with no commitment. You can cancel at any time. No cancellation fees, no penalties."
+    },
+    "security": {
+      "q1": "Is my data secure?",
+      "a1": "Yes. Ofra uses HTTPS/TLS encryption for all communications, passwords are hashed with bcrypt, and sessions use HTTP-only cookies. Your data is hosted in Canada.",
+      "q2": "Is Ofra FINTRAC compliant?",
+      "a2": "Ofra integrates FINTRAC compliance tools directly into the workflow: identity verification, funds source confirmation, and complete traceability. The tool facilitates your compliance but does not replace your legal responsibility as an agent.",
+      "q3": "Who has access to my transactions?",
+      "a3": "By default, only you have access to your transactions. You can share access with specific collaborators with granular permissions (read-only, edit). Agency administrators can have an overview if applicable."
+    },
+    "cta": {
+      "title": "Didn't find your answer?",
+      "subtitle": "Our team is here to help. Write to us and we'll respond within 24-48 hours.",
+      "contact": "Contact us",
+      "trial": "Try 30 days free"
+    }
+  },
   "contact": {
-    "title": "Contact our sales team",
-    "subtitle": "Interested in Ofra Enterprise? Let's discuss how we can help your team.",
+    "hero": {
+      "badge": "Contact"
+    },
+    "title": "Let's talk about your practice",
+    "subtitle": "Have a question, suggestion, or need help? Our Moncton-based team is here for you.",
+    "info": {
+      "title": "Contact info",
+      "subtitle": "We respond quickly, in French or English.",
+      "email": { "label": "Email" },
+      "location": { "label": "Location" },
+      "response": { "label": "Response time", "value": "24–48 business hours" }
+    },
     "form": {
       "name": "Full name",
       "namePlaceholder": "John Doe",
       "email": "Email address",
       "emailPlaceholder": "john@company.com",
-      "company": "Company name",
+      "company": "Brokerage name",
       "companyPlaceholder": "Your brokerage",
       "teamSize": "Team size",
       "selectTeamSize": "Select team size",
+      "solo": "solo",
       "message": "Message",
       "messagePlaceholder": "Tell us about your needs...",
       "submit": "Send message",
@@ -1470,12 +1968,12 @@
     },
     "success": {
       "title": "Message sent!",
-      "message": "Thank you for your interest. Our team will contact you within 24-48 hours."
+      "message": "Thank you for your message. Our team will get back to you within 24-48 business hours."
     }
   },
   "pricing": {
     "title": "Simple, transparent pricing",
-    "subtitle": "Choose the plan that fits your business. All prices in CAD, no hidden fees.",
+    "subtitle": "Start with 30 days free, then choose your plan. All prices in CAD, no hidden fees.",
     "perMonth": "/month",
     "popular": "Most Popular",
     "plans": {
@@ -1512,19 +2010,28 @@
       "support": "Support"
     },
     "comparison": {
-      "title": "Compare all features",
-      "feature": "Feature"
+      "toggle": "Compare all plans",
+      "feature": "Feature",
+      "limits": "Limits",
+      "base": "Core features",
+      "exports": "Exports & Sharing",
+      "premium": "Premium features",
+      "txActives": "Active transactions",
+      "storage": "Storage",
+      "users": "Users",
+      "pdfExports": "PDF exports",
+      "shareLinks": "Share links"
     },
     "faq": {
       "title": "Frequently asked questions",
       "q1": "Can I try Ofra before paying?",
-      "a1": "Yes! Join our Founder Program for 3 months free with the Pro plan. Limited to 25 spots.",
+      "a1": "Yes! All new accounts get 30 days free with all Pro features. No credit card required.",
       "q2": "Can I cancel anytime?",
       "a2": "Absolutely. There are no long-term contracts. Cancel your subscription anytime from your account settings.",
       "q3": "Is my data secure?",
       "a3": "Yes, we use industry-standard encryption and security practices. Your data is stored securely in Canada.",
-      "q4": "Do you offer discounts for teams?",
-      "a4": "Founders get 25% off for life after the trial. Contact us for custom Agence pricing for larger teams."
+      "q4": "What is the Founder Program?",
+      "a4": "The first 25 agents to join Ofra get a lifetime price lock — the price you choose will never increase, even if our rates go up."
     },
     "month": "month",
     "monthly": "Monthly",
@@ -1532,16 +2039,27 @@
     "activeTransactions": "active",
     "unlimited": "unlimited",
     "storage": "storage",
-    "history": "History",
-    "months": "months",
-    "conditionsEngine": "Conditions engine",
-    "guidedWorkflow": "Guided workflow",
+    "gates": {
+      "guidedWorkflow": "8-step guided workflow",
+      "conditionsEngine": "Conditions engine",
+      "pdfExportsLimited": "{{count}} PDF exports/month",
+      "shareLinksLimited": "{{count}} share link/TX",
+      "conditionPacks": "Auto conditions (NB packs)",
+      "fintrac": "FINTRAC identity",
+      "evidence": "Resolution evidence",
+      "auditHistory": "Audit history",
+      "exportsUnlimited": "Unlimited exports & sharing",
+      "multiUser": "{{count}} users"
+    },
     "comingSoon": "Coming soon",
-    "trust": "30-day money-back guarantee · 100% Canada 🍁 · FR/EN · No contract",
+    "year": "yr",
+    "save": "Save {{amount}}$",
+    "saveMonths": "2 months free",
+    "trust": "30 days free · No credit card · 100% Canada 🍁 · FR/EN · No contract",
     "founder": {
       "title": "FOUNDER OFFER",
       "spots": "19/25 spots remaining",
-      "desc": "1 month free + -20% for life (all plans) · -30% if annual",
+      "desc": "30 days free + lifetime price lock on all plans. Prices will increase.",
       "cta": "Become a founder"
     },
     "cta": {
@@ -1696,6 +2214,14 @@
       "expired": "Transaction limit of {{max}} reached ({{active}} active). Please upgrade to continue.",
       "upgrade": "Upgrade",
       "viewTransactions": "View transactions"
+    }
+  },
+  "trial": {
+    "banner": {
+      "active": "Free trial — {{days}} day(s) remaining",
+      "softWall": "Your trial has ended. Your data is safe — choose a plan to continue.",
+      "choosePlan": "Choose a plan",
+      "seePlans": "See plans"
     }
   },
   "documents": {
@@ -2040,7 +2566,16 @@
     "copied": "Copied!",
     "badgePack": "Pack",
     "badgeActive": "Active",
-    "accordionConditions": "Offer conditions"
+    "accordionConditions": "Offer conditions",
+    "buyerParty": "Buyer",
+    "sellerParty": "Seller",
+    "selectParty": "Select a party",
+    "addParty": "Add a party",
+    "clearParty": "No selection",
+    "partyNamePlaceholder": "Full name",
+    "partyEmailPlaceholder": "Email (optional)",
+    "partyPhonePlaceholder": "Phone (optional)",
+    "partyCreated": "Party added"
   },
   "permissionsPage": {
     "title": "Access & Permissions",
@@ -2153,7 +2688,8 @@
       "messageRequired": "{{count}} required condition(s) must be resolved before advancing.",
       "offerRequiredTitle": "Accepted offer required",
       "offerRequiredMessage": "You must accept an offer before completing the negotiation step.",
-      "viewOffers": "View offers"
+      "viewOffers": "View offers",
+      "fintracCount": "{{count}} FINTRAC verification(s)"
     },
     "ready": {
       "title": "Ready for validation",

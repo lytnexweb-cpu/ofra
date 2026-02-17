@@ -17,6 +17,8 @@ export const createOfferValidator = vine.compile(
     conditionIds: vine.array(vine.number()).optional(),
     fromPartyId: vine.number().positive().optional(),
     toPartyId: vine.number().positive().optional(),
+    buyerPartyId: vine.number().positive().optional(),
+    sellerPartyId: vine.number().positive().optional(),
   })
 )
 

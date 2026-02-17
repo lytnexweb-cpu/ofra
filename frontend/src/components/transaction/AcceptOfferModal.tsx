@@ -290,6 +290,36 @@ export default function AcceptOfferModal({
                   </div>
                 )}
               </div>
+
+              {/* Offer parties (buyer/seller) */}
+              {(offer.buyerParty || offer.sellerParty) && (
+                <div className="mt-2 pt-2 border-t border-stone-200">
+                  <span className="text-[10px] text-stone-400 uppercase font-semibold tracking-wide">
+                    {t('transaction.acceptOffer.partiesLabel')}
+                  </span>
+                  <div className="grid grid-cols-2 gap-2 mt-1">
+                    {offer.buyerParty && (
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+                        <span className="text-xs text-stone-700">
+                          <span className="text-stone-400">{t('transaction.acceptOffer.buyer')}:</span>{' '}
+                          {offer.buyerParty.fullName}
+                        </span>
+                      </div>
+                    )}
+                    {offer.sellerParty && (
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                        <span className="text-xs text-stone-700">
+                          <span className="text-stone-400">{t('transaction.acceptOffer.seller')}:</span>{' '}
+                          {offer.sellerParty.fullName}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {lastRev.notes && (
                 <p className="text-xs text-stone-500 italic mt-2 pt-2 border-t border-stone-200">
                   &ldquo;{lastRev.notes}&rdquo;

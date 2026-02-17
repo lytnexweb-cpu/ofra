@@ -17,6 +17,8 @@ export interface CreateOfferRequest {
   conditionIds?: number[]
   fromPartyId?: number
   toPartyId?: number
+  buyerPartyId?: number
+  sellerPartyId?: number
 }
 
 export interface AddRevisionRequest {

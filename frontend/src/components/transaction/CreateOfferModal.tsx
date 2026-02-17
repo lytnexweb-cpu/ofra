@@ -20,6 +20,7 @@ import {
 import { offersApi } from '../../api/offers.api'
 import { packsApi, type PackTemplate, type ConditionPack } from '../../api/packs.api'
 import type { Offer, OfferRevision, Transaction } from '../../api/transactions.api'
+import PartyPicker from './PartyPicker'
 
 interface CreateOfferModalProps {
   isOpen: boolean
@@ -109,6 +110,10 @@ export default function CreateOfferModal({
   const [serverErrorDetails, setServerErrorDetails] = useState({ code: '', timestamp: '' })
   const [copiedDetails, setCopiedDetails] = useState(false)
 
+  // ── Party state ──
+  const [buyerPartyId, setBuyerPartyId] = useState<number | null>(null)
+  const [sellerPartyId, setSellerPartyId] = useState<number | null>(null)
+
   // ── Mobile accordion ──
   const [accordionOpen, setAccordionOpen] = useState(false)
 
@@ -136,6 +141,21 @@ export default function CreateOfferModal({
       setShowErrors(false)
       setAccordionOpen(false)
       setCopiedDetails(false)
+      // Pre-populate parties from last revision in counter mode
+      if (isCounter && lastRevision) {
+        // In counter mode, swap from/to: the fromParty of last revision becomes the toParty
+        const fromRole = lastRevision.direction === 'buyer_to_seller' ? 'buyer' : 'seller'
+        if (fromRole === 'buyer') {
+          setBuyerPartyId(lastRevision.fromPartyId ?? null)
+          setSellerPartyId(lastRevision.toPartyId ?? null)
+        } else {
+          setBuyerPartyId(lastRevision.toPartyId ?? null)
+          setSellerPartyId(lastRevision.fromPartyId ?? null)
+        }
+      } else {
+        setBuyerPartyId(null)
+        setSellerPartyId(null)
+      }
     }
   }, [isOpen, isCounter, lastRevision])
 
@@ -226,6 +246,8 @@ export default function CreateOfferModal({
         inclusions: inclusions.trim() || null,
         message: message.trim() || null,
         notes: null,
+        buyerPartyId: buyerPartyId ?? undefined,
+        sellerPartyId: sellerPartyId ?? undefined,
       }
 
       let result
@@ -645,6 +667,22 @@ export default function CreateOfferModal({
                     {t('addOffer.typeCounter')}
                   </button>
                 </div>
+              </div>
+
+              {/* Party pickers */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <PartyPicker
+                  transactionId={transaction.id}
+                  role="buyer"
+                  selectedPartyId={buyerPartyId}
+                  onSelect={setBuyerPartyId}
+                />
+                <PartyPicker
+                  transactionId={transaction.id}
+                  role="seller"
+                  selectedPartyId={sellerPartyId}
+                  onSelect={setSellerPartyId}
+                />
               </div>
 
               {/* Montant offert */}

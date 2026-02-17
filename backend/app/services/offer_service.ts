@@ -77,6 +77,8 @@ export class OfferService {
     conditionIds?: number[]
     fromPartyId?: number
     toPartyId?: number
+    buyerPartyId?: number
+    sellerPartyId?: number
   }): Promise<Offer> {
     const direction = params.direction || 'buyer_to_seller'
 
@@ -87,9 +89,26 @@ export class OfferService {
       params.toPartyId
     )
 
+    // Validate buyer/seller party coherence if provided
+    if (params.buyerPartyId) {
+      const buyerParty = await TransactionParty.find(params.buyerPartyId)
+      if (!buyerParty) throw new Error(`Party not found: buyerPartyId=${params.buyerPartyId}`)
+      if (buyerParty.transactionId !== params.transactionId) throw new Error('buyerParty must belong to the same transaction')
+      if (buyerParty.role !== 'buyer') throw new Error(`buyerPartyId requires role=buyer, got ${buyerParty.role}`)
+    }
+    if (params.sellerPartyId) {
+      const sellerParty = await TransactionParty.find(params.sellerPartyId)
+      if (!sellerParty) throw new Error(`Party not found: sellerPartyId=${params.sellerPartyId}`)
+      if (sellerParty.transactionId !== params.transactionId) throw new Error('sellerParty must belong to the same transaction')
+      if (sellerParty.role !== 'seller') throw new Error(`sellerPartyId requires role=seller, got ${sellerParty.role}`)
+    }
+
     const offer = await Offer.create({
       transactionId: params.transactionId,
       status: 'received',
+      buyerPartyId: params.buyerPartyId ?? null,
+      sellerPartyId: params.sellerPartyId ?? null,
+      initialDirection: direction,
     })
 
     const revision = await OfferRevision.create({
@@ -110,6 +129,8 @@ export class OfferService {
       await revision.related('conditions').attach(params.conditionIds)
     }
 
+    await offer.load('buyerParty')
+    await offer.load('sellerParty')
     await offer.load('revisions', (query) =>
       query.preload('conditions').preload('fromParty').preload('toParty')
     )
@@ -216,6 +237,22 @@ export class OfferService {
       throw new Error('Cannot accept offer: the latest revision has expired')
     }
 
+    // Auto-populate buyerPartyId/sellerPartyId from the latest revision if absent
+    if (latestRevision && (!offer.buyerPartyId || !offer.sellerPartyId)) {
+      if (!offer.buyerPartyId) {
+        const buyerId = latestRevision.direction === 'buyer_to_seller'
+          ? latestRevision.fromPartyId
+          : latestRevision.toPartyId
+        if (buyerId) offer.buyerPartyId = buyerId
+      }
+      if (!offer.sellerPartyId) {
+        const sellerId = latestRevision.direction === 'buyer_to_seller'
+          ? latestRevision.toPartyId
+          : latestRevision.fromPartyId
+        if (sellerId) offer.sellerPartyId = sellerId
+      }
+    }
+
     // Accept this offer
     offer.status = 'accepted'
     offer.acceptedAt = DateTime.now()
@@ -248,6 +285,8 @@ export class OfferService {
       console.warn('[OfferService] Auto-advance failed after offer accept:', (error as Error).message)
     }
 
+    await offer.load('buyerParty')
+    await offer.load('sellerParty')
     await offer.load('revisions', (query) =>
       query.preload('fromParty').preload('toParty')
     )
@@ -306,6 +345,8 @@ export class OfferService {
     return Offer.query()
       .where('transaction_id', transactionId)
       .where('status', 'accepted')
+      .preload('buyerParty')
+      .preload('sellerParty')
       .preload('revisions', (query) =>
         query.preload('fromParty').preload('toParty').orderBy('revision_number', 'asc')
       )
@@ -318,6 +359,8 @@ export class OfferService {
   public static async getOffers(transactionId: number): Promise<Offer[]> {
     return Offer.query()
       .where('transaction_id', transactionId)
+      .preload('buyerParty')
+      .preload('sellerParty')
       .preload('revisions', (query) =>
         query
           .preload('conditions')
