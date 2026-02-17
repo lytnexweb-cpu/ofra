@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { authApi } from '../api/auth.api'
 import { Eye, EyeOff } from 'lucide-react'
 import { OfraLogo, OfraLogoFull } from '../components/OfraLogo'
+import { LanguageToggle } from '../components/ui/LanguageToggle'
 
 export default function LoginPage() {
   const { t } = useTranslation()
@@ -116,7 +117,8 @@ export default function LoginPage() {
       </div>
 
       {/* Right Panel — Login form */}
-      <div className="flex items-center justify-center bg-white dark:bg-stone-900 py-12 px-6 sm:px-12 lg:px-16 transition-colors">
+      <div className="relative flex items-center justify-center bg-white dark:bg-stone-900 py-12 px-6 sm:px-12 lg:px-16 transition-colors">
+        <LanguageToggle className="absolute top-4 right-4 text-stone-400 hover:text-primary dark:hover:text-white" />
         <div className="w-full max-w-sm">
           {/* Logo — small, no tagline */}
           <OfraLogoFull className="mb-10" showTagline={false} iconSize={32} />

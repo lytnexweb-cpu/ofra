@@ -12,6 +12,7 @@ import {
   resetPasswordValidator,
 } from '#validators/auth_validator'
 import WelcomeMail from '#mails/welcome_mail'
+import { ReminderService } from '#services/reminder_service'
 import PasswordResetMail from '#mails/password_reset_mail'
 import EmailVerificationMail from '#mails/email_verification_mail'
 
@@ -39,7 +40,7 @@ export default class AuthController {
         provinceCode: 'NB', // Default to New Brunswick
       })
 
-      // Create user with organization
+      // Create user with organization — D53: trial 30 days starts now
       const user = await User.create({
         email: data.email,
         password: data.password,
@@ -55,6 +56,9 @@ export default class AuthController {
         dateFormat: 'YYYY-MM-DD',
         timezone: 'America/Moncton',
         organizationId: organization.id,
+        subscriptionStatus: 'trial',
+        subscriptionStartedAt: DateTime.now(),
+        subscriptionEndsAt: DateTime.now().plus({ days: 30 }),
       })
 
       // Generate email verification token
@@ -80,6 +84,9 @@ export default class AuthController {
         .catch(() => {
           // Log but don't fail registration
         })
+
+      // D53: Schedule trial reminder emails (J7, J21, J27) — fire and forget
+      ReminderService.scheduleTrialReminders(user).catch(() => {})
 
       return response.created({
         success: true,

@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
-import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom'
+import { Link, Outlet, useNavigate, useLocation, Navigate } from 'react-router-dom'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { authApi } from '../api/auth.api'
+import { subscriptionApi } from '../api/subscription.api'
 import MobileMenu from './common/MobileMenu'
 import { BRAND } from '../config/brand'
 import { OfraLogo } from './OfraLogo'
@@ -17,6 +18,7 @@ import {
 import NotificationBell from './NotificationBell'
 import { ShieldCheck } from 'lucide-react'
 import SoftLimitBanner from './SoftLimitBanner'
+import TrialBanner from './TrialBanner'
 
 // Logout icon
 function LogoutIcon({ className }: { className?: string }) {
@@ -38,6 +40,14 @@ export default function Layout() {
     queryKey: ['auth', 'me'],
     queryFn: authApi.me,
   })
+
+  // D53: Trial status for hard wall redirect
+  const { data: subData } = useQuery({
+    queryKey: ['subscription'],
+    queryFn: subscriptionApi.get,
+    staleTime: 2 * 60 * 1000,
+  })
+  const trialHardWall = subData?.data?.trial?.hardWall === true
 
   // Sync language from backend on login (prevents desync across devices)
   useEffect(() => {
@@ -83,6 +93,11 @@ export default function Layout() {
     .toUpperCase()
     .slice(0, 2) || '?'
 
+  // D53: Hard wall — redirect to pricing if trial expired beyond grace
+  if (trialHardWall && location.pathname !== '/pricing' && location.pathname !== '/settings') {
+    return <Navigate to="/pricing" replace />
+  }
+
   return (
     <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-stone-50 dark:bg-stone-900 text-foreground flex flex-col lg:flex-row transition-colors">
       {/* Skip link for accessibility */}
@@ -96,7 +111,7 @@ export default function Layout() {
       >
         {/* Logo */}
         <div className="flex items-center gap-3 px-6 py-5 border-b border-white/10">
-          <OfraLogo size={36} />
+          <OfraLogo size={36} variant="white" />
           <span
             className="text-xl font-bold text-white"
             style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}
@@ -220,7 +235,8 @@ export default function Layout() {
           <NotificationBell />
         </header>
 
-        {/* K2: Soft limit banner */}
+        {/* D53: Trial banner + K2: Soft limit banner */}
+        <TrialBanner />
         <SoftLimitBanner />
 
         {/* Page Content - scrollable on mobile, normal flow on desktop */}

@@ -55,6 +55,7 @@ export const emailTranslations = {
       subject: 'Bienvenue sur Ofra!',
       title: 'Bienvenue sur Ofra!',
       intro: 'Votre compte a été créé avec succès. Vous pouvez maintenant gérer vos transactions immobilières avec Ofra.',
+      trialNotice: 'Vous bénéficiez d\'un <strong>essai gratuit de 30 jours</strong> avec accès complet à toutes les fonctionnalités Pro. Créez votre première transaction et découvrez la puissance d\'Ofra.',
       cta: 'Accéder à Ofra',
       gettingStartedTitle: 'Pour commencer',
       gettingStartedItems: [
@@ -69,6 +70,7 @@ export const emailTranslations = {
       subject: 'Welcome to Ofra!',
       title: 'Welcome to Ofra!',
       intro: 'Your account has been created successfully. You can now manage your real estate transactions with Ofra.',
+      trialNotice: 'You have a <strong>free 30-day trial</strong> with full access to all Pro features. Create your first transaction and discover the power of Ofra.',
       cta: 'Go to Ofra',
       gettingStartedTitle: 'Getting Started',
       gettingStartedItems: [
@@ -746,6 +748,36 @@ export const emailTranslations = {
       ifAgent: 'If',
       cta: 'Leave a Google Review',
       thankYou: 'Thank you for your time and your trust!',
+    },
+  },
+
+  // ============================================
+  // D53: TRIAL REMINDER EMAILS
+  // ============================================
+  trialReminder: {
+    fr: {
+      subjectActive: 'Il vous reste {{days}} jours dans votre essai Ofra',
+      subjectUrgent: 'Plus que {{days}} jours — votre essai Ofra se termine bientôt',
+      titleActive: 'Votre essai gratuit',
+      titleUrgent: 'Votre essai se termine bientôt',
+      bodyActive: 'Il vous reste <strong>{{days}} jours</strong> dans votre essai gratuit. Profitez de toutes les fonctionnalités Pro pour gérer vos transactions en toute confiance.',
+      bodyUrgent: 'Votre essai gratuit se termine dans <strong>{{days}} jours</strong>. Choisissez un forfait maintenant pour continuer à utiliser Ofra sans interruption.',
+      reminderTip: 'Rappel : pendant votre essai, vous avez accès complet à toutes les fonctionnalités Pro, incluant le suivi des conditions, FINTRAC, les preuves et plus encore.',
+      ctaPricing: 'Voir les forfaits',
+      ctaDashboard: 'Aller au tableau de bord',
+      noLoss: 'Vos données sont en sécurité. Elles seront restaurées intégralement dès que vous choisirez un forfait.',
+    },
+    en: {
+      subjectActive: 'You have {{days}} days left in your Ofra trial',
+      subjectUrgent: 'Only {{days}} days left — your Ofra trial is ending soon',
+      titleActive: 'Your free trial',
+      titleUrgent: 'Your trial is ending soon',
+      bodyActive: 'You have <strong>{{days}} days</strong> left in your free trial. Make the most of all Pro features to manage your transactions with confidence.',
+      bodyUrgent: 'Your free trial ends in <strong>{{days}} days</strong>. Choose a plan now to keep using Ofra without interruption.',
+      reminderTip: 'Reminder: during your trial, you have full access to all Pro features, including condition tracking, FINTRAC compliance, evidence management and more.',
+      ctaPricing: 'See plans',
+      ctaDashboard: 'Go to dashboard',
+      noLoss: 'Your data is safe. It will be fully restored as soon as you choose a plan.',
     },
   },
 }

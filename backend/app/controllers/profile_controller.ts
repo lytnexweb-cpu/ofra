@@ -344,6 +344,25 @@ export default class ProfileController {
       graceDaysRemaining = Math.max(0, Math.round(7 - elapsed))
     }
 
+    // D53: Trial info
+    const now = DateTime.now()
+    const isTrial = !user.planId && user.subscriptionStatus === 'trial'
+    const trialEnd = user.subscriptionEndsAt
+    let trialDaysRemaining: number | null = null
+    let trialSoftWall = false
+    let trialHardWall = false
+
+    if (isTrial && trialEnd) {
+      if (now < trialEnd) {
+        trialDaysRemaining = Math.ceil(trialEnd.diff(now, 'days').days)
+      } else {
+        trialDaysRemaining = 0
+        const softWallEnd = trialEnd.plus({ days: 3 })
+        trialSoftWall = now < softWallEnd
+        trialHardWall = now >= softWallEnd
+      }
+    }
+
     const plan = user.plan
 
     return response.ok({
@@ -380,6 +399,14 @@ export default class ProfileController {
           active: user.gracePeriodStart !== null,
           startedAt: user.gracePeriodStart?.toISO() ?? null,
           daysRemaining: graceDaysRemaining,
+        },
+        trial: {
+          active: isTrial && trialDaysRemaining !== null && trialDaysRemaining > 0,
+          daysRemaining: trialDaysRemaining,
+          endsAt: trialEnd?.toISO() ?? null,
+          txUsed: user.trialTxUsed,
+          softWall: trialSoftWall,
+          hardWall: trialHardWall,
         },
       },
     })

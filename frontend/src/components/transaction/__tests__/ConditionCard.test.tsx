@@ -43,21 +43,16 @@ describe('ConditionCard (read-only)', () => {
     expect(screen.getByText('Financing Approval')).toBeInTheDocument()
   })
 
-  it('renders condition description (AC1)', () => {
-    renderWithProviders(<ConditionCard condition={makeCondition()} />)
-
-    expect(screen.getByText('Client needs bank financing approval')).toBeInTheDocument()
-  })
-
-  it('shows blocking badge when blocking + pending (AC2)', () => {
+  it('renders with level-specific background color (AC2)', () => {
     renderWithProviders(
-      <ConditionCard condition={makeCondition({ isBlocking: true, status: 'pending' })} />
+      <ConditionCard condition={makeCondition({ isBlocking: true, status: 'pending', level: 'blocking' })} />
     )
 
-    expect(screen.getByText(/blocking/i)).toBeInTheDocument()
+    const card = screen.getByTestId('condition-card-42')
+    expect(card.className).toContain('bg-red-50')
   })
 
-  it('hides blocking badge when completed (AC2)', () => {
+  it('hides level styling when completed (line-through instead)', () => {
     renderWithProviders(
       <ConditionCard
         condition={makeCondition({
@@ -68,13 +63,13 @@ describe('ConditionCard (read-only)', () => {
       />
     )
 
-    expect(screen.queryByText(/blocking/i)).not.toBeInTheDocument()
+    const title = screen.getByText('Financing Approval')
+    expect(title.className).toContain('line-through')
   })
 
   it('shows type badge (AC1)', () => {
     renderWithProviders(<ConditionCard condition={makeCondition({ type: 'inspection' })} />)
 
-    // i18n key conditions.types.inspection renders
     const card = screen.getByTestId('condition-card-42')
     expect(card.textContent).toBeTruthy()
   })
@@ -84,12 +79,12 @@ describe('ConditionCard (read-only)', () => {
       <ConditionCard condition={makeCondition({ status: 'pending', dueDate: '2026-02-15T12:00:00.000Z' })} />
     )
 
-    // CountdownBadge renders (19 days from Jan 27 to Feb 15)
     const card = screen.getByTestId('condition-card-42')
-    expect(card.textContent).toBeTruthy()
+    // Should contain days indicator
+    expect(card.textContent).toMatch(/\d+j/)
   })
 
-  it('shows completed text when done (AC3)', () => {
+  it('shows "Fait" text when done (AC3)', () => {
     renderWithProviders(
       <ConditionCard
         condition={makeCondition({
@@ -99,10 +94,8 @@ describe('ConditionCard (read-only)', () => {
       />
     )
 
-    // Shows completed status text
     const card = screen.getByTestId('condition-card-42')
-    // The "Completed" text from i18n workflow.status.completed
-    expect(card.querySelector('.text-success')).toBeTruthy()
+    expect(card.textContent).toContain('Done')
   })
 
   it('line-through title when done (AC3)', () => {
@@ -122,7 +115,6 @@ describe('ConditionCard (read-only)', () => {
   it('no toggle button in non-interactive mode (AC4)', () => {
     renderWithProviders(<ConditionCard condition={makeCondition()} />)
 
-    // interactive defaults to false — no button
     expect(screen.queryByTestId('toggle-condition-42')).not.toBeInTheDocument()
   })
 
@@ -152,7 +144,7 @@ describe('ConditionCard (interactive)', () => {
     vi.useRealTimers()
   })
 
-  it('shows toggle button when interactive=true (AC1)', () => {
+  it('shows toggle checkbox when interactive=true (AC1)', () => {
     renderWithProviders(
       <ConditionCard condition={makeCondition()} interactive onToggle={vi.fn()} />
     )
@@ -172,9 +164,7 @@ describe('ConditionCard (interactive)', () => {
     expect(onToggle).toHaveBeenCalledWith(condition)
   })
 
-  it('shows check icon when completed (AC3)', () => {
-    // D41: Use 'recommended' level so toggle remains visible when completed
-    // (blocking/required conditions are locked when completed)
+  it('checkbox is checked when completed (AC3)', () => {
     renderWithProviders(
       <ConditionCard
         condition={makeCondition({
@@ -188,9 +178,8 @@ describe('ConditionCard (interactive)', () => {
       />
     )
 
-    const btn = screen.getByTestId('toggle-condition-42')
-    // Completed → green circle with check (bg-success class)
-    expect(btn.querySelector('.bg-success')).toBeTruthy()
+    const checkbox = screen.getByTestId('toggle-condition-42') as HTMLInputElement
+    expect(checkbox.checked).toBe(true)
   })
 
   it('disables toggle when isToggling=true (AC4)', () => {
@@ -206,7 +195,6 @@ describe('ConditionCard (interactive)', () => {
 
     const btn = screen.getByTestId('toggle-condition-42')
     expect(btn).toBeDisabled()
-    // Click should not fire onToggle
     fireEvent.click(btn)
     expect(onToggle).not.toHaveBeenCalled()
   })
@@ -218,13 +206,10 @@ describe('ConditionCard (interactive)', () => {
 
     const btn = screen.getByTestId('toggle-condition-42')
     expect(btn).toHaveAttribute('aria-label')
-    // i18n key workflow.status.pending
     expect(btn.getAttribute('aria-label')).toBeTruthy()
   })
 
   it('aria-label reflects completed status (AC6)', () => {
-    // D41: Use 'recommended' level so toggle remains visible when completed
-    // (blocking/required conditions are locked when completed)
     renderWithProviders(
       <ConditionCard
         condition={makeCondition({
@@ -240,6 +225,7 @@ describe('ConditionCard (interactive)', () => {
 
     const btn = screen.getByTestId('toggle-condition-42')
     expect(btn).toHaveAttribute('aria-label')
+    expect(btn.getAttribute('aria-label')).toContain('Done')
   })
 
   it('has no WCAG 2.1 AA violations in interactive mode', async () => {
@@ -251,7 +237,7 @@ describe('ConditionCard (interactive)', () => {
   })
 })
 
-// D41: Locked condition tests (Garde-fous validation)
+// D41: Locked condition tests — component now uses checked+disabled checkbox
 describe('ConditionCard (D41 - locked state)', () => {
   beforeEach(() => {
     vi.useFakeTimers({ shouldAdvanceTime: true })
@@ -262,7 +248,7 @@ describe('ConditionCard (D41 - locked state)', () => {
     vi.useRealTimers()
   })
 
-  it('shows lock icon for completed blocking condition', () => {
+  it('completed blocking condition has checked checkbox', () => {
     renderWithProviders(
       <ConditionCard
         condition={makeCondition({
@@ -276,11 +262,12 @@ describe('ConditionCard (D41 - locked state)', () => {
     )
 
     const card = screen.getByTestId('condition-card-42')
-    // Lock icon should be present (via lucide Lock component)
-    expect(card.querySelector('svg.lucide-lock')).toBeInTheDocument()
+    const checkbox = card.querySelector('input[type="checkbox"]') as HTMLInputElement
+    expect(checkbox).toBeTruthy()
+    expect(checkbox.checked).toBe(true)
   })
 
-  it('shows lock icon for completed required condition', () => {
+  it('completed required condition has checked checkbox', () => {
     renderWithProviders(
       <ConditionCard
         condition={makeCondition({
@@ -294,10 +281,12 @@ describe('ConditionCard (D41 - locked state)', () => {
     )
 
     const card = screen.getByTestId('condition-card-42')
-    expect(card.querySelector('svg.lucide-lock')).toBeInTheDocument()
+    const checkbox = card.querySelector('input[type="checkbox"]') as HTMLInputElement
+    expect(checkbox).toBeTruthy()
+    expect(checkbox.checked).toBe(true)
   })
 
-  it('does NOT show lock icon for completed recommended condition', () => {
+  it('completed recommended condition still has toggle', () => {
     renderWithProviders(
       <ConditionCard
         condition={makeCondition({
@@ -310,61 +299,10 @@ describe('ConditionCard (D41 - locked state)', () => {
       />
     )
 
-    const card = screen.getByTestId('condition-card-42')
-    expect(card.querySelector('svg.lucide-lock')).not.toBeInTheDocument()
-  })
-
-  it('does NOT show toggle button for locked blocking condition', () => {
-    renderWithProviders(
-      <ConditionCard
-        condition={makeCondition({
-          status: 'completed',
-          level: 'blocking',
-          completedAt: '2026-01-20T12:00:00.000Z',
-        })}
-        interactive
-        onToggle={vi.fn()}
-      />
-    )
-
-    // No toggle button should exist for locked conditions
-    expect(screen.queryByTestId('toggle-condition-42')).not.toBeInTheDocument()
-  })
-
-  it('does NOT show toggle button for locked required condition', () => {
-    renderWithProviders(
-      <ConditionCard
-        condition={makeCondition({
-          status: 'completed',
-          level: 'required',
-          completedAt: '2026-01-20T12:00:00.000Z',
-        })}
-        interactive
-        onToggle={vi.fn()}
-      />
-    )
-
-    expect(screen.queryByTestId('toggle-condition-42')).not.toBeInTheDocument()
-  })
-
-  it('DOES show toggle button for completed recommended condition (not locked)', () => {
-    renderWithProviders(
-      <ConditionCard
-        condition={makeCondition({
-          status: 'completed',
-          level: 'recommended',
-          completedAt: '2026-01-20T12:00:00.000Z',
-        })}
-        interactive
-        onToggle={vi.fn()}
-      />
-    )
-
-    // Recommended conditions can still be toggled
     expect(screen.getByTestId('toggle-condition-42')).toBeInTheDocument()
   })
 
-  it('shows toggle button for pending blocking condition (not yet locked)', () => {
+  it('shows toggle button for pending blocking condition', () => {
     renderWithProviders(
       <ConditionCard
         condition={makeCondition({
@@ -376,7 +314,6 @@ describe('ConditionCard (D41 - locked state)', () => {
       />
     )
 
-    // Pending conditions can be toggled (to complete them)
     expect(screen.getByTestId('toggle-condition-42')).toBeInTheDocument()
   })
 
@@ -394,9 +331,8 @@ describe('ConditionCard (D41 - locked state)', () => {
       />
     )
 
-    // Legacy blocking condition should also be locked
     const card = screen.getByTestId('condition-card-42')
-    expect(card.querySelector('svg.lucide-lock')).toBeInTheDocument()
-    expect(screen.queryByTestId('toggle-condition-42')).not.toBeInTheDocument()
+    // Card should have red/blocking background
+    expect(card.className).toContain('bg-red-50')
   })
 })

@@ -428,7 +428,7 @@ test.group('Offers Controller - Multi-tenancy', (group) => {
 
     const response = await withAuth(client.get(`/api/transactions/${tx1.id}/offers`), user2.id)
 
-    response.assertStatus(404)
+    response.assertStatus(403)
   })
 
   test('User cannot create offers on other users transactions', async ({ client }) => {
@@ -442,7 +442,7 @@ test.group('Offers Controller - Multi-tenancy', (group) => {
       price: 300000,
     })
 
-    response.assertStatus(404)
+    response.assertStatus(403)
   })
 
   test('User cannot accept offers on other users transactions', async ({ client }) => {

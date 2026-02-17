@@ -22,7 +22,14 @@ export interface DelayedAutomationPayload {
   trigger: string
 }
 
-export type JobPayload = DailyDigestPayload | DeadlineWarningPayload | DelayedAutomationPayload
+export interface TrialReminderPayload {
+  type: 'trial_reminder'
+  userId: number
+  daysRemaining: number
+}
+
+export type ReminderPayload = DailyDigestPayload | DeadlineWarningPayload | TrialReminderPayload
+export type JobPayload = ReminderPayload | DelayedAutomationPayload
 
 class QueueService {
   private automationsQueue: Queue | null = null
@@ -55,7 +62,7 @@ class QueueService {
    */
   async startWorkers(handlers: {
     processAutomation: (job: Job<DelayedAutomationPayload>) => Promise<void>
-    processReminder: (job: Job<DailyDigestPayload | DeadlineWarningPayload>) => Promise<void>
+    processReminder: (job: Job<ReminderPayload>) => Promise<void>
   }) {
     const automationWorker = new Worker<DelayedAutomationPayload>(
       queueConfig.queues.automations,
@@ -66,7 +73,7 @@ class QueueService {
       { connection: queueConfig.connection }
     )
 
-    const reminderWorker = new Worker<DailyDigestPayload | DeadlineWarningPayload>(
+    const reminderWorker = new Worker<ReminderPayload>(
       queueConfig.queues.reminders,
       async (job) => {
         logger.info({ jobId: job.id, type: job.data.type }, 'Processing reminder job')
@@ -132,6 +139,26 @@ class QueueService {
     )
 
     logger.info({ jobId: job.id, delayMs }, 'Deadline warning scheduled')
+    return job
+  }
+
+  /**
+   * D53: Schedule a trial reminder email
+   */
+  async scheduleTrialReminder(payload: Omit<TrialReminderPayload, 'type'>, delayMs: number) {
+    if (!this.remindersQueue) {
+      throw new Error('Queue not initialized')
+    }
+
+    const jobId = `trial-reminder-${payload.userId}-j${30 - payload.daysRemaining}`
+
+    const job = await this.remindersQueue.add(
+      'trial_reminder',
+      { ...payload, type: 'trial_reminder' as const },
+      { delay: delayMs, jobId }
+    )
+
+    logger.info({ jobId: job.id, delayMs, daysRemaining: payload.daysRemaining }, 'Trial reminder scheduled')
     return job
   }
 

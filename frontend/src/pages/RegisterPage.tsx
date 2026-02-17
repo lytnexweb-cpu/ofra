@@ -5,6 +5,7 @@ import { authApi } from '../api/auth.api'
 import { useTranslation } from 'react-i18next'
 import { Eye, EyeOff } from 'lucide-react'
 import { OfraLogo, OfraLogoFull } from '../components/OfraLogo'
+import { LanguageToggle } from '../components/ui/LanguageToggle'
 
 const NB_PROVINCES = [
   { code: 'NB', label: 'Nouveau-Brunswick' },
@@ -140,7 +141,8 @@ export default function RegisterPage() {
       </div>
 
       {/* Right Panel — Registration form */}
-      <div className="flex items-center justify-center bg-white dark:bg-stone-900 py-8 px-6 sm:px-12 lg:px-16 transition-colors">
+      <div className="relative flex items-center justify-center bg-white dark:bg-stone-900 py-8 px-6 sm:px-12 lg:px-16 transition-colors">
+        <LanguageToggle className="absolute top-4 right-4 text-stone-400 hover:text-primary dark:hover:text-white" />
         <div className="w-full max-w-sm">
           {/* Logo — small, no tagline */}
           <OfraLogoFull className="mb-8" showTagline={false} iconSize={32} />

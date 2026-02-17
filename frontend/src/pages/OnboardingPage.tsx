@@ -47,21 +47,15 @@ export default function OnboardingPage() {
     if (lang === language) return
     setIsChangingLanguage(true)
     try {
-      // Debug: log before
-      console.log('[Onboarding] BEFORE - lang:', lang, '| i18n.language:', i18n.language, '| i18n.languages:', i18n.languages)
-
       // 1. Persist to localStorage FIRST
       localStorage.setItem('i18nextLng', lang)
 
       // 2. Change i18n language and WAIT for it
-      const result = await i18n.changeLanguage(lang)
-      console.log('[Onboarding] changeLanguage result:', result)
+      await i18n.changeLanguage(lang)
 
       // 3. Update local state AFTER i18n confirms change
       setLanguage(lang)
 
-      // Debug: log after
-      console.log('[Onboarding] AFTER - i18n.language:', i18n.language, '| i18n.resolvedLanguage:', i18n.resolvedLanguage)
     } catch (error) {
       console.error('[Onboarding] Language change FAILED:', error)
       // Rollback on error

@@ -5,7 +5,7 @@ import { WorkflowEngineService } from '#services/workflow_engine_service'
 import { ConditionsEngineService } from '#services/conditions_engine_service'
 import TransactionProfile from '#models/transaction_profile'
 import Condition from '#models/condition'
-import Transaction from '#models/transaction'
+
 
 export default class TestNoDuplicates extends BaseCommand {
   static commandName = 'test:no-duplicates'

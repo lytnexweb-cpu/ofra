@@ -43,6 +43,7 @@ export default class WelcomeMail extends BaseMail {
       <h1>${t.title}</h1>
       <p>${common.greeting} ${this.userName},</p>
       <p>${t.intro}</p>
+      <p>${t.trialNotice}</p>
 
       <div class="text-center">
         <a href="${this.loginUrl}" class="cta-button">${t.cta}</a>

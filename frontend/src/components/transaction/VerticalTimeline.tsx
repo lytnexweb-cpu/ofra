@@ -19,12 +19,14 @@ import {
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '../ui/Sheet'
 import type { Transaction, TransactionStep } from '../../api/transactions.api'
 import { conditionsApi, type Condition } from '../../api/conditions.api'
+import { fintracApi } from '../../api/fintrac.api'
 import { toast } from '../../hooks/use-toast'
 import { differenceInDays, formatDate } from '../../lib/date'
 import ConditionCard from './ConditionCard'
 import CreateConditionModal from '../CreateConditionModal'
 import EditConditionModal from './EditConditionModal'
 import ConditionValidationModal from './ConditionValidationModal'
+import FintracComplianceModal from './FintracComplianceModal'
 import ActionZone from './ActionZone'
 import NotesSection from './NotesSection'
 import TimelineTab from './TimelineTab'
@@ -131,6 +133,11 @@ export default function VerticalTimeline({
   )
   const [validatingCondition, setValidatingCondition] =
     useState<Condition | null>(null)
+  const [fintracResolve, setFintracResolve] = useState<{
+    conditionId: number
+    fintracRecordId: number
+    partyName: string
+  } | null>(null)
   const [togglingId, setTogglingId] = useState<number | null>(null)
 
   const steps = useMemo(
@@ -260,10 +267,38 @@ export default function VerticalTimeline({
     },
   })
 
+  const handleFintracClick = useCallback(async (condition: Condition) => {
+    try {
+      const result = await fintracApi.list(transaction.id)
+      const records = result.data?.records ?? []
+      const partyName = condition.title.replace('FINTRAC — ', '')
+      const match = records.find((r) => r.party?.fullName === partyName)
+      if (match) {
+        setFintracResolve({
+          conditionId: condition.id,
+          fintracRecordId: match.id,
+          partyName,
+        })
+      } else {
+        toast({ title: t('fintrac.noRecordFound', 'Aucun enregistrement FINTRAC trouvé'), variant: 'destructive' })
+      }
+    } catch {
+      toast({ title: t('common.error'), variant: 'destructive' })
+    }
+  }, [transaction.id, t])
+
   // D41: Graduated friction
   const handleToggle = useCallback(
     (condition: Condition) => {
       if (togglingId) return
+
+      // FINTRAC conditions must be resolved via their dedicated modal
+      const isFintrac = condition.title.startsWith('FINTRAC') && condition.sourceType === 'legal'
+      if (isFintrac && condition.status !== 'completed') {
+        handleFintracClick(condition)
+        return
+      }
+
       const level =
         condition.level || (condition.isBlocking ? 'blocking' : 'recommended')
       const isCompleting = condition.status !== 'completed'
@@ -282,7 +317,7 @@ export default function VerticalTimeline({
       // Uncompleting recommended conditions uses direct toggle
       toggleMutation.mutate(condition)
     },
-    [togglingId, toggleMutation]
+    [togglingId, toggleMutation, handleFintracClick]
   )
 
   const handleEdit = useCallback((condition: Condition) => {
@@ -473,6 +508,7 @@ export default function VerticalTimeline({
                               isToggling={togglingId === c.id}
                               onToggle={handleToggle}
                               onEdit={handleEdit}
+                              onFintracClick={handleFintracClick}
                             />
                           ))}
                         </div>
@@ -494,6 +530,7 @@ export default function VerticalTimeline({
                               isToggling={togglingId === c.id}
                               onToggle={handleToggle}
                               onEdit={handleEdit}
+                              onFintracClick={handleFintracClick}
                             />
                           ))}
                         </div>
@@ -515,6 +552,7 @@ export default function VerticalTimeline({
                               isToggling={togglingId === c.id}
                               onToggle={handleToggle}
                               onEdit={handleEdit}
+                              onFintracClick={handleFintracClick}
                             />
                           ))}
                           {/* Auto-archive hint */}
@@ -678,6 +716,25 @@ export default function VerticalTimeline({
             queryClient.invalidateQueries({ queryKey: ['advance-check', transaction.id] })
             queryClient.invalidateQueries({ queryKey: ['conditions', 'active', transaction.id] })
           }}
+        />
+      )}
+
+      {/* FINTRAC Compliance Modal */}
+      {fintracResolve && (
+        <FintracComplianceModal
+          isOpen
+          onClose={() => {
+            setFintracResolve(null)
+            queryClient.invalidateQueries({ queryKey: transactionKey })
+            queryClient.invalidateQueries({ queryKey: ['transactions'] })
+            queryClient.invalidateQueries({ queryKey: ['dashboard'] })
+            queryClient.invalidateQueries({ queryKey: ['advance-check', transaction.id] })
+            queryClient.invalidateQueries({ queryKey: ['conditions', 'active', transaction.id] })
+          }}
+          transactionId={transaction.id}
+          conditionId={fintracResolve.conditionId}
+          fintracRecordId={fintracResolve.fintracRecordId}
+          partyName={fintracResolve.partyName}
         />
       )}
     </div>

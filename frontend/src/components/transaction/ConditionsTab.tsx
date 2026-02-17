@@ -41,6 +41,15 @@ export default function ConditionsTab({ transaction, filterStepId }: ConditionsT
   const [fintracCondition, setFintracCondition] = useState<Condition | null>(null)
   const [fintracRecordId, setFintracRecordId] = useState<number | null>(null)
 
+  // D32: Filter conditions by step if filterStepId is provided
+  const allConditions = (transaction.conditions ?? []) as Condition[]
+  const conditions = filterStepId != null
+    ? allConditions.filter((c) => c.transactionStepId === filterStepId)
+    : allConditions
+  const steps = transaction.transactionSteps ?? []
+  const currentStepId = transaction.currentStepId
+  const transactionKey = ['transaction', transaction.id]
+
   // Compute step name for validation modal subtitle
   const validatingStepName = useMemo(() => {
     if (!validatingCondition) return undefined
@@ -52,15 +61,6 @@ export default function ConditionsTab({ transaction, filterStepId }: ConditionsT
       : step.workflowStep?.name ?? `Step ${step.stepOrder}`
     return `${t('resolveCondition.stepPrefix', 'Étape')} ${step.stepOrder} — ${name}`
   }, [validatingCondition, steps, t])
-
-  // D32: Filter conditions by step if filterStepId is provided
-  const allConditions = (transaction.conditions ?? []) as Condition[]
-  const conditions = filterStepId != null
-    ? allConditions.filter((c) => c.transactionStepId === filterStepId)
-    : allConditions
-  const steps = transaction.transactionSteps ?? []
-  const currentStepId = transaction.currentStepId
-  const transactionKey = ['transaction', transaction.id]
 
   // FINTRAC: Check if any FINTRAC conditions exist, and fetch records if so
   const hasFintracConditions = allConditions.some(

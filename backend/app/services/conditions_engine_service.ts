@@ -143,12 +143,8 @@ export class ConditionsEngineService {
   ): Promise<StepAdvanceCheck> {
     const conditions = await Condition.query()
       .where('transactionId', transactionId)
+      .where('stepWhenCreated', currentStep)
       .where((q) => {
-        // Handle legacy conditions with NULL stepWhenCreated
-        q.where('stepWhenCreated', currentStep).orWhereNull('stepWhenCreated')
-      })
-      .where((q) => {
-        // Handle legacy conditions with NULL archived (treat as not archived)
         q.where('archived', false).orWhereNull('archived')
       })
       .where('status', 'pending')

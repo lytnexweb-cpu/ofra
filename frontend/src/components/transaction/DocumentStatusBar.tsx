@@ -56,9 +56,11 @@ export default function DocumentStatusBar({ transactionId, onBadgeClick }: Docum
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-3">
-      <button
-        type="button"
+      <div
+        role="button"
+        tabIndex={0}
         onClick={() => onBadgeClick('all')}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onBadgeClick('all') } }}
         className="w-full rounded-xl border border-stone-200 bg-white px-4 py-3 flex items-center gap-4 hover:border-stone-300 transition-colors cursor-pointer"
       >
         <div className="flex items-center gap-2 text-stone-600">
@@ -88,7 +90,7 @@ export default function DocumentStatusBar({ transactionId, onBadgeClick }: Docum
             </button>
           ))}
         </div>
-      </button>
+      </div>
     </div>
   )
 }

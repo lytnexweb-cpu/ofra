@@ -1,5 +1,5 @@
 import { test } from '@japa/runner'
-import { createTestUser } from '../helpers/auth.js'
+
 import {
   truncateAll,
   createUser,
@@ -429,7 +429,7 @@ test.group('Conditions Engine - Edge Cases', (group) => {
   })
 
   test('cannot archive condition with pending blocking', async ({ assert }) => {
-    const blockingCondition = await Condition.create({
+    await Condition.create({
       transactionId: transaction.id,
       transactionStepId: currentStep.id,
       title: 'Blocking Test',

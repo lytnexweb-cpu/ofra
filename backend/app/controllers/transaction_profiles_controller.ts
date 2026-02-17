@@ -1,4 +1,5 @@
 import type { HttpContext } from '@adonisjs/core/http'
+import Transaction from '#models/transaction'
 import TransactionProfile from '#models/transaction_profile'
 import vine from '@vinejs/vine'
 import { DateTime } from 'luxon'
@@ -68,6 +69,22 @@ export default class TransactionProfilesController {
    */
   async upsert({ params, request, response }: HttpContext) {
     try {
+      // Guard: profile is locked after consultation step (stepOrder > 1)
+      const transaction = await Transaction.query()
+        .where('id', params.id)
+        .preload('currentStep')
+        .first()
+
+      if (transaction?.currentStep && transaction.currentStep.stepOrder > 1) {
+        return response.conflict({
+          success: false,
+          error: {
+            message: 'Property profile is locked after the Consultation step',
+            code: 'E_PROFILE_LOCKED',
+          },
+        })
+      }
+
       // txPermission middleware already validated access
       const existingProfile = await TransactionProfile.find(params.id)
 

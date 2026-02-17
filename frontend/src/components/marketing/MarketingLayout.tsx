@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { OfraLogo, OfraLogoFull } from '../OfraLogo'
 import { Button } from '../ui/Button'
 import { Menu, X, ArrowLeft } from 'lucide-react'
+import { LanguageToggle } from '../ui/LanguageToggle'
 
 interface MarketingLayoutProps {
   children: React.ReactNode
@@ -16,7 +17,10 @@ export function MarketingLayout({ children, showBackButton = false }: MarketingL
   const location = useLocation()
 
   const navLinks = [
+    { to: '/features', label: t('landing.nav.features') },
     { to: '/pricing', label: t('landing.nav.pricing') },
+    { to: '/founder', label: t('landing.nav.founder') },
+    { to: '/about', label: t('landing.footer.about') },
     { to: '/login', label: t('landing.nav.login') },
   ]
 
@@ -70,9 +74,10 @@ export function MarketingLayout({ children, showBackButton = false }: MarketingL
                   {link.label}
                 </Link>
               ))}
+              <LanguageToggle className="text-stone-500 hover:text-primary dark:text-stone-400 dark:hover:text-white" />
               <Link to="/register">
                 <Button className="bg-primary hover:bg-primary/90 dark:bg-accent dark:hover:bg-accent/90">
-                  {t('landing.nav.getStarted')}
+                  {t('landing.nav.freeTrial')}
                 </Button>
               </Link>
             </div>
@@ -117,9 +122,10 @@ export function MarketingLayout({ children, showBackButton = false }: MarketingL
                   {link.label}
                 </Link>
               ))}
+              <LanguageToggle className="block text-stone-500 dark:text-stone-400 hover:text-primary text-sm py-1" />
               <Link to="/register" className="block pt-2" onClick={() => setMobileMenuOpen(false)}>
                 <Button className="w-full bg-primary hover:bg-primary/90 dark:bg-accent dark:hover:bg-accent/90">
-                  {t('landing.nav.getStarted')}
+                  {t('landing.nav.freeTrial')}
                 </Button>
               </Link>
             </div>
@@ -138,7 +144,7 @@ export function MarketingLayout({ children, showBackButton = false }: MarketingL
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {/* Brand */}
             <div className="sm:col-span-2 lg:col-span-1">
-              <OfraLogoFull className="mb-4" invertColors />
+              <OfraLogoFull className="mb-4" invertColors showTagline={false} />
               <p className="text-white/70 text-sm">
                 {t('landing.footer.tagline')}
               </p>
@@ -149,14 +155,51 @@ export function MarketingLayout({ children, showBackButton = false }: MarketingL
               <h4 className="font-semibold text-white mb-4">{t('landing.footer.product')}</h4>
               <ul className="space-y-2 text-sm text-white/70">
                 <li>
+                  <Link to="/features" className="hover:text-white transition-colors">
+                    {t('landing.nav.features')}
+                  </Link>
+                </li>
+                <li>
                   <Link to="/pricing" className="hover:text-white transition-colors">
                     {t('landing.nav.pricing')}
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/founder" className="hover:text-white transition-colors">
+                    {t('landing.nav.founder')}
                   </Link>
                 </li>
                 <li>
                   <Link to="/register" className="hover:text-white transition-colors">
                     {t('landing.footer.signup')}
                   </Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* Company Links */}
+            <div>
+              <h4 className="font-semibold text-white mb-4">{t('landing.footer.company')}</h4>
+              <ul className="space-y-2 text-sm text-white/70">
+                <li>
+                  <Link to="/about" className="hover:text-white transition-colors">
+                    {t('landing.footer.about')}
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/faq" className="hover:text-white transition-colors">
+                    {t('landing.footer.faq')}
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/contact" className="hover:text-white transition-colors">
+                    {t('landing.footer.contactUs')}
+                  </Link>
+                </li>
+                <li>
+                  <a href="mailto:support@ofra.ca" className="hover:text-white transition-colors">
+                    support@ofra.ca
+                  </a>
                 </li>
               </ul>
             </div>
@@ -177,29 +220,11 @@ export function MarketingLayout({ children, showBackButton = false }: MarketingL
                 </li>
               </ul>
             </div>
-
-            {/* Contact */}
-            <div>
-              <h4 className="font-semibold text-white mb-4">{t('landing.footer.contact')}</h4>
-              <ul className="space-y-2 text-sm text-white/70">
-                <li>
-                  <Link to="/contact" className="hover:text-white transition-colors">
-                    {t('landing.footer.contactUs')}
-                  </Link>
-                </li>
-                <li>
-                  <a href="mailto:support@ofra.ca" className="hover:text-white transition-colors">
-                    support@ofra.ca
-                  </a>
-                </li>
-                <li>Moncton, NB</li>
-              </ul>
-            </div>
           </div>
 
           {/* Copyright */}
           <div className="mt-12 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-white/40">
-            <p>© {new Date().getFullYear()} Ofra. {t('landing.footer.rights')}</p>
+            <p>© {new Date().getFullYear()} OFRA. {t('landing.footer.rights')}</p>
             <p className="text-xs">v1.0.0</p>
           </div>
         </div>

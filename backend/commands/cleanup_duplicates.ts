@@ -55,7 +55,7 @@ export default class CleanupDuplicates extends BaseCommand {
         if (!dryRun) {
           // Delete conditions linked to duplicate templates (CASCADE handles events/evidence)
           const deletedConds = await db.from('conditions').whereIn('template_id', deleteIds).delete()
-          templateConditionsDeleted += deletedConds
+          templateConditionsDeleted += Array.isArray(deletedConds) ? deletedConds[0] : deletedConds
 
           await db.from('condition_templates').whereIn('id', deleteIds).delete()
           this.logger.info(`    Deleted ${deleteIds.length} templates + ${deletedConds} conditions`)

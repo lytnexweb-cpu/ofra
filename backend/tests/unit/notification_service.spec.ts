@@ -1,5 +1,5 @@
 import { test } from '@japa/runner'
-import mail from '@adonisjs/mail/services/main'
+
 import {
   truncateAll,
   createUser,

@@ -126,12 +126,14 @@ export default function ConditionCard({
           disabled={isToggling}
           className={`w-4 h-4 rounded ${style.checkBorder} ${style.checkColor} shrink-0 cursor-pointer disabled:opacity-50`}
           data-testid={`toggle-condition-${condition.id}`}
+          aria-label={`${title} — ${isDone ? t('conditions.done', 'Fait') : t('conditions.pending', 'En attente')}`}
         />
       ) : isDone ? (
         <input
           type="checkbox"
           checked
           readOnly
+          aria-label={`${title} — ${t('conditions.done', 'Fait')}`}
           className={`w-4 h-4 rounded ${style.checkBorder} ${style.checkColor} shrink-0`}
         />
       ) : (
@@ -139,6 +141,7 @@ export default function ConditionCard({
           type="checkbox"
           checked={false}
           readOnly
+          aria-label={`${title} — ${t('conditions.pending', 'En attente')}`}
           className={`w-4 h-4 rounded ${style.checkBorder} shrink-0`}
         />
       )}

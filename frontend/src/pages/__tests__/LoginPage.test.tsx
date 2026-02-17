@@ -11,22 +11,22 @@ describe('LoginPage', () => {
   it('renders email and password inputs', () => {
     renderLoginPage()
 
-    expect(screen.getByPlaceholderText(/email address/i)).toBeInTheDocument()
-    expect(screen.getByPlaceholderText(/password/i)).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('vous@exemple.com')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('••••••••')).toBeInTheDocument()
   })
 
   it('renders submit button', () => {
     renderLoginPage()
 
-    const button = screen.getByRole('button', { name: /sign in|login|log in|submit/i })
+    const button = screen.getByRole('button', { name: /sign in|login|log in|submit|connexion|connecter/i })
     expect(button).toBeInTheDocument()
   })
 
   it('allows typing in form fields', () => {
     renderLoginPage()
 
-    const emailInput = screen.getByPlaceholderText(/email address/i) as HTMLInputElement
-    const passwordInput = screen.getByPlaceholderText(/password/i) as HTMLInputElement
+    const emailInput = screen.getByPlaceholderText('vous@exemple.com') as HTMLInputElement
+    const passwordInput = screen.getByPlaceholderText('••••••••') as HTMLInputElement
 
     fireEvent.change(emailInput, { target: { value: 'test@test.com' } })
     fireEvent.change(passwordInput, { target: { value: 'password123' } })

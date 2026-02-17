@@ -121,6 +121,13 @@ export default class TransactionsController {
         autoConditionsEnabled,
       })
 
+      // D53: Mark trial TX as used
+      const user = auth.user!
+      if (!user.planId && user.subscriptionStatus === 'trial' && !user.trialTxUsed) {
+        user.trialTxUsed = true
+        await user.save()
+      }
+
       // Set closing date if provided
       if (payload.closingDate) {
         transaction.closingDate = DateTime.fromISO(payload.closingDate)

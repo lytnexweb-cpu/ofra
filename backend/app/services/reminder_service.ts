@@ -7,8 +7,9 @@ import Condition from '#models/condition'
 import Transaction from '#models/transaction'
 import DailyDigestMail from '#mails/daily_digest_mail'
 import DeadlineWarningMail from '#mails/deadline_warning_mail'
+import TrialReminderMail from '#mails/trial_reminder_mail'
 import { NotificationService } from '#services/notification_service'
-import { DailyDigestPayload, DeadlineWarningPayload } from '#services/queue_service'
+import { DailyDigestPayload, DeadlineWarningPayload, TrialReminderPayload } from '#services/queue_service'
 
 interface ConditionWithTransaction {
   id: number
@@ -263,6 +264,74 @@ export class ReminderService {
       })
     } catch (notifError) {
       logger.error({ notifError }, 'Failed to create daily digest notification — non-blocking')
+    }
+  }
+
+  /**
+   * D53: Schedule trial reminder emails for a newly registered user.
+   * Called once at registration. Schedules J7, J21, J27 reminders.
+   */
+  static async scheduleTrialReminders(user: User) {
+    const { queueService } = await import('#services/queue_service')
+
+    const now = DateTime.now()
+
+    // Schedule reminders at J7 (23 days left), J21 (9 days left), J27 (3 days left)
+    const reminders = [
+      { day: 7, daysRemaining: 23 },
+      { day: 21, daysRemaining: 9 },
+      { day: 27, daysRemaining: 3 },
+    ]
+
+    for (const { day, daysRemaining } of reminders) {
+      const sendAt = now.plus({ days: day })
+      const delayMs = Math.max(0, sendAt.diff(now, 'milliseconds').milliseconds)
+
+      try {
+        await queueService.scheduleTrialReminder(
+          { userId: user.id, daysRemaining },
+          delayMs
+        )
+      } catch (err) {
+        if (!String(err).includes('already exists')) {
+          logger.error({ userId: user.id, day, err }, 'Failed to schedule trial reminder')
+        }
+      }
+    }
+
+    logger.info({ userId: user.id }, 'Trial reminders scheduled (J7, J21, J27)')
+  }
+
+  /**
+   * D53: Process a trial reminder job — send email if user is still on trial.
+   */
+  static async processTrialReminder(job: Job<TrialReminderPayload>) {
+    const { userId, daysRemaining } = job.data
+
+    const user = await User.find(userId)
+    if (!user) {
+      logger.warn({ userId }, 'Trial reminder: user not found — skipping')
+      return
+    }
+
+    // Skip if user already has a plan (converted during trial)
+    if (user.planId || user.subscriptionStatus !== 'trial') {
+      logger.info({ userId }, 'Trial reminder: user already converted — skipping')
+      return
+    }
+
+    try {
+      await mail.send(
+        new TrialReminderMail({
+          to: user.email,
+          userName: user.fullName ?? user.email,
+          daysRemaining,
+          language: user.preferredLanguage,
+        })
+      )
+      logger.info({ userId, daysRemaining }, 'Trial reminder email sent')
+    } catch (err) {
+      logger.error({ userId, daysRemaining, err }, 'Failed to send trial reminder email')
     }
   }
 

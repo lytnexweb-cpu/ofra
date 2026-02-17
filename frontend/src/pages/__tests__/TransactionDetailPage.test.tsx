@@ -6,21 +6,25 @@ import { renderWithProviders } from '../../test/helpers'
 import TransactionDetailPage from '../TransactionDetailPage'
 import { transactionsApi, type Transaction, type TransactionStep } from '../../api/transactions.api'
 
-// Mock child components that have their own side effects
-vi.mock('../../components/OffersSection', () => ({
-  default: () => <div data-testid="offers-section">Offers</div>,
+// Mock child components to keep tests focused on page-level behavior
+vi.mock('../../components/transaction', () => ({
+  TransactionHeader: () => <div data-testid="transaction-header">Header</div>,
+  MembersPanel: () => null,
+  PropertyProfileCard: () => <div data-testid="property-profile-card">Property</div>,
+  PartiesCard: () => <div data-testid="parties-card">Parties</div>,
+  OffersPanel: () => <div data-testid="offers-panel">Offers</div>,
+  PartiesModal: () => null,
+  UploadDocumentModal: () => null,
+  DocumentProofModal: () => null,
+  DocumentVersionModal: () => null,
+  DocumentStatusBar: () => <div data-testid="document-status-bar">Docs</div>,
+  DocumentsSection: () => null,
 }))
-vi.mock('../../components/transaction/DocumentsTab', () => ({
-  default: () => <div data-testid="documents-tab">Documents</div>,
+vi.mock('../../components/transaction/VerticalTimeline', () => ({
+  default: () => <div data-testid="vertical-timeline">Timeline</div>,
 }))
-vi.mock('../../components/transaction/TimelineTab', () => ({
-  default: () => <div data-testid="timeline-tab">Timeline</div>,
-}))
-vi.mock('../../components/transaction/NotesSection', () => ({
-  default: () => <div data-testid="notes-section">Notes</div>,
-}))
-vi.mock('../../components/transaction/ActionZone', () => ({
-  default: () => null,
+vi.mock('../../api/documents.api', () => ({
+  documentsApi: { list: vi.fn().mockResolvedValue({ data: { documents: [] } }) },
 }))
 
 // Mock API
@@ -142,7 +146,7 @@ describe('TransactionDetailPage', () => {
     })
   })
 
-  it('renders header and tabs when transaction loads (AC4)', async () => {
+  it('renders header and main sections when transaction loads (AC4)', async () => {
     mockGet.mockResolvedValue({
       success: true,
       data: { transaction: makeTx() },
@@ -154,10 +158,10 @@ describe('TransactionDetailPage', () => {
     })
 
     expect(screen.getByTestId('transaction-header')).toBeInTheDocument()
-    expect(screen.getByTestId('detail-tabs')).toBeInTheDocument()
+    expect(screen.getByTestId('vertical-timeline')).toBeInTheDocument()
   })
 
-  it('renders all 5 tab triggers (AC4)', async () => {
+  it('renders property, parties, offers, and document sections (AC5)', async () => {
     mockGet.mockResolvedValue({
       success: true,
       data: { transaction: makeTx() },
@@ -168,14 +172,13 @@ describe('TransactionDetailPage', () => {
       expect(screen.getByTestId('transaction-detail-page')).toBeInTheDocument()
     })
 
-    expect(screen.getByTestId('tab-conditions')).toBeInTheDocument()
-    expect(screen.getByTestId('tab-offers')).toBeInTheDocument()
-    expect(screen.getByTestId('tab-documents')).toBeInTheDocument()
-    expect(screen.getByTestId('tab-steps')).toBeInTheDocument()
-    expect(screen.getByTestId('tab-notes')).toBeInTheDocument()
+    expect(screen.getByTestId('property-profile-card')).toBeInTheDocument()
+    expect(screen.getByTestId('parties-card')).toBeInTheDocument()
+    expect(screen.getByTestId('offers-panel')).toBeInTheDocument()
+    expect(screen.getByTestId('document-status-bar')).toBeInTheDocument()
   })
 
-  it('default tab is conditions (AC5)', async () => {
+  it('has data-testid on main container (AC6)', async () => {
     mockGet.mockResolvedValue({
       success: true,
       data: { transaction: makeTx() },
@@ -185,24 +188,6 @@ describe('TransactionDetailPage', () => {
     await waitFor(() => {
       expect(screen.getByTestId('transaction-detail-page')).toBeInTheDocument()
     })
-
-    // Conditions tab trigger is active (has data-state="active")
-    const conditionsTab = screen.getByTestId('tab-conditions')
-    expect(conditionsTab).toHaveAttribute('data-state', 'active')
-  })
-
-  it('has data-testid attributes (AC6)', async () => {
-    mockGet.mockResolvedValue({
-      success: true,
-      data: { transaction: makeTx() },
-    } as any)
-    renderPage()
-
-    await waitFor(() => {
-      expect(screen.getByTestId('transaction-detail-page')).toBeInTheDocument()
-    })
-
-    expect(screen.getByTestId('detail-tabs')).toBeInTheDocument()
   })
 
   it('has no WCAG 2.1 AA accessibility violations', async () => {

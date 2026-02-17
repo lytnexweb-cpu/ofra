@@ -104,7 +104,11 @@ export default function ConditionValidationModal({
         escapeReason: params.escapeReason,
       })
     },
-    onSuccess: () => {
+    onSuccess: (response) => {
+      if (!response.success) {
+        toast({ title: t('resolveCondition.error'), description: response.error?.message, variant: 'destructive' })
+        return
+      }
       queryClient.refetchQueries({ queryKey: ['transaction', transactionId] })
       queryClient.invalidateQueries({ queryKey: ['conditions', 'active', transactionId] })
       queryClient.invalidateQueries({ queryKey: ['advance-check', transactionId] })
@@ -172,7 +176,7 @@ export default function ConditionValidationModal({
   const escapeRemaining = Math.max(0, MIN_ESCAPE_LENGTH - escapeReason.trim().length)
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center" role="dialog" aria-modal="true" aria-label={title}>
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={handleClose} />
 
       <div className="relative bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg mx-0 sm:mx-4 max-h-[92vh] sm:max-h-[calc(100%-2rem)] flex flex-col">

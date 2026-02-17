@@ -12,7 +12,7 @@ i18n
   .use(initReactI18next)
   // NOTE: LanguageDetector removed - it was overriding user choices
   .init({
-    debug: true, // TEMP: voir les logs i18next
+    debug: false,
     resources: {
       en: { common: en },
       fr: { common: fr },

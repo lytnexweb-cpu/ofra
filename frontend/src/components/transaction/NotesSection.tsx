@@ -133,6 +133,7 @@ export default function NotesSection({ transactionId }: NotesSectionProps) {
             disabled={!newNote.trim() || createMutation.isPending}
             className="self-end px-3 py-2 text-sm font-medium rounded-lg bg-primary text-white hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
             data-testid="note-submit"
+            aria-label={t('notes.submit', 'Envoyer')}
           >
             <Send className="w-4 h-4" />
           </button>

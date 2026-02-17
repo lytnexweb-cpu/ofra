@@ -198,7 +198,7 @@ router.group(() => {
   router.get('/notifications/unread-count', '#controllers/notifications_controller.unreadCount')
   router.patch('/notifications/:id/read', '#controllers/notifications_controller.markRead')
   router.post('/notifications/read-all', '#controllers/notifications_controller.markAllRead')
-}).prefix('/api').use(middleware.auth())
+}).prefix('/api').use([middleware.auth(), middleware.trialGuard()])
 
 // Admin routes (require admin or superadmin role)
 router.group(() => {

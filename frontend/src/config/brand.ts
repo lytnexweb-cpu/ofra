@@ -4,7 +4,7 @@
  */
 export const BRAND = {
   // Core identity
-  name: 'Ofra',
+  name: 'OFRA',
   tagline: 'Zéro oubli. Zéro stress.',
   taglineEn: 'Zero oversights. Zero stress.',
 
@@ -21,8 +21,8 @@ export const BRAND = {
   },
 
   // Legal
-  companyName: 'Ofra',
-  copyright: `© ${new Date().getFullYear()} Ofra. All rights reserved.`,
+  companyName: 'OFRA',
+  copyright: `© ${new Date().getFullYear()} OFRA. All rights reserved.`,
 } as const
 
 export type Brand = typeof BRAND

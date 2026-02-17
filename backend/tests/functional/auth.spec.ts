@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto'
 import mail from '@adonisjs/mail/services/main'
 import { truncateAll, createUser } from '#tests/helpers/index'
 import User from '#models/user'
-import WelcomeMail from '#mails/welcome_mail'
+import EmailVerificationMail from '#mails/email_verification_mail'
 import PasswordResetMail from '#mails/password_reset_mail'
 
 test.group('Auth - Register', (group) => {
@@ -39,8 +39,8 @@ test.group('Auth - Register', (group) => {
     const user = await User.findBy('email', 'newuser@test.com')
     assert.isNotNull(user)
 
-    // Verify welcome email was queued
-    fakeMailer.mails.assertSent(WelcomeMail)
+    // Verify verification email was queued
+    fakeMailer.mails.assertSent(EmailVerificationMail)
   })
 
   test('register returns same success response for existing email (prevents enumeration)', async ({ client, assert }) => {

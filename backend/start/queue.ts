@@ -16,7 +16,7 @@ import { AutomationExecutorService } from '#services/automation_executor_service
 import WorkflowStepAutomation from '#models/workflow_step_automation'
 import logger from '@adonisjs/core/services/logger'
 import type { Job } from 'bullmq'
-import type { DelayedAutomationPayload, DailyDigestPayload, DeadlineWarningPayload } from '#services/queue_service'
+import type { DelayedAutomationPayload, DailyDigestPayload, DeadlineWarningPayload, TrialReminderPayload } from '#services/queue_service'
 
 /**
  * Initialize and start the queue system
@@ -43,11 +43,13 @@ export async function startQueueSystem() {
         })
       },
 
-      processReminder: async (job: Job<DailyDigestPayload | DeadlineWarningPayload | { type: 'hourly_check' }>) => {
+      processReminder: async (job: Job<DailyDigestPayload | DeadlineWarningPayload | TrialReminderPayload | { type: 'hourly_check' }>) => {
         if (job.data.type === 'daily_digest') {
           await ReminderService.processDailyDigest(job as Job<DailyDigestPayload>)
         } else if (job.data.type === 'deadline_warning') {
           await ReminderService.processDeadlineWarning(job as Job<DeadlineWarningPayload>)
+        } else if (job.data.type === 'trial_reminder') {
+          await ReminderService.processTrialReminder(job as Job<TrialReminderPayload>)
         } else if (job.data.type === 'hourly_check') {
           // Schedule warnings for conditions due in ~48h
           await ReminderService.scheduleUpcomingWarnings()

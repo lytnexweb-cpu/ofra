@@ -3,29 +3,31 @@ import { screen, waitFor } from '@testing-library/react'
 import { axe } from 'vitest-axe'
 import { renderWithProviders } from '../../test/helpers'
 import DashboardPage from '../DashboardPage'
-import type { DashboardSummary } from '../../api/dashboard.api'
+import type { DashboardUrgenciesData, UrgencyItem } from '../../api/dashboard.api'
 
-const mockGetSummary = vi.fn()
+const mockGetUrgencies = vi.fn()
+const mockMe = vi.fn()
 
-vi.mock('../../components/dashboard', () => ({
-  KPICard: ({ title, value, suffix }: any) => (
-    <div data-testid={`kpi-${title.toLowerCase().replace(/\s+/g, '-')}`}>
-      {value}{suffix}
-    </div>
-  ),
-  PipelineChart: ({ data }: any) => (
-    <div data-testid="pipeline-chart">{data?.length ?? 0} steps</div>
-  ),
-  RevenueChart: ({ totalRevenue }: any) => (
-    <div data-testid="revenue-chart">${totalRevenue}</div>
-  ),
-  RecentActivity: ({ activities }: any) => (
-    <div data-testid="recent-activity">{activities?.length ?? 0} activities</div>
-  ),
-  UpcomingDeadlines: ({ deadlines }: any) => (
-    <div data-testid="upcoming-deadlines">{deadlines?.length ?? 0} deadlines</div>
-  ),
-}))
+vi.mock('../../api/dashboard.api', async () => {
+  const actual = await vi.importActual('../../api/dashboard.api')
+  return {
+    ...(actual as object),
+    dashboardApi: {
+      getUrgencies: (...args: unknown[]) => mockGetUrgencies(...args),
+    },
+  }
+})
+
+vi.mock('../../api/auth.api', async () => {
+  const actual = await vi.importActual('../../api/auth.api')
+  return {
+    ...(actual as object),
+    authApi: {
+      ...(actual as any).authApi,
+      me: (...args: unknown[]) => mockMe(...args),
+    },
+  }
+})
 
 vi.mock('../../components/ui', async () => {
   const actual = await vi.importActual('../../components/ui')
@@ -36,157 +38,139 @@ vi.mock('../../components/ui', async () => {
   }
 })
 
-vi.mock('../../api/dashboard.api', async () => {
-  const actual = await vi.importActual('../../api/dashboard.api')
-  return {
-    ...(actual as object),
-    dashboardApi: {
-      getSummary: (...args: unknown[]) => mockGetSummary(...args),
-    },
-  }
-})
+vi.mock('../../components/dashboard', () => ({
+  DashboardUrgencies: ({ state, urgencyCount, totalActiveTransactions }: any) => (
+    <div data-testid="dashboard-urgencies" data-state={state}>
+      <span data-testid="urgency-count">{urgencyCount}</span>
+      <span data-testid="active-tx">{totalActiveTransactions}</span>
+    </div>
+  ),
+}))
 
-function makeSummary(overrides: Partial<DashboardSummary> = {}): DashboardSummary {
+function makeUrgenciesData(overrides: Partial<DashboardUrgenciesData> = {}): DashboardUrgenciesData {
   return {
+    state: 'urgencies',
+    urgencies: [
+      {
+        conditionId: 1,
+        conditionTitle: 'Financing',
+        daysRemaining: -2,
+        dueDate: '2026-02-01',
+        transactionId: 1,
+        clientName: 'Jean Dupont',
+        stepName: 'Conditional Period',
+        level: 'blocking',
+        isBlocking: true,
+      } as UrgencyItem,
+    ],
+    hasMore: false,
+    moreCount: 0,
+    totalActiveTransactions: 12,
     totalTransactions: 25,
-    activeTransactions: 12,
-    completedTransactions: 10,
-    overdueConditions: 3,
-    dueSoonConditions: 5,
-    conversionRate: 40,
-    pipeline: [
-      { slug: 'consultation', name: 'Consultation', count: 4 },
-      { slug: 'inspection', name: 'Inspection', count: 3 },
-    ],
-    revenue: [
-      { month: 'Jan', total: 15000 },
-      { month: 'Feb', total: 22000 },
-    ],
-    totalRevenue: 37000,
-    monthRevenue: 22000,
-    recentActivity: [
-      { id: 1, transactionId: 1, activityType: 'step_entered', metadata: {}, clientName: 'Jean Dupont', userName: 'André', createdAt: '2026-01-27T12:00:00Z' },
-    ],
-    upcomingDeadlines: [
-      { id: 1, title: 'Financing', dueDate: '2026-02-01', transactionId: 1, clientName: 'Jean Dupont', priority: 'high' as const, isBlocking: false },
-    ],
+    urgencyCount: 3,
+    greenCount: 5,
+    nextDeadlineDays: 2,
     ...overrides,
   }
 }
 
 beforeEach(() => {
-  mockGetSummary.mockReset()
+  mockGetUrgencies.mockReset()
+  mockMe.mockReset().mockResolvedValue({
+    success: true,
+    data: { user: { fullName: 'André Dupont' } },
+  })
 })
 
 describe('DashboardPage', () => {
   it('shows skeleton while loading (AC1)', () => {
-    mockGetSummary.mockReturnValue(new Promise(() => {}))
+    mockGetUrgencies.mockReturnValue(new Promise(() => {}))
     renderWithProviders(<DashboardPage />)
 
     expect(screen.getByTestId('dashboard-skeleton')).toBeInTheDocument()
   })
 
   it('shows error state on API failure (AC2)', async () => {
-    mockGetSummary.mockRejectedValue(new Error('Network error'))
+    mockGetUrgencies.mockRejectedValue(new Error('Network error'))
     renderWithProviders(<DashboardPage />)
 
     await waitFor(() => {
-      expect(screen.getByText('Failed to load dashboard')).toBeInTheDocument()
+      expect(screen.getByText(/failed to load|error|erreur/i)).toBeInTheDocument()
     })
   })
 
-  it('renders Dashboard header on success (AC3)', async () => {
-    mockGetSummary.mockResolvedValue({ success: true, data: makeSummary() } as any)
+  it('renders DashboardUrgencies on success (AC3)', async () => {
+    mockGetUrgencies.mockResolvedValue({ success: true, data: makeUrgenciesData() })
     renderWithProviders(<DashboardPage />)
 
     await waitFor(() => {
-      expect(screen.getByText('Dashboard')).toBeInTheDocument()
+      expect(screen.getByTestId('dashboard-urgencies')).toBeInTheDocument()
     })
-    // Dashboard shows subtitle with transaction status
-    expect(screen.getByText(/transactions/i)).toBeInTheDocument()
   })
 
-  it('renders 4 KPI cards (AC4)', async () => {
-    mockGetSummary.mockResolvedValue({ success: true, data: makeSummary() } as any)
+  it('passes urgency count to component (AC4)', async () => {
+    mockGetUrgencies.mockResolvedValue({ success: true, data: makeUrgenciesData({ urgencyCount: 7 }) })
     renderWithProviders(<DashboardPage />)
 
     await waitFor(() => {
-      expect(screen.getByTestId('kpi-active-transactions')).toBeInTheDocument()
+      expect(screen.getByTestId('urgency-count')).toHaveTextContent('7')
     })
-    expect(screen.getByTestId('kpi-completed')).toBeInTheDocument()
-    expect(screen.getByTestId('kpi-conversion-rate')).toBeInTheDocument()
-    expect(screen.getByTestId('kpi-overdue-conditions')).toBeInTheDocument()
   })
 
-  it('renders PipelineChart and RevenueChart (AC5)', async () => {
-    mockGetSummary.mockResolvedValue({ success: true, data: makeSummary() } as any)
-    renderWithProviders(<DashboardPage />)
-
-    await waitFor(() => {
-      expect(screen.getByTestId('pipeline-chart')).toBeInTheDocument()
-    })
-    expect(screen.getByTestId('revenue-chart')).toBeInTheDocument()
-  })
-
-  it('renders RecentActivity and UpcomingDeadlines (AC6)', async () => {
-    mockGetSummary.mockResolvedValue({ success: true, data: makeSummary() } as any)
-    renderWithProviders(<DashboardPage />)
-
-    await waitFor(() => {
-      expect(screen.getByTestId('recent-activity')).toBeInTheDocument()
-    })
-    expect(screen.getByTestId('upcoming-deadlines')).toBeInTheDocument()
-  })
-
-  it('renders quick stats footer with totals (AC7)', async () => {
-    mockGetSummary.mockResolvedValue({
+  it('passes active transactions count (AC5)', async () => {
+    mockGetUrgencies.mockResolvedValue({
       success: true,
-      data: makeSummary({ totalTransactions: 25, dueSoonConditions: 5, monthRevenue: 22000, totalRevenue: 37000 }),
-    } as any)
+      data: makeUrgenciesData({ totalActiveTransactions: 15 }),
+    })
     renderWithProviders(<DashboardPage />)
 
     await waitFor(() => {
-      expect(screen.getByText('25')).toBeInTheDocument()
+      expect(screen.getByTestId('active-tx')).toHaveTextContent('15')
     })
-    expect(screen.getByText('5')).toBeInTheDocument()
-    // The stats are shown in the hero banner with translated labels
-    expect(screen.getByText('Transactions')).toBeInTheDocument()
-    expect(screen.getByText('This Week')).toBeInTheDocument()
   })
 
-  it('handles nullish data with safe defaults (AC8)', async () => {
-    mockGetSummary.mockResolvedValue({
+  it('renders with empty state (AC6)', async () => {
+    mockGetUrgencies.mockResolvedValue({
       success: true,
-      data: {
-        totalTransactions: null,
-        activeTransactions: null,
-        completedTransactions: null,
-        overdueConditions: null,
-        dueSoonConditions: null,
-        conversionRate: null,
-        pipeline: null,
-        revenue: null,
-        totalRevenue: null,
-        monthRevenue: null,
-        recentActivity: null,
-        upcomingDeadlines: null,
-      },
-    } as any)
+      data: makeUrgenciesData({ state: 'empty', urgencies: [], urgencyCount: 0, totalActiveTransactions: 0 }),
+    })
     renderWithProviders(<DashboardPage />)
 
     await waitFor(() => {
-      expect(screen.getByText('Dashboard')).toBeInTheDocument()
+      const urgencies = screen.getByTestId('dashboard-urgencies')
+      expect(urgencies).toHaveAttribute('data-state', 'empty')
     })
-    // Should not crash with null data
-    expect(screen.getByTestId('kpi-active-transactions')).toBeInTheDocument()
+  })
+
+  it('renders with all_clear state (AC7)', async () => {
+    mockGetUrgencies.mockResolvedValue({
+      success: true,
+      data: makeUrgenciesData({ state: 'all_clear', urgencies: [] }),
+    })
+    renderWithProviders(<DashboardPage />)
+
+    await waitFor(() => {
+      const urgencies = screen.getByTestId('dashboard-urgencies')
+      expect(urgencies).toHaveAttribute('data-state', 'all_clear')
+    })
+  })
+
+  it('handles nullish data gracefully (AC8)', async () => {
+    mockGetUrgencies.mockResolvedValue({ success: true, data: null })
+    renderWithProviders(<DashboardPage />)
+
+    await waitFor(() => {
+      // Should show error state, not crash
+      expect(screen.getByText(/failed to load|error|erreur/i)).toBeInTheDocument()
+    })
   })
 
   it('has no WCAG 2.1 AA accessibility violations', async () => {
-    mockGetSummary.mockResolvedValue({ success: true, data: makeSummary() } as any)
+    mockGetUrgencies.mockResolvedValue({ success: true, data: makeUrgenciesData() })
     const { container } = renderWithProviders(<DashboardPage />)
 
     await waitFor(() => {
-      expect(screen.getByText('Dashboard')).toBeInTheDocument()
+      expect(screen.getByTestId('dashboard-urgencies')).toBeInTheDocument()
     })
 
     const results = await axe(container)

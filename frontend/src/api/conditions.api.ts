@@ -129,6 +129,21 @@ export interface ConditionResolutionInput {
   note?: string
 }
 
+export interface AdvanceCheckCondition {
+  id: number
+  title: string
+  labelFr: string | null
+  labelEn: string | null
+  level: ConditionLevel | null
+  status: string
+  dueDate: string | null
+  resolutionType: string | null
+  sourceType: string | null
+  isBlocking: boolean
+  transactionStepId: number | null
+  fintracRecordId: number | null
+}
+
 export interface AdvanceCheckResult {
   canAdvance: boolean
   requiresAcceptedOffer?: boolean
@@ -138,9 +153,9 @@ export interface AdvanceCheckResult {
     name: string
     slug?: string
   } | null
-  blockingConditions: Pick<Condition, 'id' | 'title' | 'labelFr' | 'labelEn'>[]
-  requiredPendingConditions: Pick<Condition, 'id' | 'title' | 'labelFr' | 'labelEn'>[]
-  recommendedPendingConditions: Pick<Condition, 'id' | 'title' | 'labelFr' | 'labelEn'>[]
+  blockingConditions: AdvanceCheckCondition[]
+  requiredPendingConditions: AdvanceCheckCondition[]
+  recommendedPendingConditions: AdvanceCheckCondition[]
 }
 
 export interface TimelineData {

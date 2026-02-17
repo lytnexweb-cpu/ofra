@@ -72,7 +72,20 @@ export default function PropertyProfileCard({ transactionId, currentStepOrder, o
         propertyContext: propertyContext as any,
         isFinanced,
       }),
-    onSuccess: () => {
+    onSuccess: (response) => {
+      if (!response.success && response.error?.code === 'E_PROFILE_LOCKED') {
+        toast({
+          title: t('transaction.detail.profileLocked'),
+          description: t('transaction.detail.profileLockedError'),
+          variant: 'destructive',
+        })
+        setShowForm(false)
+        return
+      }
+      if (!response.success) {
+        toast({ title: t('common.error'), description: response.error?.message, variant: 'destructive' })
+        return
+      }
       queryClient.invalidateQueries({ queryKey: ['transaction-profile', transactionId] })
       queryClient.invalidateQueries({ queryKey: ['transaction', transactionId] })
       queryClient.invalidateQueries({ queryKey: ['advance-check', transactionId] })

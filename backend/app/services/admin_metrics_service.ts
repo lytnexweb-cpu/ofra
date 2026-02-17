@@ -196,24 +196,30 @@ export class AdminMetricsService {
       .whereNotNull('due_date')
       .where('due_date', '<', now.toSQL())
       .whereIn('status', ['pending', 'in_progress'])
-      .preload('transaction', (q) => {
-        q.preload('client', (cq) => cq.select(['id', 'firstName', 'lastName']))
-        q.preload('owner', (oq) => oq.select(['id', 'email']))
-      })
       .orderBy('due_date', 'asc')
       .limit(50)
 
-    return conditions.map((c) => ({
-      id: c.id,
-      title: c.title,
-      dueDate: c.dueDate!,
-      daysOverdue: Math.floor(now.diff(c.dueDate!, 'days').days),
-      transactionId: c.transactionId,
-      clientName: c.transaction?.client
-        ? `${c.transaction.client.firstName} ${c.transaction.client.lastName}`
-        : null,
-      ownerEmail: c.transaction?.owner?.email || 'Unknown',
-    }))
+    const transactionIds = [...new Set(conditions.map((c) => c.transactionId))]
+    const transactions = await Transaction.query()
+      .whereIn('id', transactionIds)
+      .preload('client', (q) => q.select(['id', 'firstName', 'lastName']))
+      .preload('owner', (q) => q.select(['id', 'email']))
+    const txMap = new Map(transactions.map((t) => [t.id, t]))
+
+    return conditions.map((c) => {
+      const tx = txMap.get(c.transactionId)
+      return {
+        id: c.id,
+        title: c.title,
+        dueDate: c.dueDate!,
+        daysOverdue: Math.floor(now.diff(c.dueDate!, 'days').days),
+        transactionId: c.transactionId,
+        clientName: tx?.client
+          ? `${tx.client.firstName} ${tx.client.lastName}`
+          : null,
+        ownerEmail: tx?.owner?.email || 'Unknown',
+      }
+    })
   }
 
   /**

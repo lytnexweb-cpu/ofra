@@ -13,7 +13,7 @@ import { DateTime } from 'luxon'
  * FintracService — FINTRAC compliance management
  *
  * Creates blocking conditions for identity verification at firm-pending step.
- * ALWAYS active regardless of autoConditionsEnabled (compliance override).
+ * Only active when autoConditionsEnabled = true on the transaction.
  *
  * Rules:
  * - purchase → FINTRAC for each buyer party
@@ -84,16 +84,34 @@ export class FintracService {
 
   /**
    * Called when a transaction enters a new step.
-   * Creates FINTRAC conditions if the step is firm-pending.
-   * IGNORES autoConditionsEnabled (compliance override).
+   * Creates FINTRAC conditions if the step is firm-pending and autoConditionsEnabled is true.
    */
   static async onStepEnter(
     transaction: Transaction,
     step: TransactionStep,
     userId: number
   ): Promise<void> {
+    logger.info(
+      { transactionId: transaction.id, stepOrder: step.stepOrder, workflowStepId: step.workflowStepId, autoConditionsEnabled: transaction.autoConditionsEnabled },
+      'FINTRAC onStepEnter called'
+    )
+
     const isFintrac = await this.isFintracStep(step.workflowStepId)
-    if (!isFintrac) return
+    if (!isFintrac) {
+      logger.debug(
+        { transactionId: transaction.id, workflowStepId: step.workflowStepId },
+        'FINTRAC: step is not firm-pending, skipping'
+      )
+      return
+    }
+
+    if (!transaction.autoConditionsEnabled) {
+      logger.info(
+        { transactionId: transaction.id },
+        'FINTRAC creation skipped — autoConditionsEnabled is false'
+      )
+      return
+    }
 
     const targetRole = this.getTargetRole(transaction.type)
     const parties = await TransactionParty.query()
@@ -124,6 +142,14 @@ export class FintracService {
   ): Promise<void> {
     const targetRole = this.getTargetRole(transaction.type)
     if (party.role !== targetRole) return
+
+    if (!transaction.autoConditionsEnabled) {
+      logger.info(
+        { transactionId: transaction.id, partyId: party.id },
+        'FINTRAC creation skipped on party add — autoConditionsEnabled is false'
+      )
+      return
+    }
 
     const atOrPast = await this.isAtOrPastFirmPending(transaction)
     if (!atOrPast) return

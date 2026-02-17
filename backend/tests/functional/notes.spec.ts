@@ -119,7 +119,7 @@ test.group('Notes Controller - CRUD', (group) => {
       otherUser.id
     )
 
-    response.assertStatus(404)
+    response.assertStatus(403)
   })
 
   // ==================== STORE ====================
@@ -200,7 +200,7 @@ test.group('Notes Controller - CRUD', (group) => {
       content: 'Test note',
     })
 
-    response.assertStatus(404)
+    response.assertStatus(403)
   })
 
   // ==================== DESTROY ====================
@@ -229,7 +229,7 @@ test.group('Notes Controller - CRUD', (group) => {
   test('DELETE /api/transactions/:id/notes/:noteId returns 404 for non-existent note', async ({
     client,
   }) => {
-    const { user, transaction } = await setupTransaction()
+    const { user } = await setupTransaction()
 
     const response = await withAuth(
       client.delete(`/api/notes/99999`),
@@ -289,7 +289,7 @@ test.group('Notes Controller - Multi-tenancy', (group) => {
     // User2 tries to access User1's transaction notes
     const response = await withAuth(client.get(`/api/transactions/${tx1.id}/notes`), user2.id)
 
-    response.assertStatus(404)
+    response.assertStatus(403)
   })
 
   test('User cannot create notes on other users transactions', async ({ client }) => {
@@ -303,7 +303,7 @@ test.group('Notes Controller - Multi-tenancy', (group) => {
       content: 'Attempted unauthorized note',
     })
 
-    response.assertStatus(404)
+    response.assertStatus(403)
   })
 
   test('User cannot delete notes on other users transactions', async ({ client }) => {

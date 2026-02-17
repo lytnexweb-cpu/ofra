@@ -18,6 +18,7 @@ export async function createUser(
     propertyContexts: PropertyContext[]
     annualVolume: AnnualVolume
     preferAutoConditions: boolean
+    emailVerified: boolean
   }> = {}
 ): Promise<User> {
   userCounter++
@@ -35,5 +36,6 @@ export async function createUser(
     propertyContexts: overrides.propertyContexts ?? [],
     annualVolume: overrides.annualVolume ?? null,
     preferAutoConditions: overrides.preferAutoConditions ?? true,
+    emailVerified: overrides.emailVerified ?? true,
   })
 }

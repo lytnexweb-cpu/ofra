@@ -60,9 +60,9 @@ export default function AdminLayout() {
       <aside className="w-64 fixed inset-y-0 left-0 z-40 border-r border-stone-200 dark:border-stone-700 bg-stone-900 flex flex-col">
         {/* Logo */}
         <div className="flex items-center gap-3 px-6 py-5 border-b border-white/10">
-          <OfraLogo size={36} />
+          <OfraLogo size={36} variant="white" />
           <div>
-            <span className="text-xl font-bold text-white block">Ofra</span>
+            <span className="text-xl font-bold text-white block">OFRA</span>
             <span className="text-xs text-white/60 flex items-center gap-1">
               <ShieldCheck className="w-3 h-3" />
               Admin

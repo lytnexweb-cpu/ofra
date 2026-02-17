@@ -204,8 +204,8 @@ describe('ConditionsTab', () => {
     expect(screen.getByText('Past Condition')).toBeInTheDocument()
   })
 
-  it('calls conditionsApi.update when toggling a condition', async () => {
-    // D41: Use 'recommended' level to test direct toggle (blocking/required open validation modal)
+  it('opens validation modal when toggling a pending condition (D41)', async () => {
+    // D41: All completing conditions now open the validation modal
     const tx = makeTx({
       conditions: [makeCondition({
         id: 42,
@@ -219,8 +219,30 @@ describe('ConditionsTab', () => {
 
     fireEvent.click(screen.getByTestId('toggle-condition-42'))
 
+    // D41: Validation modal should appear (ConditionValidationModal rendered)
     await waitFor(() => {
-      expect(mockUpdate).toHaveBeenCalledWith(42, { status: 'completed' })
+      expect(screen.getByRole('dialog')).toBeInTheDocument()
+    })
+  })
+
+  it('calls conditionsApi.update when unchecking a recommended condition', async () => {
+    // Uncompleting recommended conditions uses direct toggle (no modal)
+    const tx = makeTx({
+      conditions: [makeCondition({
+        id: 42,
+        transactionStepId: 10,
+        status: 'completed',
+        completedAt: '2025-01-20T00:00:00Z',
+        isBlocking: false,
+        level: 'recommended',
+      })],
+    })
+    renderWithProviders(<ConditionsTab transaction={tx} />)
+
+    fireEvent.click(screen.getByTestId('toggle-condition-42'))
+
+    await waitFor(() => {
+      expect(mockUpdate).toHaveBeenCalledWith(42, { status: 'pending' })
     })
   })
 

@@ -1,103 +1,53 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Button } from '../components/ui/Button'
 import { OfraLogo, OfraLogoFull } from '../components/OfraLogo'
 import { AppMockup } from '../components/landing/AppMockup'
 import { HeroFloatingCards } from '../components/landing/HeroFloatingCards'
+import { LanguageToggle } from '../components/ui/LanguageToggle'
 import {
   Shield,
-  Clock,
-  Users,
-  ArrowRight,
-  Star,
-  Zap,
   FileText,
+  ArrowRight,
+  Check,
+  Crown,
+  Zap,
+  Lock,
+  ArrowLeftRight,
+  FileCheck,
+  FileDown,
+  Link2,
+  UserCog,
+  LayoutDashboard,
+  Import,
   Bell,
-  TrendingUp,
-  Award,
-  Activity,
 } from 'lucide-react'
 
-const features = [
-  {
-    id: 'workflow',
-    icon: FileText,
-    titleKey: 'landing.features.workflow.title',
-    descKey: 'landing.features.workflow.desc',
-  },
-  {
-    id: 'reminders',
-    icon: Bell,
-    titleKey: 'landing.features.reminders.title',
-    descKey: 'landing.features.reminders.desc',
-  },
-  {
-    id: 'blocking',
-    icon: Shield,
-    titleKey: 'landing.features.blocking.title',
-    descKey: 'landing.features.blocking.desc',
-  },
-  {
-    id: 'clients',
-    icon: Users,
-    titleKey: 'landing.features.clients.title',
-    descKey: 'landing.features.clients.desc',
-  },
-  {
-    id: 'timeline',
-    icon: Clock,
-    titleKey: 'landing.features.timeline.title',
-    descKey: 'landing.features.timeline.desc',
-  },
-  {
-    id: 'fast',
-    icon: Zap,
-    titleKey: 'landing.features.fast.title',
-    descKey: 'landing.features.fast.desc',
-  },
-]
-
-const stats = [
-  { id: 'agents', value: '500+', labelKey: 'landing.stats.agents', icon: Users },
-  { id: 'transactions', value: '10,000+', labelKey: 'landing.stats.transactions', icon: TrendingUp },
-  { id: 'uptime', value: '99.9%', labelKey: 'landing.stats.uptime', icon: Activity },
-  { id: 'rating', value: '4.9/5', labelKey: 'landing.stats.rating', icon: Award, accent: true },
-]
-
-const testimonials = [
-  {
-    id: 'marie-claire',
-    name: 'Marie-Claire Leblanc',
-    role: 'Courtière immobilière, Moncton',
-    quote: 'landing.testimonials.1',
-    rating: 5,
-    initials: 'ML',
-  },
-  {
-    id: 'jean-philippe',
-    name: 'Jean-Philippe Arsenault',
-    role: 'Courtier, Dieppe',
-    quote: 'landing.testimonials.2',
-    rating: 5,
-    initials: 'JA',
-  },
-  {
-    id: 'sophie',
-    name: 'Sophie Gallant',
-    role: 'Courtière, Fredericton',
-    quote: 'landing.testimonials.3',
-    rating: 5,
-    initials: 'SG',
-  },
-]
-
 const NAV_LINKS = [
-  { key: 'features', href: '#fonctionnalites' },
-  { key: 'pricing', href: '/pricing', isRoute: true },
-  { key: 'founder', href: '#fondateur' },
-  { key: 'faq', href: '#faq' },
+  { key: 'features', to: '/features' },
+  { key: 'pricing', to: '/pricing' },
+  { key: 'founder', to: '/founder' },
 ] as const
+
+const FEATURES = [
+  { id: 'workflow', icon: FileText },
+  { id: 'conditions', icon: Shield },
+  { id: 'offers', icon: ArrowLeftRight },
+  { id: 'documents', icon: FileCheck },
+]
+
+const PLANS = [
+  { id: 'starter', price: 29 },
+  { id: 'solo', price: 49 },
+  { id: 'pro', price: 79, popular: true },
+  { id: 'agence', price: 149 },
+]
+
+const FOUNDER_BENEFITS = [
+  { key: '1', icon: Lock },
+  { key: '2', icon: Zap },
+  { key: '3', icon: Crown },
+]
 
 export default function LandingPage() {
   const { t } = useTranslation()
@@ -105,14 +55,12 @@ export default function LandingPage() {
   const [navScrolled, setNavScrolled] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
 
-  // Scroll shadow on nav
   useEffect(() => {
     const onScroll = () => setNavScrolled(window.scrollY > 60)
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  // Reveal-on-scroll (IntersectionObserver)
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -131,58 +79,46 @@ export default function LandingPage() {
   }, [])
 
   return (
-    <div ref={rootRef} className="min-h-screen bg-stone-100 antialiased scroll-smooth">
-      {/* ═══ INLINE NAV (navy-800) ═══ */}
+    <div ref={rootRef} className="min-h-screen bg-white antialiased scroll-smooth">
+      {/* ═══════════════════════ NAV ═══════════════════════ */}
       <nav
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
           navScrolled
-            ? 'bg-[rgba(30,58,95,0.97)] backdrop-blur-md shadow-[0_4px_20px_rgba(0,0,0,0.15)]'
-            : 'bg-primary/90 backdrop-blur-sm'
+            ? 'bg-[rgba(11,26,47,0.97)] backdrop-blur-md shadow-[0_4px_20px_rgba(0,0,0,0.2)]'
+            : 'bg-transparent'
         }`}
       >
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link to="/welcome" className="flex items-center gap-2.5 group">
-            <OfraLogo size={36} className="transition-transform group-hover:scale-105" />
+            <OfraLogo size={36} variant="white" className="transition-transform group-hover:scale-105" />
             <span className="text-xl font-bold text-white tracking-tight font-outfit">OFRA</span>
           </Link>
 
-          {/* Desktop links */}
           <div className="hidden md:flex items-center gap-8">
-            {NAV_LINKS.map(({ key, href, isRoute }) =>
-              isRoute ? (
-                <Link
-                  key={key}
-                  to={href}
-                  className="relative text-sm text-white/80 hover:text-white transition after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:right-0 after:h-0.5 after:bg-amber-600 after:scale-x-0 after:transition-transform after:duration-300 after:rounded-sm hover:after:scale-x-100"
-                >
-                  {t(`landing.nav.${key}`)}
-                </Link>
-              ) : (
-                <a
-                  key={key}
-                  href={href}
-                  className="relative text-sm text-white/80 hover:text-white transition after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:right-0 after:h-0.5 after:bg-amber-600 after:scale-x-0 after:transition-transform after:duration-300 after:rounded-sm hover:after:scale-x-100"
-                >
-                  {t(`landing.nav.${key}`)}
-                </a>
-              )
-            )}
+            {NAV_LINKS.map(({ key, to }) => (
+              <Link
+                key={key}
+                to={to}
+                className="relative text-sm text-white/70 hover:text-white transition-colors after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:right-0 after:h-0.5 after:bg-amber-500 after:scale-x-0 after:transition-transform after:duration-300 hover:after:scale-x-100"
+              >
+                {t(`landing.nav.${key}`)}
+              </Link>
+            ))}
           </div>
 
-          {/* Desktop right */}
           <div className="hidden md:flex items-center gap-4">
-            <Link to="/login" className="text-sm text-white/70 hover:text-white transition">
+            <LanguageToggle className="text-white/60 hover:text-white" />
+            <Link to="/login" className="text-sm text-white/60 hover:text-white transition-colors">
               {t('landing.nav.login')}
             </Link>
             <Link
               to="/register"
-              className="px-5 py-2.5 bg-amber-600 hover:bg-amber-500 text-white text-sm font-semibold rounded-lg shadow-[0_4px_15px_rgba(217,119,6,0.3)] hover:shadow-[0_6px_25px_rgba(217,119,6,0.45)] hover:-translate-y-0.5 transition-all duration-300"
+              className="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-white text-sm font-semibold rounded-lg shadow-[0_4px_15px_rgba(217,119,6,0.25)] hover:shadow-[0_6px_25px_rgba(217,119,6,0.4)] hover:-translate-y-0.5 transition-all duration-300"
             >
               {t('landing.nav.freeTrial')}
             </Link>
           </div>
 
-          {/* Mobile hamburger */}
           <button
             className="md:hidden text-white p-1"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -190,46 +126,39 @@ export default function LandingPage() {
             aria-expanded={mobileMenuOpen}
           >
             <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M4 6h16M4 12h16M4 18h16" />
+              {mobileMenuOpen ? (
+                <path d="M6 6l12 12M6 18L18 6" />
+              ) : (
+                <path d="M4 6h16M4 12h16M4 18h16" />
+              )}
             </svg>
           </button>
         </div>
 
-        {/* Mobile menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden bg-[#152a45] border-t border-white/10 px-6 py-5 space-y-3">
-            {NAV_LINKS.map(({ key, href, isRoute }) =>
-              isRoute ? (
-                <Link
-                  key={key}
-                  to={href}
-                  className="block text-white hover:text-amber-400 transition py-1"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  {t(`landing.nav.${key}`)}
-                </Link>
-              ) : (
-                <a
-                  key={key}
-                  href={href}
-                  className="block text-white hover:text-amber-400 transition py-1"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  {t(`landing.nav.${key}`)}
-                </a>
-              )
-            )}
-            <div className="pt-3 mt-3 border-t border-white/20 space-y-3">
+          <div className="md:hidden bg-[#0B1A2F]/95 backdrop-blur-lg border-t border-white/5 px-6 py-5 space-y-3">
+            {NAV_LINKS.map(({ key, to }) => (
+              <Link
+                key={key}
+                to={to}
+                className="block text-white/80 hover:text-amber-400 transition py-1"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                {t(`landing.nav.${key}`)}
+              </Link>
+            ))}
+            <div className="pt-3 mt-3 border-t border-white/10 space-y-3">
+              <LanguageToggle className="block text-white/60 hover:text-amber-400 text-sm py-1" />
               <Link
                 to="/login"
-                className="block text-white/70 text-sm"
+                className="block text-white/60 text-sm"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {t('landing.nav.login')}
               </Link>
               <Link
                 to="/register"
-                className="block py-3 bg-amber-600 text-white text-center font-semibold rounded-lg"
+                className="block py-3 bg-amber-500 text-white text-center font-semibold rounded-lg"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {t('landing.nav.freeTrial')}
@@ -239,46 +168,70 @@ export default function LandingPage() {
         )}
       </nav>
 
-      {/* ═══ HERO SPLIT (navy-800) ═══ */}
-      <section className="bg-primary relative overflow-hidden min-h-screen flex items-center pt-16">
-        {/* Dot texture overlay */}
+      {/* ═══════════════════════ HERO ═══════════════════════ */}
+      <section
+        className="relative overflow-hidden min-h-screen flex items-center pt-16"
+        style={{ background: 'linear-gradient(180deg, #0B1A2F 0%, #122742 50%, #1E3A5F 100%)' }}
+      >
+        {/* Grid pattern */}
         <div
-          className="absolute inset-0 opacity-[0.03]"
-          style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '20px 20px' }}
+          className="absolute inset-0 opacity-[0.035]"
+          style={{
+            backgroundImage:
+              'linear-gradient(rgba(255,255,255,1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px)',
+            backgroundSize: '60px 60px',
+          }}
+        />
+
+        {/* Amber spotlight glow */}
+        <div
+          className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[1200px] h-[900px] pointer-events-none"
+          style={{
+            background:
+              'radial-gradient(ellipse at center, rgba(217,119,6,0.07) 0%, rgba(30,58,95,0.12) 35%, transparent 65%)',
+          }}
+        />
+
+        {/* Blue bottom glow */}
+        <div
+          className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] pointer-events-none"
+          style={{
+            background: 'radial-gradient(ellipse at center, rgba(96,165,250,0.06) 0%, transparent 60%)',
+          }}
         />
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 py-16 w-full">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
-            {/* Left column — Text */}
+            {/* Left column */}
             <div className="lg:col-span-7">
-              {/* Badge pill */}
-              <div className="reveal inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 text-sm text-white mb-6">
+              <div className="reveal inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.06] border border-white/[0.08] text-sm text-white/80 mb-8 backdrop-blur-sm">
                 <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
                 {t('landing.hero.badge')}
               </div>
 
-              {/* Title */}
-              <h1 className="reveal text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-[1.08] tracking-tight mb-5 font-outfit">
-                {t('landing.hero.titleLine1')}<br />
-                <span className="text-amber-400">{t('landing.hero.titleLine2')}</span>
+              <h1 className="reveal text-4xl sm:text-5xl lg:text-[3.5rem] xl:text-[4rem] font-extrabold leading-[1.08] tracking-tight mb-6 font-outfit">
+                <span className="text-white">{t('landing.hero.titleLine1')}</span>
+                <br />
+                <span className="bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-200 bg-clip-text text-transparent">
+                  {t('landing.hero.titleLine2')}
+                </span>
               </h1>
 
-              {/* Subtitle */}
-              <p className="reveal reveal-d1 text-lg text-slate-300 max-w-xl mb-8 leading-relaxed">
+              <p className="reveal reveal-d1 text-lg sm:text-xl text-slate-300/90 max-w-xl mb-10 leading-relaxed">
                 {t('landing.hero.subtitle')}
               </p>
 
-              {/* CTAs */}
-              <div className="reveal reveal-d2 flex flex-col sm:flex-row items-start gap-4 mb-6">
+              <div className="reveal reveal-d2 flex flex-col sm:flex-row items-start gap-4 mb-8">
                 <Link
                   to="/register"
-                  className="px-8 py-4 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl text-lg shadow-[0_4px_15px_rgba(217,119,6,0.3)] hover:shadow-[0_6px_25px_rgba(217,119,6,0.45)] hover:-translate-y-0.5 transition-all duration-300"
+                  className="group px-8 py-4 bg-amber-500 hover:bg-amber-400 text-white font-bold rounded-xl text-lg shadow-[0_4px_25px_rgba(217,119,6,0.3)] hover:shadow-[0_8px_40px_rgba(217,119,6,0.45)] hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-2"
                 >
                   {t('landing.hero.cta')}
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" />
                 </Link>
                 <a
-                  href="#"
-                  className="px-8 py-4 bg-white/[0.08] border border-white/20 text-white font-semibold rounded-xl text-lg flex items-center gap-2 hover:bg-white/[0.12] hover:-translate-y-0.5 transition-all duration-300"
+                  href="#fonctionnalites"
+                  className="px-8 py-4 bg-white/[0.06] border border-white/[0.1] text-white/90 font-semibold rounded-xl text-lg flex items-center gap-2.5 hover:bg-white/[0.1] hover:-translate-y-0.5 transition-all duration-300 backdrop-blur-sm"
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="text-amber-400">
                     <polygon points="5,3 19,12 5,21" />
@@ -287,35 +240,20 @@ export default function LandingPage() {
                 </a>
               </div>
 
-              {/* Trust badges */}
-              <div className="reveal reveal-d3 flex flex-wrap items-start gap-5 text-xs text-slate-400">
-                <div className="flex items-center gap-1.5">
-                  <svg width="14" height="14" fill="none" stroke="#d97706" strokeWidth="2" viewBox="0 0 24 24">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                  </svg>
-                  {t('landing.hero.trust1')}
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <svg width="14" height="14" fill="none" stroke="#d97706" strokeWidth="2" viewBox="0 0 24 24">
-                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  {t('landing.hero.trust2')}
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <svg width="14" height="14" fill="none" stroke="#d97706" strokeWidth="2" viewBox="0 0 24 24">
-                    <path d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
-                  </svg>
-                  {t('landing.hero.trust3')}
-                </div>
+              <div className="reveal reveal-d3 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-slate-400/80">
+                {(['trust1', 'trust2', 'trust3', 'trust4'] as const).map((key) => (
+                  <div key={key} className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-amber-500/60" />
+                    <span>{t(`landing.hero.${key}`)}</span>
+                  </div>
+                ))}
               </div>
             </div>
 
-            {/* Right column — Floating cards (desktop) */}
+            {/* Right column — Floating cards */}
             <div className="lg:col-span-5 hidden lg:block">
               <HeroFloatingCards />
             </div>
-
-            {/* Floating cards (mobile/tablet — below text) */}
             <div className="lg:hidden flex justify-center">
               <div className="scale-[0.85] origin-top">
                 <HeroFloatingCards />
@@ -325,7 +263,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ═══ SCROLL HINT ═══ */}
+      {/* ═══════════════════════ SCROLL HINT ═══════════════════════ */}
       <div className="reveal py-10 flex flex-col items-center gap-2 text-stone-400">
         <span className="text-[11px] uppercase tracking-widest font-medium">
           {t('landing.scroll')}
@@ -344,34 +282,62 @@ export default function LandingPage() {
         </svg>
       </div>
 
-      {/* ═══ FEATURES SECTION ═══ */}
-      <section id="fonctionnalites" className="py-20 bg-white dark:bg-stone-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* ═══════════════════════ WHY OFRA ═══════════════════════ */}
+      <section className="py-20 md:py-28 bg-white">
+        <div className="max-w-4xl mx-auto px-6">
+          <div className="reveal text-center mb-14">
+            <h2 className="text-3xl sm:text-4xl font-bold text-primary mb-4 font-outfit">
+              {t('landing.why.title')}
+            </h2>
+            <p className="text-lg text-stone-500 max-w-2xl mx-auto leading-relaxed">
+              {t('landing.why.subtitle')}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+            {(['benefit1', 'benefit2', 'benefit3'] as const).map((key, i) => (
+              <div
+                key={key}
+                className={`reveal reveal-d${i + 1} flex items-start gap-4 p-5 rounded-xl bg-stone-50 border border-stone-100`}
+              >
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                  <Check className="w-4 h-4 text-primary" />
+                </div>
+                <p className="text-stone-600 leading-relaxed">{t(`landing.why.${key}`)}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════ FEATURES — 4 PILLARS ═══════════════════════ */}
+      <section id="fonctionnalites" className="py-20 md:py-28 bg-stone-50">
+        <div className="max-w-6xl mx-auto px-6">
           <div className="reveal text-center mb-16">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary dark:text-white mb-4 font-outfit">
+            <h2 className="text-3xl sm:text-4xl font-bold text-primary mb-4 font-outfit">
               {t('landing.features.title')}
             </h2>
-            <p className="text-base sm:text-lg text-stone-600 dark:text-stone-300 max-w-2xl mx-auto">
+            <p className="text-lg text-stone-500 max-w-2xl mx-auto">
               {t('landing.features.subtitle')}
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-            {features.map((feature, i) => {
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8">
+            {FEATURES.map((feature, i) => {
               const Icon = feature.icon
               return (
                 <div
                   key={feature.id}
-                  className={`reveal ${i < 3 ? `reveal-d${i + 1}` : `reveal-d${i - 2}`} bg-stone-50 dark:bg-stone-800 rounded-2xl p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1`}
+                  className={`reveal reveal-d${i + 1} group bg-white rounded-2xl p-8 border border-stone-200/80 hover:border-primary/20 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1`}
                 >
-                  <div className="w-12 h-12 rounded-xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center mb-4">
-                    <Icon className="w-6 h-6 text-primary dark:text-accent" aria-hidden="true" />
+                  <div className="w-14 h-14 rounded-2xl bg-primary/[0.08] group-hover:bg-primary/[0.12] flex items-center justify-center mb-5 transition-colors">
+                    <Icon className="w-7 h-7 text-primary" />
                   </div>
-                  <h3 className="text-lg font-semibold text-stone-900 dark:text-white mb-2">
-                    {t(feature.titleKey)}
+                  <h3 className="text-xl font-bold text-stone-900 mb-2 font-outfit">
+                    {t(`landing.features.${feature.id}.title`)}
                   </h3>
-                  <p className="text-stone-600 dark:text-stone-400">
-                    {t(feature.descKey)}
+                  <p className="text-stone-500 leading-relaxed">
+                    {t(`landing.features.${feature.id}.desc`)}
                   </p>
                 </div>
               )
@@ -380,14 +346,23 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ═══ PRODUCT TOUR (AppMockup) ═══ */}
-      <section className="py-20 bg-stone-50 dark:bg-stone-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* ═══════════════════════ PRODUCT TOUR ═══════════════════════ */}
+      <section className="py-20 md:py-28 bg-primary relative overflow-hidden">
+        <div
+          className="absolute inset-0 opacity-[0.04]"
+          style={{
+            backgroundImage:
+              'linear-gradient(rgba(255,255,255,1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px)',
+            backgroundSize: '60px 60px',
+          }}
+        />
+
+        <div className="relative z-10 max-w-7xl mx-auto px-6">
           <div className="reveal text-center mb-12">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary dark:text-white mb-4 font-outfit">
+            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4 font-outfit">
               {t('landing.productTour.title')}
             </h2>
-            <p className="text-base sm:text-lg text-stone-600 dark:text-stone-300 max-w-2xl mx-auto">
+            <p className="text-lg text-white/50 max-w-2xl mx-auto">
               {t('landing.productTour.subtitle')}
             </p>
           </div>
@@ -397,107 +372,240 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ═══ STATS SECTION ═══ */}
-      <section className="py-16 bg-primary dark:bg-stone-950">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="reveal grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 text-center">
-            {stats.map((stat) => {
-              const Icon = stat.icon
-              const label = t(stat.labelKey)
-              return (
-                <div key={stat.id} className="flex flex-col items-center">
-                  <Icon
-                    className={`w-6 h-6 mb-2 ${stat.accent ? 'text-accent' : 'text-white/70'}`}
-                    aria-hidden="true"
-                  />
-                  <p className={`text-2xl sm:text-3xl md:text-4xl font-bold mb-2 ${stat.accent ? 'text-accent' : 'text-white'}`}>
-                    <span aria-label={`${stat.value} ${label}`}>{stat.value}</span>
-                  </p>
-                  <p className="text-white/80 text-sm sm:text-base">{label}</p>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ TESTIMONIALS SECTION ═══ */}
-      <section className="py-20 bg-stone-50 dark:bg-stone-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="reveal text-center mb-16">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary dark:text-white mb-4 font-outfit">
-              {t('landing.testimonials.title')}
+      {/* ═══════════════════════ MORE FEATURES ═══════════════════════ */}
+      <section className="py-20 md:py-28 bg-stone-50">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="reveal text-center mb-14">
+            <h2 className="text-3xl sm:text-4xl font-bold text-primary mb-4 font-outfit">
+              {t('landing.moreFeatures.title')}
             </h2>
+            <p className="text-lg text-stone-500 max-w-2xl mx-auto">
+              {t('landing.moreFeatures.subtitle')}
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-            {testimonials.map((testimonial, i) => (
-              <article
-                key={testimonial.id}
-                className={`reveal reveal-d${i + 1} bg-white dark:bg-stone-800 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow`}
+          <div className="reveal grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {([
+              { id: 'dashboard', icon: LayoutDashboard },
+              { id: 'pdfExport', icon: FileDown },
+              { id: 'shareLinks', icon: Link2 },
+              { id: 'permissions', icon: UserCog },
+              { id: 'csvImport', icon: Import },
+              { id: 'notifications', icon: Bell },
+            ] as const).map(({ id, icon: Icon }) => (
+              <div
+                key={id}
+                className="flex items-start gap-4 p-5 rounded-xl bg-white border border-stone-200/80 hover:border-primary/20 hover:shadow-md transition-all"
               >
-                <div className="flex gap-1 mb-4" aria-label={`${testimonial.rating} stars`}>
-                  {[...Array(testimonial.rating)].map((_, j) => (
-                    <Star key={j} className="w-5 h-5 fill-accent text-accent" aria-hidden="true" />
-                  ))}
+                <div className="w-10 h-10 rounded-lg bg-primary/[0.08] flex items-center justify-center shrink-0">
+                  <Icon className="w-5 h-5 text-primary" />
                 </div>
-                <blockquote className="text-stone-600 dark:text-stone-300 mb-6 italic">
-                  &ldquo;{t(testimonial.quote)}&rdquo;
-                </blockquote>
-                <footer className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 dark:bg-accent/20 flex items-center justify-center" aria-hidden="true">
-                    <span className="text-sm font-semibold text-primary dark:text-accent">
-                      {testimonial.initials}
-                    </span>
-                  </div>
-                  <div>
-                    <cite className="font-semibold text-stone-900 dark:text-white not-italic">{testimonial.name}</cite>
-                    <p className="text-sm text-stone-500 dark:text-stone-400">{testimonial.role}</p>
-                  </div>
-                </footer>
-              </article>
+                <div>
+                  <h4 className="font-bold text-stone-800 text-sm mb-1">
+                    {t(`landing.moreFeatures.${id}.title`)}
+                  </h4>
+                  <p className="text-sm text-stone-500 leading-relaxed">
+                    {t(`landing.moreFeatures.${id}.desc`)}
+                  </p>
+                </div>
+              </div>
             ))}
           </div>
+
+          <div className="reveal text-center mt-10">
+            <Link
+              to="/features"
+              className="inline-flex items-center gap-2 text-primary font-semibold hover:text-primary/80 transition-colors"
+            >
+              {t('landing.moreFeatures.seeAll')}
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
         </div>
       </section>
 
-      {/* ═══ CTA SECTION ═══ */}
-      <section className="py-20 bg-white dark:bg-stone-800">
-        <div className="reveal max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary dark:text-white mb-4 font-outfit">
+      {/* ═══════════════════════ FOUNDER PROGRAM ═══════════════════════ */}
+      <section id="fondateur" className="py-20 md:py-28 bg-white">
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="reveal relative overflow-hidden rounded-3xl border border-amber-200/60 bg-gradient-to-br from-amber-50/80 via-white to-amber-50/30 p-8 md:p-12">
+            {/* Gold shimmer corner */}
+            <div
+              className="absolute top-0 right-0 w-[500px] h-[500px] pointer-events-none"
+              style={{
+                background: 'radial-gradient(circle at top right, rgba(217,119,6,0.08), transparent 55%)',
+              }}
+            />
+
+            <div className="relative z-10">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-100 text-amber-800 text-sm font-semibold mb-6">
+                <Crown className="w-4 h-4" />
+                {t('landing.founder.badge')}
+              </div>
+
+              <h2 className="text-3xl sm:text-4xl font-bold text-primary mb-3 font-outfit">
+                {t('landing.founder.title')}
+              </h2>
+              <p className="text-lg text-stone-500 mb-10 max-w-2xl">
+                {t('landing.founder.subtitle')}
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
+                {FOUNDER_BENEFITS.map((benefit) => {
+                  const Icon = benefit.icon
+                  return (
+                    <div key={benefit.key}>
+                      <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center mb-3">
+                        <Icon className="w-5 h-5 text-amber-700" />
+                      </div>
+                      <h4 className="font-bold text-stone-900 mb-1">
+                        {t(`landing.founder.benefit${benefit.key}`)}
+                      </h4>
+                      <p className="text-sm text-stone-500 leading-relaxed">
+                        {t(`landing.founder.benefit${benefit.key}Desc`)}
+                      </p>
+                    </div>
+                  )
+                })}
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
+                <Link
+                  to="/founder"
+                  className="group px-8 py-4 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl text-lg shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-2"
+                >
+                  <Crown className="w-5 h-5 text-amber-400" />
+                  {t('landing.founder.cta')}
+                  <ArrowRight className="w-5 h-5 opacity-60 group-hover:translate-x-0.5 transition-transform" />
+                </Link>
+                <div>
+                  <p className="text-sm font-semibold text-amber-700">
+                    {t('landing.founder.spotsLeft', { count: 19 })}
+                  </p>
+                  <p className="text-sm text-stone-400">{t('landing.founder.ctaSub')}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════ PRICING PREVIEW ═══════════════════════ */}
+      <section id="tarifs" className="py-20 md:py-28 bg-stone-50">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="reveal text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl font-bold text-primary mb-4 font-outfit">
+              {t('landing.pricingPreview.title')}
+            </h2>
+            <p className="text-lg text-stone-500 max-w-2xl mx-auto">
+              {t('landing.pricingPreview.subtitle')}
+            </p>
+          </div>
+
+          <div className="reveal reveal-d1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5 mb-10">
+            {PLANS.map((plan) => (
+              <div
+                key={plan.id}
+                className={`relative bg-white rounded-2xl p-6 border transition-all duration-300 hover:-translate-y-1 ${
+                  plan.popular
+                    ? 'border-amber-300 shadow-lg ring-1 ring-amber-200/50'
+                    : 'border-stone-200 shadow-sm hover:shadow-md'
+                }`}
+              >
+                {plan.popular && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-amber-500 text-white text-xs font-bold rounded-full whitespace-nowrap">
+                    {t('landing.pricingPreview.popular')}
+                  </div>
+                )}
+                <h3 className="text-lg font-bold text-stone-900 mb-1 font-outfit">
+                  {t(`landing.plans.${plan.id}.name`)}
+                </h3>
+                <p className="text-sm text-stone-400 mb-4">
+                  {t(`landing.plans.${plan.id}.desc`)}
+                </p>
+                <div className="flex items-baseline gap-1 mb-5">
+                  <span className="text-3xl font-extrabold text-primary">{plan.price}$</span>
+                  <span className="text-stone-400 text-sm">{t('landing.pricingPreview.perMonth')}</span>
+                </div>
+                <Link
+                  to="/pricing"
+                  className={`block text-center py-2.5 rounded-lg font-semibold text-sm transition-colors ${
+                    plan.popular
+                      ? 'bg-primary text-white hover:bg-primary/90'
+                      : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
+                  }`}
+                >
+                  {t('landing.pricingPreview.trialIncluded')}
+                </Link>
+              </div>
+            ))}
+          </div>
+
+          <div className="text-center">
+            <Link
+              to="/pricing"
+              className="inline-flex items-center gap-2 text-primary font-semibold hover:text-primary/80 transition-colors"
+            >
+              {t('landing.pricingPreview.allPlans')}
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════ FINAL CTA ═══════════════════════ */}
+      <section
+        className="py-20 md:py-28 relative overflow-hidden"
+        style={{ background: 'linear-gradient(180deg, #0B1A2F 0%, #1E3A5F 100%)' }}
+      >
+        <div
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] pointer-events-none"
+          style={{
+            background: 'radial-gradient(ellipse at center, rgba(217,119,6,0.06) 0%, transparent 55%)',
+          }}
+        />
+
+        <div className="reveal relative z-10 max-w-3xl mx-auto px-6 text-center">
+          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4 font-outfit">
             {t('landing.cta.title')}
           </h2>
-          <p className="text-base sm:text-lg text-stone-600 dark:text-stone-300 mb-8">
+          <p className="text-lg text-white/50 mb-8 max-w-xl mx-auto">
             {t('landing.cta.subtitle')}
           </p>
-          <Link to="/register">
-            <Button size="lg" className="bg-primary hover:bg-primary/90 dark:bg-accent dark:hover:bg-accent/90 gap-2 px-8">
-              {t('landing.cta.button')}
-              <ArrowRight className="w-5 h-5" />
-            </Button>
+          <Link
+            to="/register"
+            className="inline-flex items-center gap-2 px-10 py-4 bg-amber-500 hover:bg-amber-400 text-white font-bold rounded-xl text-lg shadow-[0_4px_25px_rgba(217,119,6,0.3)] hover:shadow-[0_8px_40px_rgba(217,119,6,0.45)] hover:-translate-y-0.5 transition-all duration-300"
+          >
+            {t('landing.cta.button')}
+            <ArrowRight className="w-5 h-5" />
           </Link>
         </div>
       </section>
 
-      {/* ═══ FOOTER ═══ */}
-      <footer className="bg-primary dark:bg-stone-950 py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* ═══════════════════════ FOOTER ═══════════════════════ */}
+      <footer style={{ background: '#0B1A2F' }} className="py-12">
+        <div className="max-w-7xl mx-auto px-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {/* Brand */}
             <div className="sm:col-span-2 lg:col-span-1">
-              <OfraLogoFull className="mb-4" invertColors />
-              <p className="text-white/70 text-sm">
-                {t('landing.footer.tagline')}
-              </p>
+              <OfraLogoFull className="mb-4" invertColors showTagline={false} />
+              <p className="text-white/50 text-sm">{t('landing.footer.tagline')}</p>
             </div>
 
-            {/* Product Links */}
             <div>
               <h4 className="font-semibold text-white mb-4">{t('landing.footer.product')}</h4>
-              <ul className="space-y-2 text-sm text-white/70">
+              <ul className="space-y-2 text-sm text-white/50">
+                <li>
+                  <Link to="/features" className="hover:text-white transition-colors">
+                    {t('landing.nav.features')}
+                  </Link>
+                </li>
                 <li>
                   <Link to="/pricing" className="hover:text-white transition-colors">
                     {t('landing.nav.pricing')}
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/founder" className="hover:text-white transition-colors">
+                    {t('landing.nav.founder')}
                   </Link>
                 </li>
                 <li>
@@ -508,10 +616,35 @@ export default function LandingPage() {
               </ul>
             </div>
 
-            {/* Legal Links */}
+            <div>
+              <h4 className="font-semibold text-white mb-4">{t('landing.footer.company')}</h4>
+              <ul className="space-y-2 text-sm text-white/50">
+                <li>
+                  <Link to="/about" className="hover:text-white transition-colors">
+                    {t('landing.footer.about')}
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/faq" className="hover:text-white transition-colors">
+                    {t('landing.footer.faq')}
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/contact" className="hover:text-white transition-colors">
+                    {t('landing.footer.contactUs')}
+                  </Link>
+                </li>
+                <li>
+                  <a href="mailto:support@ofra.ca" className="hover:text-white transition-colors">
+                    support@ofra.ca
+                  </a>
+                </li>
+              </ul>
+            </div>
+
             <div>
               <h4 className="font-semibold text-white mb-4">{t('landing.footer.legal')}</h4>
-              <ul className="space-y-2 text-sm text-white/70">
+              <ul className="space-y-2 text-sm text-white/50">
                 <li>
                   <Link to="/privacy" className="hover:text-white transition-colors">
                     {t('landing.footer.privacy')}
@@ -524,29 +657,10 @@ export default function LandingPage() {
                 </li>
               </ul>
             </div>
-
-            {/* Contact */}
-            <div>
-              <h4 className="font-semibold text-white mb-4">{t('landing.footer.contact')}</h4>
-              <ul className="space-y-2 text-sm text-white/70">
-                <li>
-                  <Link to="/contact" className="hover:text-white transition-colors">
-                    {t('landing.footer.contactUs')}
-                  </Link>
-                </li>
-                <li>
-                  <a href="mailto:support@ofra.ca" className="hover:text-white transition-colors">
-                    support@ofra.ca
-                  </a>
-                </li>
-                <li>Moncton, NB</li>
-              </ul>
-            </div>
           </div>
 
-          {/* Copyright */}
-          <div className="mt-12 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-white/40">
-            <p>&copy; {new Date().getFullYear()} Ofra. {t('landing.footer.rights')}</p>
+          <div className="mt-12 pt-8 border-t border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-white/30">
+            <p>&copy; {new Date().getFullYear()} OFRA. {t('landing.footer.rights')}</p>
             <p className="text-xs">v1.0.0</p>
           </div>
         </div>

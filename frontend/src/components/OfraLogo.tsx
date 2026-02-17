@@ -43,7 +43,7 @@ export function OfraLogoFull({ iconSize = 42, className, showTagline = true, inv
   return (
     <div className={className}>
       <div className="flex items-center justify-center gap-3 mb-2">
-        <OfraLogo size={iconSize} />
+        <OfraLogo size={iconSize} variant={invertColors ? 'white' : 'default'} />
         <span
           className={`text-3xl font-extrabold tracking-tight font-outfit ${
             invertColors ? 'text-white' : 'text-primary dark:text-white'

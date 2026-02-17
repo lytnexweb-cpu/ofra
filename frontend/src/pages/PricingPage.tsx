@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { MarketingLayout } from '../components/marketing/MarketingLayout'
 import { Button } from '../components/ui/Button'
-import { Check, Zap, ChevronDown, ChevronUp, Loader2, HardHat, Infinity } from 'lucide-react'
+import { Check, Minus, Zap, ChevronDown, ChevronUp, Loader2, Crown, Infinity, ArrowRight } from 'lucide-react'
 import { plansApi, type PublicPlan } from '../api/plans.api'
 import { authApi } from '../api/auth.api'
 import { subscriptionApi } from '../api/subscription.api'
@@ -32,8 +32,57 @@ const PLAN_META: Record<string, {
   },
 }
 
-function formatPrice(price: number): string {
-  return Math.round(price) === price ? String(price) : price.toFixed(2)
+// PRD §2.6 Feature Gates per plan
+type GateFeature = {
+  key: string
+  included: boolean
+  params?: Record<string, string | number>
+}
+
+const PLAN_GATES: Record<string, GateFeature[]> = {
+  starter: [
+    { key: 'guidedWorkflow', included: true },
+    { key: 'conditionsEngine', included: true },
+    { key: 'pdfExportsLimited', included: true, params: { count: 3 } },
+    { key: 'shareLinksLimited', included: true, params: { count: 1 } },
+    { key: 'conditionPacks', included: false },
+    { key: 'fintrac', included: false },
+    { key: 'evidence', included: false },
+    { key: 'auditHistory', included: false },
+  ],
+  solo: [
+    { key: 'guidedWorkflow', included: true },
+    { key: 'conditionsEngine', included: true },
+    { key: 'exportsUnlimited', included: true },
+    { key: 'conditionPacks', included: true },
+    { key: 'fintrac', included: true },
+    { key: 'evidence', included: false },
+    { key: 'auditHistory', included: false },
+  ],
+  pro: [
+    { key: 'guidedWorkflow', included: true },
+    { key: 'conditionsEngine', included: true },
+    { key: 'exportsUnlimited', included: true },
+    { key: 'conditionPacks', included: true },
+    { key: 'fintrac', included: true },
+    { key: 'evidence', included: true },
+    { key: 'auditHistory', included: true },
+  ],
+  agence: [
+    { key: 'guidedWorkflow', included: true },
+    { key: 'conditionsEngine', included: true },
+    { key: 'exportsUnlimited', included: true },
+    { key: 'conditionPacks', included: true },
+    { key: 'fintrac', included: true },
+    { key: 'evidence', included: true },
+    { key: 'auditHistory', included: true },
+    { key: 'multiUser', included: true, params: { count: 3 } },
+  ],
+}
+
+function formatPrice(price: number | string): string {
+  const n = Number(price)
+  return Math.round(n) === n ? String(n) : n.toFixed(2)
 }
 
 function PlanCard({
@@ -96,15 +145,21 @@ function PlanCard({
         </div>
 
         {isAnnual && (
-          <p className="text-xs text-stone-400">
-            <span className="line-through">{formatPrice(monthlyIfNotAnnual * 12)}$</span>
-            {' '}<span className="text-emerald-600 font-medium">{formatPrice(totalAnnual)}$/an</span>
-          </p>
+          <div className="text-xs mt-1">
+            <p className="text-stone-400">
+              <span className="line-through">{formatPrice(Number(monthlyIfNotAnnual) * 12)}$</span>
+              {' → '}<span className="text-emerald-600 font-medium">{formatPrice(totalAnnual)}$/{t('pricing.year')}</span>
+            </p>
+            <p className="text-emerald-600 font-medium">
+              {t('pricing.save', { amount: formatPrice(Number(monthlyIfNotAnnual) * 12 - Number(totalAnnual)) })}
+            </p>
+          </div>
         )}
       </div>
 
-      {/* Features */}
+      {/* Features — PRD §2.6 gates */}
       <ul className="space-y-2.5 flex-1 mb-6">
+        {/* TX actives (from API) */}
         <li className="flex items-center gap-2.5 text-sm">
           <Check className="w-4 h-4 text-emerald-500 shrink-0" />
           <span className="text-stone-700 dark:text-stone-300">
@@ -114,33 +169,26 @@ function PlanCard({
             }
           </span>
         </li>
+        {/* Storage (from API) */}
         <li className="flex items-center gap-2.5 text-sm">
           <Check className="w-4 h-4 text-emerald-500 shrink-0" />
           <span className="text-stone-700 dark:text-stone-300">
             {plan.maxStorageGb} Go {t('pricing.storage', 'stockage')}
           </span>
         </li>
-        <li className="flex items-center gap-2.5 text-sm">
-          <Check className="w-4 h-4 text-emerald-500 shrink-0" />
-          <span className="text-stone-700 dark:text-stone-300">
-            {plan.historyMonths
-              ? `${t('pricing.history', 'Historique')} ${plan.historyMonths} ${t('pricing.months', 'mois')}`
-              : <span className="flex items-center gap-1">{t('pricing.history', 'Historique')} <Infinity className="w-3.5 h-3.5" /></span>
-            }
-          </span>
-        </li>
-        <li className="flex items-center gap-2.5 text-sm">
-          <Check className="w-4 h-4 text-emerald-500 shrink-0" />
-          <span className="text-stone-700 dark:text-stone-300">
-            {t('pricing.conditionsEngine', 'Moteur de conditions')}
-          </span>
-        </li>
-        <li className="flex items-center gap-2.5 text-sm">
-          <Check className="w-4 h-4 text-emerald-500 shrink-0" />
-          <span className="text-stone-700 dark:text-stone-300">
-            {t('pricing.guidedWorkflow', 'Workflow guidé')}
-          </span>
-        </li>
+        {/* Gated features per plan */}
+        {(PLAN_GATES[plan.slug] ?? []).map((gate) => (
+          <li key={gate.key} className="flex items-center gap-2.5 text-sm">
+            {gate.included ? (
+              <Check className="w-4 h-4 text-emerald-500 shrink-0" />
+            ) : (
+              <Minus className="w-4 h-4 text-stone-300 dark:text-stone-600 shrink-0" />
+            )}
+            <span className={gate.included ? 'text-stone-700 dark:text-stone-300' : 'text-stone-400 dark:text-stone-500'}>
+              {t(`pricing.gates.${gate.key}`, gate.params)}
+            </span>
+          </li>
+        ))}
       </ul>
 
       {/* CTA */}
@@ -188,25 +236,33 @@ function FounderBanner() {
   const { t } = useTranslation()
 
   return (
-    <div className="max-w-4xl mx-auto mb-10 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border border-amber-200 dark:border-amber-800 rounded-2xl p-5 md:p-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-        <div className="flex items-center gap-3">
-          <HardHat className="w-8 h-8 text-amber-600 shrink-0" />
+    <div className="max-w-5xl mx-auto mb-10 relative overflow-hidden rounded-2xl border border-amber-200/60 bg-gradient-to-r from-amber-50/80 via-white to-amber-50/40 dark:from-amber-950/30 dark:via-stone-800 dark:to-amber-950/20 dark:border-amber-800/40 p-6">
+      <div
+        className="absolute top-0 right-0 w-[300px] h-[300px] pointer-events-none"
+        style={{ background: 'radial-gradient(circle at top right, rgba(217,119,6,0.08), transparent 55%)' }}
+      />
+      <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+        <div className="flex items-center gap-3 flex-1">
+          <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center shrink-0">
+            <Crown className="w-5 h-5 text-amber-700 dark:text-amber-400" />
+          </div>
           <div>
-            <h3 className="font-bold text-stone-900 dark:text-white text-sm sm:text-base">
-              {t('pricing.founder.title', 'OFFRE FONDATEUR')}
-              <span className="ml-2 text-xs font-normal text-amber-700 dark:text-amber-400">
-                {t('pricing.founder.spots', '19/25 places restantes')}
+            <h3 className="font-bold text-stone-900 dark:text-white text-sm sm:text-base flex flex-wrap items-center gap-2">
+              {t('pricing.founder.title')}
+              <span className="text-xs font-medium text-amber-700 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/40 px-2 py-0.5 rounded-full">
+                {t('pricing.founder.spots')}
               </span>
             </h3>
-            <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 mt-0.5">
-              {t('pricing.founder.desc', '1 mois gratuit + -20% à vie (tous plans) · -30% si annuel')}
+            <p className="text-sm text-stone-500 dark:text-stone-400 mt-0.5">
+              {t('pricing.founder.desc')}
             </p>
           </div>
         </div>
-        <Link to="/register" className="shrink-0 sm:ml-auto">
-          <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-white">
-            {t('pricing.founder.cta', 'Devenir fondateur')} →
+        <Link to="/register?founder=1" className="shrink-0 sm:ml-auto">
+          <Button size="sm" className="bg-primary hover:bg-primary/90 text-white gap-1.5">
+            <Crown className="w-4 h-4 text-amber-400" />
+            {t('pricing.founder.cta')}
+            <ArrowRight className="w-3.5 h-3.5 opacity-60" />
           </Button>
         </Link>
       </div>
@@ -247,7 +303,7 @@ function BillingToggle({
         <span className={`text-xs px-1.5 py-0.5 rounded-full ${
           isAnnual ? 'bg-white/20' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-400'
         }`}>
-          -17%
+          {t('pricing.saveMonths')}
         </span>
       </button>
     </div>
@@ -277,6 +333,141 @@ function FAQItem({ question, answer, id }: { question: string; answer: string; i
         </div>
       )}
     </div>
+  )
+}
+
+function ComparisonTable({ plans, isFr }: { plans: PublicPlan[]; isFr: boolean }) {
+  const { t } = useTranslation()
+  const [isOpen, setIsOpen] = useState(false)
+  const unlimited = isFr ? 'Illimité' : 'Unlimited'
+
+  type CellValue = string | boolean
+  type CompareRow = { label: string; values: Record<string, CellValue> }
+  type CompareCategory = { name: string; rows: CompareRow[] }
+
+  const categories: CompareCategory[] = [
+    {
+      name: t('pricing.comparison.limits'),
+      rows: [
+        { label: t('pricing.comparison.txActives'), values: { starter: '5', solo: '12', pro: '25', agence: '∞' } },
+        { label: t('pricing.comparison.storage'), values: { starter: '1 Go', solo: '3 Go', pro: '10 Go', agence: '25 Go' } },
+        { label: t('pricing.comparison.users'), values: { starter: '1', solo: '1', pro: '1', agence: '3' } },
+      ],
+    },
+    {
+      name: t('pricing.comparison.base'),
+      rows: [
+        { label: t('pricing.gates.guidedWorkflow'), values: { starter: true, solo: true, pro: true, agence: true } },
+        { label: t('pricing.gates.conditionsEngine'), values: { starter: true, solo: true, pro: true, agence: true } },
+      ],
+    },
+    {
+      name: t('pricing.comparison.exports'),
+      rows: [
+        { label: t('pricing.comparison.pdfExports'), values: { starter: isFr ? '3/mois' : '3/mo', solo: unlimited, pro: unlimited, agence: unlimited } },
+        { label: t('pricing.comparison.shareLinks'), values: { starter: '1/TX', solo: unlimited, pro: unlimited, agence: unlimited } },
+      ],
+    },
+    {
+      name: t('pricing.comparison.premium'),
+      rows: [
+        { label: t('pricing.gates.conditionPacks'), values: { starter: false, solo: true, pro: true, agence: true } },
+        { label: t('pricing.gates.fintrac'), values: { starter: false, solo: true, pro: true, agence: true } },
+        { label: t('pricing.gates.evidence'), values: { starter: false, solo: false, pro: true, agence: true } },
+        { label: t('pricing.gates.auditHistory'), values: { starter: false, solo: false, pro: true, agence: true } },
+      ],
+    },
+  ]
+
+  const planOrder = ['starter', 'solo', 'pro', 'agence']
+
+  return (
+    <section className="py-12">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="mx-auto flex items-center gap-2 text-primary dark:text-accent font-semibold hover:underline transition-colors"
+        >
+          {t('pricing.comparison.toggle')}
+          {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+        </button>
+
+        {isOpen && (
+          <div className="mt-8 overflow-x-auto rounded-xl border border-stone-200 dark:border-stone-700">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-stone-50 dark:bg-stone-800">
+                  <th className="sticky left-0 z-10 bg-stone-50 dark:bg-stone-800 text-left px-4 py-3 font-semibold text-stone-600 dark:text-stone-300 min-w-[180px]">
+                    {t('pricing.comparison.feature')}
+                  </th>
+                  {planOrder.map((slug) => {
+                    const plan = plans.find((p) => p.slug === slug)
+                    const isPopular = PLAN_META[slug]?.popular
+                    return (
+                      <th
+                        key={slug}
+                        className={`px-4 py-3 text-center font-bold min-w-[110px] ${
+                          isPopular
+                            ? 'text-primary dark:text-accent'
+                            : 'text-stone-700 dark:text-stone-200'
+                        }`}
+                      >
+                        {plan?.name ?? slug}
+                        {isPopular && <Zap className="w-3 h-3 inline ml-1 text-accent" />}
+                      </th>
+                    )
+                  })}
+                </tr>
+              </thead>
+              <tbody>
+                {categories.flatMap((cat) => [
+                  <tr key={`cat-${cat.name}`}>
+                    <td
+                      colSpan={5}
+                      className="px-4 py-2.5 bg-stone-100 dark:bg-stone-900/60 font-semibold text-stone-800 dark:text-stone-200 text-xs uppercase tracking-wider"
+                    >
+                      {cat.name}
+                    </td>
+                  </tr>,
+                  ...cat.rows.map((row, ri) => (
+                    <tr
+                      key={row.label}
+                      className={ri % 2 === 0 ? 'bg-white dark:bg-stone-800' : 'bg-stone-50/50 dark:bg-stone-800/50'}
+                    >
+                      <td className="sticky left-0 z-10 bg-inherit px-4 py-2.5 text-stone-600 dark:text-stone-300">
+                        {row.label}
+                      </td>
+                      {planOrder.map((slug) => {
+                        const val = row.values[slug]
+                        const isPopular = PLAN_META[slug]?.popular
+                        return (
+                          <td
+                            key={slug}
+                            className={`px-4 py-2.5 text-center ${
+                              isPopular ? 'bg-primary/[0.03] dark:bg-accent/[0.05]' : ''
+                            }`}
+                          >
+                            {typeof val === 'boolean' ? (
+                              val ? (
+                                <Check className="w-4 h-4 text-emerald-500 mx-auto" />
+                              ) : (
+                                <Minus className="w-4 h-4 text-stone-300 dark:text-stone-600 mx-auto" />
+                              )
+                            ) : (
+                              <span className="text-stone-700 dark:text-stone-300 font-medium">{val}</span>
+                            )}
+                          </td>
+                        )
+                      })}
+                    </tr>
+                  )),
+                ])}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </section>
   )
 }
 
@@ -344,13 +535,27 @@ export default function PricingPage() {
 
   return (
     <MarketingLayout showBackButton>
-      {/* Header */}
-      <section className="pt-32 pb-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-primary dark:text-white mb-4 font-outfit">
+      {/* Header — Premium dark gradient */}
+      <section
+        className="pt-16 relative overflow-hidden"
+        style={{ background: 'linear-gradient(180deg, #0B1A2F 0%, #1E3A5F 100%)' }}
+      >
+        <div
+          className="absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage: 'linear-gradient(rgba(255,255,255,1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px)',
+            backgroundSize: '60px 60px',
+          }}
+        />
+        <div
+          className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] pointer-events-none"
+          style={{ background: 'radial-gradient(ellipse at center, rgba(217,119,6,0.06) 0%, transparent 60%)' }}
+        />
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center pt-16 pb-12">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4 font-outfit">
             {t('pricing.title')}
           </h1>
-          <p className="text-base sm:text-lg text-stone-600 dark:text-stone-300 max-w-2xl mx-auto">
+          <p className="text-base sm:text-lg text-white/60 max-w-2xl mx-auto">
             {t('pricing.subtitle')}
           </p>
         </div>
@@ -393,10 +598,15 @@ export default function PricingPage() {
 
           {/* Trust badges */}
           <p className="text-center text-xs text-stone-400 mt-8">
-            {t('pricing.trust', 'Garantie 30j remboursé · 100% Canada 🍁 · FR/EN · Sans contrat')}
+            {t('pricing.trust')}
           </p>
         </div>
       </section>
+
+      {/* Comparison Table */}
+      {!isLoading && plans.length > 0 && (
+        <ComparisonTable plans={plans} isFr={isFr} />
+      )}
 
       {/* FAQ */}
       <section className="py-20 bg-stone-50 dark:bg-stone-900">
@@ -418,18 +628,27 @@ export default function PricingPage() {
       </section>
 
       {/* CTA */}
-      <section className="py-16 bg-primary dark:bg-stone-950">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <section
+        className="py-16 relative overflow-hidden"
+        style={{ background: 'linear-gradient(180deg, #0B1A2F 0%, #1E3A5F 100%)' }}
+      >
+        <div
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] pointer-events-none"
+          style={{ background: 'radial-gradient(ellipse at center, rgba(217,119,6,0.06) 0%, transparent 55%)' }}
+        />
+        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-4 font-outfit">
             {t('pricing.cta.title')}
           </h2>
-          <p className="text-white/80 mb-8">
+          <p className="text-white/50 mb-8">
             {t('pricing.cta.subtitle')}
           </p>
-          <Link to="/register">
-            <Button size="lg" className="bg-accent hover:bg-accent/90 text-white px-8">
-              {t('pricing.cta.button')}
-            </Button>
+          <Link
+            to="/register"
+            className="inline-flex items-center gap-2 px-8 py-3.5 bg-amber-500 hover:bg-amber-400 text-white font-bold rounded-xl text-lg shadow-[0_4px_25px_rgba(217,119,6,0.3)] hover:shadow-[0_8px_40px_rgba(217,119,6,0.45)] hover:-translate-y-0.5 transition-all duration-300"
+          >
+            {t('pricing.cta.button')}
+            <ArrowRight className="w-5 h-5" />
           </Link>
         </div>
       </section>

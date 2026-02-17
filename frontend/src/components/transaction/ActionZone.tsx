@@ -238,7 +238,7 @@ export default function ActionZone({ transaction }: ActionZoneProps) {
             <Tooltip>
               <TooltipTrigger asChild>
                 <DropdownMenuTrigger asChild>
-                  <button className="p-2 rounded-lg border border-stone-200 text-stone-400 hover:bg-stone-50 hover:text-stone-600">
+                  <button className="p-2 rounded-lg border border-stone-200 text-stone-400 hover:bg-stone-50 hover:text-stone-600" aria-label={t('actionZone.advancedActionsTooltip')}>
                     <MoreVertical className="w-4 h-4" />
                   </button>
                 </DropdownMenuTrigger>

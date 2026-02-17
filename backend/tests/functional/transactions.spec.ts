@@ -306,6 +306,6 @@ test.group('Transactions - Multi-tenancy', (group) => {
     const userB = await createUser({ email: 'userb@test.com' })
 
     const response = await withAuth(client.get(`/api/transactions/${txA.id}`), userB.id)
-    response.assertStatus(404)
+    response.assertStatus(403)
   })
 })

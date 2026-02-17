@@ -14,6 +14,7 @@ export default class OfferAcceptedMail extends BaseMail {
     clientName: string
     propertyAddress?: string | null
     language?: string | null
+    subject?: string
   }) {
     super()
     this.message.to(opts.to)
@@ -22,7 +23,7 @@ export default class OfferAcceptedMail extends BaseMail {
     this.propertyAddress = opts.propertyAddress ?? null
 
     const t = getTranslation('offerAccepted', this.lang)
-    this.subject = t.subject
+    this.subject = opts.subject ?? t.subject
   }
 
   prepare() {
