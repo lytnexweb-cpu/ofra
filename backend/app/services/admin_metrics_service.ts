@@ -29,7 +29,7 @@ export interface AtRiskUser {
 export interface OverdueCondition {
   id: number
   title: string
-  deadline: DateTime
+  dueDate: DateTime
   daysOverdue: number
   transactionId: number
   clientName: string | null
@@ -193,21 +193,21 @@ export class AdminMetricsService {
     const now = DateTime.now()
 
     const conditions = await Condition.query()
-      .whereNotNull('deadline')
-      .where('deadline', '<', now.toSQL())
+      .whereNotNull('due_date')
+      .where('due_date', '<', now.toSQL())
       .whereIn('status', ['pending', 'in_progress'])
       .preload('transaction', (q) => {
         q.preload('client', (cq) => cq.select(['id', 'firstName', 'lastName']))
         q.preload('owner', (oq) => oq.select(['id', 'email']))
       })
-      .orderBy('deadline', 'asc')
+      .orderBy('due_date', 'asc')
       .limit(50)
 
     return conditions.map((c) => ({
       id: c.id,
       title: c.title,
-      deadline: c.deadline!,
-      daysOverdue: Math.floor(now.diff(c.deadline!, 'days').days),
+      dueDate: c.dueDate!,
+      daysOverdue: Math.floor(now.diff(c.dueDate!, 'days').days),
       transactionId: c.transactionId,
       clientName: c.transaction?.client
         ? `${c.transaction.client.firstName} ${c.transaction.client.lastName}`

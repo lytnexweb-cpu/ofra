@@ -157,7 +157,7 @@ export default class TransactionMembersController {
       try {
         await mail.send(new MemberInvitationMail({
           to: payload.email,
-          inviterName: auth.user!.fullName,
+          inviterName: auth.user!.fullName ?? auth.user!.email,
           role: payload.role,
           transactionId: transaction.id,
           language: auth.user!.language,

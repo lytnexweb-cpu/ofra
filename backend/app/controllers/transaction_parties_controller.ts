@@ -69,7 +69,7 @@ export default class TransactionPartiesController {
             to: party.email,
             partyName: party.fullName,
             partyRole: party.role,
-            brokerName: auth.user!.fullName,
+            brokerName: auth.user!.fullName ?? auth.user!.email,
             propertyAddress,
             language: auth.user!.language,
           }))

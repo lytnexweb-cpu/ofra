@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { createBrowserRouter, Navigate, useLocation } from 'react-router-dom'
+import { createBrowserRouter, Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { authApi } from '../api/auth.api'
@@ -8,6 +8,10 @@ import PricingPage from '../pages/PricingPage'
 import PrivacyPage from '../pages/PrivacyPage'
 import TermsPage from '../pages/TermsPage'
 import ContactPage from '../pages/ContactPage'
+import AboutPage from '../pages/AboutPage'
+import FounderPage from '../pages/FounderPage'
+import FeaturesPage from '../pages/FeaturesPage'
+import FaqPage from '../pages/FaqPage'
 import LoginPage from '../pages/LoginPage'
 import AdminLoginPage from '../pages/AdminLoginPage'
 import RegisterPage from '../pages/RegisterPage'
@@ -63,6 +67,10 @@ function ProtectedRoute({ children, skipOnboardingCheck = false }: { children: R
   }
 
   if (!data?.success) {
+    // Show landing page for unauthenticated visitors at root /
+    if (location.pathname === '/') {
+      return <LandingPage />
+    }
     return <Navigate to="/login" replace />
   }
 
@@ -101,10 +109,22 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
+// Scroll to top on route change
+function ScrollToTop() {
+  const { pathname } = useLocation()
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [pathname])
+  return <Outlet />
+}
+
 export const router = createBrowserRouter([
   {
+    element: <ScrollToTop />,
+    children: [
+  {
     path: '/welcome',
-    element: <LandingPage />,
+    element: <Navigate to="/" replace />,
   },
   {
     path: '/pricing',
@@ -117,6 +137,22 @@ export const router = createBrowserRouter([
   {
     path: '/terms',
     element: <TermsPage />,
+  },
+  {
+    path: '/about',
+    element: <AboutPage />,
+  },
+  {
+    path: '/founder',
+    element: <FounderPage />,
+  },
+  {
+    path: '/features',
+    element: <FeaturesPage />,
+  },
+  {
+    path: '/faq',
+    element: <FaqPage />,
   },
   {
     path: '/contact',
@@ -239,6 +275,8 @@ export const router = createBrowserRouter([
         path: 'plans',
         element: <AdminPlansPage />,
       },
+    ],
+  },
     ],
   },
 ])

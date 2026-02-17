@@ -209,7 +209,7 @@ export default function EditTransactionPage() {
   const transaction = data?.data?.transaction
 
   const { data: profileData } = useQuery({
-    queryKey: ['transaction', transactionId, 'profile'],
+    queryKey: ['transaction-profile', transactionId],
     queryFn: () => transactionsApi.getProfile(transactionId),
     enabled: !isCreateMode && !!transaction,
   })
