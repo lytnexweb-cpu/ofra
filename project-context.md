@@ -1,7 +1,7 @@
 ---
 project_name: OFRA
 user_name: Sam
-date: 2026-02-06
+date: 2026-02-13
 sections_completed:
   [
     'technology_stack',
@@ -130,7 +130,7 @@ These terms come directly from a practicing NB broker and MUST be used consisten
 | Backend hosting | Fly.io | crm-yanick-backend.fly.dev |
 | Database hosting | Fly.io internal | PostgreSQL 16 |
 | CI/CD | GitHub Actions | lint + typecheck + tests on push/PR |
-| Email provider | Brevo (SMTP) | Not yet wired to automations |
+| Email provider | Brevo (SMTP) | Fully wired: 23 email templates, fire-and-forget pattern, branded layout |
 | Docker | docker-compose.yml | Local dev: postgres:16 + redis:7-alpine |
 
 ## 5. Architecture
@@ -179,10 +179,16 @@ All routes prefixed with `/api`. Protected routes require session auth.
 | Method | Path | Description |
 |--------|------|-------------|
 | GET | `/health` | Health check |
+| GET | `/plans` | List available plans |
 | POST | `/register` | Create new account (rate limited) |
 | POST | `/login` | Login (rate limited) |
 | POST | `/forgot-password` | Request password reset email (rate limited) |
 | POST | `/reset-password` | Reset password with token (rate limited) |
+| GET | `/verify-email` | Verify email with token |
+| POST | `/resend-verification` | Resend verification email |
+| GET | `/share/:token` | Public share link access |
+| GET | `/offer-intake/:token` | Public offer intake info (rate limited) |
+| POST | `/offer-intake/:token` | Submit offer via public link (rate limited) |
 
 ### Protected (require auth)
 
@@ -196,12 +202,18 @@ All routes prefixed with `/api`. Protected routes require session auth.
 | PUT | `/me` | profile_controller.updateProfile |
 | PUT | `/me/profile` | profile_controller.updateProfileInfo |
 | POST | `/me/logout-all` | profile_controller.logoutAll |
+| PUT | `/me/profile` | profile_controller.updateProfileInfo |
+| PUT | `/me/onboarding` | profile_controller.saveOnboarding |
+| POST | `/me/onboarding/skip` | profile_controller.skipOnboarding |
+| GET | `/me/subscription` | profile_controller.subscription |
+| POST | `/me/plan` | profile_controller.changePlan |
 
 **Dashboard**
 
 | Method | Path | Controller |
 |--------|------|------------|
 | GET | `/dashboard/summary` | dashboard_controller.summary |
+| GET | `/dashboard/urgencies` | dashboard_controller.urgencies |
 
 **Clients**
 
@@ -270,6 +282,76 @@ All routes prefixed with `/api`. Protected routes require session auth.
 | POST | `/transactions/:id/notes` | notes_controller.store |
 | DELETE | `/notes/:id` | notes_controller.destroy |
 
+**Condition Templates & Profiles**
+
+| Method | Path | Controller |
+|--------|------|------------|
+| GET | `/conditions/templates` | condition_templates_controller.index |
+| GET | `/conditions/templates/by-pack` | condition_templates_controller.byPack |
+| GET | `/conditions/templates/:id` | condition_templates_controller.show |
+| GET | `/transactions/:id/applicable-templates` | condition_templates_controller.applicableForTransaction |
+| GET | `/transactions/:id/profile` | transaction_profiles_controller.show |
+| PUT | `/transactions/:id/profile` | transaction_profiles_controller.upsert |
+| POST | `/transactions/:id/profile/load-pack` | transaction_profiles_controller.loadPack |
+
+**Transaction Extensions (Parties, Documents, Members, Share Links)**
+
+| Method | Path | Controller |
+|--------|------|------------|
+| GET/POST | `/transactions/:id/parties` | transaction_parties_controller |
+| PUT/DELETE | `/parties/:id` | transaction_parties_controller |
+| GET/POST | `/transactions/:id/documents` | transaction_documents_controller |
+| GET/PUT/DELETE | `/documents/:id` | transaction_documents_controller |
+| PATCH | `/documents/:id/validate` | transaction_documents_controller.validate |
+| PATCH | `/documents/:id/reject` | transaction_documents_controller.reject |
+| GET/POST | `/transactions/:tid/members` | transaction_members_controller |
+| PATCH/DELETE | `/transactions/:tid/members/:id` | transaction_members_controller |
+| GET/POST | `/transactions/:tid/share-link` | transaction_share_links_controller |
+| PATCH/DELETE | `/transactions/:tid/share-link/:id` | transaction_share_links_controller |
+
+**Notifications**
+
+| Method | Path | Controller |
+|--------|------|------------|
+| GET | `/notifications` | notifications_controller.index |
+| GET | `/notifications/unread-count` | notifications_controller.unreadCount |
+| PATCH | `/notifications/:id/read` | notifications_controller.markRead |
+| POST | `/notifications/read-all` | notifications_controller.markAllRead |
+
+**FINTRAC**
+
+| Method | Path | Controller |
+|--------|------|------------|
+| GET | `/transactions/:id/fintrac` | fintrac_controller.index |
+| GET | `/fintrac/:id` | fintrac_controller.show |
+| PATCH | `/fintrac/:id/complete` | fintrac_controller.complete |
+| POST | `/fintrac/:id/resolve` | fintrac_controller.resolve |
+
+**Export**
+
+| Method | Path | Controller |
+|--------|------|------------|
+| POST | `/transactions/:id/export/pdf` | export_controller.pdf |
+| POST | `/transactions/:id/export/email` | export_controller.email |
+
+**Transaction Actions**
+
+| Method | Path | Controller |
+|--------|------|------------|
+| PATCH | `/transactions/:id/cancel` | transactions_controller.cancel |
+| PATCH | `/transactions/:id/archive` | transactions_controller.archive |
+| PATCH | `/transactions/:id/restore` | transactions_controller.restore |
+
+### Admin Routes (require admin role)
+
+| Method | Path | Controller |
+|--------|------|------------|
+| GET | `/admin/overview` | admin_controller.overview |
+| GET | `/admin/subscribers` | admin_controller.subscribers |
+| GET | `/admin/activity` | admin_controller.activity |
+| GET | `/admin/system` | admin_controller.system |
+| GET/PUT | `/admin/plans` | admin_plans_controller |
+
 ## 7. Feature Status Matrix
 
 > **CRITICAL**: This section documents what actually works vs what is a stub. Read this before making assumptions about feature completeness.
@@ -292,8 +374,8 @@ All routes prefixed with `/api`. Protected routes require session auth.
 | Auth (login/logout/register) | Working | Session/cookie based + registration + password reset |
 | i18n (FR/EN) | Working | All UI strings translated |
 | Dark mode | Working | Auto (prefers-color-scheme) + manual toggle |
-| Automation execution | Working | `automation_executor_service.ts` | Sends emails and logs tasks via `AutomationExecutorService`. Wired to `WorkflowEngineService.executeAutomations()` |
-| Email templates (5/5) | Working | `backend/app/mails/` | All 5 templates: `offer_accepted`, `firm_confirmed`, `fintrac_reminder`, `celebration`, `google_review_reminder` |
+| Automation execution | Working | `automation_executor_service.ts` | Sends emails + logs tasks + creates notification twins via `AutomationExecutorService`. Supports delayed execution via BullMQ. 5 email templates + 5 notification twins |
+| Email templates (23/23) | Working | `backend/app/mails/` (23 files) | Auth (3): welcome, verification, password_reset. Automation (5): offer_accepted, firm_confirmed, fintrac_reminder, celebration, google_review. Reminders (2): daily_digest, deadline_warning. Collab (3): member_invitation, party_added, share_link. Offres (4): submitted, countered, rejected, withdrawn. Conditions (4): step_advanced, condition_resolved, blocking_alert, condition_assigned. Transaction (2): cancelled, recap |
 | Auto conditions engine | Working | 52 templates across 4 packs (Universal, Rural NB, Condo NB, Financé NB). Controlled by `autoConditionsEnabled` flag |
 | Property profile | Working | Type/Context/Financed at creation, locked after step 1 (frontend only — backend guard in Sprint 2) |
 | Parties management | Working | Full CRUD, 7 roles, PartiesCard inline on detail page, PartiesModal for editing |
@@ -319,19 +401,27 @@ All routes prefixed with `/api`. Protected routes require session auth.
 | CSV Import API | ✅ DONE | `backend/app/services/csv_import_service.ts` | Bilingual headers, duplicate detection |
 | CSV Import UI | Not implemented | Epic 5 | Drag & drop frontend needed |
 | Document uploads | Not implemented | Epic 5 | S3 storage, quota per tier |
-| FINTRAC module | **Spec validated** | `_bmad-output/fintrac-spec.md` | FintracRecord model, blocking condition at firm-pending, FintracComplianceModal, PDF export section. Override autoConditionsEnabled. |
+| FINTRAC module | **Working** | `fintrac_controller.ts`, `fintrac_service.ts`, `FintracComplianceModal.tsx` | FintracRecord model, blocking condition at firm-pending, identity verification form, compliance gate. Override autoConditionsEnabled |
 | Birthday reminder | Not implemented | From broker requirements | "Register client birthday in CRM after FINTRAC complete" |
 | Social media reminders | Not implemented | From broker requirements | Triggered at Offer Accepted, SOLD, Key Day |
 | Conditional follow-ups | Not implemented | From broker requirements | Financing + inspection follow-up during conditional period |
 | Client onboarding form | Not implemented | From broker requirements | External form sent to client after listing appointment |
 | ~~Multi-tenant enforcement~~ | ✅ DONE | `TenantScopeService` | Org-scoped queries for clients and transactions |
-| Notifications in-app | Not implemented | Planned for Epic 3 | Architecture designed but not built |
+| Notifications in-app | **Working** | `NotificationBell.tsx`, `notification_service.ts` | Bell component with badge, Radix DropdownMenu, polling 60s, mark read/all read. 4 API routes. 31 tests GREEN |
+| Email system (23 emails) | **Working** | `backend/app/mails/` (23 files) | 10 original + 13 new. All branded (OFRA_COLORS, wrapEmailContent). Notification twin pattern: each email trigger also creates in-app notification for broker |
+| Auth redesign | **Working** | `RegisterPage.tsx`, `LoginPage.tsx`, `AdminLoginPage.tsx` | Split-screen premium layout, email verification (SHA256 token, 24h expiry), VerifyEmailPage |
+| Export & Partage (M10) | **Working** | `ExportSharePage.tsx` | 3 cards: PDF export (options), shareable link, email recap. Plan-gated PDF (Starter: 3/month) |
+| Permissions & Rôles (M11) | **Working** | `PermissionsPage.tsx` | Member management, roles (owner/admin/editor/viewer), invitation, activity log |
+| Ajouter Offre (M12) | **Working** | `CreateOfferModal.tsx` | Réécriture 6 états conforme maquette |
+| Offer Intake (D35) | **Working** | `OfferIntakePage.tsx`, `offer_intake_controller.ts` | Public offer submission via share link token. Party + offer created. Rate limited |
+| Plans & Pricing | **Working** | `PlanService`, `PlanLimitMiddleware`, `plans_seeder.ts` | 4 plans in DB, hierarchy check, soft limit 7-day grace, plan change logs |
+| Admin Panel | **Working** | `AdminDashboardPage.tsx`, `admin_controller.ts` | Overview, subscribers, activity, system health, notes, tasks, plan management |
 
 ## 8. Testing Patterns
 
 ### Frontend (Vitest + Testing Library)
 
-**Test count**: 252 tests across 31 files (all passing)
+**Test count**: 34 test files (all passing)
 
 **Key patterns**:
 
@@ -379,7 +469,7 @@ expect(results).toHaveNoViolations()
 ### Must Follow
 
 1. **NB first, not Quebec** — All province-specific code, data, and terminology targets New Brunswick initially
-2. **Automation stub awareness** — `executeAutomations()` in `workflow_engine_service.ts` only logs. Any feature that depends on email/task execution must wire up actual sending first
+2. **Automations fully wired** — `AutomationExecutorService` sends real emails via Brevo SMTP + creates in-app notification twins. All 5 automation templates are live. Fire-and-forget pattern (`.catch()`) to avoid SMTP timeouts
 3. **i18n mandatory** — All UI strings must go through `t()`. No hardcoded strings in components
 4. **Mobile-first** — Design for < 640px first, then scale up. Touch targets minimum 44px
 5. **Component size** — Keep every component under 200 lines
@@ -425,12 +515,15 @@ expect(results).toHaveNoViolations()
 | Maquettes 01-09 + 13 | Done | 10/13 maquettes implemented |
 | Maquette 10: Export & Partage | Done | 100% conforme, audité (12 écarts corrigés) |
 | Maquette 11: Permissions & Rôles | Done | 100% conforme, audité (6 écarts corrigés) |
-| Maquette 12: Ajouter Offre | To verify | Component exists, conformité maquette non vérifiée |
+| Maquette 12: Ajouter Offre | Done | 100% conforme, réécriture 6 états (commit 275cf25) |
 | Phase C UX Overhaul | Done | Zero right-side Sheets on desktop. Documents inline, MembersPanel/ExportSharePanel as centered Dialogs |
-| **FINTRAC Module** | **Next** | Spec validée (`_bmad-output/fintrac-spec.md`). FintracRecord model, FintracService, FintracComplianceModal, PDF section |
+| FINTRAC Module | Done | FintracRecord model, FintracService, FintracComplianceModal, blocking at firm-pending (commit dfadaee) |
+| Email & Notifications System | Done | 23 emails + NotificationBell + notification twins. 7 phases, 31 tests GREEN |
+| Auth Redesign | Done | Split-screen Register/Login, AdminLogin, email verification, VerifyEmailPage |
+| Plans & Admin Backend | Done | 4 plans seeded, PlanService, PlanLimitMiddleware, AdminPlansPage, grace period |
 | Epic 5: UI Import + Uploads | Backlog | Frontend import CSV, S3 documents, quota per tier |
-| Epic 6: Landing Page | In Progress | Marketing page H1 — hero en cours |
-| Epic 7: Stripe Billing | Backlog | Subscriptions, webhooks, plan enforcement |
+| Epic 6: Landing Page | In Progress | LandingPage.tsx exists, hero needs polish for conversion |
+| Epic 7: Stripe Billing | **Next** | Subscriptions, webhooks, checkout, plan enforcement — LAST step before launch |
 
 ### Epic 3 Completed
 
@@ -454,7 +547,7 @@ Voir `_bmad-output/planning-artifacts/prd.md` pour détails complets.
 
 ## 11. NB Broker Automations (Source of Truth)
 
-These automations are defined in the seeder (`nb_workflow_template_seeder.ts`) but **only log to activity feed** — they do NOT execute.
+These automations are defined in the seeder (`nb_workflow_template_seeder.ts`) and are **fully executed** by `AutomationExecutorService`. Each automation sends an email AND creates an in-app notification twin for the broker.
 
 ### Client-Facing Emails
 

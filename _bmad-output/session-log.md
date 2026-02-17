@@ -4,6 +4,166 @@
 
 ---
 
+## Session 2026-02-17 (session 5 — Bloc 8 Offres intelligentes)
+
+**Date**: 2026-02-17
+**Admin**: Sam
+**Agents actifs**: Claude Code + Party Mode (Paige, Bob, Mary)
+
+### Objectif
+
+Implémenter le Bloc 8 « Offres intelligentes » (Sprint A + Sprint B) et mettre à jour le PRD.
+
+### Réalisations
+
+#### Bloc 8 — Sprint A : Backend + PartyPicker
+
+| Fichier | Action | Description |
+|---------|--------|-------------|
+| `backend/database/migrations/1780000000001_add_party_fields_to_offers.ts` | NEW | Migration : `buyer_party_id`, `seller_party_id`, `initial_direction` sur offers |
+| `backend/app/models/offer.ts` | EDIT | 3 colonnes + 2 `@belongsTo` TransactionParty |
+| `backend/app/services/offer_service.ts` | EDIT | createOffer persiste parties, acceptOffer auto-populate depuis dernière revision, getOffers/getAcceptedOffer preload buyerParty/sellerParty |
+| `backend/app/validators/offer_validator.ts` | EDIT | `buyerPartyId`/`sellerPartyId` optionnels |
+| `backend/app/controllers/offers_controller.ts` | EDIT | Pass-through nouveaux champs dans store() |
+| `frontend/src/api/transactions.api.ts` | EDIT | Interface Offer : buyerPartyId, sellerPartyId, initialDirection, buyerParty?, sellerParty? |
+| `frontend/src/api/offers.api.ts` | EDIT | CreateOfferRequest : buyerPartyId?, sellerPartyId? |
+| `frontend/src/components/transaction/PartyPicker.tsx` | NEW | Dropdown + inline create form pour sélection buyer/seller |
+| `frontend/src/components/transaction/CreateOfferModal.tsx` | EDIT | 2 PartyPickers intégrés, pre-populate en mode contre-offre |
+
+#### Bloc 8 — Sprint B : Thread + Comparison
+
+| Fichier | Action | Description |
+|---------|--------|-------------|
+| `frontend/src/components/transaction/NegotiationThread.tsx` | NEW | Fil vertical : toutes révisions, deltas prix, direction arrows, compact/expand |
+| `frontend/src/components/transaction/OfferComparison.tsx` | NEW | Table side-by-side 2-4 offres, highlight best/worst, CTA accepter |
+| `frontend/src/components/transaction/OffersPanel.tsx` | EDIT | NegotiationThread dans active+accepted cards, bouton Compare, OfferComparison panel |
+| `frontend/src/components/transaction/AcceptOfferModal.tsx` | EDIT | Affiche buyerParty/sellerParty dans résumé d'acceptation |
+| `frontend/src/i18n/locales/fr/common.json` | EDIT | Clés Sprint A + B (addOffer.*, offers.comparison.*, offers.thread.*, transaction.acceptOffer.*) |
+| `frontend/src/i18n/locales/en/common.json` | EDIT | Idem EN |
+| `frontend/src/i18n/__tests__/key-parity.test.ts` | EDIT | Exceptions cognates (Conditions, Inspection, noValue, parties) |
+
+#### Vérification
+
+- Backend `tsc --noEmit` : 0 erreurs
+- Frontend `tsc --noEmit` : 0 erreurs
+- Frontend tests : **33 fichiers, 283 tests — tous verts**
+- i18n parity : **4/4 tests verts**
+
+#### PRD v2.5
+
+- Bloc 8 : `❌ TODO` → `✅ DONE`
+- Description technique mise à jour (suppression `parentOfferId`, description réelle)
+- Phase 1 tableau : ajout ligne Offres intelligentes ✅
+- Gantt mis à jour : 6/8 blocs DONE
+- Emails essentiels corrigé : `❌ TODO` → `✅ Codé`
+
+### État du projet post-session
+
+| Bloc | Statut |
+|------|--------|
+| 1. D53 Backend (Trial) | ✅ DONE |
+| 2. D53 Frontend (Trial) | ✅ DONE |
+| 3. Landing Page | ✅ DONE |
+| 4. Pricing Page | ✅ DONE |
+| 5. Legal (CGU/Privacy) | ❌ TODO |
+| 6. Emails essentiels | ✅ DONE |
+| 7. Stripe | ❌ TODO |
+| 8. Offres intelligentes | ✅ DONE |
+
+**Score : 6/8 blocs DONE. Reste : Legal + Stripe.**
+
+---
+
+## Session 2026-02-13 (session 4 — audit complet + tests + feature gates)
+
+**Date**: 2026-02-13
+**Admin**: Sam
+**Agents actifs**: Tous (Party Mode)
+
+### Objectif
+
+1. Audit complet du projet (backend, frontend, docs, sécurité, feature gates)
+2. Mise à jour PRD v2.0 → v2.1
+3. Nettoyage debug code
+4. Fix de tous les tests frontend et backend
+5. Fix FINTRAC identity gate (D52)
+
+### Réalisations
+
+#### 1. Audit Feature Gates — 11/11 implémentées
+
+| Gate | Plan | Statut |
+|------|------|--------|
+| TX actives limit | Par plan | ✅ + grace 7j |
+| Condition Packs | Solo+ | ✅ |
+| Evidence/Preuves | Pro+ | ✅ (3 endpoints) |
+| Audit History | Pro+ | ✅ |
+| PDF Exports/mois | Starter=3 | ✅ |
+| Share Links/TX | Starter=1 | ✅ |
+| FINTRAC identity | Solo+ | ✅ (D52 — fixé cette session) |
+| Frontend hooks | Tous | ✅ useSubscription + SoftLimitBanner |
+| Storage quota | Par plan | 🟡 Tracking only (Phase 2) |
+| Users per account | 1/1/1/3 | 🟡 Schema only (Agence Phase 2) |
+
+#### 2. Fix FINTRAC Gate (D52)
+
+- `fintrac_controller.ts:complete()` — ajout `PlanService.meetsMinimum('solo')` gate
+- `fintrac_controller.ts:resolve()` — ajout `PlanService.meetsMinimum('solo')` gate
+- Import `PlanService` ajouté
+
+#### 3. Tests — tous verts
+
+**Backend : 180/180 PASSED** (était 169/180)
+- 7 tests multi-tenancy : 404 → 403 (meilleure sécurité)
+- Factory `createUser` : ajout `emailVerified: true`
+- Test register : `WelcomeMail` → `EmailVerificationMail`
+- OfferAcceptedMail : subject override corrigé
+
+**Frontend : 283/283 PASSED** (était 247/291)
+- `ConditionsTab.tsx` : fix temporal dead zone (variables avant useMemo)
+- `NotesSection.tsx` : ajout aria-label bouton submit
+- `ActionZone.tsx` : ajout aria-label bouton MoreVertical
+- `ConditionValidationModal.tsx` : ajout role="dialog" + aria-modal
+- 5 fichiers test réécrits (DashboardPage, TransactionDetailPage, ConditionCard, ActionZone, LoginPage)
+- 1 fichier test supprimé (CreateTransactionModal — composant retiré)
+- key-parity : 68+ cognates FR/EN ajoutés à la allowlist
+
+#### 4. Documentation
+
+- PRD mis à jour v2.1 : changelog, D52 ajouté, §2.5 Feature Gates ajouté
+- `i18n/index.ts` : debug: true → false
+- `OnboardingPage.tsx` : 3 console.log retirés
+- `docs/pricing-strategy.md` et `docs/roadmap.md` supprimés (PÉRIMÉ → SUPPRIMÉ)
+
+#### 5. Bugs corrigés
+
+| Bug | Fichier | Impact |
+|-----|---------|--------|
+| Temporal Dead Zone | `ConditionsTab.tsx` | `steps` utilisé avant déclaration — crash runtime |
+| A11y violations | NotesSection, ActionZone, ConditionCard | Boutons/inputs sans texte accessible |
+| Subject override ignoré | `offer_accepted_mail.ts` | `config.subject` pas appliqué par automation |
+| FINTRAC gate manquant | `fintrac_controller.ts` | Starter pouvait accéder FINTRAC identity (D52) |
+
+#### 6. Décision D53 — Trial 30j + Prix Garanti à Vie (Party Mode)
+
+**Modèle validé par Sam :**
+- **Trial 30 jours** : inscription sans CC, 1 TX, toutes features Pro
+- **Soft wall J30-J33** : lecture seule + bandeau pricing
+- **Hard wall J33+** : seule la page pricing accessible
+- **Programme Fondateur simplifié** : plus de −20%/−30%, juste le prix du jour garanti à vie
+- **Pitch** : "Votre prix ne bougera jamais. Quand nos prix augmenteront, le vôtre restera."
+- Champs DB ajoutés au modèle : `trial_ends_at`, `trial_tx_used`
+- PRD mis à jour : §2.3, §2.4, §3.5, D53 dans index décisions
+
+### Prochaines étapes
+
+1. **Stripe** — dernière étape avant lancement
+2. **D53 backend** — migration trial fields + logique PlanLimitMiddleware
+3. Landing page publique
+4. E2E tests (Sprint 4)
+
+---
+
 ## Session 2026-02-12 (session 3 — emails & notifications)
 
 **Date**: 2026-02-12

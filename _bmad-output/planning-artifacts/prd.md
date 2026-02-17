@@ -3,19 +3,19 @@ stepsCompleted: ['step-01-init', 'step-02-discovery', 'step-03-vision', 'step-04
 inputDocuments:
   - _bmad-output/planning-artifacts/product-brief-ofra-2026-01-25.md
   - project-context.md
-  - docs/pricing-strategy.md (PÉRIMÉ — remplacé par ce PRD)
+  - docs/pricing-strategy.md (SUPPRIMÉ — remplacé par ce PRD)
   - docs/visual-strategy.md
   - docs/business-logic-calculations.md
-  - docs/roadmap.md (PARTIELLEMENT PÉRIMÉ — sections pricing/epic 6-7 remplacées)
+  - docs/roadmap.md (SUPPRIMÉ — remplacé par ce PRD)
   - _bmad-output/session-2026-02-02-ux-refonte.md
 workflowType: 'prd'
-version: '2.0'
-date: '2026-02-06'
+version: '2.5'
+date: '2026-02-17'
 author: 'Sam + Équipe BMAD (Party Mode)'
 status: 'SOURCE DE VÉRITÉ'
 supersedes:
-  - docs/pricing-strategy.md (pricing)
-  - docs/roadmap.md (sections pricing, Epic 6, Epic 7, programme fondateur)
+  - docs/pricing-strategy.md (SUPPRIMÉ du repo)
+  - docs/roadmap.md (SUPPRIMÉ du repo)
   - project-context.md (section SaaS Pricing — mis à jour)
 ---
 
@@ -23,8 +23,43 @@ supersedes:
 
 > **⚠️ CE DOCUMENT EST LA SOURCE DE VÉRITÉ UNIQUE**
 > Tout conflit avec un autre document se résout en faveur de ce PRD.
-> Dernière mise à jour : 2026-02-06
+> Dernière mise à jour : 2026-02-17 (v2.5)
 > Auteur : Sam + Équipe BMAD (Party Mode)
+>
+> **Changements v2.5 (2026-02-17) — Bloc 8 Offres intelligentes ✅ :**
+> - §9.0 Bloc 8 : `❌ TODO` → `✅ DONE` — Sprint A (backend migration `buyerPartyId`/`sellerPartyId` sur Offer, PartyPicker inline, validation cohérence parties) + Sprint B (NegotiationThread, OfferComparison side-by-side, AcceptOfferModal parties display)
+> - §9.0 Description Bloc 8 mise à jour : suppression mention `parentOfferId` (pattern écarté), description réelle de l'implémentation
+> - §9.1 Phase 1 : ajout ligne « Offres intelligentes » ✅ Codé
+> - §9.0 Gantt : Bloc 8 marqué DONE, Semaine 3 ne contient plus que Stripe + Legal + Polish
+> - Score pré-lancement : **6/8 blocs DONE** — reste Legal (contenu) + Stripe (paiement)
+> - 283 tests frontend verts, 0 erreurs TypeScript backend+frontend
+>
+> **Changements v2.4 (2026-02-16) — Audit général + correctifs sécurité :**
+> - §9.0 Roadmap : Bloc 3 Landing ✅, ROUTE-1 routing ✅ — mis à jour
+> - §11.D : BUG-01 ✅ corrigé (query key profile), BUG-ADM ✅ (deadline→due_date), BUG-MAIL ✅ (fullName??email)
+> - §11.E : Audit sécurité 2026-02-16 — SEC-1 FINTRAC auth ✅, SEC-2 TenantScope conditions/notes ✅, ReminderService tenant scoping ✅ (faux positif — déjà scopé)
+> - §11.F : Audit général — score launch-readiness 82%, 463 tests verts, 0 tech debt markers
+> - §11.D : BUG-03 à BUG-06 déjà corrigés, BUG-TS 11 erreurs TypeScript ✅ toutes corrigées (`tsc --noEmit` = 0)
+>
+> **Changements v2.3 (2026-02-13) :**
+> - §1.4 Moat enrichi : "100% hébergé au Canada (serveurs Toronto)"
+> - §7.5 Infrastructure 100% Canadienne (D56) : DigitalOcean App Platform + Managed DB + Spaces, tout Toronto
+> - §9.0 Bloc 8 Offres intelligentes (ajouté en v2.2)
+> - §9.2 Phase 2 : Superadmin suppression compte + UI Audit Trail conditions (backlog)
+> - §11.D Bugs connus BUG-01, BUG-02
+>
+> **Changements v2.2 (2026-02-13) :**
+> - Maquettes H1, H3, G2, K2 mises à jour pour D53 (prix garanti à vie, suppression -20%/-30%)
+> - §9 Roadmap réécrite : feuille de route lancement validée (Stripe en dernier)
+> - Ajout §9.0 Feuille de Route Pré-Lancement (6 blocs ordonnés)
+>
+> **Changements v2.1 (2026-02-13) :**
+> - Statuts décisions D42-D49 mis à jour (codés)
+> - `docs/roadmap.md` et `docs/pricing-strategy.md` SUPPRIMÉS du repo
+> - Features ajoutées depuis v2.0 : Email system (23 mails), Notifications in-app, Auth redesign, FINTRAC, Export/Partage (M10), Permissions (M11), Offres (M12), Offer Intake (D35), Plans backend, Admin panel
+> - **D52** : FINTRAC identity gate Solo+ ajouté (`fintrac_controller.ts:complete()` + `resolve()`)
+> - Audit feature gates complet : 11/11 gates implémentées (voir §2.6)
+> - **D53** : Trial 30j gratuit (1 TX, Pro complet, pas de CC) + Programme Fondateur simplifié (prix garanti à vie, plus de −20%/−30%)
 
 ---
 
@@ -58,7 +93,7 @@ Ofra ne vend pas de la gestion de données. Ofra vend de la **réduction d'anxi�
 | **Bilingue FR/EN natif** | Obligatoire légalement dans beaucoup de transactions NB |
 | **Contexte rural NB** | Puits, fosse septique, droit de passage — conditions uniques |
 | **Communauté petite et connectée** | 5 agents convaincus = tout le monde le sait en 2 mois |
-| **Canadian-built** | Tendance "Buy Canadian", FINTRAC-ready, prix en CAD |
+| **Canadian-built** | Tendance "Buy Canadian", FINTRAC-ready, prix en CAD, **100% hébergé au Canada** (serveurs Toronto) |
 
 ### 1.5 Jobs-to-Be-Done (JTBD)
 
@@ -94,34 +129,46 @@ Ofra ne vend pas de la gestion de données. Ofra vend de la **réduction d'anxi�
 | Pro | Agent établi, pipeline chargé | "J'ai un pipeline chargé" |
 | Agence | Petite équipe (Phase 2) | "On travaille en équipe" |
 
-### 2.3 Programme Fondateur (25 places)
+### 2.3 Essai Gratuit 30 Jours (D53)
+
+| Règle | Détail |
+|-------|--------|
+| Durée | **30 jours** à partir de l'inscription |
+| Transactions | **1 seule** (non recyclable — archiver ne libère pas de place) |
+| Features | **Pro complet** (toutes features débloquées) |
+| Carte de crédit | **Non requise** à l'inscription — seulement au choix du plan |
+| J30-J33 (soft wall) | Lecture seule + bandeau "Choisissez un forfait" |
+| J33+ (hard wall) | Seule la page pricing est accessible |
+| Rappels | J7, J21, J27 ("X jours restants dans votre essai") |
+
+**Pourquoi Pro complet :** L'agent doit voir la vraie valeur (preuves, FINTRAC, audit) pour être convaincu. Un trial Starter = produit castré = churn. L'anchoring psychologique fait le reste au moment du choix.
+
+### 2.4 Programme Fondateur (25 places) — Prix Garanti à Vie (D53)
 
 | Règle | Détail |
 |-------|--------|
 | Places | 25 maximum |
-| 1er mois | **Gratuit** |
-| Rabais mensuel | **−20% à vie** sur le plan choisi |
-| Rabais annuel fondateur | **−30% à vie** (meilleur rabais, pas de cumul 20%+17%) |
+| Essai | **30 jours gratuits** (même trial que tout le monde) |
+| Prix | **Prix du jour garanti à vie** — pas de réduction %, le prix de lancement ne bouge jamais |
 | Applicable à | **TOUT plan** (Starter, Solo, Pro) |
-| Le rabais suit l'upgrade | ✅ Oui — le statut fondateur est un flag, pas un plan |
+| Le prix suit l'upgrade | ✅ Oui — `plan_locked_price` = prix du plan au moment du choix |
 | Badge visible | ✅ "Membre Fondateur #X/25" dans l'app |
 | Engagement | 15 minutes de feedback par mois |
 | Annulation | **Perd le statut fondateur définitivement** |
 | Changement de plan sans annuler | **Garde le statut fondateur** |
 
-#### Grille Fondateur Complète
+#### Stratégie de Prix
 
-| Plan | Normal mensuel | Fondateur mensuel (−20%) | Fondateur annuel (−30%) |
-|------|---------------|-------------------------|------------------------|
-| Starter | 29$/mois | **23$/mois** | **244$/an (~20$/mo)** |
-| Solo | 49$/mois | **39$/mois** | **412$/an (~34$/mo)** |
-| Pro | 79$/mois | **63$/mois** | **664$/an (~55$/mo)** |
+Ofra a vocation à **augmenter ses prix** une fois implanté (grosse valeur pour le courtier). Les fondateurs gardent leur prix de lancement pour toujours. Cela crée :
+- **Urgence** : "Les prix vont augmenter, inscrivez-vous maintenant"
+- **Loyauté** : Le fondateur ne quitte jamais (son prix est imbattable)
+- **Simplicité Stripe** : Pas de coupons, pas de calcul % — un seul prix locké par user
 
 #### Pitch Fondateur
 
-> "25 places fondateurs — 1 mois gratuit, puis −20% à vie sur N'IMPORTE quel plan. Votre rabais vous suit quand vous grandissez. Vous construisez Ofra avec nous."
+> "25 premiers agents — votre prix est garanti à vie. Quand Ofra grandira et que nos prix augmenteront, le vôtre ne bougera jamais. Vous nous aidez à construire, on vous protège."
 
-### 2.4 Modèle de Données Pricing
+### 2.5 Modèle de Données Pricing
 
 ```typescript
 // Table: plans (lue depuis la DB, modifiable via admin)
@@ -143,13 +190,30 @@ interface Plan {
 
 // Sur le User
 interface UserPlanFields {
-  plan_id: number                 // FK vers plans
+  plan_id: number | null          // FK vers plans (null = trial en cours)
   is_founder: boolean             // flag indépendant du plan
   billing_cycle: 'monthly' | 'annual'
-  plan_locked_price: number       // prix au moment de la souscription
+  plan_locked_price: number | null // prix au moment de la souscription (garanti à vie)
   grace_period_start: DateTime | null  // début soft limit si dépassement
+  trial_ends_at: DateTime | null  // D53: fin du trial (inscription + 30j), null = pas de trial
+  trial_tx_used: boolean          // D53: true si la 1 TX du trial a été créée
 }
 ```
+
+### 2.6 Feature Gates (Audit 2026-02-13)
+
+| Feature | Plan minimum | Mécanisme backend | Statut |
+|---------|-------------|-------------------|--------|
+| TX actives limit | Par plan (5/12/25/∞) | `PlanLimitMiddleware` + grace 7j | ✅ |
+| Condition Packs auto | Solo+ | `PlanService.meetsMinimum('solo')` dans `condition_templates_controller` | ✅ |
+| Evidence / Preuves | Pro+ | `PlanService.meetsMinimum('pro')` dans `conditions_controller` (3 endpoints) | ✅ |
+| Audit History | Pro+ | `PlanService.meetsMinimum('pro')` dans `conditions_controller:history` | ✅ |
+| PDF Exports/mois | Starter=3 | Compteur + gate dans export controller | ✅ |
+| Share Links/TX | Starter=1 | Compteur + gate dans share controller | ✅ |
+| FINTRAC identity | Solo+ | `PlanService.meetsMinimum('solo')` dans `fintrac_controller:complete+resolve` | ✅ |
+| Frontend hook | Tous | `useSubscription()` + `SoftLimitBanner.tsx` | ✅ |
+| Storage quota | Par plan | Tracking seulement (pas bloquant, Phase 2) | 🟡 |
+| Users per account | 1/1/1/3 | Schema seulement (Agence Phase 2) | 🟡 |
 
 ---
 
@@ -169,7 +233,7 @@ interface UserPlanFields {
 
 - Instantané, self-service
 - Le bouton d'upgrade apparaît **là où la limite est atteinte** (bandeau, pas dans les settings)
-- Le coupon fondateur s'applique automatiquement au nouveau prix
+- Le prix garanti à vie (`plan_locked_price`) est recalculé au prix du jour du nouveau plan
 
 ### 3.3 Downgrade
 
@@ -184,18 +248,42 @@ interface UserPlanFields {
 - Abonnés existants conservent leur prix (`plan_locked_price`)
 - Action manuelle "Appliquer aux existants" avec confirmation obligatoire
 
-### 3.5 Pas de Plan Gratuit
+### 3.5 Essai Gratuit 30 Jours (D53)
 
-- Aucun free trial
-- **Garantie satisfait ou remboursé 30 jours** à la place
-- L'agent qui paie dès le jour 1 essaie pour vrai
+```
+INSCRIPTION (J0)
+├── Email + mot de passe (pas de CC)
+├── Onboarding 5 étapes (déjà codé)
+└── Accès Pro complet, 1 TX max
+
+TRIAL (J1-J30)
+├── Toutes features débloquées (niveau Pro)
+├── 1 transaction seulement (non recyclable)
+├── Rappels email à J7, J21, J27
+└── Badge "Essai gratuit — X jours restants"
+
+SOFT WALL (J30-J33)
+├── Lecture seule (données visibles, pas de modification)
+└── Bandeau : "Votre essai est terminé. Choisissez un forfait."
+
+HARD WALL (J33+)
+├── Seule la page pricing est accessible
+└── Données en sécurité, restaurées au choix du plan
+```
+
+**Logique backend :**
+- `trial_ends_at` = `created_at + 30 jours` (set à l'inscription)
+- `trial_tx_used` = `true` dès la 1ère TX créée (bloque les suivantes)
+- `PlanLimitMiddleware` : si `plan_id = null` ET `trial_ends_at > now` → mode trial
+- Soft wall : `trial_ends_at < now` ET `trial_ends_at + 3j > now` → lecture seule
+- Hard wall : `trial_ends_at + 3j < now` ET `plan_id = null` → redirect pricing
 
 ### 3.6 Facturation Annuelle
 
 - Rabais standard : **−17%** (équivalent 2 mois gratuits)
-- Fondateur annuel : **−30%** (meilleur rabais unique, pas de cumul)
 - Toggle mensuel/annuel sur la page pricing
 - Prix barrés visibles (ex: ~~348$/an~~ 290$/an)
+- Fondateur : même rabais annuel (−17%), mais sur un prix de base déjà garanti à vie
 
 ---
 
@@ -215,16 +303,21 @@ interface UserPlanFields {
 | D39 | Pack conditions optionnel (opt-in) | ✅ Codé | Session 2026-02-02 |
 | D40 | Onboarding personnalisé 5 étapes | ✅ Codé | Session 2026-02-03 |
 | D41 | Garde-fous validation 3 niveaux + preuves | ✅ Codé | Session 2026-02-03 |
-| **D42** | **Dashboard urgences (🔴🟡🟢) comme home** | **📋 À coder** | Brainstorm 2026-02-06 |
+| **D42** | **Dashboard urgences (🔴🟡🟢) comme home** | **✅ Codé** | `DashboardPage.tsx` + `DashboardUrgencies.tsx` + `dashboard_controller.urgencies` |
 | **D43** | **Bloc "Valeur protégée" (commissions sauvées)** | **📋 Phase 2** | Brainstorm 2026-02-06 |
-| **D44** | **Mode assisté (remplace auto/manuel binaire)** | **📋 À coder** | Brainstorm 2026-02-06 |
-| **D45** | **Admin dashboard pricing (modifier sans code)** | **📋 À coder** | Brainstorm 2026-02-06 |
-| **D46** | **4 forfaits (Starter/Solo/Pro/Agence)** | **📋 À coder** | Brainstorm 2026-02-06 |
-| **D47** | **Facturation annuelle (−17%)** | **📋 À coder** | Brainstorm 2026-02-06 |
-| **D48** | **Fondateur = flag sur user, pas plan spécial** | **📋 À coder** | Brainstorm 2026-02-06 |
-| **D49** | **Soft limit 7 jours de grâce** | **📋 À coder** | Brainstorm 2026-02-06 |
+| **D44** | **Mode assisté (remplace auto/manuel binaire)** | **✅ Codé** | `autoConditionsEnabled` flag + `SuggestionsPanel.tsx` |
+| **D45** | **Admin dashboard pricing (modifier sans code)** | **✅ Codé** | `AdminPlansPage.tsx` + `admin_plans_controller.ts` |
+| **D46** | **4 forfaits (Starter/Solo/Pro/Agence)** | **✅ Codé** | `plans_seeder.ts` + `PricingPage.tsx` + `Plan` model |
+| **D47** | **Facturation annuelle (−17%)** | **✅ Backend** | Prix annuels en DB, toggle frontend à câbler avec Stripe |
+| **D48** | **Fondateur = flag sur user, pas plan spécial** | **✅ Codé** | `is_founder` boolean sur User, `plan_locked_price`, badge prévu |
+| **D49** | **Soft limit 7 jours de grâce** | **✅ Codé** | `PlanLimitMiddleware` + `grace_period_start` + `SoftLimitBanner.tsx` |
 | **D50** | **Email du lundi "Votre semaine"** | **📋 Phase 2** | Brainstorm 2026-02-06 |
 | **D51** | **Alertes push/SMS deadlines critiques** | **📋 Phase 2** | Brainstorm 2026-02-06 |
+| **D52** | **FINTRAC identity gate Solo+** | **✅ Codé** | `fintrac_controller.ts:complete()` + `resolve()` — `PlanService.meetsMinimum('solo')` |
+| **D53** | **Trial 30j gratuit (1 TX, Pro complet) + Prix garanti à vie fondateur** | **✅ Codé** | Migration `trial_tx_used`, `TrialGuardMiddleware` soft/hard wall, `PlanLimitMiddleware` trial mode, `TrialBanner`, registration init 30j, subscription endpoint enrichi. Reste : emails rappel J7/J21/J27 (Bloc 6). |
+| **D54** | **Gestionnaire de liens partagés (à côté de 🔔 dans le header)** | **📋 À coder** | Icône dédiée ou section dans header pour voir tous les liens actifs, valider expiration, révoquer un lien. Pas uniquement offres — extensible à tous les partages. |
+| **D55** | **Liens de partage multi-parties (avocat, inspecteur, notaire, etc.)** | **📋 Phase 2** | Étendre le système de share links au-delà des offres : créer des liens de consultation pour les autres parties impliquées (avocat, inspecteur, notaire, courtier hypothécaire). Chaque lien = accès lecture seule à une vue filtrée de la transaction. |
+| **D56** | **Infrastructure 100% canadienne** | **📋 À configurer** | DigitalOcean App Platform (Toronto) + Managed DB (Toronto) + Spaces (Toronto). Zéro donnée hors Canada. LPRPDE/PIPEDA conforme. |
 
 ### 4.2 Principes UX
 
@@ -745,7 +838,7 @@ interface UserPlanFields {
 ┌──────────────────────────────────────────────────────────────────────────┐
 │ Admin Ofra ▸ Plans & Pricing                               Sam (Admin)  │
 ├──────────────────────────────────────────────────────────────────────────┤
-│ Rabais: Annuel [−17%]  Fondateur mensuel [−20%]  Fondateur annuel [−30%]│
+│ Rabais annuel: [−17%]   Programme Fondateur: [Prix garanti à vie]       │
 ├──────────────────────────────────────────────────────────────────────────┤
 │ ┌──────────────────────────────────────────────────────────────────┐     │
 │ │ STARTER  [Actif ✅]                Abonnés: 12 (2 fondateurs)   │     │
@@ -814,7 +907,7 @@ interface UserPlanFields {
 ├──────────────────────────────────────────────────────────────────────────┤
 │ ┌──────────────────────────────────────────────────────────────────┐     │
 │ │ 🏗️ FONDATEUR — 19/25 places restantes                           │     │
-│ │ 1 mois gratuit + −20% à vie (−30% si annuel)                   │     │
+│ │ 30 jours gratuits + votre prix garanti à vie                   │     │
 │ │ [Devenir fondateur →]                                           │     │
 │ └──────────────────────────────────────────────────────────────────┘     │
 │                                                                          │
@@ -834,7 +927,7 @@ interface UserPlanFields {
 │ │ [Commencer]  │ │ [Commencer]  │ │ [Commencer ⭐] │ │ [Me notifier]  │ │
 │ └──────────────┘ └──────────────┘ └───────────────┘ └ ─ ─ ─ ─ ─ ─ ─ ┘ │
 │                                                                          │
-│ Garantie 30j remboursé · 100% Canada 🍁 · FR/EN · Sans contrat          │
+│ Essai 30j gratuit · 100% Canada 🍁 · FR/EN · Sans contrat · Sans CB     │
 └──────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -845,7 +938,7 @@ interface UserPlanFields {
 │ Pricing                             │
 ├─────────────────────────────────────┤
 │ 🏗️ Fondateur 19/25                  │
-│ 1 mois + −20% à vie                │
+│ 30j gratuits + prix garanti à vie  │
 │ [Devenir fondateur →]               │
 │                                     │
 │ [● Mensuel] [Annuel −17%]          │
@@ -872,7 +965,7 @@ interface UserPlanFields {
 │ │ [Me notifier]                  │ │
 │ └ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘ │
 │                                     │
-│ 🍁 100% canadien · Remboursé 30j   │
+│ 🍁 100% canadien · 30j gratuit     │
 └─────────────────────────────────────┘
 ```
 
@@ -898,7 +991,7 @@ Même layout que H1 avec :
 ```
 ┌──────────────────────────────────────────────────────────────────────────┐
 │ 🏗️ OFFRE FONDATEUR — 19/25 places restantes                             │
-│ 1 mois gratuit + −20% à vie (tous plans) · −30% si annuel              │
+│ 30 jours gratuits + votre prix garanti à vie · Les prix augmenteront   │
 │ "Vous construisez Ofra avec nous."   [Devenir fondateur →] [Détails]   │
 └──────────────────────────────────────────────────────────────────────────┘
 ```
@@ -908,7 +1001,7 @@ Même layout que H1 avec :
 ```
 ┌─────────────────────────────────────┐
 │ 🏗️ Fondateur — 19/25                │
-│ 1 mois + −20% à vie (−30% annuel)  │
+│ 30j gratuits + prix garanti à vie  │
 │ [Devenir fondateur →]               │
 └─────────────────────────────────────┘
 ```
@@ -921,9 +1014,9 @@ Même layout que H1 avec :
 ┌──────────────────────────────────────────────────────────────────────────┐
 │ Paramètres ▸ Abonnement                                                  │
 ├──────────────────────────────────────────────────────────────────────────┤
-│ 🏗️ Membre Fondateur #14/25 — Rabais −20% à vie                          │
+│ 🏗️ Membre Fondateur #14/25 — Prix garanti à vie                         │
 │                                                                          │
-│ Plan actuel: PRO (63$/mo fondateur)     Statut: Actif ✅                 │
+│ Plan actuel: PRO (79$/mo — prix locké)  Statut: Actif ✅                 │
 │ Renouvellement: 12 mars 2026            Cycle: Mensuel                   │
 │                                                                          │
 │ Utilisation:                                                             │
@@ -933,10 +1026,10 @@ Même layout que H1 avec :
 │ Paiement: Visa **** 4242   [Mettre à jour]                               │
 │                                                                          │
 │ Changer de plan:                                                         │
-│ [Starter 23$/mo] [Solo 39$/mo] [● Pro 63$/mo] [Agence — Phase 2]       │
-│ (prix fondateur appliqués)                                               │
+│ [Starter 29$/mo] [Solo 49$/mo] [● Pro 79$/mo] [Agence — Phase 2]       │
+│ (prix garanti à vie — votre prix ne changera jamais)                     │
 │                                                                          │
-│ [Passer en annuel (−30% fondateur → 664$/an)]                            │
+│ [Passer en annuel (−17% → 790$/an)]                                      │
 │                                                                          │
 │ [Annuler l'abonnement]                                                   │
 │ ⚠️ L'annulation fait perdre votre statut Fondateur définitivement.       │
@@ -949,10 +1042,10 @@ Même layout que H1 avec :
 ┌─────────────────────────────────────┐
 │ Abonnement                          │
 ├─────────────────────────────────────┤
-│ 🏗️ Fondateur #14/25 · −20%         │
-│ Plan: PRO 63$/mo · Actif ✅         │
+│ 🏗️ Fondateur #14/25 · Prix locké   │
+│ Plan: PRO 79$/mo · Actif ✅         │
 │ TX: 12/25 · Stock: 3.2/10 Go       │
-│ [Passer en annuel −30%]            │
+│ [Passer en annuel −17%]            │
 │ [Changer de plan]                   │
 │ ⚠️ Annulation = perte fondateur    │
 └─────────────────────────────────────┘
@@ -960,9 +1053,9 @@ Même layout que H1 avec :
 
 **Critères d'acceptance :**
 - [ ] Badge fondateur visible si is_founder = true
-- [ ] Prix affichés = prix fondateur (pas le prix normal)
+- [ ] Prix affichés = `plan_locked_price` (prix garanti à vie, pas le prix courant)
 - [ ] Barres de progression TX et stockage
-- [ ] Changement de plan : prix fondateur appliqués automatiquement
+- [ ] Changement de plan : prix locké au moment du switch (garanti à vie)
 - [ ] Avertissement explicite sur perte fondateur en cas d'annulation
 - [ ] Downgrade → vérifie TX actives → modal "Presque !" si dépassement
 
@@ -1119,6 +1212,76 @@ Skeletons, spinners, toasts, 404, 500 — fonctionnels avec le design system vis
 | 2 | `add_plan_fields_to_users` | users + plan_id, is_founder, billing_cycle, plan_locked_price, grace_period_start |
 | 3 | `create_plan_changes_table` | plan_changes (id, plan_id, admin_user_id, field, old_value, new_value, reason, created_at) |
 
+### 7.4 Stripe Billing — Décisions Techniques (validées 2026-02-13)
+
+**Approche :** Custom intégré, PAS de Stripe hosted.
+
+| Choix | Décision | Raison |
+|-------|----------|--------|
+| **Checkout** | Stripe Elements (custom, inline dans l'app) | UX intégrée, contrôle total, cohérent avec maquette K2 |
+| **Gestion abonnement** | Page custom (`AccountPage.tsx` onglet Abonnement) | PAS de Stripe Customer Portal — tout dans l'app |
+| **Trial fondateur** | Logique app (pas de coupons Stripe) | `is_founder` + `plan_locked_price` déjà en DB, l'app calcule et envoie le bon prix à Stripe |
+| **Prorating** | Stripe prorating natif sur upgrade/downgrade | Simplifie les calculs, Stripe gère les crédits |
+
+**In Scope (Lancement) :**
+- Stripe Elements : formulaire carte inline dans l'app
+- `stripe_customer_id` + `stripe_subscription_id` sur User (migration)
+- Création Stripe Customer automatique à l'inscription
+- Création Subscription Stripe au choix de plan (fin trial ou achat direct)
+- Webhooks : `invoice.paid`, `invoice.payment_failed`, `customer.subscription.updated`, `customer.subscription.deleted`
+- Changement de plan (upgrade/downgrade) avec prorating Stripe
+- Annulation d'abonnement (cancel at period end)
+- Page Abonnement custom (K2) : carte, plan actuel, usage, changer plan, passer annuel, annuler
+- Trial 30j fondateur géré 100% côté app
+- Prix lockés (`plan_locked_price`) calculés côté app → envoyés à Stripe
+- Sync statut local ↔ Stripe via webhooks
+
+**Out of Scope (Lancement) :**
+- Factures PDF custom (Stripe les génère automatiquement)
+- Remboursements admin via l'app (via Stripe Dashboard)
+- Tax/GST/HST automatique (Stripe Tax — Phase 2)
+- Stripe Customer Portal
+- Stripe Checkout hosted
+
+**Endpoints Stripe à ajouter :**
+
+| Method | Path | Description | Auth |
+|--------|------|-------------|------|
+| POST | `/api/stripe/setup-intent` | Créer un SetupIntent pour collecter la carte | User |
+| POST | `/api/stripe/subscribe` | Créer l'abonnement Stripe | User |
+| POST | `/api/stripe/change-plan` | Upgrade/downgrade avec prorating | User |
+| POST | `/api/stripe/cancel` | Annuler l'abonnement (fin de période) | User |
+| PUT | `/api/stripe/payment-method` | Mettre à jour la carte | User |
+| POST | `/api/webhooks/stripe` | Endpoint webhooks Stripe | Public (signature verification) |
+
+**Migration Stripe :**
+
+| Champ | Table | Type |
+|-------|-------|------|
+| `stripe_customer_id` | users | string, nullable |
+| `stripe_subscription_id` | users | string, nullable |
+| `stripe_payment_method_id` | users | string, nullable |
+
+### 7.5 Infrastructure 100% Canadienne (D56)
+
+**Promesse :** Ofra est hébergé à 100% au Canada. Aucune donnée ne sort du territoire canadien.
+
+| Composant | Service | Région | Raison |
+|-----------|---------|--------|--------|
+| **Application (backend + frontend)** | DigitalOcean App Platform | Toronto (tor1) | PaaS géré, serveurs au Canada, coût compétitif |
+| **Base de données PostgreSQL** | DigitalOcean Managed Database | Toronto (tor1) | Backups auto, failover, même datacenter que l'app |
+| **Stockage fichiers (documents, pièces jointes)** | DigitalOcean Spaces | Toronto (tor1) | Compatible S3, CDN intégré, données au Canada |
+| **Emails transactionnels** | À déterminer (Postmark ou SES ca-central-1) | Canada / US-East | Évaluer options canadiennes |
+
+**Pourquoi pas Cloudinary ?**
+- Cloudinary héberge sur des serveurs US/EU — incompatible avec la promesse "100% canadien"
+- DigitalOcean Spaces (Toronto) offre le même service de stockage avec résidence de données confirmée au Canada
+- Compatible S3 API → facile à intégrer avec le SDK existant
+
+**Conformité :**
+- LPRPDE / PIPEDA : données personnelles des agents et clients restent au Canada
+- Argument de vente : "Vos données ne quittent jamais le Canada" (landing page, legal)
+
 ---
 
 ## 8. Tests Utilisateur
@@ -1143,24 +1306,60 @@ Skeletons, spinners, toasts, 404, 500 — fonctionnels avec le design system vis
 | Fondateur 25/25 complet | Bannière "Complet. [Liste d'attente]" |
 | Soft limit + downgrade simultané | Grace period s'applique, downgrade bloqué indépendamment |
 | Agent en grâce qui archive et repasse sous la limite | `grace_period_start` reset, bandeau disparaît |
-| Changement prix admin pendant checkout Stripe | Prix locké au moment de création session Stripe |
+| Changement prix admin pendant checkout Stripe | Prix locké au moment de création Subscription Stripe (via `plan_locked_price` app) |
 
 ---
 
-## 9. Roadmap Phases
+## 9. Roadmap
 
-### Phase 1 — Lancement Fondateurs (2 semaines)
+### 9.0 Feuille de Route Pré-Lancement (validée 2026-02-13)
 
-| Feature | Écran | Décision |
-|---------|-------|----------|
-| Dashboard urgences | A1-A3 | D42 |
-| Timeline verticale | B1-B3 | D32 |
-| Mode assisté | C1 | D44 |
-| Admin plans | G2 | D45 |
-| Page pricing | H1-H3 | D46 |
-| Stripe minimal | K2, #14, #15 | D47-D49 |
+**Principe directeur :** Stripe en dernier. Le trial 30j est 100% backend Ofra, zéro interaction Stripe. On peut lancer en beta fermée sans paiement et brancher Stripe quand les fondateurs approchent J30.
 
-### Phase 2 — Valeur Perçue (post-lancement, mois 2-3)
+| Bloc | Contenu | Dépendance | Statut |
+|------|---------|------------|--------|
+| **1. D53 Backend** | Migration `trial_tx_used`, `PlanLimitMiddleware` trial mode (1TX), `TrialGuardMiddleware` soft/hard wall, subscription endpoint enrichi, registration init 30j. | Aucune | ✅ DONE |
+| **2. D53 Frontend** | `TrialBanner` (actif/soft wall), hard wall redirect dans Layout, i18n FR/EN. Manque : rappels email J7/J21/J27 (→ Bloc 6). | Bloc 1 | ✅ DONE |
+| **3. Landing Page** | Hero, features (urgences, conditions, FINTRAC), social proof, CTA → `/signup`. Route publique `/`. | Aucune (parallélisable) | ✅ DONE (670 lignes, 6 pages marketing, ROUTE-1 routing) |
+| **4. Pricing Page** | 4 plans, toggle mensuel/annuel, bannière fondateur "prix garanti à vie", Agence grisé. CTA → `/signup` (pas encore Stripe). | Aucune (parallélisable) | ✅ DONE (657 lignes, comparaison complète) |
+| **5. Legal** | Conditions d'utilisation, Politique de confidentialité (LPRPDE/PIPEDA + NB). Routes `/legal/terms`, `/legal/privacy`. | Aucune (parallélisable) | ❌ TODO |
+| **6. Emails essentiels** | WelcomeMail enrichi (mention trial 30j), `TrialReminderMail` paramétrique (J7/J21/J27), BullMQ scheduling à l'inscription, handler dans queue.ts. Reset password déjà existant. | Bloc 1 (trial dates) | ✅ DONE |
+| **7. Stripe** | Stripe Elements (custom, inline). Webhooks sync. Page Abonnement custom (K2). Détails ci-dessous §7.4. | Blocs 1-6 terminés | ❌ TODO (dernier) |
+
+| **8. Offres intelligentes** | Sprint A : Migration `buyer_party_id`/`seller_party_id`/`initial_direction` sur Offer, model+service+validator+controller, PartyPicker inline (dropdown + création inline), intégration CreateOfferModal avec pre-populate en mode contre-offre. Sprint B : `NegotiationThread` (fil vertical toutes révisions, deltas prix, direction arrows), `OfferComparison` (table side-by-side 2-4 offres, highlight meilleur/pire prix, CTA accepter), `AcceptOfferModal` affiche parties buyer/seller. Auto-populate parties à l'acceptation → FINTRAC ready. 15 fichiers, 283 tests verts. | Aucune (parallélisable) | ✅ DONE |
+
+**Blocs parallélisables :** 3, 4, 5, 8 peuvent se faire en même temps que 1-2.
+
+```
+✅ Fait:     [Bloc 1: D53 Backend] + [Bloc 2: D53 Frontend] + [Bloc 3: Landing]
+✅ Fait:     [Bloc 4: Pricing] + [Bloc 6: Emails] + [Bloc 8: Offres intelligentes]
+→ Reste:    [Bloc 5: Legal] + [Bloc 7: Stripe] + Tests + Polish
+            → Beta fondateurs
+```
+
+### 9.1 Phase 1 — Lancement Fondateurs (Blocs 1-7 ci-dessus)
+
+Tout ce qui est nécessaire pour que les 25 premiers agents puissent :
+1. S'inscrire (trial 30j, 1 TX, Pro complet)
+2. Utiliser Ofra en conditions réelles
+3. Choisir un plan et payer via Stripe à J30
+
+| Feature | Écran | Décision | Statut |
+|---------|-------|----------|--------|
+| Dashboard urgences | A1-A3 | D42 | ✅ Codé |
+| Timeline verticale | B1-B3 | D32 | ✅ Codé |
+| Mode assisté | C1 | D44 | ✅ Codé |
+| Admin plans | G2 | D45 | ✅ Codé |
+| Trial 30j backend | — | D53 | ✅ Codé |
+| Trial 30j frontend | — | D53 | ✅ Codé |
+| Landing page | — | — | ✅ Codé (670L, 6 pages marketing, route `/`) |
+| Page pricing publique | H1-H3 | D46 | ✅ Codé (657L, comparaison 4 plans) |
+| Emails essentiels | — | — | ✅ Codé (WelcomeMail, TrialReminderMail, BullMQ scheduling) |
+| Offres intelligentes | M06, M12 | — | ✅ Codé (PartyPicker, NegotiationThread, OfferComparison, 15 fichiers) |
+| Legal (CGU, vie privée) | — | — | ❌ TODO |
+| Stripe integration | K2, #14, #15 | D47-D49 | ❌ TODO (dernier) |
+
+### 9.2 Phase 2 — Valeur Perçue (post-lancement, mois 2-3)
 
 | Feature | Décision |
 |---------|----------|
@@ -1169,8 +1368,11 @@ Skeletons, spinners, toasts, 404, 500 — fonctionnels avec le design system vis
 | Alertes proactives 48h (push/SMS) | D51 |
 | Onboarding simplifié "1ère transaction en 2 min" | D40 amélioré |
 | Plan Agence activé | D46 |
+| Sprint 2-4 conditions (lock profile, admin override) | Planifié |
+| Superadmin : suppression de compte (mot de passe + type-to-confirm, soft delete, cascade, audit log) | Backlog |
+| UI Audit Trail conditions : historique événements par condition (créé, résolu, archivé) — backend `ConditionEvent` déjà actif, manque le composant frontend | Backlog |
 
-### Phase 3 — Copilote Proactif (6 mois)
+### 9.3 Phase 3 — Copilote Proactif (6 mois)
 
 | Feature |
 |---------|
@@ -1180,7 +1382,7 @@ Skeletons, spinners, toasts, 404, 500 — fonctionnels avec le design system vis
 | Intégration calendrier (Google Calendar / Outlook) |
 | Historique communications |
 
-### Phase 4 — Intelligence Augmentée (12-24 mois)
+### 9.4 Phase 4 — Intelligence Augmentée (12-24 mois)
 
 | Feature |
 |---------|
@@ -1190,7 +1392,7 @@ Skeletons, spinners, toasts, 404, 500 — fonctionnels avec le design system vis
 | Gestion d'agenda intégrée |
 | Templates partagés (données anonymisées entre agents) |
 
-### Expansion Géographique
+### 9.5 Expansion Géographique
 
 ```
 Année 1 : Nouveau-Brunswick (Moncton → provincial)
@@ -1228,13 +1430,13 @@ L'architecture supporte l'expansion via `province` sur les templates de conditio
 
 ## 11. Annexes
 
-### A. Documents périmés
+### A. Documents supprimés / périmés
 
-| Document | Statut | Ce qui est périmé |
-|----------|--------|-------------------|
-| `docs/pricing-strategy.md` | ⚠️ PÉRIMÉ | Tout (3 plans → 4, prix, limites, fondateurs) |
-| `docs/roadmap.md` | ⚠️ PARTIELLEMENT PÉRIMÉ | Sections pricing, Epic 6, Epic 7 |
-| `project-context.md` section 10 | ✅ MIS À JOUR | Pricing corrigé, renvoi vers ce PRD |
+| Document | Statut | Action |
+|----------|--------|--------|
+| `docs/pricing-strategy.md` | **SUPPRIMÉ** | Retiré du repo — entièrement remplacé par ce PRD |
+| `docs/roadmap.md` | **SUPPRIMÉ** | Retiré du repo — entièrement remplacé par ce PRD |
+| `project-context.md` | ✅ MIS À JOUR (2026-02-13) | Pricing, features, routes, roadmap — tous corrigés |
 
 ### B. Documents toujours valides
 
@@ -1250,8 +1452,72 @@ L'architecture supporte l'expansion via `province` sur les templates de conditio
 
 Référence croisée : voir section 4.1 de ce document.
 
+### D. Bugs Connus (à corriger)
+
+| # | Bug | Contexte | Sévérité |
+|---|-----|----------|----------|
+| BUG-01 | ~~**Profil propriété invisible dans Transaction Details**~~ — Query key inconsistant (`profile` vs `transaction-profile`). **CORRIGÉ** : 4 usages alignés sur `['transaction-profile', id]` dans EditTransactionPage + PropertyProfileCard. | Page Transaction Details → Profil Propriété | ✅ Corrigé |
+| BUG-02 | **Erreur SMTP lors de la création d'un lien d'offre (share link)** — `ETIMEDOUT` sur `CONN` lors de l'envoi de l'email de partage. L'email ne part pas mais l'erreur est non-bloquante (l'offre est créée). | `POST /api/offers/:id/share` → `offer_accepted_mail` ou share link email | 🟡 Medium (SMTP config/connexion) |
+| SEC-01 | ~~**FINTRAC controller sans vérification d'ownership**~~ — Les endpoints show/complete/resolve n'avaient pas de vérification tenant. **CORRIGÉ** : méthode `loadRecordWithOwnershipCheck()` + `TenantScopeService.canAccess()`. | `fintrac_controller.ts` | ✅ Corrigé |
+| SEC-02 | ~~**TenantScope manquant dans conditions_controller + notes_controller**~~ — 15 endpoints sans tenant scoping. **CORRIGÉ** : `TenantScopeService.apply()` ajouté dans 12 méthodes conditions + 3 méthodes notes. | `conditions_controller.ts`, `notes_controller.ts` | ✅ Corrigé |
+| BUG-ADM | ~~**admin_metrics_service deadline column**~~ — Colonne `deadline` n'existe pas, devrait être `due_date`. **CORRIGÉ**. | `admin_metrics_service.ts:196-203` | ✅ Corrigé |
+| BUG-MAIL | ~~**fullName null dans emails**~~ — `auth.user!.fullName` pouvait être null dans transaction_members et transaction_parties controllers. **CORRIGÉ** : `fullName ?? email` fallback. | 2 controllers | ✅ Corrigé |
+| BUG-TS | ~~**11 erreurs TypeScript**~~ — 5 dans `admin_metrics_service.ts` (nested preload → restructuré en 2 queries), 1 `cleanup_duplicates.ts` (+=), 1 `test_no_duplicates.ts` (import), 4 test files (unused vars). **CORRIGÉ** : `tsc --noEmit` = 0 erreur. | Backend | ✅ Corrigé |
+| BUG-03 | ~~**FINTRAC conditions sans bouton CTA dans la timeline**~~ — `VerticalTimeline` ne passait pas `onFintracClick` aux `ConditionCard`. Les conditions FINTRAC s'affichaient comme des conditions normales → checkbox toggle → 422 + faux toast vert. **CORRIGÉ** : ajout `FintracComplianceModal` + `handleFintracClick` + interception toggle dans `VerticalTimeline.tsx`. | Timeline → ConditionCard FINTRAC | ✅ Corrigé |
+| BUG-04 | ~~**FINTRAC auto-créé en mode manuel**~~ — `FintracService.onStepEnter()` ignorait `autoConditionsEnabled`. Conditions FINTRAC bloquantes créées même en mode manuel. **CORRIGÉ** : gate `autoConditionsEnabled` ajoutée dans `onStepEnter()` et `onPartyAdded()`. | Backend `fintrac_service.ts` | ✅ Corrigé |
+| BUG-05 | ~~**Nested `<button>` dans DocumentStatusBar**~~ — `<button>` wrapper contenait des `<button>` badges → erreur React DOM. **CORRIGÉ** : wrapper changé en `<div role="button">`. | `DocumentStatusBar.tsx` | ✅ Corrigé |
+| BUG-06 | ~~**Faux toast vert sur erreur 422**~~ — `ConditionValidationModal.resolveMutation.onSuccess` ne vérifiait pas `response.success`. 422 renvoyait JSON avec `success: false` mais le toast vert s'affichait. **CORRIGÉ** : vérification `response.success` avant toast. | `ConditionValidationModal.tsx` | ✅ Corrigé |
+
+---
+
+### E. Audit Général (2026-02-16)
+
+**Score launch-readiness : 82%** (était 75% avant correctifs sécurité)
+
+| Métrique | Valeur |
+|----------|--------|
+| Tests backend | 180 PASS |
+| Tests frontend | 283 PASS |
+| TODO/FIXME/HACK | 0 |
+| console.log prod | 0 |
+| @ts-ignore | 0 |
+| explicit `any` | 0 |
+| i18n FR/EN parité | ✅ 2 789 lignes chaque |
+| Feature gates | 11/11 |
+| Erreurs TS restantes | **0** (11 corrigées le 2026-02-16) |
+| Routes protégées | 47 (auth/txPermission/admin/superadmin) |
+| Secrets hardcodés | 0 |
+
+**Correctifs appliqués (session 2026-02-16) :**
+- SEC-01 : Auth FINTRAC (TenantScope + loadRecordWithOwnershipCheck)
+- SEC-02 : TenantScope conditions/notes (15 endpoints)
+- BUG-01 : Query key profile → `['transaction-profile', id]`
+- BUG-ADM : deadline → due_date dans admin_metrics
+- BUG-MAIL : fullName ?? email dans 2 controllers
+- ROUTE-1 : Landing page `/` pour visiteurs non-auth
+
+**Bloqueurs restants pour lancement :**
+1. D53 Trial 30j (15% — schema OK, enforcement 0%)
+2. Stripe billing (0%)
+3. Legal pages (0%)
+4. Emails essentiels trial (0%)
+
+### F. Priorités Post-Audit
+
+| Priorité | Action | Effort estimé |
+|----------|--------|---------------|
+| ~~🔴 P0~~ | ~~Fix 7 erreurs TypeScript~~ | ✅ DONE |
+| 🔴 P0 | D53 Trial backend + frontend | 2-3 jours |
+| 🔴 P0 | Stripe billing | 5-7 jours |
+| 🟠 P1 | Legal (CGU, vie privée) | 1 jour |
+| ~~🟠 P1~~ | ~~Emails essentiels trial~~ | ✅ DONE |
+| 🟠 P1 | Tests FINTRAC backend | 1 jour |
+| 🟡 P2 | Sprint 2-4 conditions pipeline | Post-lancement |
+| 🟡 P2 | Coverage pages frontend → 50%+ | Continu |
+
 ---
 
 _PRD rédigé par l'équipe BMAD en Party Mode — 2026-02-06_
+_Mis à jour v2.4 — 2026-02-16 (audit général, correctifs sécurité, progression roadmap)_
 _Validé par : Sam (Product Owner)_
 _Source de vérité unique pour Ofra v2_
