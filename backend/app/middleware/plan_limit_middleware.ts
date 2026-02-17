@@ -4,14 +4,18 @@ import { DateTime } from 'luxon'
 import Transaction from '#models/transaction'
 
 /**
- * Plan limit middleware — soft limit with 7-day grace period
+ * Plan limit middleware — handles both trial mode (D53) and paid plan limits.
  *
- * Applied to transaction creation routes only.
- * - If user has no plan or plan has unlimited TX: pass through
- * - If active TX count < maxTransactions: pass through (reset grace if needed)
- * - If over limit and no grace started: start grace, allow creation
- * - If over limit and within 7-day grace: allow creation
- * - If over limit and grace expired (>7 days): block creation
+ * Applied to transaction creation routes.
+ *
+ * Trial mode (plan_id = null, subscription_status = 'trial'):
+ *   - 1 TX max (trial_tx_used flag)
+ *   - J0-J30: full Pro access
+ *   - J30-J33: soft wall (read-only — blocked at route level by TrialGuardMiddleware)
+ *   - J33+: hard wall (pricing only — blocked by TrialGuardMiddleware)
+ *
+ * Paid plan mode:
+ *   - maxTransactions per plan with 7-day grace period
  */
 export default class PlanLimitMiddleware {
   async handle(ctx: HttpContext, next: NextFn) {
@@ -27,8 +31,40 @@ export default class PlanLimitMiddleware {
     await user.load('plan')
     const plan = user.plan
 
-    // No plan assigned or unlimited transactions → pass through
-    if (!plan || plan.maxTransactions === null) {
+    // ── Trial mode (no plan assigned) ──
+    if (!plan) {
+      // Check if trial TX already used
+      if (user.trialTxUsed) {
+        return ctx.response.forbidden({
+          success: false,
+          error: {
+            message: 'Trial limit reached: 1 transaction maximum. Choose a plan to continue.',
+            code: 'E_TRIAL_TX_LIMIT',
+            meta: { trialTxUsed: true, maxTrialTx: 1 },
+          },
+        })
+      }
+
+      // Check if trial has expired (J30+)
+      if (user.subscriptionEndsAt && user.subscriptionEndsAt < DateTime.now()) {
+        return ctx.response.forbidden({
+          success: false,
+          error: {
+            message: 'Your trial has expired. Choose a plan to continue.',
+            code: 'E_TRIAL_EXPIRED',
+            meta: { trialExpired: true },
+          },
+        })
+      }
+
+      // Trial active and TX not used → allow
+      return next()
+    }
+
+    // ── Paid plan mode ──
+
+    // Unlimited transactions → pass through
+    if (plan.maxTransactions === null) {
       return next()
     }
 

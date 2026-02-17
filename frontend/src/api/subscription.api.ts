@@ -33,6 +33,14 @@ export interface SubscriptionData {
     startedAt: string | null
     daysRemaining: number | null
   }
+  trial: {
+    active: boolean
+    daysRemaining: number | null
+    endsAt: string | null
+    txUsed: boolean
+    softWall: boolean
+    hardWall: boolean
+  }
 }
 
 export const subscriptionApi = {

@@ -166,6 +166,10 @@ export default class User extends compose(BaseModel, AuthFinder) {
   @column.dateTime()
   declare gracePeriodStart: DateTime | null
 
+  // D53: Trial — true when the 1 free TX has been created
+  @column()
+  declare trialTxUsed: boolean
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 
