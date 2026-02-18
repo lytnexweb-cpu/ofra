@@ -9,7 +9,7 @@ inputDocuments:
   - docs/roadmap.md (SUPPRIMÉ — remplacé par ce PRD)
   - _bmad-output/session-2026-02-02-ux-refonte.md
 workflowType: 'prd'
-version: '2.9'
+version: '2.11'
 date: '2026-02-18'
 author: 'Sam + Équipe BMAD (Party Mode)'
 status: 'SOURCE DE VÉRITÉ'
@@ -23,8 +23,21 @@ supersedes:
 
 > **⚠️ CE DOCUMENT EST LA SOURCE DE VÉRITÉ UNIQUE**
 > Tout conflit avec un autre document se résout en faveur de ce PRD.
-> Dernière mise à jour : 2026-02-18 (v2.9)
+> Dernière mise à jour : 2026-02-18 (v2.11)
 > Auteur : Sam + Équipe BMAD (Party Mode)
+>
+> **Changements v2.11 (2026-02-18) — Sprint Tests complet :**
+> - §11.F : Tests FINTRAC + TenantScope + Admin + Documents + Members + Parties → ✅ DONE (commit `a2f364e`)
+> - §11.H.5 : Mise à jour couverture — 120 tests backend (68 unit + 52 functional), 327 tests frontend (40 fichiers)
+> - Score launch-readiness : **80%** (remonté de 75% grâce à couverture tests critiques)
+> - Bug fix : `ConditionEvidence` table name mismatch corrigé
+>
+> **Changements v2.10 (2026-02-18) — Date de lancement + Programme Fondateur fermé :**
+> - §2.4 : Programme Fondateur = **beta fermée avec code d'invitation** (accès uniquement via code, pas de signup public)
+> - §9.0 : **Date de lancement officiel : 20 mars 2026** (30 jours). Countdown réel sur page Coming Soon
+> - §9.1 : Ajout "Launch Day Checklist" — étapes pour basculer en `live` le jour J
+> - §7.3 : `site_settings.launch_date` default = `'2026-03-20'` (au lieu de `null`)
+> - D58 mis à jour : beta fermée explicite, `/signup` inaccessible sans code en mode `coming_soon`
 >
 > **Changements v2.9 (2026-02-18) — Refonte Admin Dashboard + SiteMode + Codes Promo :**
 > - §4.1 : D57 (Admin 3 vues Pulse/Gens/Config), D58 (SiteMode 3 états), D59 (Codes promotionnels), D60 (Liste d'attente construction)
@@ -174,10 +187,11 @@ Ofra ne vend pas de la gestion de données. Ofra vend de la **réduction d'anxi�
 
 **Pourquoi Pro complet :** L'agent doit voir la vraie valeur (preuves, FINTRAC, audit) pour être convaincu. Un trial Starter = produit castré = churn. L'anchoring psychologique fait le reste au moment du choix.
 
-### 2.4 Programme Fondateur (25 places) — Prix Garanti à Vie (D53)
+### 2.4 Programme Fondateur (25 places) — Beta Fermée avec Code (D53)
 
 | Règle | Détail |
 |-------|--------|
+| **Accès** | **Beta fermée — code d'invitation requis** (ex: `OFRA-FOUNDER-2026`) |
 | Places | 25 maximum |
 | Essai | **30 jours gratuits** (même trial que tout le monde) |
 | Prix | **Prix du jour garanti à vie** — pas de réduction %, le prix de lancement ne bouge jamais |
@@ -187,6 +201,15 @@ Ofra ne vend pas de la gestion de données. Ofra vend de la **réduction d'anxi�
 | Engagement | 15 minutes de feedback par mois |
 | Annulation | **Perd le statut fondateur définitivement** |
 | Changement de plan sans annuler | **Garde le statut fondateur** |
+
+#### Accès Fermé
+
+Le programme fondateur est un **programme d'accès fermé**. Avant le lancement public (**20 mars 2026**) :
+- Le site est en mode `coming_soon` — la page de lancement est la seule visible
+- L'accès à `/signup` nécessite un **code d'accès global** validé sur la page Coming Soon
+- Seuls les porteurs du code peuvent s'inscrire
+- Le code est distribué manuellement par Sam aux 25 agents sélectionnés
+- Après le 20 mars, le site bascule en mode `live` et le signup devient public
 
 #### Stratégie de Prix
 
@@ -350,7 +373,7 @@ HARD WALL (J33+)
 | **D55** | **Liens de partage multi-parties (avocat, inspecteur, notaire, etc.)** | **📋 Phase 2** | Étendre le système de share links au-delà des offres : créer des liens de consultation pour les autres parties impliquées (avocat, inspecteur, notaire, courtier hypothécaire). Chaque lien = accès lecture seule à une vue filtrée de la transaction. |
 | **D56** | **Infrastructure 100% canadienne** | **📋 À configurer** | Fly.io (`yyz` Toronto) + Fly Postgres (`yyz`) + stockage S3-compatible Canada (DO Spaces ou AWS `ca-central-1`). Zéro donnée hors Canada. LPRPDE/PIPEDA conforme. |
 | **D57** | **Admin dashboard 3 vues (Pulse/Gens/Config)** | **📋 À coder** | Refonte complète admin : (1) **Pulse** = KPIs + alertes actionnables + fil d'activité live + badge mode site, check quotidien. (2) **Gens** = CRM subscribers avec smart segments (Trial J25+, À risque, Fondateurs, Nouveaux, Impayés) + drawer détail avec timeline activité + notes/tâches. (3) **Config** = Plans éditables + SiteMode + Codes promo + System health. Mobile = lecture seule. Remplace les 5 pages admin actuelles (Dashboard, Subscribers, Plans, Activity, System). Maquettes M-ADM-01 à M-ADM-05. |
-| **D58** | **SiteMode 3 états (live/coming_soon/maintenance)** | **📋 À coder** | Middleware `SiteModeMiddleware` avec 3 états : `live` (tout le monde), `coming_soon` (page teaser lancement avec countdown, code d'accès anticipé, waitlist email, pitch points — admins bypass), `maintenance` (admins seuls, 503). Table `site_settings` (key/value). Admin personnalise : message, date de lancement (countdown), bullet points pitch, compteur fondateurs visible/caché. Code d'accès global pour beta fermée fondateurs (ex: `OFRA-FOUNDER-2026`). Page dark theme premium avec FOMO (countdown + places restantes). Toggle depuis admin Config. |
+| **D58** | **SiteMode 3 états (live/coming_soon/maintenance) + beta fermée fondateurs** | **📋 À coder** | Middleware `SiteModeMiddleware` avec 3 états : `live` (tout le monde), `coming_soon` (page teaser lancement avec countdown, code d'accès anticipé, waitlist email, pitch points — admins bypass), `maintenance` (admins seuls, 503). Table `site_settings` (key/value). Admin personnalise : message, date de lancement (countdown), bullet points pitch, compteur fondateurs visible/caché. **Programme fondateur = beta fermée** : code d'accès global requis (ex: `OFRA-FOUNDER-2026`), `/signup` inaccessible sans code en mode `coming_soon`. Page dark theme premium avec FOMO (countdown + places restantes). **Lancement public : 20 mars 2026** — admin bascule `site_mode` de `coming_soon` à `live`, signup ouvert à tous. Toggle depuis admin Config. |
 | **D59** | **Codes promotionnels** | **📋 À coder** | Table `promo_codes` : code, type (percent/fixed/free_months), value, max_uses, current_uses, valid_from, valid_until, eligible_plans (json), active, stripe_coupon_id. CRUD admin dans vue Config. Champ "code promo" dans le flow inscription. Miroir Stripe coupon à la création. Non cumulable avec statut Fondateur (prix locké > promo). Use cases : partenariat courtage, événements NBREA, referral organique. |
 | **D60** | **Liste d'attente email (page coming soon)** | **📋 À coder** | Table `waitlist_emails` : email, source ('coming_soon_page'), created_at. Formulaire sur la page Coming Soon : "Soyez les premiers informés". Lead capture + compteur fondateurs restants. Exportable CSV depuis admin. |
 
@@ -1668,7 +1691,7 @@ Skeletons, spinners, toasts, 404, 500 — fonctionnels avec le design system vis
 | 1 | `create_plans_table` | plans (id, name, slug, monthly_price, annual_price, max_transactions, max_storage_mb, history_months, max_users, is_active, display_order) |
 | 2 | `add_plan_fields_to_users` | users + plan_id, is_founder, billing_cycle, plan_locked_price, grace_period_start |
 | 3 | `create_plan_changes_table` | plan_changes (id, plan_id, admin_user_id, field, old_value, new_value, reason, created_at) |
-| 4 | `create_site_settings_table` | site_settings (id, key, value, updated_by, updated_at). Keys initiales : `site_mode` ('live'), `access_code` (''), `custom_message` (''), `launch_date` (null — si défini, active le countdown), `pitch_points` ('[]' — JSON array de strings), `show_founder_count` ('true') |
+| 4 | `create_site_settings_table` | site_settings (id, key, value, updated_by, updated_at). Keys initiales : `site_mode` ('coming_soon'), `access_code` ('OFRA-FOUNDER-2026'), `custom_message` (''), `launch_date` ('2026-03-20'), `pitch_points` ('[]' — JSON array de strings), `show_founder_count` ('true') |
 | 5 | `create_promo_codes_table` | promo_codes (id, code UNIQUE, type enum('percent','fixed','free_months'), value decimal, max_uses int nullable, current_uses int default 0, valid_from date nullable, valid_until date nullable, eligible_plans jsonb nullable, active boolean default true, stripe_coupon_id string nullable, created_at, updated_at) |
 | 6 | `add_promo_code_to_users` | users + promo_code_id (FK nullable vers promo_codes) |
 | 7 | `create_waitlist_emails_table` | waitlist_emails (id, email UNIQUE, source string default 'construction_page', created_at) |
@@ -1782,6 +1805,11 @@ Skeletons, spinners, toasts, 404, 500 — fonctionnels avec le design system vis
 
 **Principe directeur :** Stripe en dernier. Le trial 30j est 100% backend Ofra, zéro interaction Stripe. On peut lancer en beta fermée sans paiement et brancher Stripe quand les fondateurs approchent J30.
 
+**🗓️ Date de lancement officiel : 20 mars 2026** (30 jours à partir du 18 février 2026).
+- **Avant le 20 mars** : site en mode `coming_soon`, accès fondateurs par code uniquement
+- **Le 20 mars** : admin bascule `site_mode` → `live`, signup public ouvert
+- **Deadline Stripe** : doit être fonctionnel avant le 20 mars (les fondateurs ont 30j de trial, Stripe facture à J30)
+
 | Bloc | Contenu | Dépendance | Statut |
 |------|---------|------------|--------|
 | **1. D53 Backend** | Migration `trial_tx_used`, `PlanLimitMiddleware` trial mode (1TX), `TrialGuardMiddleware` soft/hard wall, subscription endpoint enrichi, registration init 30j. | Aucune | ✅ DONE |
@@ -1802,13 +1830,14 @@ Skeletons, spinners, toasts, 404, 500 — fonctionnels avec le design system vis
 ✅ Fait:     [Bloc 4: Pricing] + [Bloc 6: Emails] + [Bloc 8: Offres intelligentes]
 → En cours: [Bloc 9: Admin Dashboard Refonte + SiteMode + Promos]
 → Reste:    [Bloc 5: Legal] + [Bloc 7: Stripe] + Tests + Polish
-            → Beta fondateurs (mode construction avec code d'accès)
+            → Beta fondateurs (accès fermé avec code)
+🗓️ DEADLINE: 20 mars 2026 — Lancement public
 ```
 
-### 9.1 Phase 1 — Lancement Fondateurs (Blocs 1-9)
+### 9.1 Phase 1 — Lancement Fondateurs (Blocs 1-9) — Deadline : 20 mars 2026
 
 Tout ce qui est nécessaire pour que les 25 premiers agents puissent :
-1. Accéder via code fondateur (mode construction)
+1. Accéder via code fondateur (programme fermé, page Coming Soon)
 2. S'inscrire (trial 30j, 1 TX, Pro complet)
 3. Utiliser Ofra en conditions réelles
 4. Choisir un plan et payer via Stripe à J30
@@ -1833,6 +1862,20 @@ Tout ce qui est nécessaire pour que les 25 premiers agents puissent :
 | **Liste d'attente email** | M-ADM-04 | D60 | ❌ TODO (Bloc 9) |
 | Legal (CGU, vie privée) | — | — | ❌ TODO |
 | Stripe integration | K2, #14, #15 | D47-D49 | ❌ TODO (dernier) |
+
+#### Launch Day Checklist — 20 mars 2026
+
+Actions à réaliser le jour du lancement public :
+
+| # | Action | Responsable | Détail |
+|---|--------|-------------|--------|
+| 1 | Basculer `site_mode` → `live` | Admin (Sam) | Depuis Config > Mode du site. Le signup devient public. |
+| 2 | Vérifier Stripe fonctionnel | Sam | Les fondateurs en trial depuis ~20 fév approchent J30. Stripe doit facturer. |
+| 3 | Exporter la waitlist | Sam | CSV des emails collectés pendant le mode Coming Soon. Email d'annonce à envoyer. |
+| 4 | Désactiver le code d'accès | Optionnel | Le code n'est plus vérifié en mode `live`, mais on peut le vider pour propreté. |
+| 5 | Mettre à jour la Landing Page | Dev | Retirer les mentions "bientôt" / "accès anticipé" si présentes. |
+| 6 | Vérifier les 25 fondateurs | Sam | S'assurer que tous les fondateurs invités ont bien `is_founder = true` et un trial actif. |
+| 7 | Monitoring post-launch | Dev | Surveiller les erreurs, la charge, les inscriptions pendant les premières 24h. |
 
 ### 9.2 Phase 2 — Valeur Perçue (post-lancement, mois 2-3)
 
@@ -1952,8 +1995,8 @@ Référence croisée : voir section 4.1 de ce document.
 
 | Métrique | Valeur |
 |----------|--------|
-| Tests backend | 180 PASS |
-| Tests frontend | 283 PASS |
+| Tests backend | 120 PASS (68 unit + 52 functional) |
+| Tests frontend | 327 PASS (40 fichiers) |
 | TODO/FIXME/HACK | 0 |
 | console.log prod | 0 |
 | @ts-ignore | 0 |
@@ -1997,7 +2040,7 @@ Référence croisée : voir section 4.1 de ce document.
 | ~~🟠 P1~~ | ~~Error Boundary + code splitting frontend~~ | 1h | ✅ DONE (2026-02-18) |
 | ~~🟠 P1~~ | ~~Page 404 / catch-all route~~ | 15 min | ✅ DONE (2026-02-18) |
 | ~~🟠 P1~~ | ~~`FRONTEND_URL` unifié dans `env.ts` (3 fallbacks différents)~~ | 30 min | ✅ DONE (2026-02-18) |
-| 🟠 P1 | Tests FINTRAC + TenantScope backend | 1 jour | ❌ TODO |
+| ~~🟠 P1~~ | ~~Tests FINTRAC + TenantScope + Admin + Documents + Members + Parties backend + Pages frontend~~ | — | ✅ DONE (2026-02-18, commit `a2f364e`) |
 | 🟠 P1 | Legal (CGU, vie privée) | 1 jour | ❌ TODO |
 | ~~🟠 P1~~ | ~~Emails essentiels trial~~ | — | ✅ DONE |
 | 🟡 P2 | i18n : `apiError.ts` FR hardcodé, `UserDropdown` EN hardcodé | 30 min | ❌ TODO |
@@ -2010,7 +2053,7 @@ Référence croisée : voir section 4.1 de ce document.
 | 🟡 P2 | M14 Offre Unifié — polish (voir §11.G) | Post-lancement | ❌ TODO |
 | ⚪ P3 | `as any` cleanup (51+ total backend+frontend) | Continu | ❌ TODO |
 | ⚪ P3 | Accessibilité WCAG (6 issues identifiées) | Continu | ❌ TODO |
-| ⚪ P3 | Coverage pages frontend → 50%+ | Continu | ❌ TODO |
+| ⚪ P3 | Coverage pages frontend → 50%+ | Continu | 🔄 EN COURS (Login, Register, ForgotPassword, VerifyEmail, Clients couverts) |
 
 ### G. Audit M14 — Formulaire Offre Unifié (2026-02-17)
 
@@ -2104,7 +2147,7 @@ Le flow d'intake (`/api/offer-intake/:token` + `OfferIntakePage`) est un **lead 
 
 **Méthode :** Exploration automatisée exhaustive — 3 agents parallèles (backend, frontend, infra/tests). Lecture de tous les modèles, contrôleurs, services, middleware, routes, composants, API, i18n, configs. ~260 fichiers analysés.
 
-**Score launch-readiness : 75%** (était 68% avant fixes P0/P1 du 2026-02-18)
+**Score launch-readiness : 80%** (était 75% après tests sprint 2026-02-18)
 
 #### H.1 Statistiques Projet
 
@@ -2118,8 +2161,8 @@ Le flow d'intake (`/api/offer-intake/:token` + `OfferIntakePage`) est un **lead 
 | Validators | 14 |
 | Pages frontend | 30+ |
 | Modules API frontend | 22 |
-| Tests backend (Japa) | 12 functional + 3 unit suites |
-| Tests frontend (Vitest) | 30 fichiers |
+| Tests backend (Japa) | 120 tests (68 unit + 52 functional) |
+| Tests frontend (Vitest) | 327 tests (40 fichiers) |
 | E2E (Playwright) | 3 specs (local only, PAS en CI) |
 | i18n FR/EN | 2 836 lignes chaque, parité ✅ |
 | `as any` backend | 11 occurrences |
@@ -2169,25 +2212,34 @@ Le flow d'intake (`/api/offer-intake/:token` + `OfferIntakePage`) est un **lead 
 | **DOCKER-01** | `Dockerfile` | Container tourne en root | ❌ TODO |
 | **DEPLOY-01** | `fly.toml` | `db:seed` à chaque deploy — risque duplications | ❌ TODO |
 
-#### H.5 Couverture de Tests — Zones Sans Tests
+#### H.5 Couverture de Tests — État après Sprint Tests (2026-02-18)
 
-**Backend (zones critiques sans couverture) :**
-- `fintrac_controller.ts` / `fintrac_service.ts` — module légal critique
-- `tenant_scope_service.ts` — couche multi-tenant
-- `plan_service.ts` — feature gating
-- `admin_controller.ts` — panel admin complet
-- `export_controller.ts` / `pdf_export_service.ts`
-- `transaction_documents_controller.ts`, `transaction_members_controller.ts`, `transaction_parties_controller.ts`
+**Backend — zones MAINTENANT couvertes ✅ (commit `a2f364e`) :**
+- ~~`fintrac_controller.ts` / `fintrac_service.ts`~~ → ✅ 15 tests (unit + functional)
+- ~~`tenant_scope_service.ts`~~ → ✅ 8 tests unit
+- ~~`plan_service.ts`~~ → ✅ 6 tests unit
+- ~~`admin_controller.ts`~~ → ✅ 17 tests functional (access control, CRUD notes/tasks, superadmin)
+- ~~`transaction_documents_controller.ts`~~ → ✅ 9 tests functional
+- ~~`transaction_members_controller.ts`~~ → ✅ 9 tests functional
+- ~~`transaction_parties_controller.ts`~~ → ✅ 10 tests functional
+
+**Backend — zones ENCORE sans couverture :**
+- `export_controller.ts` / `pdf_export_service.ts` — export PDF/email
 - `reminder_service.ts`, `email_service.ts` (23 templates mail)
+- `condition_template_service.ts` — matching engine
 
-**Frontend (zones sans couverture) :**
+**Frontend — zones MAINTENANT couvertes ✅ :**
+- ~~`ClientsPage.tsx`~~ → ✅ 3 tests (loading, empty, cards)
+- ~~Register, ForgotPassword, VerifyEmail, Login pages~~ → ✅ 18 tests total
+- ~~`apiError.ts`, `date.ts`~~ → ✅ 17 tests unit
+
+**Frontend — zones ENCORE sans couverture :**
 - `FintracComplianceModal.tsx` — composant légal critique
 - `SettingsPage.tsx` (5 tabs)
-- `ClientsPage.tsx`, `ClientDetailsPage.tsx`
-- Register, ForgotPassword, VerifyEmail, Onboarding pages
+- `ClientDetailsPage.tsx`
+- Onboarding pages
 - Admin pages complètes
 - Couche API (`*.api.ts`) — 22 modules sans tests
-- `apiError.ts`, `date.ts`, `ThemeContext.tsx`
 
 **CI/CD manquant :**
 - E2E Playwright pas exécuté en CI
