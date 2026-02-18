@@ -33,10 +33,16 @@ export default defineConfig({
       testMatch: /auth\.spec\.ts/,
       use: { ...devices['Desktop Chrome'] },
     },
+    // Tenant isolation tests manage their own auth (login/logout per user)
+    {
+      name: 'tenant-isolation',
+      testMatch: /tenant-isolation\.spec\.ts/,
+      use: { ...devices['Desktop Chrome'] },
+    },
     // Other tests depend on setup and use saved auth state
     {
       name: 'chromium',
-      testIgnore: /auth\.(setup|spec)\.ts/,
+      testIgnore: /auth\.(setup|spec)\.ts|tenant-isolation\.spec\.ts/,
       dependencies: ['setup'],
       use: {
         ...devices['Desktop Chrome'],

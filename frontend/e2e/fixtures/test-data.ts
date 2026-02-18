@@ -18,6 +18,12 @@ export const TEST_USER = {
   fullName: 'E2E Test User',
 }
 
+export const TEST_USER_B = {
+  email: 'e2e-test-b@ofra.app',
+  password: 'TestPassword123!',
+  fullName: 'E2E Test User B',
+}
+
 export const TEST_CLIENT = {
   firstName: 'John',
   lastName: 'Doe',

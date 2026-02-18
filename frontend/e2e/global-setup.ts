@@ -8,7 +8,7 @@
  */
 
 import { request } from '@playwright/test'
-import { TEST_USER } from './fixtures/test-data'
+import { TEST_USER, TEST_USER_B } from './fixtures/test-data'
 
 const API_BASE_URL = 'http://localhost:3333'
 
@@ -43,6 +43,30 @@ async function globalSetup() {
     }
   } catch (error) {
     console.log(`⚠️ Registration request failed (backend may not be ready): ${error}`)
+  }
+
+  // Create second test user for tenant isolation tests
+  try {
+    const registerBResponse = await apiContext.post('/api/register', {
+      data: {
+        email: TEST_USER_B.email,
+        password: TEST_USER_B.password,
+        fullName: TEST_USER_B.fullName,
+      },
+    })
+
+    if (registerBResponse.ok()) {
+      console.log(`✅ Test user B created: ${TEST_USER_B.email}`)
+    } else {
+      const body = await registerBResponse.json()
+      if (body.error?.code === 'E_EMAIL_EXISTS' || registerBResponse.status() === 409) {
+        console.log(`ℹ️ Test user B already exists: ${TEST_USER_B.email}`)
+      } else {
+        console.log(`⚠️ Could not create test user B: ${JSON.stringify(body)}`)
+      }
+    }
+  } catch (error) {
+    console.log(`⚠️ Registration B request failed: ${error}`)
   }
 
   await apiContext.dispose()

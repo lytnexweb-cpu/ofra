@@ -22,6 +22,8 @@ import AdminNote from '#models/admin_note'
 import AdminTask from '#models/admin_task'
 import TransactionDocument from '#models/transaction_document'
 import TransactionMember from '#models/transaction_member'
+import PlanChangeLog from '#models/plan_change_log'
+import Plan from '#models/plan'
 
 /**
  * Truncate all tables in correct order (respecting FK constraints)
@@ -53,5 +55,7 @@ export async function truncateAll() {
   await WorkflowStep.query().delete()
   await WorkflowTemplate.query().delete()
   await User.query().delete()
+  await PlanChangeLog.query().delete()
+  await Plan.query().delete()
   await Organization.query().delete()
 }
