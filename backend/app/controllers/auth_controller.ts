@@ -69,7 +69,7 @@ export default class AuthController {
       await user.save()
 
       // Send verification email
-      const frontendUrl = env.get('FRONTEND_URL', 'https://ofra.app')
+      const frontendUrl = env.get('FRONTEND_URL', 'https://ofra.ca')
       const verifyUrl = `${frontendUrl}/verify-email?token=${verificationToken}`
 
       mail
@@ -260,7 +260,7 @@ export default class AuthController {
       await user.save()
 
       // Send reset email with original (unhashed) token
-      const frontendUrl = env.get('FRONTEND_URL', 'https://ofra.app')
+      const frontendUrl = env.get('FRONTEND_URL', 'https://ofra.ca')
       const resetUrl = `${frontendUrl}/reset-password?token=${token}`
 
       await mail.send(
@@ -370,7 +370,7 @@ export default class AuthController {
     await user.save()
 
     // Send welcome email now that they're verified
-    const frontendUrl = env.get('FRONTEND_URL', 'https://ofra.app')
+    const frontendUrl = env.get('FRONTEND_URL', 'https://ofra.ca')
     mail
       .send(
         new WelcomeMail({
@@ -414,7 +414,7 @@ export default class AuthController {
     user.emailVerificationExpires = DateTime.now().plus({ hours: 24 })
     await user.save()
 
-    const frontendUrl = env.get('FRONTEND_URL', 'https://ofra.app')
+    const frontendUrl = env.get('FRONTEND_URL', 'https://ofra.ca')
     const verifyUrl = `${frontendUrl}/verify-email?token=${verificationToken}`
 
     mail

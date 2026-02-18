@@ -57,6 +57,13 @@ export default await Env.create(new URL('../', import.meta.url), {
 
   /*
   |----------------------------------------------------------
+  | Frontend URL (used in emails, password reset links, etc.)
+  |----------------------------------------------------------
+  */
+  FRONTEND_URL: Env.schema.string.optional(),
+
+  /*
+  |----------------------------------------------------------
   | CORS configuration
   |----------------------------------------------------------
   */

@@ -1541,9 +1541,9 @@ Référence croisée : voir section 4.1 de ce document.
 | ~~🔴 P0~~ | ~~**SEC-06** Fichiers servis sans ownership check~~ | 30 min | ✅ DONE (2026-02-18) |
 | ~~🔴 P0~~ | ~~**INFRA-01** `fly.toml` region `ewr` → `yyz` (Toronto)~~ | 1 min | ✅ DONE (2026-02-18) |
 | 🔴 P0 | Stripe billing | 5-7 jours | ❌ TODO |
-| 🟠 P1 | Error Boundary + code splitting frontend | 1h | ❌ TODO |
-| 🟠 P1 | Page 404 / catch-all route | 15 min | ❌ TODO |
-| 🟠 P1 | `FRONTEND_URL` unifié dans `env.ts` (3 fallbacks différents) | 30 min | ❌ TODO |
+| ~~🟠 P1~~ | ~~Error Boundary + code splitting frontend~~ | 1h | ✅ DONE (2026-02-18) |
+| ~~🟠 P1~~ | ~~Page 404 / catch-all route~~ | 15 min | ✅ DONE (2026-02-18) |
+| ~~🟠 P1~~ | ~~`FRONTEND_URL` unifié dans `env.ts` (3 fallbacks différents)~~ | 30 min | ✅ DONE (2026-02-18) |
 | 🟠 P1 | Tests FINTRAC + TenantScope backend | 1 jour | ❌ TODO |
 | 🟠 P1 | Legal (CGU, vie privée) | 1 jour | ❌ TODO |
 | ~~🟠 P1~~ | ~~Emails essentiels trial~~ | — | ✅ DONE |

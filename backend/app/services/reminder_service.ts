@@ -2,6 +2,7 @@ import { Job } from 'bullmq'
 import { DateTime } from 'luxon'
 import mail from '@adonisjs/mail/services/main'
 import logger from '@adonisjs/core/services/logger'
+import env from '#start/env'
 import User from '#models/user'
 import Condition from '#models/condition'
 import Transaction from '#models/transaction'
@@ -103,7 +104,7 @@ export class ReminderService {
     const clientName = client ? `${client.firstName} ${client.lastName}` : 'Unknown Client'
     const propertyAddress = transaction.property?.address ?? null
 
-    const frontendUrl = process.env.FRONTEND_URL ?? 'https://ofra.pages.dev'
+    const frontendUrl = env.get('FRONTEND_URL', 'https://ofra.ca')
 
     try {
       await mail.send(
@@ -214,7 +215,7 @@ export class ReminderService {
    */
   private static async sendDigestEmail(digest: UserDigest) {
     const { user, overdue, upcoming } = digest
-    const frontendUrl = process.env.FRONTEND_URL ?? 'https://ofra.pages.dev'
+    const frontendUrl = env.get('FRONTEND_URL', 'https://ofra.ca')
 
     try {
       await mail.send(

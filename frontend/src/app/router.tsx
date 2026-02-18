@@ -1,43 +1,57 @@
-import { useEffect } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { createBrowserRouter, Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { authApi } from '../api/auth.api'
-import LandingPage from '../pages/LandingPage'
-import PricingPage from '../pages/PricingPage'
-import PrivacyPage from '../pages/PrivacyPage'
-import TermsPage from '../pages/TermsPage'
-import ContactPage from '../pages/ContactPage'
-import AboutPage from '../pages/AboutPage'
-import FounderPage from '../pages/FounderPage'
-import FeaturesPage from '../pages/FeaturesPage'
-import FaqPage from '../pages/FaqPage'
-import LoginPage from '../pages/LoginPage'
-import AdminLoginPage from '../pages/AdminLoginPage'
-import RegisterPage from '../pages/RegisterPage'
-import ForgotPasswordPage from '../pages/ForgotPasswordPage'
-import VerifyEmailPage from '../pages/VerifyEmailPage'
-import OnboardingPage from '../pages/OnboardingPage'
-import DashboardPage from '../pages/DashboardPage'
-import ClientsPage from '../pages/ClientsPage'
-import ClientDetailsPage from '../pages/ClientDetailsPage'
-import TransactionsPage from '../pages/TransactionsPage'
-import TransactionDetailPage from '../pages/TransactionDetailPage'
-import EditTransactionPage from '../pages/EditTransactionPage'
-import ExportSharePage from '../pages/ExportSharePage'
-import OfferIntakePage from '../pages/OfferIntakePage'
-import PermissionsPage from '../pages/PermissionsPage'
-import SettingsPage from '../pages/SettingsPage'
-import AccountPage from '../pages/AccountPage'
 import Layout from '../components/Layout'
 import AdminLayout from '../components/AdminLayout'
-import {
-  AdminDashboardPage,
-  AdminSubscribersPage,
-  AdminActivityPage,
-  AdminSystemPage,
-  AdminPlansPage,
-} from '../pages/admin'
+
+// Lazy-loaded pages for code splitting
+const LandingPage = lazy(() => import('../pages/LandingPage'))
+const PricingPage = lazy(() => import('../pages/PricingPage'))
+const PrivacyPage = lazy(() => import('../pages/PrivacyPage'))
+const TermsPage = lazy(() => import('../pages/TermsPage'))
+const ContactPage = lazy(() => import('../pages/ContactPage'))
+const AboutPage = lazy(() => import('../pages/AboutPage'))
+const FounderPage = lazy(() => import('../pages/FounderPage'))
+const FeaturesPage = lazy(() => import('../pages/FeaturesPage'))
+const FaqPage = lazy(() => import('../pages/FaqPage'))
+const LoginPage = lazy(() => import('../pages/LoginPage'))
+const AdminLoginPage = lazy(() => import('../pages/AdminLoginPage'))
+const RegisterPage = lazy(() => import('../pages/RegisterPage'))
+const ForgotPasswordPage = lazy(() => import('../pages/ForgotPasswordPage'))
+const VerifyEmailPage = lazy(() => import('../pages/VerifyEmailPage'))
+const OnboardingPage = lazy(() => import('../pages/OnboardingPage'))
+const DashboardPage = lazy(() => import('../pages/DashboardPage'))
+const ClientsPage = lazy(() => import('../pages/ClientsPage'))
+const ClientDetailsPage = lazy(() => import('../pages/ClientDetailsPage'))
+const TransactionsPage = lazy(() => import('../pages/TransactionsPage'))
+const TransactionDetailPage = lazy(() => import('../pages/TransactionDetailPage'))
+const EditTransactionPage = lazy(() => import('../pages/EditTransactionPage'))
+const ExportSharePage = lazy(() => import('../pages/ExportSharePage'))
+const OfferIntakePage = lazy(() => import('../pages/OfferIntakePage'))
+const PermissionsPage = lazy(() => import('../pages/PermissionsPage'))
+const SettingsPage = lazy(() => import('../pages/SettingsPage'))
+const AccountPage = lazy(() => import('../pages/AccountPage'))
+const NotFoundPage = lazy(() => import('../pages/NotFoundPage'))
+
+const AdminDashboardPage = lazy(() => import('../pages/admin/AdminDashboardPage'))
+const AdminSubscribersPage = lazy(() => import('../pages/admin/AdminSubscribersPage'))
+const AdminActivityPage = lazy(() => import('../pages/admin/AdminActivityPage'))
+const AdminSystemPage = lazy(() => import('../pages/admin/AdminSystemPage'))
+const AdminPlansPage = lazy(() => import('../pages/admin/AdminPlansPage'))
+
+function PageLoading() {
+  return (
+    <div className="flex items-center justify-center min-h-screen" role="status" aria-busy="true">
+      <div className="animate-pulse text-muted-foreground text-sm">...</div>
+    </div>
+  )
+}
+
+function LazyPage({ children }: { children: React.ReactNode }) {
+  return <Suspense fallback={<PageLoading />}>{children}</Suspense>
+}
 
 // D40: Protected route that also checks for onboarding
 function ProtectedRoute({ children, skipOnboardingCheck = false }: { children: React.ReactNode; skipOnboardingCheck?: boolean }) {
@@ -63,13 +77,13 @@ function ProtectedRoute({ children, skipOnboardingCheck = false }: { children: R
   }, [user?.language, user?.onboardingCompleted, i18n, skipOnboardingCheck])
 
   if (isLoading) {
-    return <div className="flex items-center justify-center min-h-screen">{/* Silent loading */}</div>
+    return <PageLoading />
   }
 
   if (!data?.success) {
     // Show landing page for unauthenticated visitors at root /
     if (location.pathname === '/') {
-      return <LandingPage />
+      return <LazyPage><LandingPage /></LazyPage>
     }
     return <Navigate to="/login" replace />
   }
@@ -94,7 +108,7 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
   })
 
   if (isLoading) {
-    return <div className="flex items-center justify-center min-h-screen">{/* Silent loading */}</div>
+    return <PageLoading />
   }
 
   if (!data?.success) {
@@ -128,58 +142,58 @@ export const router = createBrowserRouter([
   },
   {
     path: '/pricing',
-    element: <PricingPage />,
+    element: <LazyPage><PricingPage /></LazyPage>,
   },
   {
     path: '/privacy',
-    element: <PrivacyPage />,
+    element: <LazyPage><PrivacyPage /></LazyPage>,
   },
   {
     path: '/terms',
-    element: <TermsPage />,
+    element: <LazyPage><TermsPage /></LazyPage>,
   },
   {
     path: '/about',
-    element: <AboutPage />,
+    element: <LazyPage><AboutPage /></LazyPage>,
   },
   {
     path: '/founder',
-    element: <FounderPage />,
+    element: <LazyPage><FounderPage /></LazyPage>,
   },
   {
     path: '/features',
-    element: <FeaturesPage />,
+    element: <LazyPage><FeaturesPage /></LazyPage>,
   },
   {
     path: '/faq',
-    element: <FaqPage />,
+    element: <LazyPage><FaqPage /></LazyPage>,
   },
   {
     path: '/contact',
-    element: <ContactPage />,
+    element: <LazyPage><ContactPage /></LazyPage>,
   },
   {
     path: '/login',
-    element: <LoginPage />,
+    element: <LazyPage><LoginPage /></LazyPage>,
   },
   {
     path: '/register',
-    element: <RegisterPage />,
+    element: <LazyPage><RegisterPage /></LazyPage>,
   },
   {
     path: '/forgot-password',
-    element: <ForgotPasswordPage />,
+    element: <LazyPage><ForgotPasswordPage /></LazyPage>,
   },
   {
     path: '/verify-email',
-    element: <VerifyEmailPage />,
+    element: <LazyPage><VerifyEmailPage /></LazyPage>,
   },
   // D40: Onboarding route (protected but outside main layout)
   {
     path: '/onboarding',
     element: (
       <ProtectedRoute skipOnboardingCheck>
-        <OnboardingPage />
+        <LazyPage><OnboardingPage /></LazyPage>
       </ProtectedRoute>
     ),
   },
@@ -193,58 +207,58 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <DashboardPage />,
+        element: <LazyPage><DashboardPage /></LazyPage>,
       },
       {
         path: 'clients',
-        element: <ClientsPage />,
+        element: <LazyPage><ClientsPage /></LazyPage>,
       },
       {
         path: 'clients/:id',
-        element: <ClientDetailsPage />,
+        element: <LazyPage><ClientDetailsPage /></LazyPage>,
       },
       {
         path: 'transactions',
-        element: <TransactionsPage />,
+        element: <LazyPage><TransactionsPage /></LazyPage>,
       },
       {
         path: 'transactions/new',
-        element: <EditTransactionPage />,
+        element: <LazyPage><EditTransactionPage /></LazyPage>,
       },
       {
         path: 'transactions/:id',
-        element: <TransactionDetailPage />,
+        element: <LazyPage><TransactionDetailPage /></LazyPage>,
       },
       {
         path: 'transactions/:id/edit',
-        element: <EditTransactionPage />,
+        element: <LazyPage><EditTransactionPage /></LazyPage>,
       },
       {
         path: 'transactions/:id/export',
-        element: <ExportSharePage />,
+        element: <LazyPage><ExportSharePage /></LazyPage>,
       },
       {
         path: 'transactions/:id/access',
-        element: <PermissionsPage />,
+        element: <LazyPage><PermissionsPage /></LazyPage>,
       },
       {
         path: 'settings',
-        element: <SettingsPage />,
+        element: <LazyPage><SettingsPage /></LazyPage>,
       },
       {
         path: 'account',
-        element: <AccountPage />,
+        element: <LazyPage><AccountPage /></LazyPage>,
       },
     ],
   },
   // D35: Public offer intake page (no auth required)
   {
     path: '/offer/:token',
-    element: <OfferIntakePage />,
+    element: <LazyPage><OfferIntakePage /></LazyPage>,
   },
   {
     path: '/admin/login',
-    element: <AdminLoginPage />,
+    element: <LazyPage><AdminLoginPage /></LazyPage>,
   },
   // Admin routes
   {
@@ -257,25 +271,30 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <AdminDashboardPage />,
+        element: <LazyPage><AdminDashboardPage /></LazyPage>,
       },
       {
         path: 'subscribers',
-        element: <AdminSubscribersPage />,
+        element: <LazyPage><AdminSubscribersPage /></LazyPage>,
       },
       {
         path: 'activity',
-        element: <AdminActivityPage />,
+        element: <LazyPage><AdminActivityPage /></LazyPage>,
       },
       {
         path: 'system',
-        element: <AdminSystemPage />,
+        element: <LazyPage><AdminSystemPage /></LazyPage>,
       },
       {
         path: 'plans',
-        element: <AdminPlansPage />,
+        element: <LazyPage><AdminPlansPage /></LazyPage>,
       },
     ],
+  },
+  // 404 catch-all
+  {
+    path: '*',
+    element: <LazyPage><NotFoundPage /></LazyPage>,
   },
     ],
   },
