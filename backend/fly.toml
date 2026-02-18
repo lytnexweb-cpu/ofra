@@ -4,7 +4,7 @@
 #
 
 app = 'ofra-crm-backend'
-primary_region = 'ewr'
+primary_region = 'yyz'
 
 [build]
 

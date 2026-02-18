@@ -1,5 +1,7 @@
 /**
  * PlanService — centralized plan hierarchy checks for feature gating
+ *
+ * Trial users (no planId) get full Pro access per D53.
  */
 export class PlanService {
   private static readonly HIERARCHY = ['starter', 'solo', 'pro', 'agence']
@@ -8,7 +10,10 @@ export class PlanService {
     userPlanSlug: string | undefined | null,
     required: 'solo' | 'pro' | 'agence'
   ): boolean {
-    if (!userPlanSlug) return false
+    // Trial users (no plan) get Pro-level access per D53
+    if (!userPlanSlug) {
+      return this.HIERARCHY.indexOf('pro') >= this.HIERARCHY.indexOf(required)
+    }
     return this.HIERARCHY.indexOf(userPlanSlug) >= this.HIERARCHY.indexOf(required)
   }
 

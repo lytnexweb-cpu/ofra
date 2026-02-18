@@ -13,7 +13,7 @@ import { DateTime } from 'luxon'
  * FintracService — FINTRAC compliance management
  *
  * Creates blocking conditions for identity verification at firm-pending step.
- * Only active when autoConditionsEnabled = true on the transaction.
+ * FINTRAC is a legal obligation — ALWAYS created regardless of autoConditionsEnabled.
  *
  * Rules:
  * - purchase → FINTRAC for each buyer party
@@ -105,14 +105,7 @@ export class FintracService {
       return
     }
 
-    if (!transaction.autoConditionsEnabled) {
-      logger.info(
-        { transactionId: transaction.id },
-        'FINTRAC creation skipped — autoConditionsEnabled is false'
-      )
-      return
-    }
-
+    // FINTRAC is a legal obligation — always create regardless of autoConditionsEnabled
     const targetRole = this.getTargetRole(transaction.type)
     const parties = await TransactionParty.query()
       .where('transactionId', transaction.id)
@@ -143,14 +136,7 @@ export class FintracService {
     const targetRole = this.getTargetRole(transaction.type)
     if (party.role !== targetRole) return
 
-    if (!transaction.autoConditionsEnabled) {
-      logger.info(
-        { transactionId: transaction.id, partyId: party.id },
-        'FINTRAC creation skipped on party add — autoConditionsEnabled is false'
-      )
-      return
-    }
-
+    // FINTRAC is a legal obligation — always create regardless of autoConditionsEnabled
     const atOrPast = await this.isAtOrPastFirmPending(transaction)
     if (!atOrPast) return
 

@@ -9,8 +9,8 @@ inputDocuments:
   - docs/roadmap.md (SUPPRIMÉ — remplacé par ce PRD)
   - _bmad-output/session-2026-02-02-ux-refonte.md
 workflowType: 'prd'
-version: '2.5'
-date: '2026-02-17'
+version: '2.8'
+date: '2026-02-18'
 author: 'Sam + Équipe BMAD (Party Mode)'
 status: 'SOURCE DE VÉRITÉ'
 supersedes:
@@ -23,8 +23,29 @@ supersedes:
 
 > **⚠️ CE DOCUMENT EST LA SOURCE DE VÉRITÉ UNIQUE**
 > Tout conflit avec un autre document se résout en faveur de ce PRD.
-> Dernière mise à jour : 2026-02-17 (v2.5)
+> Dernière mise à jour : 2026-02-18 (v2.8)
 > Auteur : Sam + Équipe BMAD (Party Mode)
+>
+> **Changements v2.8 (2026-02-18) — Audit Approfondi Complet (Backend + Frontend + Infra) :**
+> - §11.H ajouté : Audit approfondi 2026-02-18 — ~95 issues (7 critiques, 15 hautes, 30 moyennes, 43 basses)
+> - §11.F Priorités Post-Audit mis à jour avec les nouveaux P0 sécurité/légal
+> - CRITIQUE : Path traversal `/api/uploads/:filename` (SEC-03), FINTRAC bypass autoConditions (SEC-04), trial FINTRAC bloqué (SEC-05)
+> - HAUTE : Fichiers sans ownership check (SEC-06), `fly.toml` region `ewr` vs `yyz` (INFRA-01)
+> - Frontend : Pas d'Error Boundary, pas de code splitting, pas de 404, i18n cassé (EN→FR dans apiError)
+> - Tests : FINTRAC/admin/export/TenantScope zéro couverture, E2E pas en CI
+> - Score launch-readiness : **68%** (baisse de 82% — issues sécurité et légales découvertes)
+>
+> **Changements v2.7 (2026-02-17) — Audit M14 Formulaire Offre Unifié :**
+> - §11.G ajouté : Audit complet M14 — cohérence maquette / backend / frontend / réalité NB
+> - Recherche terrain NB : vocabulaire (irrévocabilité vs expiration), flow NBREA, offres multiples FCNB
+> - 9 actions classées P0→P3 : fix checkbox confirmation, depositDeadline type, label irrévocabilité, etc.
+> - Pistes backlog identifiées : détenteur dépôt, date de possession, séparation inclusions/exclusions
+> - §9.2 Phase 2 : ajout M14 polish items
+>
+> **Changements v2.6 (2026-02-17) — D56 Infrastructure Fly.io :**
+> - §7.5 Infrastructure : DigitalOcean App Platform → **Fly.io (`yyz` Toronto)** + Fly Postgres (`yyz`)
+> - §7.5 Stockage fichiers : DO Spaces → **À déterminer** (DO Spaces Toronto ou AWS S3 `ca-central-1`)
+> - §4.1 D56 mis à jour : Fly.io remplace DigitalOcean, conformité Canada maintenue
 >
 > **Changements v2.5 (2026-02-17) — Bloc 8 Offres intelligentes ✅ :**
 > - §9.0 Bloc 8 : `❌ TODO` → `✅ DONE` — Sprint A (backend migration `buyerPartyId`/`sellerPartyId` sur Offer, PartyPicker inline, validation cohérence parties) + Sprint B (NegotiationThread, OfferComparison side-by-side, AcceptOfferModal parties display)
@@ -317,7 +338,7 @@ HARD WALL (J33+)
 | **D53** | **Trial 30j gratuit (1 TX, Pro complet) + Prix garanti à vie fondateur** | **✅ Codé** | Migration `trial_tx_used`, `TrialGuardMiddleware` soft/hard wall, `PlanLimitMiddleware` trial mode, `TrialBanner`, registration init 30j, subscription endpoint enrichi. Reste : emails rappel J7/J21/J27 (Bloc 6). |
 | **D54** | **Gestionnaire de liens partagés (à côté de 🔔 dans le header)** | **📋 À coder** | Icône dédiée ou section dans header pour voir tous les liens actifs, valider expiration, révoquer un lien. Pas uniquement offres — extensible à tous les partages. |
 | **D55** | **Liens de partage multi-parties (avocat, inspecteur, notaire, etc.)** | **📋 Phase 2** | Étendre le système de share links au-delà des offres : créer des liens de consultation pour les autres parties impliquées (avocat, inspecteur, notaire, courtier hypothécaire). Chaque lien = accès lecture seule à une vue filtrée de la transaction. |
-| **D56** | **Infrastructure 100% canadienne** | **📋 À configurer** | DigitalOcean App Platform (Toronto) + Managed DB (Toronto) + Spaces (Toronto). Zéro donnée hors Canada. LPRPDE/PIPEDA conforme. |
+| **D56** | **Infrastructure 100% canadienne** | **📋 À configurer** | Fly.io (`yyz` Toronto) + Fly Postgres (`yyz`) + stockage S3-compatible Canada (DO Spaces ou AWS `ca-central-1`). Zéro donnée hors Canada. LPRPDE/PIPEDA conforme. |
 
 ### 4.2 Principes UX
 
@@ -1268,15 +1289,20 @@ Skeletons, spinners, toasts, 404, 500 — fonctionnels avec le design system vis
 
 | Composant | Service | Région | Raison |
 |-----------|---------|--------|--------|
-| **Application (backend + frontend)** | DigitalOcean App Platform | Toronto (tor1) | PaaS géré, serveurs au Canada, coût compétitif |
-| **Base de données PostgreSQL** | DigitalOcean Managed Database | Toronto (tor1) | Backups auto, failover, même datacenter que l'app |
-| **Stockage fichiers (documents, pièces jointes)** | DigitalOcean Spaces | Toronto (tor1) | Compatible S3, CDN intégré, données au Canada |
+| **Application (backend + frontend)** | Fly.io | Toronto (`yyz`) | Containers Docker, déploiement simple, région Canada native |
+| **Base de données PostgreSQL** | Fly Postgres | Toronto (`yyz`) | Managed, même région que l'app, `DATABASE_URL` compatible |
+| **Stockage fichiers (documents, pièces jointes)** | À déterminer (DO Spaces Toronto ou AWS S3 `ca-central-1`) | Canada | Compatible S3, résidence données au Canada |
 | **Emails transactionnels** | À déterminer (Postmark ou SES ca-central-1) | Canada / US-East | Évaluer options canadiennes |
+
+**Pourquoi Fly.io (remplace DigitalOcean App Platform — décision 2026-02-17) :**
+- Région `yyz` (Toronto) = résidence de données Canada confirmée
+- DX supérieure : `fly deploy` depuis un Dockerfile, pas de buildpack opaque
+- Fly Postgres managé dans la même région
+- Coût compétitif pour un projet early-stage
+- Note : Fly.io n'offre pas de stockage objet — un service S3-compatible externe (DO Spaces Toronto ou AWS S3 `ca-central-1`) sera nécessaire pour les fichiers
 
 **Pourquoi pas Cloudinary ?**
 - Cloudinary héberge sur des serveurs US/EU — incompatible avec la promesse "100% canadien"
-- DigitalOcean Spaces (Toronto) offre le même service de stockage avec résidence de données confirmée au Canada
-- Compatible S3 API → facile à intégrer avec le SDK existant
 
 **Conformité :**
 - LPRPDE / PIPEDA : données personnelles des agents et clients restent au Canada
@@ -1369,6 +1395,7 @@ Tout ce qui est nécessaire pour que les 25 premiers agents puissent :
 | Onboarding simplifié "1ère transaction en 2 min" | D40 amélioré |
 | Plan Agence activé | D46 |
 | Sprint 2-4 conditions (lock profile, admin override) | Planifié |
+| M14 Polish : label irrévocabilité, Custom expiration, notes field, NegotiationThread dans modal, OfferComparison conditions count | §11.G |
 | Superadmin : suppression de compte (mot de passe + type-to-confirm, soft delete, cascade, audit log) | Backlog |
 | UI Audit Trail conditions : historique événements par condition (créé, résolu, archivé) — backend `ConditionEvent` déjà actif, manque le composant frontend | Backlog |
 
@@ -1502,22 +1529,246 @@ Référence croisée : voir section 4.1 de ce document.
 3. Legal pages (0%)
 4. Emails essentiels trial (0%)
 
-### F. Priorités Post-Audit
+### F. Priorités Post-Audit (mis à jour 2026-02-18)
 
-| Priorité | Action | Effort estimé |
-|----------|--------|---------------|
-| ~~🔴 P0~~ | ~~Fix 7 erreurs TypeScript~~ | ✅ DONE |
-| 🔴 P0 | D53 Trial backend + frontend | 2-3 jours |
-| 🔴 P0 | Stripe billing | 5-7 jours |
-| 🟠 P1 | Legal (CGU, vie privée) | 1 jour |
-| ~~🟠 P1~~ | ~~Emails essentiels trial~~ | ✅ DONE |
-| 🟠 P1 | Tests FINTRAC backend | 1 jour |
-| 🟡 P2 | Sprint 2-4 conditions pipeline | Post-lancement |
-| 🟡 P2 | Coverage pages frontend → 50%+ | Continu |
+| Priorité | Action | Effort | Statut |
+|----------|--------|--------|--------|
+| ~~🔴 P0~~ | ~~Fix 7 erreurs TypeScript~~ | — | ✅ DONE |
+| ~~🔴 P0~~ | ~~D53 Trial backend + frontend~~ | — | ✅ DONE |
+| ~~🔴 P0~~ | ~~**SEC-03** Path traversal `/api/uploads/:filename`~~ | 5 min | ✅ DONE (2026-02-18) |
+| ~~🔴 P0~~ | ~~**SEC-04** FINTRAC bypass quand `autoConditionsEnabled=false`~~ | 5 min | ✅ DONE (2026-02-18) |
+| ~~🔴 P0~~ | ~~**SEC-05** Trial users bloqués FINTRAC (PlanService)~~ | 15 min | ✅ DONE (2026-02-18) |
+| ~~🔴 P0~~ | ~~**SEC-06** Fichiers servis sans ownership check~~ | 30 min | ✅ DONE (2026-02-18) |
+| ~~🔴 P0~~ | ~~**INFRA-01** `fly.toml` region `ewr` → `yyz` (Toronto)~~ | 1 min | ✅ DONE (2026-02-18) |
+| 🔴 P0 | Stripe billing | 5-7 jours | ❌ TODO |
+| 🟠 P1 | Error Boundary + code splitting frontend | 1h | ❌ TODO |
+| 🟠 P1 | Page 404 / catch-all route | 15 min | ❌ TODO |
+| 🟠 P1 | `FRONTEND_URL` unifié dans `env.ts` (3 fallbacks différents) | 30 min | ❌ TODO |
+| 🟠 P1 | Tests FINTRAC + TenantScope backend | 1 jour | ❌ TODO |
+| 🟠 P1 | Legal (CGU, vie privée) | 1 jour | ❌ TODO |
+| ~~🟠 P1~~ | ~~Emails essentiels trial~~ | — | ✅ DONE |
+| 🟡 P2 | i18n : `apiError.ts` FR hardcodé, `UserDropdown` EN hardcodé | 30 min | ❌ TODO |
+| 🟡 P2 | `gray-` → `stone-` migration (13 fichiers) | 1h | ❌ TODO |
+| 🟡 P2 | E2E Playwright en CI | 2h | ❌ TODO |
+| 🟡 P2 | CSP headers (Content-Security-Policy) | 1h | ❌ TODO |
+| 🟡 P2 | Docker : non-root user dans Dockerfile | 10 min | ❌ TODO |
+| 🟡 P2 | `db:seed` idempotent (updateOrCreate) ou retirer du release_command | 30 min | ❌ TODO |
+| 🟡 P2 | Sprint 2-4 conditions pipeline | Post-lancement | ❌ TODO |
+| 🟡 P2 | M14 Offre Unifié — polish (voir §11.G) | Post-lancement | ❌ TODO |
+| ⚪ P3 | `as any` cleanup (51+ total backend+frontend) | Continu | ❌ TODO |
+| ⚪ P3 | Accessibilité WCAG (6 issues identifiées) | Continu | ❌ TODO |
+| ⚪ P3 | Coverage pages frontend → 50%+ | Continu | ❌ TODO |
+
+### G. Audit M14 — Formulaire Offre Unifié (2026-02-17)
+
+**Contexte :** Audit de cohérence entre la maquette M14 (`maquettes/14-formulaire-offre-unifie.html`), le backend Bloc 8, le frontend production (`components/transaction/`), et la réalité du marché immobilier NB (recherche FCNB, NBREA, McInnes Cooper).
+
+**Maquette M14 :** 7 états (A — Nouvelle offre, B — Contre-offre, C — Confirmation, D — Succès, E — Erreurs, F — Permission, G — Serveur). Layout 2 colonnes : formulaire gauche, aperçu live + historique droite.
+
+#### G.1 Cohérence Maquette ↔ Backend ↔ Frontend
+
+| Champ M14 | Backend `OfferRevision` | Frontend type | Réalité NB | Verdict |
+|-----------|------------------------|---------------|------------|---------|
+| Prix offert | `price` decimal(12,2) | ✅ `price: number` | ✅ | ALIGNÉ |
+| Dépôt | `deposit` decimal | ✅ | ✅ 1-3% typique NB | ALIGNÉ |
+| Limite dépôt | `depositDeadline` date | ⚠️ **Absent du type `OfferRevision` en retour** | ✅ | FIX TYPE |
+| Clôture | `closingDate` date | ✅ | ✅ 30-60j typique | ALIGNÉ |
+| Expiration (pills 24h/48h/7j/Custom) | `expiryAt` datetime | ✅ pills | ⚠️ Terme NB = « irrévocabilité » | FIX LABEL |
+| Financement toggle + montant | `financingAmount` decimal | ✅ | ✅ condition standard | ALIGNÉ |
+| Inspection toggle + délai | `inspectionRequired` + `inspectionDelay` | ✅ | ✅ 2-3 jours typique | ALIGNÉ |
+| Inclusions/Exclusions | `inclusions` text | ✅ | ⚠️ NB sépare incl/excl | OK MVP |
+| Message | `message` text | ✅ | ✅ | ALIGNÉ |
+| Direction from→to | `fromPartyId` + `toPartyId` + `direction` | ✅ | ✅ | ALIGNÉ |
+| Rév. #N badge | `revisionNumber` auto-incr | ✅ | ✅ | ALIGNÉ |
+| Notes internes courtier | `notes` text | ❌ **Absent du modal production** | Utile | FIX |
+| Historique/timeline | revisions array | ⚠️ Dans OffersPanel, pas dans le modal | ✅ | DÉCISION UX |
+| Rejet auto offres précédentes | Bulk reject auto dans `acceptOffer()` | ✅ auto | ✅ Légalement obligatoire NB | FIX MAQUETTE |
+
+**Score alignement global : ~85%** — aucun gap bloquant, 9 actions identifiées.
+
+#### G.2 Recherche NB — Conclusions Clés
+
+**Sources :** FCNB (guides acheteurs/vendeurs + guide offres multiples courtiers), NBREA (code d'éthique, législation), McInnes Cooper (10 FAQs droit immobilier NB), Legal Line, Megadox.
+
+1. **Vocabulaire :** Au NB, la période pendant laquelle l'offrant ne peut retirer son offre s'appelle « **période d'irrévocabilité** » (irrevocable period), pas « expiration ». Typiquement 2-48h. Notre label « Expiration » fonctionne mais manque de précision professionnelle.
+
+2. **Contre-offre annule automatiquement l'offre précédente** — c'est une règle légale, pas un choix UX. Chaque contre-offre paraphée et datée remplace la précédente. Le checkbox « Marquer l'offre précédente comme non retenue » dans M14 état C **ne devrait pas être optionnel**.
+
+3. **Pas de cooling-off period au NB** pour l'immobilier de revente. Acceptation = contrat lié immédiatement. Notre flow `accepted → advance step` est correct.
+
+4. **Offres multiples :** Le vendeur peut recevoir plusieurs offres simultanées. Trois niveaux de divulgation possibles (transparence totale / partielle / confidentialité). Les montants et termes ne peuvent pas être partagés entre acheteurs concurrents. Notre `OfferComparison` est un outil courtier-only (pas visible aux parties), ce qui est conforme.
+
+5. **Dépôt en fiducie :** Détenu par la maison de courtage OU l'avocat. Pas modélisé dans notre backend (champ manquant).
+
+6. **Date de possession ≠ date de clôture :** Au NB, possession = typiquement lendemain de la clôture. Pas modélisé.
+
+7. **Formulaires NBREA :** Réservés aux membres, non publics. L'Agreement of Purchase and Sale inclut : identification parties, description propriété (PID/NIP), prix, dépôt (qui le détient + délai), date d'irrévocabilité, conditions, date clôture/possession, inclusions/exclusions, clauses légales, annexes (Schedules), signatures/paraphes.
+
+8. **Délais typiques NB :** Irrévocabilité 2-48h, inspection 2-3j, financement 5-14j, offre→clôture 30-60j, pré-approbation hypothèque 7-10j ouvrables.
+
+#### G.3 Actions — Plan Classé par Priorité
+
+| # | Priorité | Action | Effort | Détail |
+|---|----------|--------|--------|--------|
+| 1 | **P0** | Retirer le checkbox « marquer offre précédente comme non retenue » de M14 état C | Maquette | Remplacer par info card non-interactive : « Les autres offres actives seront automatiquement marquées comme non retenues. » C'est un comportement légal automatique au NB. |
+| 2 | **P0** | Ajouter `depositDeadline` au type `OfferRevision` frontend | 5 min | `frontend/src/api/transactions.api.ts` — le champ existe en backend et est envoyé, mais pas typé en retour → invisible dans l'UI |
+| 3 | **P1** | Enrichir le label « Expiration » avec hint « (période d'irrévocabilité) » | 15 min | i18n FR/EN + tooltip optionnel. Vocabulaire pro NB. |
+| 4 | **P1** | Définir l'état « Custom » de l'expiration | Design | Date picker avec heure pour les cas hors 24h/48h/7j. La maquette montre un bouton « Custom » sans état expanded. |
+| 5 | **P2** | Ajouter le champ `notes` (interne courtier) dans `CreateOfferModal` production | 30 min | Le champ existe en backend (`notes` sur OfferRevision) et dans le legacy modal, mais absent du modal `transaction/CreateOfferModal.tsx`. Distinct de `message` (public). |
+| 6 | **P2** | Afficher `NegotiationThread` dans la colonne droite du modal en mode contre-offre | 1-2h | Actuellement la timeline est dans `OffersPanel` uniquement. La maquette M14 état B la montre à droite du formulaire pendant la saisie. Décision UX : dupliquer ou déplacer ? |
+| 7 | **P2** | Corriger `OfferComparison` — vrai count de conditions | 30 min | Actuellement utilise `inclusions ? 1 : 0` comme proxy. Devrait compter les conditions liées via `offer_revision_conditions`. |
+| 8 | **P3** | Ajouter champ « Détenteur du dépôt » (brokerage vs avocat en fiducie) | Backend migration + frontend | Obligatoire au NB, variable par transaction. Nouveau champ sur `OfferRevision` ou `Transaction`. |
+| 9 | **P3** | Ajouter « Date de possession » distincte de « Date de clôture » | Backend migration + frontend | Au NB, possession = typiquement jour après clôture. Champ optionnel sur `OfferRevision`. |
+
+#### G.4 Gaps Frontend — Code Mort & Boutons Inactifs
+
+| Composant | Problème | Action |
+|-----------|----------|--------|
+| `OffersSection.tsx` (legacy) | Remplacé par `OffersPanel.tsx`, plus monté | Supprimer (dead code) |
+| `CounterOfferModal.tsx` (legacy) | Remplacé par `CreateOfferModal.tsx` unifié | Supprimer (dead code) |
+| `CreateOfferModal.tsx` (legacy, `/components/`) | Remplacé par version `/transaction/` | Supprimer (dead code) |
+| Bouton « Restore » sur cartes rejected/withdrawn | `onClick` vide, purement cosmétique | Implémenter ou retirer |
+| Boutons « View Details » / « Addenda » sur carte accepted | `onClick` vide, purement cosmétique | Implémenter ou retirer |
+| `AcceptOfferModal` packs hardcodé | Texte `'Universal + Finance NB'` en dur | Rendre dynamique |
+| `AcceptOfferModal` email/note non envoyés | `emailNotify` et `note` collectés mais pas passés à `offersApi.accept()` | Étendre l'API accept ou retirer les champs |
+
+#### G.5 Système d'Intake Public (Constat)
+
+Le flow d'intake (`/api/offer-intake/:token` + `OfferIntakePage`) est un **lead capture minimal** (nom, email, téléphone, prix, message) — pas un formulaire juridique. C'est le bon pattern : le courtier reçoit l'intérêt puis reformalise l'offre complète dans Ofra. Aucune action requise.
+
+#### G.6 Références Recherche NB
+
+- FCNB — Guide d'achat d'une maison au Nouveau-Brunswick
+- FCNB — Guide offres multiples pour acheteurs et vendeurs
+- FCNB — Guide offres multiples pour courtiers
+- FCNB — Travailler avec un agent immobilier
+- McInnes Cooper — 10 Key Realtor FAQs About N.B. Real Estate Law
+- NBREA — Code d'éthique et législation
+- Legal Line — Offres et contre-offres / Annuler une offre
+- Megadox — Formulaires immobiliers NB
+
+### H. Audit Approfondi Complet (2026-02-18)
+
+**Méthode :** Exploration automatisée exhaustive — 3 agents parallèles (backend, frontend, infra/tests). Lecture de tous les modèles, contrôleurs, services, middleware, routes, composants, API, i18n, configs. ~260 fichiers analysés.
+
+**Score launch-readiness : 68%** (baisse de 82% — failles sécurité et légales découvertes)
+
+#### H.1 Statistiques Projet
+
+| Métrique | Valeur |
+|----------|--------|
+| Modèles backend | 26 |
+| Contrôleurs | 23 |
+| Services | 15 |
+| Middleware | 10 |
+| Migrations | 80 |
+| Validators | 14 |
+| Pages frontend | 30+ |
+| Modules API frontend | 22 |
+| Tests backend (Japa) | 12 functional + 3 unit suites |
+| Tests frontend (Vitest) | 30 fichiers |
+| E2E (Playwright) | 3 specs (local only, PAS en CI) |
+| i18n FR/EN | 2 836 lignes chaque, parité ✅ |
+| `as any` backend | 11 occurrences |
+| `as any` frontend | 40+ occurrences |
+| Issues totales | ~95 (7 critiques, 15 hautes, 30 moyennes, 43 basses) |
+
+#### H.2 Issues Critiques (P0 — Sécurité / Légal)
+
+| ID | Fichier | Description | Effort |
+|----|---------|-------------|--------|
+| **SEC-03** | `routes.ts:17` | **Path traversal** — `params.filename` passé sans sanitisation à `app.makePath()`. `../../config/database.ts` expose le code source. Fix : `path.basename()`. | 5 min |
+| **SEC-04** | `fintrac_service.ts:108` | **FINTRAC bypass** — `onStepEnter` fait `return` early quand `autoConditionsEnabled=false`. Viole spec : « ALWAYS created even if autoConditionsEnabled=false ». Brèche légale. | 5 min |
+| **SEC-05** | `plan_service.ts` | **Trial FINTRAC bloqué** — `meetsMinimum(undefined, 'solo')` retourne `false`. Trial users ne peuvent pas compléter l'identité FINTRAC — obligation légale. Contradicts `plan_limit_middleware.ts` L11 comment « trial = full Pro access ». | 15 min |
+| **SEC-06** | `routes.ts:15-19` | **Fichiers sans ownership** — `/api/uploads/:filename` accessible à tout user authentifié. Le CUID est observable dans les réponses API. | 30 min |
+| **INFRA-01** | `fly.toml` | **Résidence données** — `primary_region = "ewr"` (Newark, NJ). PRD §7.5 exige `yyz` (Toronto). Claim « 100% hébergé au Canada » actuellement faux. | 1 min |
+
+#### H.3 Issues Hautes (P1)
+
+| ID | Fichier | Description |
+|----|---------|-------------|
+| **FE-01** | `router.tsx` | Pas de code splitting — 30+ pages dans un seul bundle JS |
+| **FE-02** | (aucun) | Pas d'Error Boundary — erreur React = écran blanc total |
+| **FE-03** | `router.tsx` | Pas de route 404 / catch-all |
+| **FE-04** | `Layout.tsx:87-99` | Flash contenu avant redirect trial (hard wall) |
+| **FE-05** | `tailwind.config.js` | Police Outfit définie mais pas chargée (Google Fonts) |
+| **I18N-01** | `apiError.ts:24-90` | Messages d'erreur hardcodés en français — users EN voient du FR |
+| **I18N-02** | `UserDropdown.tsx:100,115` | « Settings » et « Logout » hardcodés en anglais |
+| **DB-01** | `transaction.ts:102` | `tags` column : `prepare` sans `consume` — retourné comme string brute |
+| **MIG-01** | migrations | Timestamps dupliqués : `1772000000009` et `1774000000002` — ordre non-déterministe |
+| **ADMIN-01** | `admin_controller.ts:119-125` | Filtre engagement appliqué post-pagination — `meta.total` incorrect |
+
+#### H.4 Issues Moyennes (P2 — sélection)
+
+| ID | Fichier | Description |
+|----|---------|-------------|
+| **SEC-07** | `rate_limit_middleware.ts:10` | Rate limiter in-memory `new Map()` — pas distribué multi-instance |
+| **SEC-08** | Controllers conditions/offers | `findOrFail(id)` avant TenantScope — disclosure existence ressource |
+| **SEC-09** | (aucun) | Pas de CSP headers (Content-Security-Policy) |
+| **ENV-01** | `env.ts` | `FRONTEND_URL` non déclaré — 3 fallbacks différents (`ofra.app`, `ofra.pages.dev`, `ofra.ca`) |
+| **TS-01** | `notification.ts` | `NotificationType` déclare 4 valeurs, 7 autres utilisées en pratique |
+| **TS-02** | `activity_feed.ts` | `ActivityType` union incomplète — `email_recap_sent`, `fintrac_archived` manquent |
+| **VAL-01** | Validators multiples | Dates acceptées comme `string` brut sans validation ISO format |
+| **CSS-01** | 13 fichiers | `gray-` vs `stone-` mélangés — visible en dark mode |
+| **CSS-02** | `UpgradePrompt.tsx` | Zéro dark mode coverage |
+| **FE-06** | `transactions.api.ts:74,106,109,111` | 4 champs Transaction typés `any[]` / `any` |
+| **FE-07** | Multiples | `['subscription']` query avec 5 staleTime différents |
+| **DOCKER-01** | `Dockerfile` | Container tourne en root |
+| **DEPLOY-01** | `fly.toml` | `db:seed` à chaque deploy — risque duplications |
+
+#### H.5 Couverture de Tests — Zones Sans Tests
+
+**Backend (zones critiques sans couverture) :**
+- `fintrac_controller.ts` / `fintrac_service.ts` — module légal critique
+- `tenant_scope_service.ts` — couche multi-tenant
+- `plan_service.ts` — feature gating
+- `admin_controller.ts` — panel admin complet
+- `export_controller.ts` / `pdf_export_service.ts`
+- `transaction_documents_controller.ts`, `transaction_members_controller.ts`, `transaction_parties_controller.ts`
+- `reminder_service.ts`, `email_service.ts` (23 templates mail)
+
+**Frontend (zones sans couverture) :**
+- `FintracComplianceModal.tsx` — composant légal critique
+- `SettingsPage.tsx` (5 tabs)
+- `ClientsPage.tsx`, `ClientDetailsPage.tsx`
+- Register, ForgotPassword, VerifyEmail, Onboarding pages
+- Admin pages complètes
+- Couche API (`*.api.ts`) — 22 modules sans tests
+- `apiError.ts`, `date.ts`, `ThemeContext.tsx`
+
+**CI/CD manquant :**
+- E2E Playwright pas exécuté en CI
+- Pas de code coverage reporting
+- Pas de `npm audit` / security scan
+- Pas de deploy automatisé
+
+#### H.6 Accessibilité (6 issues WCAG)
+
+| Composant | Issue |
+|-----------|-------|
+| `UserDropdown` trigger | Pas de `aria-label` — screen reader lit seulement les initiales |
+| `Layout` mobile menu button | `aria-expanded` sans `aria-controls` |
+| `CardTitle` | `<div>` au lieu de `<h2>` — casse la hiérarchie headings |
+| `Badge` | `<div>` au lieu de `<span>` — sémantique inline incorrecte |
+| `StepperPill` | Pas de `aria-current="step"` sur l'étape active |
+| `KPICard` trend SVGs | Flèches SVG sans `aria-label` ni `aria-hidden` |
+
+#### H.7 Points Positifs Confirmés
+
+- Auth session cookie : `httpOnly`, `secure` en prod, `sameSite` configuré
+- CORS restrictif (pas de wildcard `*`), `credentials: true`
+- Anti-énumération email sur register et forgot-password
+- TenantScopeService systématique (malgré pattern 2-query dans certains contrôleurs)
+- i18n FR/EN parité parfaite (2 836 lignes, test automatisé de parité des clés)
+- Aucun secret hardcodé dans le code source
+- Aucun `.env` avec credentials dans git
+- Feature gates 11/11 implémentées
+- 30 tests frontend avec matchers accessibilité (`vitest-axe`)
+- Design system shadcn/Radix cohérent, `forwardRef` + `displayName` partout
 
 ---
 
 _PRD rédigé par l'équipe BMAD en Party Mode — 2026-02-06_
-_Mis à jour v2.4 — 2026-02-16 (audit général, correctifs sécurité, progression roadmap)_
+_Mis à jour v2.8 — 2026-02-18 (audit approfondi complet — 95 issues, plan P0 sécurité/légal)_
 _Validé par : Sam (Product Owner)_
 _Source de vérité unique pour Ofra v2_

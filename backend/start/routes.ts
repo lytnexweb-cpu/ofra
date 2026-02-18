@@ -9,12 +9,54 @@
 
 import router from '@adonisjs/core/services/router'
 import app from '@adonisjs/core/services/app'
+import path from 'node:path'
 import { middleware } from './kernel.js'
+import ConditionEvidence from '#models/condition_evidence'
+import TransactionDocument from '#models/transaction_document'
+import { TenantScopeService } from '#services/tenant_scope_service'
+import Transaction from '#models/transaction'
 
-// Serve uploaded files (authenticated)
+// Serve uploaded files (authenticated, sanitized, ownership-checked)
 router.get('/api/uploads/:filename', async ({ params, response, auth }) => {
   await auth.authenticate()
-  const filePath = app.makePath('storage/uploads', params.filename)
+  const user = auth.user!
+  const sanitized = path.basename(params.filename)
+  if (!sanitized || sanitized !== params.filename) {
+    return response.notFound({ success: false, error: { message: 'File not found' } })
+  }
+
+  const fileUrl = `/api/uploads/${sanitized}`
+
+  // Check if file belongs to a condition evidence the user can access
+  const evidence = await ConditionEvidence.query()
+    .where('fileUrl', fileUrl)
+    .preload('condition')
+    .first()
+
+  if (evidence) {
+    const tx = await TenantScopeService.apply(Transaction.query(), user)
+      .where('id', evidence.condition.transactionId)
+      .first()
+    if (!tx) {
+      return response.notFound({ success: false, error: { message: 'File not found' } })
+    }
+  } else {
+    // Check if file belongs to a transaction document the user can access
+    const doc = await TransactionDocument.query().where('fileUrl', fileUrl).first()
+    if (doc) {
+      const tx = await TenantScopeService.apply(Transaction.query(), user)
+        .where('id', doc.transactionId)
+        .first()
+      if (!tx) {
+        return response.notFound({ success: false, error: { message: 'File not found' } })
+      }
+    } else {
+      // File not linked to any evidence or document — deny access
+      return response.notFound({ success: false, error: { message: 'File not found' } })
+    }
+  }
+
+  const filePath = app.makePath('storage/uploads', sanitized)
   return response.download(filePath)
 }).use(middleware.auth())
 
