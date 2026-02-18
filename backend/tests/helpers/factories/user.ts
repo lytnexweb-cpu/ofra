@@ -1,5 +1,5 @@
 import User from '#models/user'
-import type { PracticeType, PropertyContext, AnnualVolume } from '#models/user'
+import type { PracticeType, PropertyContext, AnnualVolume, UserRole } from '#models/user'
 
 let userCounter = 0
 
@@ -19,6 +19,7 @@ export async function createUser(
     annualVolume: AnnualVolume
     preferAutoConditions: boolean
     emailVerified: boolean
+    role: UserRole
   }> = {}
 ): Promise<User> {
   userCounter++
@@ -37,5 +38,6 @@ export async function createUser(
     annualVolume: overrides.annualVolume ?? null,
     preferAutoConditions: overrides.preferAutoConditions ?? true,
     emailVerified: overrides.emailVerified ?? true,
+    role: overrides.role ?? 'user',
   })
 }

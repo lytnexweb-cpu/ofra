@@ -4,6 +4,46 @@
 
 ---
 
+## Session 2026-02-17b (session 6 — Dashboard Agent + Rail Navigation)
+
+**Date**: 2026-02-17
+**Admin**: Sam
+**Agents actifs**: Claude Code + Party Mode (John, Sally, Winston, Paige)
+
+### Objectif
+
+Définir et maquetter un deuxième dashboard "Mon espace agent" accessible via un rail de navigation vertical à droite.
+
+### Décisions prises
+
+**Voir document complet** : `_bmad-output/decisions/D36-dashboard-agent-rail-nav.md`
+
+1. **Deux dashboards distincts** : Portefeuille (transactions/urgences/offres/pipeline) + Mon espace (stats agent/commissions/performance)
+2. **Rail vertical à droite** : fixe, 2 icônes (📁 Portefeuille / 👤 Mon espace), tabs en mobile
+3. **4 zones dashboard agent** : En-tête agent, KPIs performance, Revenus & Objectifs, Activité récente
+
+### Maquettes
+
+| Fichier | Statut |
+|---------|--------|
+| `maquettes/dashboard-v2-mockup.html` | ✅ Validée (dashboard Portefeuille) |
+| `maquettes/dashboard-agent-mockup.html` | ❌ Créée mais rejetée par Sam ("éclatée") — à refaire |
+
+### Ce qui reste à faire (prochaine session)
+
+1. **Refaire la maquette agent** avec Sam — design interactif, pas en autonomie
+2. Spec technique backend (`GET /api/dashboard/agent-stats`)
+3. Implémenter le rail de navigation droit
+4. Implémenter les deux dashboards
+
+### Notes
+
+- Sam avait perdu une longue session de discussion sur ce sujet (connexion perdue)
+- Les décisions de structure (2 dashboards, rail, contenu 4 zones) ont été reconstruites et validées
+- Le design visuel de la maquette agent ne convient pas — Sally doit retravailler ÇA AVEC Sam
+
+---
+
 ## Session 2026-02-17 (session 5 — Bloc 8 Offres intelligentes)
 
 **Date**: 2026-02-17
@@ -699,6 +739,24 @@ consultation → offer-submitted → offer-accepted → conditional-period → f
 
 ## Prochaine Session — REPRENDRE ICI
 
+### PRIORITÉ 1 : Dashboard Agent "Mon espace" (D36)
+
+**Document de référence** : `_bmad-output/decisions/D36-dashboard-agent-rail-nav.md`
+
+**État** : Décisions validées, maquette rejetée — à refaire AVEC Sam.
+
+**À faire** :
+1. Refaire `maquettes/dashboard-agent-mockup.html` en design interactif avec Sam
+2. Implémenter le rail de navigation vertical droit (`RightRail.tsx`)
+3. Modifier `Layout.tsx` pour intégrer le rail
+4. Créer endpoint backend `GET /api/dashboard/agent-stats`
+5. Créer `DashboardAgent.tsx` (ou split `DashboardPage.tsx` en conteneur)
+6. Implémenter le dashboard Portefeuille (maquette v2 validée)
+
+**Maquette Portefeuille validée** : `maquettes/dashboard-v2-mockup.html` — 4 zones (KPIs, Offres, Urgences, Pipeline)
+
+---
+
 ### Chantier COMPLÉTÉ : Emails & Notifications (7/7 phases)
 
 **Spec** : `_bmad-output/specs/email-notifications-spec.md`
@@ -786,6 +844,7 @@ COMPLÉTÉ
 └── Chantier emails & notifications COMPLET (7/7 phases, 23 emails, 20 notification twins) ✅
 
 EN COURS
+├── D36: Dashboard Agent "Mon espace" + Rail Navigation (décisions OK, maquette à refaire)
 ├── Sprint 2: Lock backend profil/flag après étape 1
 ├── Sprint 3: Admin override + recalcul
 └── Sprint 4: E2E + edge cases

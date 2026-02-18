@@ -9,7 +9,7 @@ inputDocuments:
   - docs/roadmap.md (SUPPRIMÉ — remplacé par ce PRD)
   - _bmad-output/session-2026-02-02-ux-refonte.md
 workflowType: 'prd'
-version: '2.8'
+version: '2.9'
 date: '2026-02-18'
 author: 'Sam + Équipe BMAD (Party Mode)'
 status: 'SOURCE DE VÉRITÉ'
@@ -23,8 +23,18 @@ supersedes:
 
 > **⚠️ CE DOCUMENT EST LA SOURCE DE VÉRITÉ UNIQUE**
 > Tout conflit avec un autre document se résout en faveur de ce PRD.
-> Dernière mise à jour : 2026-02-18 (v2.8)
+> Dernière mise à jour : 2026-02-18 (v2.9)
 > Auteur : Sam + Équipe BMAD (Party Mode)
+>
+> **Changements v2.9 (2026-02-18) — Refonte Admin Dashboard + SiteMode + Codes Promo :**
+> - §4.1 : D57 (Admin 3 vues Pulse/Gens/Config), D58 (SiteMode 3 états), D59 (Codes promotionnels), D60 (Liste d'attente construction)
+> - §5.16-5.20 ajoutés : 5 maquettes admin (M-ADM-01 Pulse, M-ADM-02 Gens, M-ADM-03 Config, M-ADM-04 Coming Soon, M-ADM-05 Maintenance)
+> - §7.2 : 10 nouveaux endpoints (site-settings, promo-codes, admin pulse, waitlist, plan-changes paginé, apply-to-existing)
+> - §7.3 : 3 nouvelles migrations (site_settings, promo_codes, waitlist_emails)
+> - §9.0 : Bloc 9 ajouté (Admin Dashboard Refonte + SiteMode + Promos) — intercalé avant Stripe
+> - §11.F : Priorités P0/P1 mises à jour avec admin dashboard refonte
+> - §11.I : Audit admin dashboard 2026-02-18 — ~65 issues (7 critiques, 15 hautes, 14 moyennes)
+> - Discounts fondateur `-20%/-30%` supprimés du code admin (stale vs PRD v2.5 "prix garanti à vie")
 >
 > **Changements v2.8 (2026-02-18) — Audit Approfondi Complet (Backend + Frontend + Infra) :**
 > - §11.H ajouté : Audit approfondi 2026-02-18 — ~95 issues (7 critiques, 15 hautes, 30 moyennes, 43 basses)
@@ -33,7 +43,7 @@ supersedes:
 > - HAUTE : Fichiers sans ownership check (SEC-06), `fly.toml` region `ewr` vs `yyz` (INFRA-01)
 > - Frontend : Pas d'Error Boundary, pas de code splitting, pas de 404, i18n cassé (EN→FR dans apiError)
 > - Tests : FINTRAC/admin/export/TenantScope zéro couverture, E2E pas en CI
-> - Score launch-readiness : **68%** (baisse de 82% — issues sécurité et légales découvertes)
+> - Score launch-readiness : **75%** (remonté de 68% après fixes P0/P1 du 2026-02-18)
 >
 > **Changements v2.7 (2026-02-17) — Audit M14 Formulaire Offre Unifié :**
 > - §11.G ajouté : Audit complet M14 — cohérence maquette / backend / frontend / réalité NB
@@ -339,6 +349,10 @@ HARD WALL (J33+)
 | **D54** | **Gestionnaire de liens partagés (à côté de 🔔 dans le header)** | **📋 À coder** | Icône dédiée ou section dans header pour voir tous les liens actifs, valider expiration, révoquer un lien. Pas uniquement offres — extensible à tous les partages. |
 | **D55** | **Liens de partage multi-parties (avocat, inspecteur, notaire, etc.)** | **📋 Phase 2** | Étendre le système de share links au-delà des offres : créer des liens de consultation pour les autres parties impliquées (avocat, inspecteur, notaire, courtier hypothécaire). Chaque lien = accès lecture seule à une vue filtrée de la transaction. |
 | **D56** | **Infrastructure 100% canadienne** | **📋 À configurer** | Fly.io (`yyz` Toronto) + Fly Postgres (`yyz`) + stockage S3-compatible Canada (DO Spaces ou AWS `ca-central-1`). Zéro donnée hors Canada. LPRPDE/PIPEDA conforme. |
+| **D57** | **Admin dashboard 3 vues (Pulse/Gens/Config)** | **📋 À coder** | Refonte complète admin : (1) **Pulse** = KPIs + alertes actionnables + fil d'activité live + badge mode site, check quotidien. (2) **Gens** = CRM subscribers avec smart segments (Trial J25+, À risque, Fondateurs, Nouveaux, Impayés) + drawer détail avec timeline activité + notes/tâches. (3) **Config** = Plans éditables + SiteMode + Codes promo + System health. Mobile = lecture seule. Remplace les 5 pages admin actuelles (Dashboard, Subscribers, Plans, Activity, System). Maquettes M-ADM-01 à M-ADM-05. |
+| **D58** | **SiteMode 3 états (live/coming_soon/maintenance)** | **📋 À coder** | Middleware `SiteModeMiddleware` avec 3 états : `live` (tout le monde), `coming_soon` (page teaser lancement avec countdown, code d'accès anticipé, waitlist email, pitch points — admins bypass), `maintenance` (admins seuls, 503). Table `site_settings` (key/value). Admin personnalise : message, date de lancement (countdown), bullet points pitch, compteur fondateurs visible/caché. Code d'accès global pour beta fermée fondateurs (ex: `OFRA-FOUNDER-2026`). Page dark theme premium avec FOMO (countdown + places restantes). Toggle depuis admin Config. |
+| **D59** | **Codes promotionnels** | **📋 À coder** | Table `promo_codes` : code, type (percent/fixed/free_months), value, max_uses, current_uses, valid_from, valid_until, eligible_plans (json), active, stripe_coupon_id. CRUD admin dans vue Config. Champ "code promo" dans le flow inscription. Miroir Stripe coupon à la création. Non cumulable avec statut Fondateur (prix locké > promo). Use cases : partenariat courtage, événements NBREA, referral organique. |
+| **D60** | **Liste d'attente email (page coming soon)** | **📋 À coder** | Table `waitlist_emails` : email, source ('coming_soon_page'), created_at. Formulaire sur la page Coming Soon : "Soyez les premiers informés". Lead capture + compteur fondateurs restants. Exportable CSV depuis admin. |
 
 ### 4.2 Principes UX
 
@@ -1147,6 +1161,414 @@ Même layout que H1 avec :
 - [ ] "Voir actives" filtre par ancienneté (les plus vieilles en premier)
 - [ ] Modal bloquante — impossible de downgrader tant que la condition n'est pas remplie
 
+### 5.16 M-ADM-01 — Admin Pulse (Home Admin — D57)
+
+**Fréquence : quotidienne. C'est la première chose que le superadmin voit.**
+
+**Endpoint principal :** `GET /api/admin/pulse`
+**Données :** KPIs agrégés, alertes actionnables (trials J25+, paiements échoués), fil d'activité global (20 dernières actions), compteur fondateurs.
+
+**Desktop (>1024px) :**
+
+```
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ 📊 Ofra Admin                                                     Sam ▾  ☾ │
+├────────┬─────────────────────────────────────────────────────────────────────┤
+│        │                                                                     │
+│ 🏠     │  Bonjour Sam 👋              Mode: [🟢 Live]      18 fév 2026      │
+│ Pulse  │                                                                     │
+│        │  ┌────────────┐ ┌────────────┐ ┌────────────┐ ┌─────────────────┐  │
+│ 👥     │  │ 👥 USERS    │ │ 📋 TX      │ │ 🏗️ FONDATRS │ │ 💰 MRR          │  │
+│ Gens   │  │ 14 total   │ │ 23 actives │ │ 14/25      │ │ — (pré-Stripe) │  │
+│        │  │ +3 ce mois │ │ +5 ce mois │ │ 11 dispo   │ │ Prévu: ~686$   │  │
+│ ⚙️     │  └────────────┘ └────────────┘ └────────────┘ └─────────────────┘  │
+│ Config │                                                                     │
+│        │  🔴 ACTIONS REQUISES (3)                                            │
+│        │  ┌──────────────────────────────────────────────────────────────┐   │
+│        │  │ ⏰ Trial expire 48h — Marie Cormier (J28)                    │   │
+│        │  │ Solo · 3 TX · 12 conditions validées                        │   │
+│        │  │ [Voir profil →]  [Envoyer rappel]                           │   │
+│        │  ├──────────────────────────────────────────────────────────────┤   │
+│        │  │ ⏰ Trial expire 48h — Jean Landry (J29)                      │   │
+│        │  │ ⚠️ Inactif 5 jours  [Voir profil →]  [Envoyer rappel]       │   │
+│        │  ├──────────────────────────────────────────────────────────────┤   │
+│        │  │ 💳 Paiement échoué — Luc Arsenault (Pro 79$/mo)              │   │
+│        │  │ Visa *4242 expirée  [Voir profil →]  [Contacter]            │   │
+│        │  └──────────────────────────────────────────────────────────────┘   │
+│        │                                                                     │
+│        │  ┌───────────────────────────────┬──────────────────────────────┐   │
+│        │  │ 📊 CONVERSION TRIAL            │ 🏗️ FONDATEURS               │   │
+│        │  │ Inscrits ce mois:    8         │ #1  Marie C.    Pro  ✅ J12  │   │
+│        │  │ TX créée (<48h):     6 (75%)   │ #2  Luc A.      Solo ✅ J45  │   │
+│        │  │ Trial→Payant (30j):  4 (68%)   │ ...                          │   │
+│        │  │ Churn M1:            1 (12%)   │ #14 Jean L.     —   ⏳ J29  │   │
+│        │  │ Avg time-to-1st-TX:  14 min    │ [Voir tous →]              │   │
+│        │  └───────────────────────────────┘└──────────────────────────────┘  │
+│        │                                                                     │
+│        │  ⚡ FIL D'ACTIVITÉ                                                  │
+│        │  ────────────────────────────────────────────────────────────────   │
+│        │  3 min   Marie C. a validé "Financement hyp." (TX Tremblay)        │
+│        │  12 min  Anne D. a créé une nouvelle transaction                    │
+│        │  1h      Luc A. s'est connecté                                      │
+│        │  2h      Jean L. a soumis une offre (TX Dupont)                     │
+│        │  [Voir tout →]                                                      │
+│        │                                                                     │
+└────────┴─────────────────────────────────────────────────────────────────────┘
+```
+
+**Mobile (<640px) :**
+
+```
+┌─────────────────────────────────────┐
+│ 📊 Admin         [🟢 Live]    ☾  ≡ │
+├─────────────────────────────────────┤
+│ Bonjour Sam 👋                      │
+│ ┌────────┐ ┌────────┐              │
+│ │ 👥 14   │ │ 📋 23   │              │
+│ │ users  │ │ TX act.│              │
+│ └────────┘ └────────┘              │
+│ ┌────────┐ ┌────────┐              │
+│ │ 🏗️ 14/25│ │ 💰 —    │              │
+│ │ fondrs │ │ MRR    │              │
+│ └────────┘ └────────┘              │
+│                                     │
+│ 🔴 ACTIONS (3)                      │
+│ ┌─────────────────────────────────┐ │
+│ │ ⏰ Marie C. — trial J28         │ │
+│ │ 3 TX · Engagée · [Profil]      │ │
+│ ├─────────────────────────────────┤ │
+│ │ ⏰ Jean L. — trial J29          │ │
+│ │ ⚠️ Inactif 5j · [Profil]        │ │
+│ ├─────────────────────────────────┤ │
+│ │ 💳 Luc A. — paiement échoué    │ │
+│ │ Visa expirée · [Profil]        │ │
+│ └─────────────────────────────────┘ │
+│                                     │
+│ ⚡ ACTIVITÉ RÉCENTE                 │
+│ 3min  Marie → validé condition     │
+│ 12min Anne → nouvelle TX           │
+│ 1h    Luc → connexion              │
+│ [Voir tout →]                       │
+├─────────────────────────────────────┤
+│ 🏠 Pulse   👥 Gens   ⚙️ Config     │
+└─────────────────────────────────────┘
+```
+
+**Critères d'acceptance :**
+- [ ] KPIs : total users (+delta mois), TX actives (+delta), fondateurs X/25, MRR (ou "pré-Stripe")
+- [ ] Badge mode site visible en permanence (🟢 Live / 🟠 Coming Soon / 🔴 Maintenance)
+- [ ] Alertes actionnables : trials J25+, paiements échoués, users inactifs 7j+
+- [ ] Chaque alerte a des boutons d'action (Voir profil, Envoyer rappel, Contacter)
+- [ ] Bloc conversion trial : inscrits, activation <48h, conversion 30j, churn M1, time-to-1st-TX
+- [ ] Bloc fondateurs : mini-tableau avec nom, plan, statut, jour
+- [ ] Fil d'activité : 20 dernières actions plateforme, temps relatif, lien vers user/TX
+- [ ] Mobile : lecture seule, KPIs compacts, alertes simplifiées, bottom nav 3 onglets
+- [ ] Sidebar desktop : 3 items (Pulse, Gens, Config) — remplace les 5 pages actuelles
+
+### 5.17 M-ADM-02 — Admin Gens (Subscribers CRM — D57)
+
+**Fréquence : 2-3 fois par semaine.**
+
+**Endpoint :** `GET /api/admin/subscribers` (existant, enrichi avec smart segments SQL)
+
+**Desktop (>1024px) :**
+
+```
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ 📊 Ofra Admin                                                     Sam ▾  ☾ │
+├────────┬─────────────────────────────────────────────────────────────────────┤
+│        │                                                                     │
+│ 🏠     │  👥 Abonnés (42)                              [📥 Exporter CSV]    │
+│ Pulse  │                                                                     │
+│        │  Segments:                                                          │
+│ 👥     │  [Tous (42)] [⏰ Trial J25+ (3)] [🔴 À risque (5)] [🏗️ Fondateurs  │
+│ Gens   │  (14)] [🆕 Cette semaine (6)] [💳 Impayés (1)]                     │
+│        │                                                                     │
+│ ⚙️     │  🔍 [Rechercher par nom ou email..._________]                      │
+│ Config │                                                                     │
+│        │  ┌──────────────────────────────────────────────────────────────┐   │
+│        │  │ Nom          │ Plan    │ Statut   │ Engag. │ TX │ Inscrit  │   │
+│        │  ├──────────────┼─────────┼──────────┼────────┼────┼──────────┤   │
+│        │  │ 🏗️ Marie C.   │ Pro 79$ │ ✅ Actif  │ 🟢 Actif│ 3  │ 15 jan   │   │
+│        │  │ 🏗️ Luc A.     │ Solo 49$│ ⚠️ Impayé │ 🟡 Tiède│ 1  │ 20 jan   │   │
+│        │  │    Sophie B.  │ —       │ ⏳ Trial  │ 🔴 Inact│ 0  │ 10 fév   │   │
+│        │  │    ...        │         │          │        │    │          │   │
+│        │  └──────────────────────────────────────────────────────────────┘   │
+│        │  Page 1/3  [← Préc] [1] [2] [3] [Suiv →]                          │
+│        │                                                                     │
+│        │  ┌─── DRAWER (clic sur un user) ───────────────────────────────┐   │
+│        │  │ ✕                                                           │   │
+│        │  │ 🏗️ Marie Cormier — Fondateur #1                             │   │
+│        │  │ marie@example.com · Inscrite 15 jan 2026                    │   │
+│        │  │                                                             │   │
+│        │  │ Plan: Pro 79$/mo (prix locké)  Statut: ✅ Actif              │   │
+│        │  │ Trial: — (converti J18)        Rôle: [user ▾]              │   │
+│        │  │                                                             │   │
+│        │  │ 📊 UTILISATION                                               │   │
+│        │  │ TX actives: 3/25  ████░░░░░  12%                            │   │
+│        │  │ Stockage: 0.8/10 Go  █░░░░░  8%                            │   │
+│        │  │ Conditions: 12 validées · 2 en cours                       │   │
+│        │  │ Dernière connexion: il y a 3 min                            │   │
+│        │  │                                                             │   │
+│        │  │ Abonnement: [✅ Actif ▾]  (superadmin seulement)            │   │
+│        │  │                                                             │   │
+│        │  │ ⚡ ACTIVITÉ RÉCENTE                                          │   │
+│        │  │ 3 min   Validé "Financement hyp." (TX Tremblay)            │   │
+│        │  │ 2h      Ajouté preuve reçu dépôt                           │   │
+│        │  │ Hier    Créé TX "Dupont · 456 av. Érables"                 │   │
+│        │  │ 15 jan  Inscription + trial démarré                         │   │
+│        │  │                                                             │   │
+│        │  │ [📝 Notes] [✅ Tâches]                                       │   │
+│        │  │ + Ajouter une note...                                       │   │
+│        │  └─────────────────────────────────────────────────────────────┘   │
+│        │                                                                     │
+└────────┴─────────────────────────────────────────────────────────────────────┘
+```
+
+**Mobile (<640px) :** Cards empilées (nom, plan, statut, engagement). Clic → drawer full-screen. Bottom nav 3 onglets.
+
+**Critères d'acceptance :**
+- [ ] Smart segments prédéfinis : Tous, Trial J25+, À risque (inactif 7j+), Fondateurs, Cette semaine, Impayés
+- [ ] Segments calculés en SQL (pas en JS post-pagination) — `meta.total` correct
+- [ ] Table triable par colonne (nom, plan, statut, engagement, TX, inscrit)
+- [ ] Badge 🏗️ fondateur visible dans la liste
+- [ ] Drawer détail : infos user, plan (prix locké si fondateur), barres utilisation TX/stockage
+- [ ] Drawer : timeline activité récente (depuis `activity_feeds`)
+- [ ] Drawer : onglets Notes/Tâches avec CRUD (VineJS validé, maxLength)
+- [ ] Dropdown changement statut abonnement : superadmin seulement
+- [ ] Export CSV fonctionnel (avec session auth, pas `window.open`)
+- [ ] Mobile : cards empilées, drawer full-screen, lecture seule pour actions critiques
+
+### 5.18 M-ADM-03 — Admin Config (Plans + SiteMode + Promos — D57/D58/D59)
+
+**Fréquence : mensuelle ou lors de changements.**
+
+**Desktop (>1024px) :**
+
+```
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ 📊 Ofra Admin                                                     Sam ▾  ☾ │
+├────────┬─────────────────────────────────────────────────────────────────────┤
+│        │                                                                     │
+│ 🏠     │  ⚙️ Configuration                                                   │
+│ Pulse  │                                                                     │
+│        │  ┌── MODE DU SITE (D58) ───────────────────────────────────────┐   │
+│ 👥     │  │                                                             │   │
+│ Gens   │  │  État:  [● 🟢 Live]  [🚀 Coming Soon]  [🔧 Maintenance]     │   │
+│        │  │                                                             │   │
+│ ⚙️     │  │  Code d'accès fondateurs:                                   │   │
+│ Config │  │  [OFRA-FOUNDER-2026_____] [🔄 Régénérer]                    │   │
+│        │  │  14 accès validés avec ce code                              │   │
+│        │  │                                                             │   │
+│        │  │  Message personnalisé:                                      │   │
+│        │  │  [Nous préparons le lancement. Revenez bientôt !_________] │   │
+│        │  │                                                             │   │
+│        │  │  ⚠️ Changer le mode affecte tous les visiteurs.             │   │
+│        │  │  [Appliquer le changement]                                  │   │
+│        │  └─────────────────────────────────────────────────────────────┘   │
+│        │                                                                     │
+│        │  ┌── PLANS & PRICING ──────────────────────────────────────────┐   │
+│        │  │                                                             │   │
+│        │  │ ┌──────────────┐ ┌──────────────┐ ┌──────────────┐ ┌─ ─ ─ ┐│   │
+│        │  │ │ STARTER      │ │ SOLO         │ │ PRO          │ │AGENCE││   │
+│        │  │ │ [Actif ✅]    │ │ [Actif ✅]    │ │ [Actif ✅]    │ │[⏸️]   ││   │
+│        │  │ │ Abonnés: 4   │ │ Abonnés: 6   │ │ Abonnés: 4   │ │ —    ││   │
+│        │  │ │ (1 fondateur)│ │ (5 fondateurs)│ │ (8 fondateurs)│ │      ││   │
+│        │  │ │ Mens: [29]$  │ │ Mens: [49]$  │ │ Mens: [79]$  │ │[149]$││   │
+│        │  │ │ Ann: [290]$  │ │ Ann: [490]$  │ │ Ann: [790]$  │ │[1490]││   │
+│        │  │ │ TX: [5] max  │ │ TX: [12] max │ │ TX: [25] max │ │ [∞]  ││   │
+│        │  │ │ Stock: [1] Go│ │ Stock: [3] Go│ │ Stock:[10] Go│ │[25]Go││   │
+│        │  │ │ Hist: [6] mo │ │ Hist: [12] mo│ │ Hist: [∞]    │ │ [∞]  ││   │
+│        │  │ │ Users: [1]   │ │ Users: [1]   │ │ Users: [1]   │ │ [3]  ││   │
+│        │  │ │ Raison:      │ │ Raison:      │ │ Raison:      │ │      ││   │
+│        │  │ │ [__________] │ │ [__________] │ │ [__________] │ │[____]││   │
+│        │  │ │ [Sauvegarder]│ │ [Sauvegarder]│ │ [Sauvegarder]│ │[Save]││   │
+│        │  │ └──────────────┘ └──────────────┘ └──────────────┘ └─ ─ ─ ┘│   │
+│        │  │                                                             │   │
+│        │  │ ⚠️ Changements = nouveaux abonnés.                           │   │
+│        │  │ [Appliquer aux existants...]                                │   │
+│        │  │                                                             │   │
+│        │  │ 📜 HISTORIQUE  [Voir tout →]                                 │   │
+│        │  │ 18 fév · Sam · Pro mensuel: 69→79$ · "Alignement v2"      │   │
+│        │  │ 15 fév · Sam · Starter créé · "Plan d'entrée"             │   │
+│        │  └─────────────────────────────────────────────────────────────┘   │
+│        │                                                                     │
+│        │  ┌── CODES PROMOTIONNELS (D59) ────────────────────────────────┐   │
+│        │  │                                                             │   │
+│        │  │  [+ Nouveau code]                                           │   │
+│        │  │                                                             │   │
+│        │  │  │ Code       │ Type  │ Valeur │ Util. │ Expire │ Statut │  │   │
+│        │  │  ├────────────┼───────┼────────┼───────┼────────┼────────┤  │   │
+│        │  │  │ NBREA2026  │ %     │ 20%    │ 3/50  │ 1 avr  │ ✅ Actif│  │   │
+│        │  │  │ BROKER-RYL │ Mois  │ 1 mois │ 0/10  │ —      │ ✅ Actif│  │   │
+│        │  │  │ FRIEND-20  │ %     │ 20%    │ 12/∞  │ —      │ ✅ Actif│  │   │
+│        │  │  │ BETA-TEST  │ Fixe  │ 10$    │ 5/5   │ passé  │ 🔴 Exp. │  │   │
+│        │  │                                                             │   │
+│        │  │  ⚠️ Non cumulable avec le statut Fondateur.                  │   │
+│        │  └─────────────────────────────────────────────────────────────┘   │
+│        │                                                                     │
+│        │  ┌── SYSTÈME ──────────────────────────────────────────────────┐   │
+│        │  │ DB: ✅ 23ms  │  Redis: ✅ OK  │  Emails: ✅ OK  │ v1.0-beta │   │
+│        │  │ Stockage: 2.1/50 Go     │  Uptime: 14j                     │   │
+│        │  └─────────────────────────────────────────────────────────────┘   │
+│        │                                                                     │
+└────────┴─────────────────────────────────────────────────────────────────────┘
+```
+
+**Modals associées :**
+
+**Modal "Nouveau code promo" :**
+```
+┌───────────────────────────────────────────────────────────────┐
+│ + Nouveau code promo                                           │
+├───────────────────────────────────────────────────────────────┤
+│  Code:          [____________]  [🎲 Auto-générer]              │
+│  Type:          [● Pourcentage] [Montant fixe] [Mois gratuit] │
+│  Valeur:        [20] %                                         │
+│  Utilisations:  [50] max (vide = illimité)                     │
+│  Plans élig.:   [☑ Starter] [☑ Solo] [☑ Pro] [☐ Agence]      │
+│  Valide du:     [📅 2026-03-01]  au: [📅 2026-04-01]           │
+│                                                                │
+│  [Annuler]                              [Créer le code]        │
+└───────────────────────────────────────────────────────────────┘
+```
+
+**Modal "Appliquer aux existants" :**
+```
+┌───────────────────────────────────────────────────────────────┐
+│ ⚠️ Action irréversible                                         │
+├───────────────────────────────────────────────────────────────┤
+│  Vous allez mettre à jour le prix de tous les abonnés         │
+│  actuels du plan Pro.                                          │
+│                                                                │
+│  Abonnés affectés:  4 (dont 3 fondateurs)                     │
+│  Ancien prix:       69$/mo                                     │
+│  Nouveau prix:      79$/mo                                     │
+│                                                                │
+│  ⚠️ Les fondateurs conservent leur prix locké.                 │
+│  → 1 abonné non-fondateur sera affecté.                       │
+│                                                                │
+│  Tapez "APPLIQUER" pour confirmer:                             │
+│  [________________]                                            │
+│                                                                │
+│  Raison: [________________________________]                    │
+│                                                                │
+│  [Annuler]                   [Appliquer] (grisé tant que ≠)   │
+└───────────────────────────────────────────────────────────────┘
+```
+
+**Mobile (<640px) :** Lecture seule — affiche mode site, plans (résumé), codes promo (liste), système. Édition desktop uniquement.
+
+**Critères d'acceptance :**
+- [ ] SiteMode : toggle 3 états (live/construction/maintenance), code d'accès éditable, compteur accès, message custom
+- [ ] Plans : sauvegarde par plan, raison obligatoire (min 3 chars), historique avec date/admin/champ/ancien→nouveau
+- [ ] "Appliquer aux existants" : modal 2 étapes, type-to-confirm "APPLIQUER", exclut fondateurs (prix locké), raison obligatoire
+- [ ] Codes promo : CRUD complet, types (%, fixe, mois gratuit), max utilisations, dates validité, plans éligibles
+- [ ] Non cumulable fondateur + promo clairement indiqué
+- [ ] Système : health check DB/Redis/Emails, stockage, uptime, version
+- [ ] Mobile = lecture seule avec mention "Édition: desktop uniquement"
+
+### 5.19 M-ADM-04 — Page "Coming Soon" (publique — D58/D60)
+
+**Affichée quand `site_mode = 'coming_soon'` et visiteur sans code d'accès.**
+**Design : dark theme premium (navy/slate bg, white text, gold accents, glassmorphism).**
+**But : créer du FOMO et capturer des leads, pas afficher un chantier.**
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│  (fond dark navy gradient + subtle pattern)                      │
+│                                                                  │
+│                     OFRA.                                        │
+│            Le copilote de l'agent immobilier                     │
+│                                                                  │
+│         Ne ratez plus jamais une deadline.                        │
+│         Dormez tranquille.                                       │
+│                                                                  │
+│    ┌─ gold border ─────────────────────────────────────────┐     │
+│    │ {{ message admin : "Lancement exclusif — 25 places    │     │
+│    │    fondateurs seulement !" }}                          │     │
+│    └───────────────────────────────────────────────────────┘     │
+│                                                                  │
+│         ⏳ LANCEMENT DANS                                        │
+│         [ 12j ] [ 08h ] [ 34m ] [ 12s ]                        │
+│          jours   heures   min     sec                            │
+│                                                                  │
+│    ┌─ glass card ──────────────────────────────────────────┐     │
+│    │ 🔑 Accès anticipé ?                                    │     │
+│    │ [_________________________] [Entrer →]                │     │
+│    └───────────────────────────────────────────────────────┘     │
+│                                                                  │
+│    ┌─ glass card ──────────────────────────────────────────┐     │
+│    │ 📩 Soyez les premiers informés                         │     │
+│    │ [votre@email.com______] [Me notifier]                 │     │
+│    │ 🏗️ 19/25 places fondateurs restantes                   │     │
+│    └───────────────────────────────────────────────────────┘     │
+│                                                                  │
+│         ── Pourquoi Ofra ? ──                                   │
+│    ┌──────────────┐  ┌──────────────┐                           │
+│    │ ✅ Conditions  │  │ ✅ Zéro       │                           │
+│    │ NB intellig.  │  │ deadline     │                           │
+│    └──────────────┘  │ oubliée      │                           │
+│    ┌──────────────┐  └──────────────┘                           │
+│    │ ✅ FINTRAC    │  ┌──────────────┐                           │
+│    │ intégré      │  │ 🍁 100%      │                           │
+│    └──────────────┘  │ canadien     │                           │
+│                       └──────────────┘                           │
+│                                                                  │
+│         © 2026 Ofra · Moncton, NB                               │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+**Critères d'acceptance :**
+- [ ] Dark theme premium (navy gradient, glassmorphism cards, gold CTAs)
+- [ ] Logo Ofra officiel + tagline "copilote de l'agent immobilier"
+- [ ] Message personnalisé depuis admin (via `site_settings.custom_message`)
+- [ ] Countdown temps réel (JS ticking) basé sur `site_settings.launch_date` — caché si null
+- [ ] Compteur fondateurs "X/25 places restantes" (via `GET /api/public/founder-count`) — caché si `show_founder_count = false`
+- [ ] Pitch points dynamiques (depuis `site_settings.pitch_points` JSON array)
+- [ ] Code d'accès anticipé : validation contre `site_settings.access_code`
+- [ ] Code valide → cookie `access_code_validated` (session) → accès à l'app
+- [ ] Code invalide → message d'erreur inline
+- [ ] Liste d'attente email : validation, toast confirmation, stockage `waitlist_emails`
+- [ ] Responsive : même layout, adapté mobile (countdown reste lisible)
+- [ ] Routes exemptées : `/api/health`, `/api/webhooks/stripe`, `/api/public/founder-count`
+- [ ] Admins/superadmins bypass automatique (pas de code requis)
+
+### 5.20 M-ADM-05 — Page Maintenance (publique — D58)
+
+**Affichée quand `site_mode = 'maintenance'`. Retourne HTTP 503.**
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│                                                                  │
+│                          🔧 Ofra                                  │
+│                                                                  │
+│                    Maintenance en cours                           │
+│                                                                  │
+│            Nous effectuons une mise à jour pour                  │
+│            améliorer votre expérience.                            │
+│                                                                  │
+│            Nous serons de retour dans                             │
+│            quelques minutes.                                     │
+│                                                                  │
+│            ┌──────────────────────────────────────┐              │
+│            │ ✅ Vos données sont en sécurité.       │              │
+│            │ ✅ Aucune action requise de votre part.│              │
+│            └──────────────────────────────────────┘              │
+│                                                                  │
+│            Questions ? support@ofra.ca                           │
+│                                                                  │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+**Critères d'acceptance :**
+- [ ] HTTP 503 Service Unavailable
+- [ ] Message personnalisé depuis admin affiché si défini
+- [ ] Admins/superadmins peuvent accéder normalement à l'app
+- [ ] Aucun champ de saisie (pas de code, pas d'email)
+- [ ] Design minimaliste, rassurant ("données en sécurité")
+- [ ] `Retry-After` header recommandé
+
 ---
 
 ## 6. Spécifications Comportementales (sans maquette)
@@ -1224,6 +1646,20 @@ Skeletons, spinners, toasts, 404, 500 — fonctionnels avec le design system vis
 | GET | `/api/admin/plan-changes` | Historique des changements | Admin |
 | GET | `/api/me/subscription` | Plan actuel + utilisation | User |
 | POST | `/api/me/subscription/change` | Changer de plan | User |
+| GET | `/api/admin/pulse` | KPIs agrégés + alertes + conversion trial + fondateurs | Superadmin |
+| GET | `/api/admin/plan-changes` | Historique changements paginé (query: `planId`, `page`, `limit`) | Admin |
+| POST | `/api/admin/plans/:id/apply-to-existing` | Bulk update prix existants (exclut fondateurs, type-to-confirm) | Superadmin |
+| GET | `/api/admin/site-settings` | Mode site + code d'accès + message | Admin |
+| PUT | `/api/admin/site-settings` | Modifier mode/code/message | Superadmin |
+| POST | `/api/site/validate-code` | Valider code d'accès (public, mode construction) | Public |
+| GET | `/api/admin/promo-codes` | Liste codes promo | Admin |
+| POST | `/api/admin/promo-codes` | Créer un code promo (+ miroir Stripe coupon) | Superadmin |
+| PUT | `/api/admin/promo-codes/:id` | Modifier un code promo | Superadmin |
+| DELETE | `/api/admin/promo-codes/:id` | Désactiver un code promo | Superadmin |
+| POST | `/api/promo-codes/validate` | Valider un code promo (inscription) | Public |
+| POST | `/api/waitlist` | Inscrire email liste d'attente (page construction) | Public |
+| GET | `/api/admin/waitlist` | Liste emails d'attente + export | Admin |
+| GET | `/api/admin/activity-feed` | Fil d'activité global paginé (20 dernières actions) | Admin |
 
 ### 7.3 Migrations Nouvelles
 
@@ -1232,6 +1668,10 @@ Skeletons, spinners, toasts, 404, 500 — fonctionnels avec le design system vis
 | 1 | `create_plans_table` | plans (id, name, slug, monthly_price, annual_price, max_transactions, max_storage_mb, history_months, max_users, is_active, display_order) |
 | 2 | `add_plan_fields_to_users` | users + plan_id, is_founder, billing_cycle, plan_locked_price, grace_period_start |
 | 3 | `create_plan_changes_table` | plan_changes (id, plan_id, admin_user_id, field, old_value, new_value, reason, created_at) |
+| 4 | `create_site_settings_table` | site_settings (id, key, value, updated_by, updated_at). Keys initiales : `site_mode` ('live'), `access_code` (''), `custom_message` (''), `launch_date` (null — si défini, active le countdown), `pitch_points` ('[]' — JSON array de strings), `show_founder_count` ('true') |
+| 5 | `create_promo_codes_table` | promo_codes (id, code UNIQUE, type enum('percent','fixed','free_months'), value decimal, max_uses int nullable, current_uses int default 0, valid_from date nullable, valid_until date nullable, eligible_plans jsonb nullable, active boolean default true, stripe_coupon_id string nullable, created_at, updated_at) |
+| 6 | `add_promo_code_to_users` | users + promo_code_id (FK nullable vers promo_codes) |
+| 7 | `create_waitlist_emails_table` | waitlist_emails (id, email UNIQUE, source string default 'construction_page', created_at) |
 
 ### 7.4 Stripe Billing — Décisions Techniques (validées 2026-02-13)
 
@@ -1353,35 +1793,44 @@ Skeletons, spinners, toasts, 404, 500 — fonctionnels avec le design system vis
 | **7. Stripe** | Stripe Elements (custom, inline). Webhooks sync. Page Abonnement custom (K2). Détails ci-dessous §7.4. | Blocs 1-6 terminés | ❌ TODO (dernier) |
 
 | **8. Offres intelligentes** | Sprint A : Migration `buyer_party_id`/`seller_party_id`/`initial_direction` sur Offer, model+service+validator+controller, PartyPicker inline (dropdown + création inline), intégration CreateOfferModal avec pre-populate en mode contre-offre. Sprint B : `NegotiationThread` (fil vertical toutes révisions, deltas prix, direction arrows), `OfferComparison` (table side-by-side 2-4 offres, highlight meilleur/pire prix, CTA accepter), `AcceptOfferModal` affiche parties buyer/seller. Auto-populate parties à l'acceptation → FINTRAC ready. 15 fichiers, 283 tests verts. | Aucune (parallélisable) | ✅ DONE |
+| **9. Admin Dashboard Refonte** | D57/D58/D59/D60. **Sprint A** : Backend — `SiteModeMiddleware` (3 états), table `site_settings`, endpoints pulse/site-settings/activity-feed, `POST plans/:id/apply-to-existing` (exclut fondateurs, type-to-confirm), `GET plan-changes` paginé, fix engagement filter SQL, VineJS validators notes/tasks, fix `subscriptionEndsAt`. **Sprint B** : Backend — table `promo_codes` + CRUD + validation inscription + miroir Stripe coupon, table `waitlist_emails` + endpoint public. **Sprint C** : Frontend — 3 vues (Pulse/Gens/Config) remplacent 5 pages, sidebar 3 items, smart segments SQL, drawer Radix Dialog avec focus trap, page construction + maintenance, modal promo + modal apply-to-existing, i18n complet FR/EN, responsive mobile lecture seule. **Sprint D** : Fix audit (~65 issues) — labels a11y, `aria-pressed`, heading hierarchy, form state sync, mutation error handlers, stale selectedUser, export auth. | Aucune (parallélisable avec 5/7) | ❌ TODO |
 
-**Blocs parallélisables :** 3, 4, 5, 8 peuvent se faire en même temps que 1-2.
+**Blocs parallélisables :** 3, 4, 5, 8, 9 peuvent se faire en même temps que 1-2.
 
 ```
 ✅ Fait:     [Bloc 1: D53 Backend] + [Bloc 2: D53 Frontend] + [Bloc 3: Landing]
 ✅ Fait:     [Bloc 4: Pricing] + [Bloc 6: Emails] + [Bloc 8: Offres intelligentes]
+→ En cours: [Bloc 9: Admin Dashboard Refonte + SiteMode + Promos]
 → Reste:    [Bloc 5: Legal] + [Bloc 7: Stripe] + Tests + Polish
-            → Beta fondateurs
+            → Beta fondateurs (mode construction avec code d'accès)
 ```
 
-### 9.1 Phase 1 — Lancement Fondateurs (Blocs 1-7 ci-dessus)
+### 9.1 Phase 1 — Lancement Fondateurs (Blocs 1-9)
 
 Tout ce qui est nécessaire pour que les 25 premiers agents puissent :
-1. S'inscrire (trial 30j, 1 TX, Pro complet)
-2. Utiliser Ofra en conditions réelles
-3. Choisir un plan et payer via Stripe à J30
+1. Accéder via code fondateur (mode construction)
+2. S'inscrire (trial 30j, 1 TX, Pro complet)
+3. Utiliser Ofra en conditions réelles
+4. Choisir un plan et payer via Stripe à J30
 
 | Feature | Écran | Décision | Statut |
 |---------|-------|----------|--------|
 | Dashboard urgences | A1-A3 | D42 | ✅ Codé |
 | Timeline verticale | B1-B3 | D32 | ✅ Codé |
 | Mode assisté | C1 | D44 | ✅ Codé |
-| Admin plans | G2 | D45 | ✅ Codé |
+| ~~Admin plans~~ → Admin Config | ~~G2~~ → M-ADM-03 | ~~D45~~ → D57 | 🔄 Refonte (Bloc 9) |
 | Trial 30j backend | — | D53 | ✅ Codé |
 | Trial 30j frontend | — | D53 | ✅ Codé |
 | Landing page | — | — | ✅ Codé (670L, 6 pages marketing, route `/`) |
 | Page pricing publique | H1-H3 | D46 | ✅ Codé (657L, comparaison 4 plans) |
 | Emails essentiels | — | — | ✅ Codé (WelcomeMail, TrialReminderMail, BullMQ scheduling) |
 | Offres intelligentes | M06, M12 | — | ✅ Codé (PartyPicker, NegotiationThread, OfferComparison, 15 fichiers) |
+| **Admin Pulse** | M-ADM-01 | D57 | ❌ TODO (Bloc 9) |
+| **Admin Gens (CRM)** | M-ADM-02 | D57 | ❌ TODO (Bloc 9) |
+| **Admin Config (Plans+Site+Promos)** | M-ADM-03 | D57/D58/D59 | ❌ TODO (Bloc 9) |
+| **SiteMode (construction/maintenance)** | M-ADM-04, M-ADM-05 | D58 | ❌ TODO (Bloc 9) |
+| **Codes promotionnels** | M-ADM-03 | D59 | ❌ TODO (Bloc 9) |
+| **Liste d'attente email** | M-ADM-04 | D60 | ❌ TODO (Bloc 9) |
 | Legal (CGU, vie privée) | — | — | ❌ TODO |
 | Stripe integration | K2, #14, #15 | D47-D49 | ❌ TODO (dernier) |
 
@@ -1524,10 +1973,10 @@ Référence croisée : voir section 4.1 de ce document.
 - ROUTE-1 : Landing page `/` pour visiteurs non-auth
 
 **Bloqueurs restants pour lancement :**
-1. D53 Trial 30j (15% — schema OK, enforcement 0%)
+1. ~~D53 Trial 30j~~ → ✅ DONE (backend + frontend + middleware + trial banner + reminders)
 2. Stripe billing (0%)
 3. Legal pages (0%)
-4. Emails essentiels trial (0%)
+4. ~~Emails essentiels trial~~ → ✅ DONE (welcome, verification, trial reminders J7/J21/J27)
 
 ### F. Priorités Post-Audit (mis à jour 2026-02-18)
 
@@ -1540,6 +1989,10 @@ Référence croisée : voir section 4.1 de ce document.
 | ~~🔴 P0~~ | ~~**SEC-05** Trial users bloqués FINTRAC (PlanService)~~ | 15 min | ✅ DONE (2026-02-18) |
 | ~~🔴 P0~~ | ~~**SEC-06** Fichiers servis sans ownership check~~ | 30 min | ✅ DONE (2026-02-18) |
 | ~~🔴 P0~~ | ~~**INFRA-01** `fly.toml` region `ewr` → `yyz` (Toronto)~~ | 1 min | ✅ DONE (2026-02-18) |
+| 🔴 P0 | **Bloc 9 : Admin Dashboard Refonte** (D57 — 3 vues Pulse/Gens/Config, remplace 5 pages) | 3-4 jours | ❌ TODO |
+| 🔴 P0 | **Bloc 9 : SiteMode** (D58 — construction/maintenance/live + code accès fondateurs) | 3h | ❌ TODO |
+| 🔴 P0 | **Bloc 9 : Codes promo** (D59 — CRUD + validation inscription + miroir Stripe) | 4h | ❌ TODO |
+| 🔴 P0 | **Bloc 9 : Apply-to-existing** (modal type-to-confirm, exclut fondateurs) | 2h | ❌ TODO |
 | 🔴 P0 | Stripe billing | 5-7 jours | ❌ TODO |
 | ~~🟠 P1~~ | ~~Error Boundary + code splitting frontend~~ | 1h | ✅ DONE (2026-02-18) |
 | ~~🟠 P1~~ | ~~Page 404 / catch-all route~~ | 15 min | ✅ DONE (2026-02-18) |
@@ -1651,7 +2104,7 @@ Le flow d'intake (`/api/offer-intake/:token` + `OfferIntakePage`) est un **lead 
 
 **Méthode :** Exploration automatisée exhaustive — 3 agents parallèles (backend, frontend, infra/tests). Lecture de tous les modèles, contrôleurs, services, middleware, routes, composants, API, i18n, configs. ~260 fichiers analysés.
 
-**Score launch-readiness : 68%** (baisse de 82% — failles sécurité et légales découvertes)
+**Score launch-readiness : 75%** (était 68% avant fixes P0/P1 du 2026-02-18)
 
 #### H.1 Statistiques Projet
 
@@ -1677,44 +2130,44 @@ Le flow d'intake (`/api/offer-intake/:token` + `OfferIntakePage`) est un **lead 
 
 | ID | Fichier | Description | Effort |
 |----|---------|-------------|--------|
-| **SEC-03** | `routes.ts:17` | **Path traversal** — `params.filename` passé sans sanitisation à `app.makePath()`. `../../config/database.ts` expose le code source. Fix : `path.basename()`. | 5 min |
-| **SEC-04** | `fintrac_service.ts:108` | **FINTRAC bypass** — `onStepEnter` fait `return` early quand `autoConditionsEnabled=false`. Viole spec : « ALWAYS created even if autoConditionsEnabled=false ». Brèche légale. | 5 min |
-| **SEC-05** | `plan_service.ts` | **Trial FINTRAC bloqué** — `meetsMinimum(undefined, 'solo')` retourne `false`. Trial users ne peuvent pas compléter l'identité FINTRAC — obligation légale. Contradicts `plan_limit_middleware.ts` L11 comment « trial = full Pro access ». | 15 min |
-| **SEC-06** | `routes.ts:15-19` | **Fichiers sans ownership** — `/api/uploads/:filename` accessible à tout user authentifié. Le CUID est observable dans les réponses API. | 30 min |
-| **INFRA-01** | `fly.toml` | **Résidence données** — `primary_region = "ewr"` (Newark, NJ). PRD §7.5 exige `yyz` (Toronto). Claim « 100% hébergé au Canada » actuellement faux. | 1 min |
+| ~~**SEC-03**~~ | `routes.ts:17` | ~~**Path traversal** — `params.filename` passé sans sanitisation à `app.makePath()`. Fix : `path.basename()`.~~ | ✅ CORRIGÉ (2026-02-18) |
+| ~~**SEC-04**~~ | `fintrac_service.ts:108` | ~~**FINTRAC bypass** — `onStepEnter` early return quand `autoConditionsEnabled=false`. Brèche légale.~~ | ✅ CORRIGÉ (2026-02-18) |
+| ~~**SEC-05**~~ | `plan_service.ts` | ~~**Trial FINTRAC bloqué** — `meetsMinimum(undefined, 'solo')` retourne `false`. Trial users bloqués FINTRAC.~~ | ✅ CORRIGÉ (2026-02-18) |
+| ~~**SEC-06**~~ | `routes.ts:15-19` | ~~**Fichiers sans ownership** — `/api/uploads/:filename` accessible à tout user authentifié.~~ | ✅ CORRIGÉ (2026-02-18) |
+| ~~**INFRA-01**~~ | `fly.toml` | ~~**Résidence données** — `primary_region = "ewr"` → `yyz` (Toronto).~~ | ✅ CORRIGÉ (2026-02-18) |
 
 #### H.3 Issues Hautes (P1)
 
-| ID | Fichier | Description |
-|----|---------|-------------|
-| **FE-01** | `router.tsx` | Pas de code splitting — 30+ pages dans un seul bundle JS |
-| **FE-02** | (aucun) | Pas d'Error Boundary — erreur React = écran blanc total |
-| **FE-03** | `router.tsx` | Pas de route 404 / catch-all |
-| **FE-04** | `Layout.tsx:87-99` | Flash contenu avant redirect trial (hard wall) |
-| **FE-05** | `tailwind.config.js` | Police Outfit définie mais pas chargée (Google Fonts) |
-| **I18N-01** | `apiError.ts:24-90` | Messages d'erreur hardcodés en français — users EN voient du FR |
-| **I18N-02** | `UserDropdown.tsx:100,115` | « Settings » et « Logout » hardcodés en anglais |
-| **DB-01** | `transaction.ts:102` | `tags` column : `prepare` sans `consume` — retourné comme string brute |
-| **MIG-01** | migrations | Timestamps dupliqués : `1772000000009` et `1774000000002` — ordre non-déterministe |
-| **ADMIN-01** | `admin_controller.ts:119-125` | Filtre engagement appliqué post-pagination — `meta.total` incorrect |
+| ID | Fichier | Description | Statut |
+|----|---------|-------------|--------|
+| ~~**FE-01**~~ | `router.tsx` | ~~Pas de code splitting — 30+ pages dans un seul bundle JS~~ | ✅ CORRIGÉ (2026-02-18) |
+| ~~**FE-02**~~ | `App.tsx` | ~~Pas d'Error Boundary — erreur React = écran blanc total~~ | ✅ CORRIGÉ (2026-02-18) |
+| ~~**FE-03**~~ | `router.tsx` | ~~Pas de route 404 / catch-all~~ | ✅ CORRIGÉ (2026-02-18) |
+| **FE-04** | `Layout.tsx:87-99` | Flash contenu avant redirect trial (hard wall) | ❌ TODO |
+| **FE-05** | `tailwind.config.js` | Police Outfit définie mais pas chargée (Google Fonts) | ❌ TODO |
+| **I18N-01** | `apiError.ts:24-90` | Messages d'erreur hardcodés en français — users EN voient du FR | ❌ TODO |
+| **I18N-02** | `UserDropdown.tsx:100,115` | « Settings » et « Logout » hardcodés en anglais | ❌ TODO |
+| **DB-01** | `transaction.ts:102` | `tags` column : `prepare` sans `consume` — retourné comme string brute | ❌ TODO |
+| **MIG-01** | migrations | Timestamps dupliqués : `1772000000009` et `1774000000002` — ordre non-déterministe | ❌ TODO |
+| **ADMIN-01** | `admin_controller.ts:119-125` | Filtre engagement appliqué post-pagination — `meta.total` incorrect | ❌ TODO |
 
 #### H.4 Issues Moyennes (P2 — sélection)
 
-| ID | Fichier | Description |
-|----|---------|-------------|
-| **SEC-07** | `rate_limit_middleware.ts:10` | Rate limiter in-memory `new Map()` — pas distribué multi-instance |
-| **SEC-08** | Controllers conditions/offers | `findOrFail(id)` avant TenantScope — disclosure existence ressource |
-| **SEC-09** | (aucun) | Pas de CSP headers (Content-Security-Policy) |
-| **ENV-01** | `env.ts` | `FRONTEND_URL` non déclaré — 3 fallbacks différents (`ofra.app`, `ofra.pages.dev`, `ofra.ca`) |
-| **TS-01** | `notification.ts` | `NotificationType` déclare 4 valeurs, 7 autres utilisées en pratique |
-| **TS-02** | `activity_feed.ts` | `ActivityType` union incomplète — `email_recap_sent`, `fintrac_archived` manquent |
-| **VAL-01** | Validators multiples | Dates acceptées comme `string` brut sans validation ISO format |
-| **CSS-01** | 13 fichiers | `gray-` vs `stone-` mélangés — visible en dark mode |
-| **CSS-02** | `UpgradePrompt.tsx` | Zéro dark mode coverage |
-| **FE-06** | `transactions.api.ts:74,106,109,111` | 4 champs Transaction typés `any[]` / `any` |
-| **FE-07** | Multiples | `['subscription']` query avec 5 staleTime différents |
-| **DOCKER-01** | `Dockerfile` | Container tourne en root |
-| **DEPLOY-01** | `fly.toml` | `db:seed` à chaque deploy — risque duplications |
+| ID | Fichier | Description | Statut |
+|----|---------|-------------|--------|
+| **SEC-07** | `rate_limit_middleware.ts:10` | Rate limiter in-memory `new Map()` — pas distribué multi-instance | ❌ TODO |
+| **SEC-08** | Controllers conditions/offers | `findOrFail(id)` avant TenantScope — disclosure existence ressource | ❌ TODO |
+| **SEC-09** | (aucun) | Pas de CSP headers (Content-Security-Policy) | ❌ TODO |
+| ~~**ENV-01**~~ | `env.ts` | ~~`FRONTEND_URL` non déclaré — 3 fallbacks différents~~ | ✅ CORRIGÉ (2026-02-18) |
+| **TS-01** | `notification.ts` | `NotificationType` déclare 4 valeurs, 7 autres utilisées en pratique | ❌ TODO |
+| **TS-02** | `activity_feed.ts` | `ActivityType` union incomplète — `email_recap_sent`, `fintrac_archived` manquent | ❌ TODO |
+| **VAL-01** | Validators multiples | Dates acceptées comme `string` brut sans validation ISO format | ❌ TODO |
+| **CSS-01** | 13 fichiers | `gray-` vs `stone-` mélangés — visible en dark mode | ❌ TODO |
+| **CSS-02** | `UpgradePrompt.tsx` | Zéro dark mode coverage | ❌ TODO |
+| **FE-06** | `transactions.api.ts:74,106,109,111` | 4 champs Transaction typés `any[]` / `any` | ❌ TODO |
+| **FE-07** | Multiples | `['subscription']` query avec 5 staleTime différents | ❌ TODO |
+| **DOCKER-01** | `Dockerfile` | Container tourne en root | ❌ TODO |
+| **DEPLOY-01** | `fly.toml` | `db:seed` à chaque deploy — risque duplications | ❌ TODO |
 
 #### H.5 Couverture de Tests — Zones Sans Tests
 
@@ -1766,9 +2219,53 @@ Le flow d'intake (`/api/offer-intake/:token` + `OfferIntakePage`) est un **lead 
 - 30 tests frontend avec matchers accessibilité (`vitest-axe`)
 - Design system shadcn/Radix cohérent, `forwardRef` + `displayName` partout
 
+### I. Audit Admin Dashboard (2026-02-18)
+
+**Contexte :** Audit complet du dashboard admin gestion plans/abonnements — backend (`admin_plans_controller`, `admin_controller`, `plan_service`, routes, validators, middleware) + frontend (`AdminPlansPage`, `AdminSubscribersPage`, `AdminDashboardPage`, `AdminLayout`, `admin.api.ts`, i18n).
+
+**Score conformité PRD §G2 : ~55%** — Plusieurs features critiques manquent.
+
+**Total : ~65 issues** (7 critiques, 15 hautes, 14 moyennes, ~29 basses)
+
+#### I.1 Issues Critiques (7)
+
+| ID | Lieu | Description |
+|----|------|-------------|
+| ADM-01 | `routes.ts` | `POST /api/admin/plans` absent — impossible de créer un plan |
+| ADM-02 | `routes.ts` + `admin_plans_controller.ts` | `GET /api/admin/plan-changes` absent — historique embarqué dans GET plans, limité à 50, non paginé |
+| ADM-03 | Backend + Frontend | "Appliquer aux existants" totalement absent — zéro endpoint, zéro UI, zéro confirmation 2 étapes |
+| ADM-04 | `routes.ts` | `GET /api/me/subscription` et `POST /api/me/subscription/change` absents |
+| ADM-05 | `fr/common.json`, `en/common.json` | `admin.subscription.*` clés absentes — badges subscription affichent anglais en mode FR |
+| ADM-06 | `AdminLayout.tsx:60` | Sidebar fixe `w-64` non cachée en mobile — layout cassé sous 768px |
+| ADM-07 | `AdminPlansPage.tsx:12-16` | Discounts fondateur `-20%/-30%` hardcodés — contradicts PRD v2.5 "prix garanti à vie" |
+
+#### I.2 Issues Hautes (sélection — 15 total)
+
+| ID | Lieu | Description |
+|----|------|-------------|
+| ADM-08 | `admin_controller.ts:527` | `subscriptionEndsAt` jamais mis à jour lors annulation/expiration |
+| ADM-09 | `admin_controller.ts:276` | Notes admin : pas de VineJS, pas de `maxLength` |
+| ADM-10 | `admin_controller.ts:407` | Tasks `dueDate` non validée — `DateTime.fromISO("garbage")` silencieux |
+| ADM-11 | `admin_controller.ts:451` | `updateTask` sans ownership check (`auth` non destructuré) |
+| ADM-12 | `AdminPlansPage.tsx:277` | `fieldLabels` changelog hardcodés FR — cassé en EN |
+| ADM-13 | `AdminSubscribersPage.tsx:83` | `EngagementBadge` labels hardcodés EN (clés i18n existantes non utilisées) |
+| ADM-14 | `AdminPlansPage.tsx:78+` | Toggle actif/inactif sans `aria-pressed`, labels sans `htmlFor`/`id` |
+| ADM-15 | `AdminSubscribersPage.tsx:316` | Drawer sans `role="dialog"`, `aria-modal`, focus trap |
+| ADM-16 | `AdminSubscribersPage.tsx:698` | `selectedUser` stale après mutation |
+| ADM-17 | `AdminPlansPage.tsx:29` | Form state ne se resync pas après refetch |
+| ADM-18 | `AdminSubscribersPage.tsx:564` | `updateSubscriptionMutation` sans `onError` ni toast |
+| ADM-19 | `AdminSubscribersPage.tsx:241+` | 5 mutations notes/tasks sans `onError` |
+| ADM-20 | `admin_plans_controller.ts:108,120` | 2x `as any` dans boucle editable fields |
+| ADM-21 | `admin_controller.ts:157` | Filtre engagement post-pagination — `meta.total` incorrect |
+| ADM-22 | `AdminSubscribersPage.tsx:548` | Pas de state `error` — erreur API affiche "Aucun utilisateur" |
+
+#### I.3 Décision : Refonte complète (D57)
+
+Plutôt que corriger les ~65 issues sur l'architecture 5 pages actuelle, la décision est de **refondre le dashboard admin** en 3 vues (Pulse/Gens/Config) alignées sur le PRD, avec les nouvelles features SiteMode (D58), codes promo (D59), et liste d'attente (D60). Les corrections d'audit seront intégrées dans la refonte.
+
 ---
 
 _PRD rédigé par l'équipe BMAD en Party Mode — 2026-02-06_
-_Mis à jour v2.8 — 2026-02-18 (audit approfondi complet — 95 issues, plan P0 sécurité/légal)_
+_Mis à jour v2.9 — 2026-02-18 (refonte admin dashboard + SiteMode + codes promo + audit ~65 issues)_
 _Validé par : Sam (Product Owner)_
 _Source de vérité unique pour Ofra v2_

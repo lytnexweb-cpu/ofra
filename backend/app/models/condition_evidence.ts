@@ -13,6 +13,8 @@ export type EvidenceType = 'file' | 'link' | 'note'
  * Part of Conditions Engine Premium (D27)
  */
 export default class ConditionEvidence extends BaseModel {
+  static table = 'condition_evidence'
+
   @column({ isPrimary: true })
   declare id: number
 
