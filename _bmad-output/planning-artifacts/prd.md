@@ -9,8 +9,8 @@ inputDocuments:
   - docs/roadmap.md (SUPPRIMÉ — remplacé par ce PRD)
   - _bmad-output/session-2026-02-02-ux-refonte.md
 workflowType: 'prd'
-version: '2.11'
-date: '2026-02-18'
+version: '2.16'
+date: '2026-02-19'
 author: 'Sam + Équipe BMAD (Party Mode)'
 status: 'SOURCE DE VÉRITÉ'
 supersedes:
@@ -23,8 +23,56 @@ supersedes:
 
 > **⚠️ CE DOCUMENT EST LA SOURCE DE VÉRITÉ UNIQUE**
 > Tout conflit avec un autre document se résout en faveur de ce PRD.
-> Dernière mise à jour : 2026-02-18 (v2.11)
+> Dernière mise à jour : 2026-02-19 (v2.16)
 > Auteur : Sam + Équipe BMAD (Party Mode)
+>
+> **Changements v2.16 (2026-02-19) — Audit Onboarding Agent + Client :**
+> - §11.L ajouté : Audit complet onboarding — 8 issues (2 P0, 4 P1, 2 P2)
+> - **P0-1** : Emails signup toujours en anglais (`preferredLanguage` jamais envoyé)
+> - **P0-2** : Pas de création client inline depuis le formulaire de transaction
+> - P1 : Select client basique (pas d'autocomplete), skip onboarding définitif, empty state dashboard faible, agence/licence absents du signup
+> - P2 : Checklist profil post-onboarding, type client acheteur/vendeur
+>
+> **Changements v2.15 (2026-02-18) — Sprint A Reminders/Notifications Overhaul + Test Fix :**
+> - Sprint A Audit Reminders & Notifications : 6/6 items complétés (commit `c368e79`)
+>   - A1 : Filtres `status: 'active'` dans reminder_service (scheduleUpcomingWarnings, dailyDigest, buildUserDigest)
+>   - A2 : Graceful shutdown queue system via `app.terminating()`
+>   - A3 : Validation input page/limit dans notifications_controller (clamp + floor)
+>   - A4 : Unification `user.language` vs `user.preferredLanguage` dans trial reminders
+>   - A5 : `NotificationType` union synchronisée (supprimé 4 unused, ajouté 9 types réels)
+>   - A6 : Icon fallback `|| '🔔'` dans notification_service
+> - §11.H.4 : **TS-01 corrigé** — `NotificationType` union maintenant complète (18 types)
+> - Fix test helper : reset `site_mode` à `'live'` + `SiteModeMiddleware.invalidateCache()` dans `truncateAll`
+> - Fix test flaky : `stepWhenCreated` manquant dans conditions.spec.ts (commit `7ce314e`)
+> - §11.H.1 : Tests backend 277 PASS (était 120), tests E2E 3 specs + tenant isolation
+> - **Score launch-readiness : 82%** (remonté de 80% grâce à reminders hardening + 277 tests green)
+> - DB nettoyée : migration:fresh + seed (superadmin, demo, plans, workflows, 52 templates)
+>
+> **Changements v2.14 (2026-02-18) — Bloc 9 Sprint C implémenté + Audit P0 fixé :**
+> - §11.K.4 : 6/6 corrections P0 terminées (SiteModeGuard, prolongation trial, subscription dropdown, fondateurs, rôles, plans superadmin)
+> - §9.1 : Admin Pulse ✅, Admin Gens (CRM) ✅, Admin Config ✅, SiteMode ✅ — toutes les vues Bloc 9 implémentées
+> - AdminLayout refonte : 3 liens (Pulse/Gens/Config), icônes Lucide, badge site_mode
+> - AdminGensPage : segments smart, drawer Radix, prolongation trial (+7j/+14j/+30j), toggle fondateur, subscription dropdown
+> - AdminPulsePage : KPIs, alertes actionnables, fil d'activité, stats conversion
+> - AdminConfigPage : mode du site, plans, codes promo CRUD, système
+> - ComingSoonPage : réécriture pixel-perfect (glow, typewriter, countdown, parallax, responsive)
+> - SiteModeGuard : frontend fetch `/api/public/site-info` + redirect `/coming-soon` ou `/maintenance`
+> - Backend : `PATCH /subscribers/:id/extend`, `PATCH /subscribers/:id/founder`, `PUT /plans/:id` → superadmin only
+> - Icônes : tous les emojis admin remplacés par Lucide React icons
+>
+> **Changements v2.13 (2026-02-18) — Audit cohérence admin + SiteMode fix :**
+> - §6.8 mis à jour : Retrait superadmin du dropdown rôle UI, ajout prolongation trial, toggle fondateur
+> - §11.K ajouté : Audit cohérence admin — 19 incohérences (5 critiques, 9 hautes, 5 moyennes)
+> - **C5 CRITIQUE** : SiteMode ne bloque PAS les visiteurs non-authentifiés — Coming Soon/Maintenance inopérant
+> - **C1-C4** : Segment fondateurs fake, subscription dropdown perdu, code mort role/subscribers
+> - P0 révisé : SiteModeGuard frontend + prolongation trial + débloquer subscription + nettoyage rôles
+>
+> **Changements v2.12 (2026-02-18) — Rôles Superadmin + Audit conformité maquettes :**
+> - §6.8 ajouté : Matrice complète des permissions Admin vs Superadmin (Bloc 9)
+> - §11.J ajouté : Audit conformité maquettes — 55 écarts identifiés (MQ-01 à MQ-55)
+> - Score conformité maquettes : **~40%** — backend OK, frontend diverge des maquettes validées
+> - Guide superadmin créé : `_bmad-output/guide-superadmin.md`
+> - Plan de correction en 3 phases : P0 sécurité → conformité maquettes → P1 fonctionnels
 >
 > **Changements v2.11 (2026-02-18) — Sprint Tests complet :**
 > - §11.F : Tests FINTRAC + TenantScope + Admin + Documents + Members + Parties → ✅ DONE (commit `a2f364e`)
@@ -376,6 +424,7 @@ HARD WALL (J33+)
 | **D58** | **SiteMode 3 états (live/coming_soon/maintenance) + beta fermée fondateurs** | **📋 À coder** | Middleware `SiteModeMiddleware` avec 3 états : `live` (tout le monde), `coming_soon` (page teaser lancement avec countdown, code d'accès anticipé, waitlist email, pitch points — admins bypass), `maintenance` (admins seuls, 503). Table `site_settings` (key/value). Admin personnalise : message, date de lancement (countdown), bullet points pitch, compteur fondateurs visible/caché. **Programme fondateur = beta fermée** : code d'accès global requis (ex: `OFRA-FOUNDER-2026`), `/signup` inaccessible sans code en mode `coming_soon`. Page dark theme premium avec FOMO (countdown + places restantes). **Lancement public : 20 mars 2026** — admin bascule `site_mode` de `coming_soon` à `live`, signup ouvert à tous. Toggle depuis admin Config. |
 | **D59** | **Codes promotionnels** | **📋 À coder** | Table `promo_codes` : code, type (percent/fixed/free_months), value, max_uses, current_uses, valid_from, valid_until, eligible_plans (json), active, stripe_coupon_id. CRUD admin dans vue Config. Champ "code promo" dans le flow inscription. Miroir Stripe coupon à la création. Non cumulable avec statut Fondateur (prix locké > promo). Use cases : partenariat courtage, événements NBREA, referral organique. |
 | **D60** | **Liste d'attente email (page coming soon)** | **📋 À coder** | Table `waitlist_emails` : email, source ('coming_soon_page'), created_at. Formulaire sur la page Coming Soon : "Soyez les premiers informés". Lead capture + compteur fondateurs restants. Exportable CSV depuis admin. |
+| **D61** | **Admin isolé — pas d'accès au monde client** | **✅ Fait** | Suppression du bouton "Retour à l'app" (`AdminLayout.tsx`). L'admin est un espace fermé, aucun pont vers le dashboard courtier. Si besoin support client → drawer read-only dans vue Gens (Phase 2). Deux contextes, deux comptes si nécessaire. |
 
 ### 4.2 Principes UX
 
@@ -1491,54 +1540,75 @@ Même layout que H1 avec :
 - [ ] Système : health check DB/Redis/Emails, stockage, uptime, version
 - [ ] Mobile = lecture seule avec mention "Édition: desktop uniquement"
 
-### 5.19 M-ADM-04 — Page "Coming Soon" (publique — D58/D60)
+### 5.19 M-ADM-04 — Page "Coming Soon" (publique — D58/D60) — ✅ Maquette validée (avec réserve)
 
 **Affichée quand `site_mode = 'coming_soon'` et visiteur sans code d'accès.**
-**Design : dark theme premium (navy/slate bg, white text, gold accents, glassmorphism).**
-**But : créer du FOMO et capturer des leads, pas afficher un chantier.**
+**Design : dark theme cinématique (navy gradient, white text, gold accents, storytelling narratif).**
+**But : créer du FOMO et capturer des leads. Approche storytelling émotionnel, pas liste de features.**
+**Fichier maquette : `maquettes/admin-construction.html`**
+
+> **⚠️ Note Sam (2026-02-18)** : Maquette validée — bonne direction, mais il manque quelque chose. À itérer.
 
 ```
+SECTION 1 — HERO (100vh, fullscreen)
 ┌──────────────────────────────────────────────────────────────────┐
-│  (fond dark navy gradient + subtle pattern)                      │
+│  (fond dark navy gradient solide)                                │
 │                                                                  │
-│                     OFRA.                                        │
-│            Le copilote de l'agent immobilier                     │
+│    ● LANCEMENT EXCLUSIF — NOUVEAU-BRUNSWICK                     │
 │                                                                  │
-│         Ne ratez plus jamais une deadline.                        │
-│         Dormez tranquille.                                       │
+│    "Combien de deadlines avez-vous failli                       │
+│     oublier cette année ?"  ▎ (typewriter effect)               │
 │                                                                  │
-│    ┌─ gold border ─────────────────────────────────────────┐     │
-│    │ {{ message admin : "Lancement exclusif — 25 places    │     │
-│    │    fondateurs seulement !" }}                          │     │
-│    └───────────────────────────────────────────────────────┘     │
+│    La réponse ne devrait jamais être « une seule ».             │
 │                                                                  │
-│         ⏳ LANCEMENT DANS                                        │
-│         [ 12j ] [ 08h ] [ 34m ] [ 12s ]                        │
-│          jours   heures   min     sec                            │
+│                      OFR[A]                                      │
+│          Votre copilote immobilier. Bientôt.                    │
+│                                                                  │
+│                        ˅ (scroll)                                │
+└──────────────────────────────────────────────────────────────────┘
+
+SECTION 2 — STORYTELLING (3 actes, scroll reveal)
+┌──────────────────────────────────────────────────────────────────┐
+│                                                                  │
+│  🔴 │ 22h47                                                     │
+│     │ DIMANCHE SOIR                                              │
+│     │ Votre téléphone sonne. La condition de financement        │
+│     │ expire demain matin. Vous aviez oublié.                   │
+│     │ Ce scénario, chaque courtier l'a vécu.                    │
+│                                                                  │
+│              🟡 Et si chaque deadline, chaque                    │
+│              condition, chaque obligation FINTRAC                │
+│              était suivie. Automatiquement.                      │
+│              Sans Excel. Sans post-it.                           │
+│                                                                  │
+│                      🟢 Ofra surveille vos transactions 24/7. │ │
+│                         Conditions intelligentes.              │ │
+│                         Alertes proactives.                    │ │
+│                         Conformité FINTRAC intégrée.           │ │
+│                         Zéro oubli. Zéro stress. 100% conforme.│
+│                                                                  │
+└──────────────────────────────────────────────────────────────────┘
+
+SECTION 3 — CTA (glass card)
+┌──────────────────────────────────────────────────────────────────┐
 │                                                                  │
 │    ┌─ glass card ──────────────────────────────────────────┐     │
-│    │ 🔑 Accès anticipé ?                                    │     │
-│    │ [_________________________] [Entrer →]                │     │
+│    │                                                        │     │
+│    │  Lancement dans 29 jours, 14 heures et 22 minutes    │     │
+│    │  🔥 6 places restantes sur 25                          │     │
+│    │  25 agents fondateurs. Prix garanti à vie.            │     │
+│    │                                                        │     │
+│    │         [ J'AI MON CODE → ]  (gold, glowing)          │     │
+│    │         (click → reveal input code)                    │     │
+│    │                                                        │     │
+│    │         Pas encore de code ? →                         │     │
+│    │         (click → reveal input email)                   │     │
 │    └───────────────────────────────────────────────────────┘     │
 │                                                                  │
-│    ┌─ glass card ──────────────────────────────────────────┐     │
-│    │ 📩 Soyez les premiers informés                         │     │
-│    │ [votre@email.com______] [Me notifier]                 │     │
-│    │ 🏗️ 19/25 places fondateurs restantes                   │     │
-│    └───────────────────────────────────────────────────────┘     │
+│    Conçu au Nouveau-Brunswick. Pour le Nouveau-Brunswick.       │
+│    Par un courtier, pour les courtiers.                          │
+│    © 2026 Ofra · Moncton, NB · 100% hébergé au Canada 🇨🇦       │
 │                                                                  │
-│         ── Pourquoi Ofra ? ──                                   │
-│    ┌──────────────┐  ┌──────────────┐                           │
-│    │ ✅ Conditions  │  │ ✅ Zéro       │                           │
-│    │ NB intellig.  │  │ deadline     │                           │
-│    └──────────────┘  │ oubliée      │                           │
-│    ┌──────────────┐  └──────────────┘                           │
-│    │ ✅ FINTRAC    │  ┌──────────────┐                           │
-│    │ intégré      │  │ 🍁 100%      │                           │
-│    └──────────────┘  │ canadien     │                           │
-│                       └──────────────┘                           │
-│                                                                  │
-│         © 2026 Ofra · Moncton, NB                               │
 └──────────────────────────────────────────────────────────────────┘
 ```
 
@@ -1637,6 +1707,54 @@ CRUD clients + import CSV — fonctionnels et testés.
 ### 6.7 Loading/Error/Empty States (L1-L4) — Design system existant
 
 Skeletons, spinners, toasts, 404, 500 — fonctionnels avec le design system visual-strategy.md.
+
+### 6.8 Rôles & Permissions Admin/Superadmin (Bloc 9)
+
+Le système distingue 3 rôles : `user`, `admin`, `superadmin`. Le champ `role` est un enum sur le modèle `User`.
+
+#### Superadmin exclusif
+
+| Capacité | Endpoint | UI |
+|----------|----------|-----|
+| Changer le mode du site (live/coming_soon/maintenance) | `PUT /api/admin/site-settings` | Config → Mode du site |
+| Modifier code d'accès fondateur | `PUT /api/admin/site-settings` | Config → Mode du site |
+| Modifier message custom, date lancement, pitch points | `PUT /api/admin/site-settings` | Config → Mode du site |
+| Créer un code promo | `POST /api/admin/promo-codes` | Config → Codes promo |
+| Modifier un code promo | `PUT /api/admin/promo-codes/:id` | Config → Codes promo |
+| Désactiver un code promo | `DELETE /api/admin/promo-codes/:id` | Config → Codes promo |
+| Appliquer prix plan aux abonnés existants | `POST /api/admin/plans/:id/apply-to-existing` | Config → Plans |
+| Changer le rôle d'un utilisateur (user ↔ admin seulement) | `PATCH /api/admin/subscribers/:id/role` | Gens → Drawer (dropdown sans option superadmin) |
+| Gérer abonnement d'un user (activer/suspendre/résilier) | `PATCH /api/admin/subscribers/:id/subscription` | Gens → Drawer |
+| Prolonger trial / accorder délai (+N jours) | `PATCH /api/admin/subscribers/:id/extend` | Gens → Drawer → boutons +7j/+14j/custom |
+| Toggle statut fondateur | `PATCH /api/admin/subscribers/:id/founder` | Gens → Drawer → toggle badge doré |
+
+#### Admin + Superadmin (lecture + CRM)
+
+| Capacité | UI |
+|----------|-----|
+| Dashboard Pulse (KPIs, alertes, activité, conversion) | Pulse |
+| Voir les settings du site (lecture seule) | Config |
+| Voir les codes promo (lecture seule) | Config |
+| Voir/exporter la waitlist (CSV) | Config |
+| Voir le changelog des plans | Config → Plans |
+| Gérer abonnés (recherche, segments, notes, tâches) | Gens |
+| Voir métriques système | Config → Système |
+
+#### Règles de sécurité rôles
+
+- **Superadmin** : Seul rôle attribué manuellement en DB. **JAMAIS** proposé dans l'UI. Maximum 2 personnes.
+- **Admin** : Promu/rétrogradé par superadmin via le drawer Gens. Réservé aux gestionnaires d'agence (plan Agence).
+- **User** : Rôle par défaut à l'inscription. Courtiers standards.
+- Le dropdown rôle dans le drawer affiche uniquement `user` et `admin`. L'option `superadmin` est **interdite** dans l'UI.
+
+#### Non implémenté (post-lancement)
+
+- Édition directe des prix de plans (UI simplifiée dans Bloc 9 — lecture seule)
+- Création/suppression de plans
+- Gestion des templates de conditions
+- Audit log détaillé (prévu Sprint 3 pipeline conditions)
+- Hard-delete utilisateur
+- Impersonation (login "en tant que" un user)
 
 ---
 
@@ -1821,18 +1939,73 @@ Skeletons, spinners, toasts, 404, 500 — fonctionnels avec le design system vis
 | **7. Stripe** | Stripe Elements (custom, inline). Webhooks sync. Page Abonnement custom (K2). Détails ci-dessous §7.4. | Blocs 1-6 terminés | ❌ TODO (dernier) |
 
 | **8. Offres intelligentes** | Sprint A : Migration `buyer_party_id`/`seller_party_id`/`initial_direction` sur Offer, model+service+validator+controller, PartyPicker inline (dropdown + création inline), intégration CreateOfferModal avec pre-populate en mode contre-offre. Sprint B : `NegotiationThread` (fil vertical toutes révisions, deltas prix, direction arrows), `OfferComparison` (table side-by-side 2-4 offres, highlight meilleur/pire prix, CTA accepter), `AcceptOfferModal` affiche parties buyer/seller. Auto-populate parties à l'acceptation → FINTRAC ready. 15 fichiers, 283 tests verts. | Aucune (parallélisable) | ✅ DONE |
-| **9. Admin Dashboard Refonte** | D57/D58/D59/D60. **Sprint A** : Backend — `SiteModeMiddleware` (3 états), table `site_settings`, endpoints pulse/site-settings/activity-feed, `POST plans/:id/apply-to-existing` (exclut fondateurs, type-to-confirm), `GET plan-changes` paginé, fix engagement filter SQL, VineJS validators notes/tasks, fix `subscriptionEndsAt`. **Sprint B** : Backend — table `promo_codes` + CRUD + validation inscription + miroir Stripe coupon, table `waitlist_emails` + endpoint public. **Sprint C** : Frontend — 3 vues (Pulse/Gens/Config) remplacent 5 pages, sidebar 3 items, smart segments SQL, drawer Radix Dialog avec focus trap, page construction + maintenance, modal promo + modal apply-to-existing, i18n complet FR/EN, responsive mobile lecture seule. **Sprint D** : Fix audit (~65 issues) — labels a11y, `aria-pressed`, heading hierarchy, form state sync, mutation error handlers, stale selectedUser, export auth. | Aucune (parallélisable avec 5/7) | ❌ TODO |
+| **9. Admin Dashboard Refonte** | D57/D58/D59/D60. **Sprint A** : Backend — `SiteModeMiddleware` (3 états), table `site_settings`, endpoints pulse/site-settings/activity-feed, `POST plans/:id/apply-to-existing` (exclut fondateurs, type-to-confirm), `GET plan-changes` paginé, fix engagement filter SQL, VineJS validators notes/tasks, fix `subscriptionEndsAt`. **Sprint B** : Backend — table `promo_codes` + CRUD + validation inscription + miroir Stripe coupon, table `waitlist_emails` + endpoint public. **Sprint C** : Frontend — 3 vues (Pulse/Gens/Config) remplacent 5 pages, sidebar 3 items, smart segments SQL, drawer Radix Dialog avec focus trap, page construction + maintenance, modal promo + modal apply-to-existing, i18n complet FR/EN, responsive mobile lecture seule. **Sprint D** : Fix audit (~65 issues) — labels a11y, `aria-pressed`, heading hierarchy, form state sync, mutation error handlers, stale selectedUser, export auth. | Aucune (parallélisable avec 5/7) | ✅ DONE (Sprints A+B+C, Sprint D audit restant) |
 
 **Blocs parallélisables :** 3, 4, 5, 8, 9 peuvent se faire en même temps que 1-2.
 
 ```
 ✅ Fait:     [Bloc 1: D53 Backend] + [Bloc 2: D53 Frontend] + [Bloc 3: Landing]
 ✅ Fait:     [Bloc 4: Pricing] + [Bloc 6: Emails] + [Bloc 8: Offres intelligentes]
-→ En cours: [Bloc 9: Admin Dashboard Refonte + SiteMode + Promos]
+✅ Fait:     [Bloc 9: Admin Dashboard Refonte + SiteMode + Promos] (Sprint D audit restant)
 → Reste:    [Bloc 5: Legal] + [Bloc 7: Stripe] + Tests + Polish
             → Beta fondateurs (accès fermé avec code)
 🗓️ DEADLINE: 20 mars 2026 — Lancement public
 ```
+
+#### 9.0.1 Bloc 9 — Plan d'implémentation détaillé
+
+> **Statut : ✅ DONE (Sprints A+B+C)** — Terminé 2026-02-18
+> Sprint D (audit ~65 issues a11y/state/error) restant.
+> 5 maquettes admin (M-ADM-01 à M-ADM-05) validées et implémentées.
+> 5 anciennes pages (Dashboard, Subscribers, Activity, System, Plans) → 3 vues (Pulse, Gens, Config) + 2 pages publiques (Coming Soon, Maintenance).
+
+**Sprint A — Backend Core (SiteMode + Pulse + Plans)**
+
+| # | Tâche | Fichier(s) | Détail |
+|---|-------|------------|--------|
+| A1 | Migration `site_settings` | `backend/database/migrations/1781000000001_create_site_settings_table.ts` | Table: id, key (unique), value (text nullable), updated_by (FK users nullable), timestamps. Seed 6 clés: site_mode='coming_soon', access_code='OFRA-FOUNDER-2026', custom_message='', launch_date='2026-03-20', pitch_points='[]', show_founder_count='true' |
+| A2 | Model `SiteSetting` | `backend/app/models/site_setting.ts` | Helpers statiques: `get(key)`, `set(key, value, userId?)`, `getAll()` |
+| A3 | `SiteModeMiddleware` | `backend/app/middleware/site_mode_middleware.ts`, `backend/start/kernel.ts` | Cache 30s. `live`→pass, `maintenance`→503 (admin bypass), `coming_soon`→403 (admin bypass + cookie check). Exemptés: `/api/health`, `/api/webhooks/*`, `/api/admin/*`, `/api/site/validate-code`, `/api/waitlist`, `/api/public/*` |
+| A4 | `PublicSiteController` | `backend/app/controllers/public_site_controller.ts` | `validateCode` POST `/api/site/validate-code`, `getPublicInfo` GET `/api/public/site-info` |
+| A5 | Validator site settings | `backend/app/validators/site_setting_validator.ts` | `updateSiteSettingsValidator`: site_mode enum, access_code, custom_message, launch_date, pitch_points, show_founder_count |
+| A6 | `AdminSiteSettingsController` | `backend/app/controllers/admin_site_settings_controller.ts` | GET/PUT `/api/admin/site-settings` |
+| A7 | `AdminPulseService` | `backend/app/services/admin_pulse_service.ts` | `getKpis()` (users+delta, TX actives, fondateurs X/25, MRR), `getAlerts()` (trials J25+, paiements échoués, conditions overdue), `getActivityFeed(limit=20)`, `getConversionStats()` |
+| A8 | `AdminPulseController` | `backend/app/controllers/admin_pulse_controller.ts` | GET `/api/admin/pulse` |
+| A9 | Plans améliorés | `backend/app/controllers/admin_plans_controller.ts` | `applyToExisting` POST `/api/admin/plans/:id/apply-to-existing`, `getChanges` GET `/api/admin/plan-changes?page&limit` |
+| A10 | Routes | `backend/start/routes.ts` | Groupe public + admin pour tous les endpoints ci-dessus |
+
+**Sprint B — Backend Promos + Waitlist**
+
+| # | Tâche | Fichier(s) | Détail |
+|---|-------|------------|--------|
+| B1 | Migration `promo_codes` | `backend/database/migrations/1781000000002_create_promo_codes_table.ts` | code unique, type enum(percent/fixed/free_months), value decimal, max_uses, current_uses, valid_from/until, eligible_plans jsonb, active, stripe_coupon_id |
+| B2 | Migration `waitlist_emails` | `backend/database/migrations/1781000000003_create_waitlist_emails_table.ts` | email unique, source default 'coming_soon_page' |
+| B3 | Migration `add_promo_code_to_users` | `backend/database/migrations/1781000000004_add_promo_code_to_users.ts` | FK promo_code_id nullable sur users |
+| B4 | Models | `backend/app/models/promo_code.ts`, `backend/app/models/waitlist_email.ts`, `backend/app/models/user.ts` | PromoCode (prepare/consume JSON), WaitlistEmail, User +promoCodeId |
+| B5 | Validators | `backend/app/validators/promo_code_validator.ts` | create, update, validatePromoCode (inscription) |
+| B6 | Controllers | `admin_promo_codes_controller.ts`, `admin_waitlist_controller.ts`, `public_promo_controller.ts`, `public_site_controller.ts` | CRUD promos, waitlist index+export CSV, validate promo public, joinWaitlist |
+| B7 | Routes | `backend/start/routes.ts` | Admin: CRUD promo-codes, waitlist, waitlist/export. Public: promo-codes/validate, waitlist |
+
+**Sprint C — Frontend 3 Vues + Pages Publiques**
+
+| # | Tâche | Fichier(s) | Détail |
+|---|-------|------------|--------|
+| C1 | API layer | `frontend/src/api/admin.api.ts`, `frontend/src/api/site.api.ts` | Types + endpoints: pulse, site-settings, promo-codes, waitlist, plan-changes, apply-to-existing, public site info |
+| C2 | AdminLayout refonte | `frontend/src/components/AdminLayout.tsx` | 3 navLinks (Pulse/Gens/Config), badge site_mode (pill vert/jaune/rouge) |
+| C3 | AdminPulsePage | `frontend/src/pages/admin/AdminPulsePage.tsx` | KPIs, alertes actionnables, fil d'activité, stats conversion. queryKey: `['admin', 'pulse']` |
+| C4 | AdminGensPage | `frontend/src/pages/admin/AdminGensPage.tsx` | Smart segments pills, table subscribers, drawer Radix Sheet, recherche+pagination. queryKey: `['admin', 'gens', {...}]` |
+| C5 | AdminConfigPage | `frontend/src/pages/admin/AdminConfigPage.tsx` | 4 sections: Mode du site, Plans (+modal apply-to-existing), Codes promo (CRUD+modal), Système. queryKeys multiples |
+| C6 | Modals | Dans AdminConfigPage | Modal "Appliquer aux existants" (2 étapes + type-to-confirm), Modal "Nouveau code promo" |
+| C7 | Pages publiques | `frontend/src/pages/ComingSoonPage.tsx`, `frontend/src/pages/MaintenancePage.tsx` | Reproduire maquettes HTML validées en React |
+| C8 | Router | `frontend/src/app/router.tsx` | `/admin` → Pulse, `/admin/gens` → Gens, `/admin/config` → Config. Routes publiques `/coming-soon`, `/maintenance`. Redirect sur E_COMING_SOON/E_MAINTENANCE |
+| C9 | i18n | `frontend/src/i18n/locales/{fr,en}/common.json` | Clés: admin.pulse.*, admin.gens.*, admin.config.*, comingSoon.*, maintenance.* |
+| C10 | Cleanup | Supprimer AdminDashboardPage, AdminActivityPage, AdminSystemPage, AdminPlansPage | Remplacés par Pulse/Gens/Config |
+
+**Sprint D — Audit Fixes (post-implémentation)**
+
+Sprint séparé couvrant les ~65 issues identifiées dans l'audit §11.I (a11y, stale state, error handlers, heading hierarchy, form state sync, etc.).
+
+**Ordre d'exécution :** A → B → C → D (séquentiel, chaque sprint dépend du précédent)
 
 ### 9.1 Phase 1 — Lancement Fondateurs (Blocs 1-9) — Deadline : 20 mars 2026
 
@@ -1847,19 +2020,19 @@ Tout ce qui est nécessaire pour que les 25 premiers agents puissent :
 | Dashboard urgences | A1-A3 | D42 | ✅ Codé |
 | Timeline verticale | B1-B3 | D32 | ✅ Codé |
 | Mode assisté | C1 | D44 | ✅ Codé |
-| ~~Admin plans~~ → Admin Config | ~~G2~~ → M-ADM-03 | ~~D45~~ → D57 | 🔄 Refonte (Bloc 9) |
+| ~~Admin plans~~ → Admin Config | ~~G2~~ → M-ADM-03 | ~~D45~~ → D57 | ✅ Codé (Bloc 9 refonte complète) |
 | Trial 30j backend | — | D53 | ✅ Codé |
 | Trial 30j frontend | — | D53 | ✅ Codé |
 | Landing page | — | — | ✅ Codé (670L, 6 pages marketing, route `/`) |
 | Page pricing publique | H1-H3 | D46 | ✅ Codé (657L, comparaison 4 plans) |
 | Emails essentiels | — | — | ✅ Codé (WelcomeMail, TrialReminderMail, BullMQ scheduling) |
 | Offres intelligentes | M06, M12 | — | ✅ Codé (PartyPicker, NegotiationThread, OfferComparison, 15 fichiers) |
-| **Admin Pulse** | M-ADM-01 | D57 | ❌ TODO (Bloc 9) |
-| **Admin Gens (CRM)** | M-ADM-02 | D57 | ❌ TODO (Bloc 9) |
-| **Admin Config (Plans+Site+Promos)** | M-ADM-03 | D57/D58/D59 | ❌ TODO (Bloc 9) |
-| **SiteMode (construction/maintenance)** | M-ADM-04, M-ADM-05 | D58 | ❌ TODO (Bloc 9) |
-| **Codes promotionnels** | M-ADM-03 | D59 | ❌ TODO (Bloc 9) |
-| **Liste d'attente email** | M-ADM-04 | D60 | ❌ TODO (Bloc 9) |
+| Admin Pulse | M-ADM-01 | D57 | ✅ Codé (Bloc 9 — KPIs, alertes, activité, conversion) |
+| Admin Gens (CRM) | M-ADM-02 | D57 | ✅ Codé (Bloc 9 — segments, drawer, prolongation, fondateur toggle) |
+| Admin Config (Plans+Site+Promos) | M-ADM-03 | D57/D58/D59 | ✅ Codé (Bloc 9 — mode site, plans, promos CRUD, système) |
+| SiteMode (construction/maintenance) | M-ADM-04, M-ADM-05 | D58 | ✅ Codé (Bloc 9 — SiteModeGuard frontend + middleware backend) |
+| Codes promotionnels | M-ADM-03 | D59 | ✅ Codé (Bloc 9 — CRUD backend+frontend) |
+| Liste d'attente email | M-ADM-04 | D60 | ✅ Codé (Bloc 9 — endpoint public + admin index) |
 | Legal (CGU, vie privée) | — | — | ❌ TODO |
 | Stripe integration | K2, #14, #15 | D47-D49 | ❌ TODO (dernier) |
 
@@ -2032,10 +2205,10 @@ Référence croisée : voir section 4.1 de ce document.
 | ~~🔴 P0~~ | ~~**SEC-05** Trial users bloqués FINTRAC (PlanService)~~ | 15 min | ✅ DONE (2026-02-18) |
 | ~~🔴 P0~~ | ~~**SEC-06** Fichiers servis sans ownership check~~ | 30 min | ✅ DONE (2026-02-18) |
 | ~~🔴 P0~~ | ~~**INFRA-01** `fly.toml` region `ewr` → `yyz` (Toronto)~~ | 1 min | ✅ DONE (2026-02-18) |
-| 🔴 P0 | **Bloc 9 : Admin Dashboard Refonte** (D57 — 3 vues Pulse/Gens/Config, remplace 5 pages) | 3-4 jours | ❌ TODO |
-| 🔴 P0 | **Bloc 9 : SiteMode** (D58 — construction/maintenance/live + code accès fondateurs) | 3h | ❌ TODO |
-| 🔴 P0 | **Bloc 9 : Codes promo** (D59 — CRUD + validation inscription + miroir Stripe) | 4h | ❌ TODO |
-| 🔴 P0 | **Bloc 9 : Apply-to-existing** (modal type-to-confirm, exclut fondateurs) | 2h | ❌ TODO |
+| ~~🔴 P0~~ | ~~**Bloc 9 : Admin Dashboard Refonte** (D57 — 3 vues Pulse/Gens/Config, remplace 5 pages)~~ | 3-4 jours | ✅ DONE (2026-02-18) |
+| ~~🔴 P0~~ | ~~**Bloc 9 : SiteMode** (D58 — construction/maintenance/live + code accès fondateurs)~~ | 3h | ✅ DONE (2026-02-18) |
+| ~~🔴 P0~~ | ~~**Bloc 9 : Codes promo** (D59 — CRUD + validation inscription + miroir Stripe)~~ | 4h | ✅ DONE (2026-02-18) |
+| ~~🔴 P0~~ | ~~**Bloc 9 : Apply-to-existing** (modal type-to-confirm, exclut fondateurs)~~ | 2h | ✅ DONE (2026-02-18) |
 | 🔴 P0 | Stripe billing | 5-7 jours | ❌ TODO |
 | ~~🟠 P1~~ | ~~Error Boundary + code splitting frontend~~ | 1h | ✅ DONE (2026-02-18) |
 | ~~🟠 P1~~ | ~~Page 404 / catch-all route~~ | 15 min | ✅ DONE (2026-02-18) |
@@ -2147,7 +2320,7 @@ Le flow d'intake (`/api/offer-intake/:token` + `OfferIntakePage`) est un **lead 
 
 **Méthode :** Exploration automatisée exhaustive — 3 agents parallèles (backend, frontend, infra/tests). Lecture de tous les modèles, contrôleurs, services, middleware, routes, composants, API, i18n, configs. ~260 fichiers analysés.
 
-**Score launch-readiness : 80%** (était 75% après tests sprint 2026-02-18)
+**Score launch-readiness : 82%** (était 80% après Sprint A reminders overhaul 2026-02-18)
 
 #### H.1 Statistiques Projet
 
@@ -2161,9 +2334,9 @@ Le flow d'intake (`/api/offer-intake/:token` + `OfferIntakePage`) est un **lead 
 | Validators | 14 |
 | Pages frontend | 30+ |
 | Modules API frontend | 22 |
-| Tests backend (Japa) | 120 tests (68 unit + 52 functional) |
+| Tests backend (Japa) | 277 tests (277 PASS, 0 FAIL) |
 | Tests frontend (Vitest) | 327 tests (40 fichiers) |
-| E2E (Playwright) | 3 specs (local only, PAS en CI) |
+| E2E (Playwright) | 3 specs + tenant isolation (local only, PAS en CI) |
 | i18n FR/EN | 2 836 lignes chaque, parité ✅ |
 | `as any` backend | 11 occurrences |
 | `as any` frontend | 40+ occurrences |
@@ -2202,7 +2375,7 @@ Le flow d'intake (`/api/offer-intake/:token` + `OfferIntakePage`) est un **lead 
 | **SEC-08** | Controllers conditions/offers | `findOrFail(id)` avant TenantScope — disclosure existence ressource | ❌ TODO |
 | **SEC-09** | (aucun) | Pas de CSP headers (Content-Security-Policy) | ❌ TODO |
 | ~~**ENV-01**~~ | `env.ts` | ~~`FRONTEND_URL` non déclaré — 3 fallbacks différents~~ | ✅ CORRIGÉ (2026-02-18) |
-| **TS-01** | `notification.ts` | `NotificationType` déclare 4 valeurs, 7 autres utilisées en pratique | ❌ TODO |
+| ~~**TS-01**~~ | `notification.ts` | ~~`NotificationType` déclare 4 valeurs, 7 autres utilisées en pratique~~ | ✅ CORRIGÉ (Sprint A — 18 types, commit `c368e79`) |
 | **TS-02** | `activity_feed.ts` | `ActivityType` union incomplète — `email_recap_sent`, `fintrac_archived` manquent | ❌ TODO |
 | **VAL-01** | Validators multiples | Dates acceptées comme `string` brut sans validation ISO format | ❌ TODO |
 | **CSS-01** | 13 fichiers | `gray-` vs `stone-` mélangés — visible en dark mode | ❌ TODO |
@@ -2212,9 +2385,9 @@ Le flow d'intake (`/api/offer-intake/:token` + `OfferIntakePage`) est un **lead 
 | **DOCKER-01** | `Dockerfile` | Container tourne en root | ❌ TODO |
 | **DEPLOY-01** | `fly.toml` | `db:seed` à chaque deploy — risque duplications | ❌ TODO |
 
-#### H.5 Couverture de Tests — État après Sprint Tests (2026-02-18)
+#### H.5 Couverture de Tests — État 277 PASS (2026-02-18)
 
-**Backend — zones MAINTENANT couvertes ✅ (commit `a2f364e`) :**
+**Backend — zones MAINTENANT couvertes ✅ :**
 - ~~`fintrac_controller.ts` / `fintrac_service.ts`~~ → ✅ 15 tests (unit + functional)
 - ~~`tenant_scope_service.ts`~~ → ✅ 8 tests unit
 - ~~`plan_service.ts`~~ → ✅ 6 tests unit
@@ -2222,9 +2395,10 @@ Le flow d'intake (`/api/offer-intake/:token` + `OfferIntakePage`) est un **lead 
 - ~~`transaction_documents_controller.ts`~~ → ✅ 9 tests functional
 - ~~`transaction_members_controller.ts`~~ → ✅ 9 tests functional
 - ~~`transaction_parties_controller.ts`~~ → ✅ 10 tests functional
+- ~~`export_controller.ts`~~ → ✅ 16 tests functional (7 PDF + 9 email, commit `bb29552`)
+- ~~`conditions.spec.ts` blocking test~~ → ✅ fix `stepWhenCreated` (commit `7ce314e`)
 
 **Backend — zones ENCORE sans couverture :**
-- `export_controller.ts` / `pdf_export_service.ts` — export PDF/email
 - `reminder_service.ts`, `email_service.ts` (23 templates mail)
 - `condition_template_service.ts` — matching engine
 
@@ -2240,6 +2414,10 @@ Le flow d'intake (`/api/offer-intake/:token` + `OfferIntakePage`) est un **lead 
 - Onboarding pages
 - Admin pages complètes
 - Couche API (`*.api.ts`) — 22 modules sans tests
+
+**E2E (Playwright) — 3 specs + tenant isolation :**
+- Auth flow (login, register, logout) — 14 tests
+- Tenant isolation — 3 tests (visibility, URL access, API level) — commit `bb29552`
 
 **CI/CD manquant :**
 - E2E Playwright pas exécuté en CI
@@ -2315,9 +2493,213 @@ Le flow d'intake (`/api/offer-intake/:token` + `OfferIntakePage`) est un **lead 
 
 Plutôt que corriger les ~65 issues sur l'architecture 5 pages actuelle, la décision est de **refondre le dashboard admin** en 3 vues (Pulse/Gens/Config) alignées sur le PRD, avec les nouvelles features SiteMode (D58), codes promo (D59), et liste d'attente (D60). Les corrections d'audit seront intégrées dans la refonte.
 
+### J. Audit Conformité Maquettes Bloc 9 (2026-02-18)
+
+**Contexte :** Les maquettes HTML (M-ADM-01 à M-ADM-05) ont été validées par Sam. L'implémentation React diverge significativement sur le visuel, la structure et certaines fonctionnalités. Cet audit liste tous les écarts à corriger.
+
+**Score conformité global : ~40%** — Fonctionnalités backend OK, mais le rendu frontend ne respecte pas les maquettes validées.
+
+#### J.1 Écarts Globaux (AdminLayout + toutes pages)
+
+| ID | Élément | Maquette | Code actuel | Sévérité |
+|----|---------|----------|-------------|----------|
+| MQ-01 | Sidebar couleur | Bleu navy `#1E3A5F` | Gris charbon `stone-900` (#1C1917) | HAUTE |
+| MQ-02 | Sidebar largeur | 240px | 256px (`w-64`) | BASSE |
+| MQ-03 | Logo | `OFRA` texte avec `O` en ambre, sous-titre "Admin" | SVG OfraLogo + ShieldCheck icon | HAUTE |
+| MQ-04 | Nav icons | Emojis (🏠 👥 ⚙️) | Lucide SVG (Zap, Users, Settings) | MOYENNE |
+| MQ-05 | Avatar sidebar | Cercle ambre 32px | Cercle `bg-white/10` 40px | MOYENNE |
+| MQ-06 | Nav mobile bottom bar | 3 icônes en bas sur mobile | Absent | HAUTE |
+| MQ-07 | Main content max-width | `max-width: 1200px` | Aucune limite (full width) | MOYENNE |
+| MQ-08 | Main content padding | 32px vertical, 40px horizontal | 32px uniforme (`p-8`) | BASSE |
+| MQ-09 | Badge site_mode sidebar | Absent des maquettes | Présent dans le code | BASSE (garder) |
+
+#### J.2 Écarts Pulse (M-ADM-01)
+
+| ID | Élément | Maquette | Code actuel | Sévérité |
+|----|---------|----------|-------------|----------|
+| MQ-10 | Header | `"Bonjour Sam 👋"` personnalisé + date + badge Live animé | Titre "Pulse" générique | HAUTE |
+| MQ-11 | KPI layout | Icône emoji à gauche du label, delta en pill colorée | Icône SVG à droite dans cercle, delta en texte muted | HAUTE |
+| MQ-12 | KPI labels | 11px uppercase letter-spacing 0.8px | 14px normal case | MOYENNE |
+| MQ-13 | KPI fondateurs | `14/25` avec `/25` en style muted plus petit | Texte uniforme bold | BASSE |
+| MQ-14 | KPI MRR | `—` + `"pré-Stripe"` + `"Prévu : ~686$"` | `0$` + `"Stripe bientôt"` | MOYENNE |
+| MQ-15 | Section "Actions requises" | Cartes bordure rouge gauche, CTA "Voir profil →" et "Envoyer rappel" | Grille 3 colonnes sans CTA, pas de bordure rouge | CRITIQUE |
+| MQ-16 | Panel droit stats | Table "Fondateurs" (nom, plan, statut, jour) | Chart Recharts LineChart | CRITIQUE |
+| MQ-17 | Activité — icônes | Dots colorés (vert récent, bleu ancien) + colonne timestamp | Icône FileText uniforme + timestamp sous texte | HAUTE |
+| MQ-18 | Activité — texte | Français humain (`"Marie a créé une transaction"`) | Slug technique (`transaction_created`) | HAUTE |
+| MQ-19 | Activité — footer | `"Voir tout →"` lien | Absent | MOYENNE |
+| MQ-20 | Stats conversion | Lignes stat avec pills colorées (vert/orange/neutre) | Chiffres bruts sans pills | MOYENNE |
+
+#### J.3 Écarts Gens (M-ADM-02)
+
+| ID | Élément | Maquette | Code actuel | Sévérité |
+|----|---------|----------|-------------|----------|
+| MQ-21 | Titre | `"👥 Abonnés (42)"` avec compteur | `"Gens"` sans compteur | HAUTE |
+| MQ-22 | Segments — compteurs | `"Tous (42)"`, `"⏰ Trial J25+ (3)"` | Labels sans compteur ni emoji | HAUTE |
+| MQ-23 | Segments — style inactive | Bordure 1.5px + fond blanc | Fond `bg-muted` rempli, pas de bordure | MOYENNE |
+| MQ-24 | Tableau — colonne Plan | Présente (`"Pro 79$"`, `"Solo 49$"`) | Absente | HAUTE |
+| MQ-25 | Tableau — badge fondateur | Emoji 🏗️ devant le nom | Absent | HAUTE |
+| MQ-26 | Tableau — headers | 12px uppercase letter-spacing | 14px normal case | MOYENNE |
+| MQ-27 | Badges subscription | Emojis + français (`"✅ Actif"`, `"⏳ Trial"`) | Texte anglais brut (`"active"`, `"trial"`) | HAUTE |
+| MQ-28 | Badges engagement | Dot coloré 8px + label français | Icône Lucide + label anglais | HAUTE |
+| MQ-29 | Pagination | Boutons numérotés `1 2 3` + `← Préc` / `Suiv →` | Flèches prev/next seulement | MOYENNE |
+| MQ-30 | Mobile card view | Cartes empilées responsive | Même tableau à toutes les tailles | HAUTE |
+| MQ-31 | Drawer — animation | Slide-in `translateX` 300ms cubic-bezier | Mount/unmount instantané | MOYENNE |
+| MQ-32 | Drawer — role change | `<select>` inline user/admin/superadmin | Lecture seule | CRITIQUE |
+| MQ-33 | Drawer — subscription ctrl | `<select>` actif/suspendu/résilié | Absent | CRITIQUE |
+| MQ-34 | Drawer — timeline activité | Timeline avec dots + connecteurs | Absente | HAUTE |
+| MQ-35 | Drawer — plan info | Nom du plan + "(prix locké)" | Absent | HAUTE |
+| MQ-36 | Drawer — tabs Notes/Tâches | Onglets avec bordure active | Sections empilées | MOYENNE |
+
+#### J.4 Écarts Config (M-ADM-03)
+
+| ID | Élément | Maquette | Code actuel | Sévérité |
+|----|---------|----------|-------------|----------|
+| MQ-37 | Titre | `"⚙️ Configuration"` + user pill droite | `"Config"` sans pill | MOYENNE |
+| MQ-38 | Section headers | 15px uppercase letter-spacing primary color | 18px normal case default color | MOYENNE |
+| MQ-39 | Mode boutons — couleurs | Vert (live), jaune (construction), rouge (maintenance) | Même bleu primary pour les 3 | CRITIQUE |
+| MQ-40 | Code accès — Régénérer | Bouton `"🔄 Régénérer"` | Absent | HAUTE |
+| MQ-41 | Code accès — hint | `"14 accès valides avec ce code"` | Absent | MOYENNE |
+| MQ-42 | Message custom | `<textarea rows="3">` | `<input>` ligne unique | MOYENNE |
+| MQ-43 | Warning mode | `"⚠️ Changer le mode affecte tous les visiteurs."` | Absent | MOYENNE |
+| MQ-44 | Plans — édition prix | 6 champs éditables par plan (mensuel, annuel, TX max, stockage, historique, users max) | Lecture seule | CRITIQUE |
+| MQ-45 | Plans — historique | Section historique changements avec date/auteur/champ/valeur | Absent | HAUTE |
+| MQ-46 | Plans — grid layout | 4 colonnes côte à côte | Liste verticale | HAUTE |
+| MQ-47 | Promos — type selection | Radio pills visuelles | Select dropdown | MOYENNE |
+| MQ-48 | Promos — plans éligibles | Checkboxes par plan | Absent | HAUTE |
+| MQ-49 | Promos — auto-générer code | Bouton `"🎲 Auto-générer"` | Absent | MOYENNE |
+| MQ-50 | Promos — colonne Expire | Colonne date expiration dans table | Absente | MOYENNE |
+| MQ-51 | Promos — edit button | Bouton ✏️ éditer par ligne | Seulement delete | HAUTE |
+| MQ-52 | Système — items layout | Pills flex wrap | Grid 4 colonnes | MOYENNE |
+| MQ-53 | Système — Redis/Emails | Checks Redis et Emails | Absents | MOYENNE |
+| MQ-54 | Système — barre stockage | Progress bar stockage `2.1/50 Go` | Absente | MOYENNE |
+| MQ-55 | Système — version badge | `"v1.0-beta"` pill sombre | Absent | BASSE |
+
+#### J.5 Plan de correction
+
+**Phase 1 — P0 sécurité (2h) :** Fixes P0 de l'audit code (cookie signé, CSV injection, JSON.parse, memory leak).
+
+**Phase 2 — Conformité maquettes (priorité) :** ✅ DONE. Pages conformes : AdminLayout, AdminPulsePage, AdminConfigPage, AdminGensPage (icônes Lucide, pas d'emoji).
+
+**Phase 3 — P1 fonctionnels :** Segments qui filtrent, error states, dead code cleanup. → Absorbé dans §11.K.
+
+### K. Audit Cohérence Admin (2026-02-18)
+
+**Contexte :** Audit party-mode (John PM + Mary Analyst + Sally UX + Winston Architect) révélant 19 incohérences entre le code implémenté, le PRD, le guide superadmin, et les besoins réels d'un CRM admin. Sam a identifié le problème initial : "pourquoi un user deviendrait superadmin ?" et "le superadmin doit pouvoir prolonger un abonnement".
+
+#### K.1 Incohérences critiques (bloquent le lancement)
+
+| ID | Problème | Fichier(s) | Impact |
+|----|----------|------------|--------|
+| C1 | ~~**Segment Fondateurs = fake**~~ | `AdminGensPage.tsx`, `admin_controller.ts` | ✅ FIXÉ — filtre `isFounder=true` backend + `getParams()` frontend |
+| C2 | ~~**Subscription dropdown perdu**~~ | `AdminGensPage.tsx` | ✅ FIXÉ — dropdown fonctionnel pour superadmins + mutation |
+| C3 | **AdminSubscribersPage = code mort** — 530+ lignes, pas dans le router | `AdminSubscribersPage.tsx` | À supprimer (cleanup Sprint D) |
+| C4 | **updateRole = 403 toujours** — Backend stub + frontend no-op, documenté comme fonctionnel | `admin_controller.ts:513`, `admin.api.ts:288-291` | Volontaire — rôle affiché en lecture seule, superadmin = DB only |
+| C5 | ~~**SiteMode ne bloque PAS les visiteurs non-authentifiés**~~ | `router.tsx` | ✅ FIXÉ — SiteModeGuard dans ScrollToTop, fetch `/api/public/site-info` |
+
+#### K.2 Incohérences hautes
+
+| ID | Problème | Fichier(s) |
+|----|----------|------------|
+| H1 | ~~**Aucune prolongation trial**~~ | `admin_controller.ts`, `AdminGensPage.tsx` | ✅ FIXÉ — `PATCH /extend` + boutons +7j/+14j/+30j/custom |
+| H2 | **`updateSubscription` ne touche pas `subscriptionEndsAt`** — Changer le statut ne reset pas la date d'expiration | `admin_controller.ts` | P1 restant |
+| H3 | ~~**Plans modifiables par tout admin**~~ | `routes.ts` | ✅ FIXÉ — `PUT /plans/:id` déplacé dans groupe superadmin |
+| H4 | ~~**Pas de toggle `isFounder`**~~ | `admin_controller.ts`, `AdminGensPage.tsx` | ✅ FIXÉ — `PATCH /founder` + bouton toggle dans drawer |
+| H5 | **Plan name absent du drawer** — `AdminUser` ne retourne ni `planId` ni `planName` | `admin_controller.ts` | P1 restant (pré-Stripe) |
+| H6 | **Trial J25+ = filtre ALL trial** — Le segment envoie juste `subscription=trial` | `AdminGensPage.tsx` | P1 restant |
+| H7 | **Activité drawer = statique** — 2 events hardcodés, pas de vraie timeline | `AdminGensPage.tsx` | P1 restant |
+| H8 | ~~**Pas de gate superadmin dans l'UI**~~ | `AdminGensPage.tsx` | ✅ FIXÉ — prop `isSuperadmin` + gating actions |
+| H9 | ~~**Dropdown rôle montre "superadmin"**~~ | `AdminGensPage.tsx` | ✅ FIXÉ — remplacé par texte lecture seule |
+
+#### K.3 Incohérences moyennes
+
+| ID | Problème | Fichier(s) |
+|----|----------|------------|
+| M1 | **txMax hardcodé à 25** — Starter=3, Solo=10, Pro=25, Agence=∞. Drawer montre toujours "X/25" | `AdminGensPage.tsx:208` |
+| M2 | **Stockage hardcodé 0.8/10 Go** — Aucun endpoint backend pour le stockage réel | `AdminGensPage.tsx:406` |
+| M3 | **`gracePeriodStart` sans admin reset** — Le champ existe sur User, aucun endpoint admin pour le clear | `user.ts:168` |
+| M4 | **MRR = placeholder** — Normal pré-Stripe, mais guide le documente comme vrai KPI | `AdminPulsePage.tsx` |
+| M5 | **Export waitlist = pas de bouton UI** — Route backend existe, aucun CTA dans Config | Routes vs Config UI |
+
+#### K.4 Plan de correction P0 (pré-lancement 20 mars)
+
+| # | Fix | Backend | Frontend | Priorité | Statut |
+|---|-----|---------|----------|----------|--------|
+| 1 | **SiteModeGuard** — Wrapper frontend qui fetch `site-info` et redirect `/coming-soon` ou `/maintenance` | — | `SiteModeGuard` dans `router.tsx` `ScrollToTop` | P0 CRITIQUE | ✅ DONE |
+| 2 | **Prolongation trial** — `PATCH /subscribers/:id/extend` body `{ days, reason }` | Endpoint + validation (1-365j, raison 3+ chars) | Boutons +7j/+14j/+30j/custom dans drawer | P0 | ✅ DONE |
+| 3 | **Débloquer subscription dropdown** — Fonctionnel pour superadmins | Endpoint existant | `onChange` + `subscriptionMut` dans drawer | P0 | ✅ DONE |
+| 4 | **Fixer segment Fondateurs** — Filtre `isFounder=true` au backend | `admin_controller.ts` + `isFounder` dans response | `getParams()` envoie `founder: 'true'` | P0 | ✅ DONE |
+| 5 | **Retirer "superadmin" du dropdown rôle** | — | Remplacé par texte lecture seule | P0 | ✅ DONE |
+| 6 | **Plans = superadmin only** — `PUT /plans/:id` dans groupe superadmin | `routes.ts` déplacé | — | P0 | ✅ DONE |
+
+---
+
+### L. Audit Onboarding Agent + Client (2026-02-19)
+
+**Contexte :** Audit party-mode (John PM + Mary Analyst + Sally UX + Winston Architect) des deux flux d'onboarding : inscription agent et gestion client. Objectif : identifier les frictions pré-lancement 20 mars.
+
+#### L.1 Onboarding Agent — Flux actuel
+
+```
+/register (fullName*, email*, password*, phone, address, city, province)
+  → Backend: create Org + User (trial 30j démarre immédiatement)
+  → Email vérification (24h token)
+  → /verify-email → clic lien → emailVerified=true → WelcomeMail
+  → /login → session cookie
+  → ProtectedRoute: onboardingCompleted=false → redirect /onboarding
+  → 5 étapes: Langue → Pratique → Contextes propriétés → Volume → Auto-conditions
+  → "Terminer" → PUT /api/me/onboarding → onboardingCompleted=true
+  → Dashboard (empty state: 3 lignes de texte + CTA)
+```
+
+#### L.2 Onboarding Client — Flux actuel
+
+```
+/clients → "Nouveau client" → CreateClientModal (3 onglets)
+  → Minimum: prénom + nom (email/phone optionnels)
+  → Fiche client avec édition inline, historique transactions
+  → Import CSV bilingue (desktop seulement)
+  → Transaction: select client = <select> HTML basique (pas d'autocomplete)
+```
+
+#### L.3 Issues identifiées
+
+**P0 — Bloquant lancement**
+
+| ID | Problème | Fichier(s) | Impact |
+|----|----------|------------|--------|
+| OB-1 | **Emails signup toujours en anglais** — `preferredLanguage` n'est JAMAIS envoyé depuis RegisterPage. Backend default `'en'`. Courtiers francophones NB reçoivent emails en anglais. | `RegisterPage.tsx`, `auth_controller.ts` (ligne `data.preferredLanguage ?? 'en'`) | Deal-breaker marché NB francophone |
+| OB-2 | **Pas de création client inline** — Agent doit quitter le formulaire transaction → /clients → créer → revenir → sélectionner. 4 clics, 2 changements de page pour un use case quotidien. | `EditTransactionPage.tsx` (select client), `CreateClientModal.tsx` | Friction majeure chaque nouvelle transaction |
+
+**P1 — Haute priorité**
+
+| ID | Problème | Fichier(s) | Impact |
+|----|----------|------------|--------|
+| OB-3 | **Select client = `<select>` basique** — Pas d'autocomplete, pas de recherche. Inutilisable à 50+ clients. | `EditTransactionPage.tsx:921-936` | UX dégradée en production |
+| OB-4 | **Skip onboarding = définitif** — `onboardingCompleted=true` + `onboardingSkipped=true`. Aucun re-prompt. Profil reste `null` pour toujours. | `OnboardingPage.tsx`, `profile_controller.ts` | Perte données profil, conditions auto cassées |
+| OB-5 | **Empty state dashboard = faible** — Emoji + 3 lignes texte. Pas de vidéo, pas de tour guidé, pas de checklist interactive. First impression = rétention. | `DashboardUrgencies.tsx` (state='empty') | Risque abandon J1 |
+| OB-6 | **Agence + licence absents du signup** — Existent dans le validator backend mais PAS dans le formulaire RegisterPage. L'agent ne sait pas qu'il doit aller dans les paramètres. | `RegisterPage.tsx`, `auth_validator.ts` | Champs professionnels incomplets |
+
+**P2 — Moyenne priorité**
+
+| ID | Problème | Fichier(s) | Impact |
+|----|----------|------------|--------|
+| OB-7 | **Pas de checklist profil post-onboarding** — Après l'onboarding, aucun widget "Complétez votre profil: 3/7". Pas de notion de progression. | Absent | Engagement faible |
+| OB-8 | **Pas de type client** (acheteur/vendeur) — Le rôle est sur `TransactionParty`, pas sur `Client`. Impossible de filtrer "mes acheteurs" vs "mes vendeurs". | `client.ts` model | Filtrage absent |
+
+#### L.4 Plan de correction
+
+| # | Fix | Backend | Frontend | Priorité |
+|---|-----|---------|----------|----------|
+| 1 | **Langue emails signup** — Détecter `i18n.language` au frontend, envoyer `preferredLanguage` dans le body register | Ajouter `preferredLanguage` au user create | RegisterPage envoie la langue courante | P0 |
+| 2 | **Création client inline** — Bouton "+" à côté du select client dans EditTransactionPage, ouvre CreateClientModal, auto-sélectionne le client créé | Rien (endpoint existe) | Bouton + modal + callback `onCreated` | P0 |
+| 3 | **Autocomplete client** — Remplacer `<select>` par un Combobox searchable (Radix ou custom) | Rien | Composant `ClientCombobox` | P1 |
+| 4 | **Re-prompt onboarding skippé** — Banner dans Dashboard si `onboardingSkipped=true` : "Complétez votre profil pour débloquer les suggestions" | `GET /api/me` retourne déjà `onboardingSkipped` | Banner conditionnel dans Layout/Dashboard | P1 |
+| 5 | **Empty state enrichi** — Refaire l'empty state dashboard avec illustration, 3 cards cliquables, CTA principal prominent | — | Refonte `EmptyState` dans DashboardUrgencies | P1 |
+| 6 | **Agence + licence dans signup** — Ajouter 2 champs optionnels dans RegisterPage (step 2 ou section "professionnel") | Rien (validator accepte déjà) | 2 inputs supplémentaires | P2 |
+
 ---
 
 _PRD rédigé par l'équipe BMAD en Party Mode — 2026-02-06_
-_Mis à jour v2.9 — 2026-02-18 (refonte admin dashboard + SiteMode + codes promo + audit ~65 issues)_
+_Mis à jour v2.16 — 2026-02-19 (Audit onboarding agent + client — 8 issues)_
 _Validé par : Sam (Product Owner)_
 _Source de vérité unique pour Ofra v2_
