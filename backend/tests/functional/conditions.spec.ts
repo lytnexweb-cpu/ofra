@@ -127,6 +127,7 @@ test.group('Conditions - Workflow', (group) => {
     await Condition.create({
       transactionId: tx.id,
       transactionStepId: currentStep.id,
+      stepWhenCreated: currentStep.stepOrder,
       title: 'Blocking Condition',
       type: 'financing',
       priority: 'high',
