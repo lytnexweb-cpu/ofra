@@ -1,6 +1,7 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Plan from '#models/plan'
 import PlanChangeLog from '#models/plan_change_log'
+import User from '#models/user'
 import { updatePlanValidator } from '#validators/plan_validator'
 import db from '@adonisjs/lucid/services/db'
 import logger from '@adonisjs/core/services/logger'
@@ -184,6 +185,125 @@ export default class AdminPlansController {
       return response.internalServerError({
         success: false,
         error: { message: 'Failed to update plan', code: 'E_INTERNAL_ERROR' },
+      })
+    }
+  }
+
+  /**
+   * POST /api/admin/plans/:id/apply-to-existing
+   * Bulk update planLockedPrice for non-founder users on this plan
+   */
+  async applyToExisting({ params, request, response, auth }: HttpContext) {
+    try {
+      const plan = await Plan.findOrFail(params.id)
+      const { reason } = request.only(['reason'])
+
+      if (!reason || typeof reason !== 'string' || reason.trim().length < 3) {
+        return response.unprocessableEntity({
+          success: false,
+          error: { message: 'Reason is required (min 3 chars)', code: 'E_VALIDATION_FAILED' },
+        })
+      }
+
+      // Find non-founder users on this plan
+      const affectedUsers = await User.query()
+        .where('planId', plan.id)
+        .where('isFounder', false)
+
+      if (affectedUsers.length === 0) {
+        return response.ok({
+          success: true,
+          data: { affectedCount: 0, message: 'No non-founder users on this plan' },
+        })
+      }
+
+      const adminId = auth.user!.id
+
+      await db.transaction(async (trx) => {
+        // Update planLockedPrice for each user based on their billing cycle
+        for (const user of affectedUsers) {
+          const newPrice =
+            user.billingCycle === 'annual' ? plan.annualPrice : plan.monthlyPrice
+          const oldPrice = user.planLockedPrice
+
+          user.useTransaction(trx)
+          user.planLockedPrice = newPrice
+          await user.save()
+
+          // Log the change
+          await PlanChangeLog.create(
+            {
+              planId: plan.id,
+              adminId,
+              fieldChanged: 'apply_to_existing',
+              oldValue: oldPrice !== null && oldPrice !== undefined ? String(oldPrice) : null,
+              newValue: String(newPrice),
+              reason: reason.trim(),
+            },
+            { client: trx }
+          )
+        }
+      })
+
+      return response.ok({
+        success: true,
+        data: {
+          affectedCount: affectedUsers.length,
+          planName: plan.name,
+        },
+      })
+    } catch (error) {
+      if (error.code === 'E_ROW_NOT_FOUND') {
+        return response.notFound({
+          success: false,
+          error: { message: 'Plan not found', code: 'E_NOT_FOUND' },
+        })
+      }
+      logger.error({ err: error, planId: params.id }, 'Failed to apply plan to existing users')
+      return response.internalServerError({
+        success: false,
+        error: { message: 'Failed to apply to existing users', code: 'E_INTERNAL_ERROR' },
+      })
+    }
+  }
+
+  /**
+   * GET /api/admin/plan-changes
+   * Paginated plan change history
+   */
+  async getChanges({ request, response }: HttpContext) {
+    try {
+      const page = Number(request.input('page', 1))
+      const limit = Math.min(Number(request.input('limit', 20)), 100)
+
+      const changeLogs = await PlanChangeLog.query()
+        .preload('plan')
+        .preload('admin')
+        .orderBy('created_at', 'desc')
+        .paginate(page, limit)
+
+      return response.ok({
+        success: true,
+        data: {
+          changes: changeLogs.all().map((log) => ({
+            id: log.id,
+            planId: log.planId,
+            planName: log.plan?.name,
+            adminName: log.admin?.fullName || log.admin?.email,
+            fieldChanged: log.fieldChanged,
+            oldValue: log.oldValue,
+            newValue: log.newValue,
+            reason: log.reason,
+            createdAt: log.createdAt,
+          })),
+          meta: changeLogs.getMeta(),
+        },
+      })
+    } catch (error) {
+      logger.error({ err: error }, 'Failed to fetch plan changes')
+      return response.internalServerError({
+        success: false,
+        error: { message: 'Failed to fetch plan changes', code: 'E_INTERNAL_ERROR' },
       })
     }
   }

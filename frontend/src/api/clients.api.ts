@@ -7,6 +7,8 @@ export interface TransactionWithTimeline extends Transaction {
   conditions: Condition[]
 }
 
+export type ClientType = 'buyer' | 'seller' | 'both'
+
 export interface Client {
   id: number
   ownerUserId: number
@@ -23,6 +25,7 @@ export interface Client {
   homePhone: string | null
   workPhone: string | null
   cellPhone: string | null
+  clientType: ClientType | null
   createdAt: string
   updatedAt: string
 }
@@ -41,6 +44,7 @@ export interface CreateClientRequest {
   homePhone?: string
   workPhone?: string
   cellPhone?: string
+  clientType?: ClientType
 }
 
 export interface UpdateClientRequest {
@@ -57,6 +61,7 @@ export interface UpdateClientRequest {
   homePhone?: string
   workPhone?: string
   cellPhone?: string
+  clientType?: ClientType
 }
 
 export interface CsvImportResult {

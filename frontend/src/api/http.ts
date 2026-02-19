@@ -1,4 +1,5 @@
 const API_URL = import.meta.env.VITE_API_URL || ''
+const MARKETING_URL = import.meta.env.VITE_MARKETING_URL || 'https://ofra.ca'
 
 export interface ApiResponse<T = any> {
   success: boolean
@@ -35,7 +36,19 @@ export async function apiRequest<T = any>(
     return { success: true, data: {} as T }
   }
 
-  return response.json()
+  const json = await response.json()
+
+  // SiteMode redirects — redirect to marketing site for maintenance/coming_soon
+  if (!json.success && json.error?.code === 'E_MAINTENANCE' && !window.location.pathname.startsWith('/maintenance')) {
+    window.location.href = `${MARKETING_URL}/maintenance`
+    return json
+  }
+  if (!json.success && json.error?.code === 'E_COMING_SOON' && !window.location.pathname.startsWith('/coming-soon')) {
+    window.location.href = `${MARKETING_URL}/coming-soon`
+    return json
+  }
+
+  return json
 }
 
 export const http = {

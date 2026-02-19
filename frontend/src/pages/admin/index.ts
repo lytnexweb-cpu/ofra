@@ -1,5 +1,3 @@
-export { default as AdminDashboardPage } from './AdminDashboardPage'
-export { default as AdminSubscribersPage } from './AdminSubscribersPage'
-export { default as AdminActivityPage } from './AdminActivityPage'
-export { default as AdminSystemPage } from './AdminSystemPage'
-export { default as AdminPlansPage } from './AdminPlansPage'
+export { default as AdminPulsePage } from './AdminPulsePage'
+export { default as AdminGensPage } from './AdminGensPage'
+export { default as AdminConfigPage } from './AdminConfigPage'

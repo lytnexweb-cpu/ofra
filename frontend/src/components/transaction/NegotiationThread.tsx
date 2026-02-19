@@ -7,6 +7,7 @@ import { formatDate, parseISO } from '../../lib/date'
 interface NegotiationThreadProps {
   offer: Offer
   compact?: boolean
+  showSingle?: boolean
 }
 
 function formatCAD(amount: number): string {
@@ -20,6 +21,7 @@ function formatCAD(amount: number): string {
 export default function NegotiationThread({
   offer,
   compact = true,
+  showSingle = false,
 }: NegotiationThreadProps) {
   const { t } = useTranslation()
   const [expanded, setExpanded] = useState(!compact)
@@ -29,7 +31,7 @@ export default function NegotiationThread({
   )
 
   if (revisions.length === 0) return null
-  if (revisions.length === 1) return null // Single revision — no thread to show
+  if (revisions.length === 1 && !showSingle) return null // Single revision — no thread to show
 
   const lastRevision = revisions[revisions.length - 1]
 

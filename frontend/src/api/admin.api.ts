@@ -31,6 +31,7 @@ export interface AdminUser {
   fullName: string | null
   role: UserRole
   agency: string | null
+  isFounder: boolean
   createdAt: string
   lastActivity: string | null
   onboardingCompleted: boolean
@@ -150,6 +151,7 @@ export interface SubscribersParams {
   role?: UserRole | ''
   subscription?: SubscriptionStatus | ''
   engagement?: EngagementLevel | ''
+  founder?: 'true'
   sortBy?: 'createdAt' | 'email' | 'fullName' | 'role' | 'updatedAt'
   sortOrder?: 'asc' | 'desc'
 }
@@ -198,6 +200,83 @@ export interface UpdatePlanRequest {
   reason: string
 }
 
+// Pulse data (Bloc 9)
+export interface PulseData {
+  kpis: {
+    totalUsers: number
+    newUsers30d: number
+    activeTx: number
+    newTx30d: number
+    founders: number
+    foundersMax: number
+    mrr: number
+  }
+  alerts: {
+    expiringTrials: Array<{ id: number; email: string; fullName: string | null; subscriptionEndsAt: string }>
+    pastDueUsers: Array<{ id: number; email: string; fullName: string | null }>
+    overdueConditionsCount: number
+  }
+  activityFeed: Array<{
+    id: number
+    type: string
+    userId: number | null
+    userName: string | null
+    transactionId: number
+    clientName: string | null
+    metadata: Record<string, unknown>
+    createdAt: string
+  }>
+  conversionStats: {
+    trial: number
+    active: number
+    cancelled: number
+    total: number
+    conversionRate: number
+    signupsByWeek: Array<{ week: string; count: number }>
+  }
+}
+
+// Site settings (Bloc 9)
+export interface SiteSettings {
+  site_mode: string
+  access_code: string
+  custom_message: string
+  launch_date: string
+  pitch_points: string
+  show_founder_count: string
+}
+
+// Promo code (Bloc 9)
+export interface PromoCode {
+  id: number
+  code: string
+  type: 'percent' | 'fixed' | 'free_months'
+  value: number
+  maxUses: number | null
+  currentUses: number
+  validFrom: string | null
+  validUntil: string | null
+  eligiblePlans: number[] | null
+  active: boolean
+  stripeCouponId: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+// Waitlist email (Bloc 9)
+export interface WaitlistEmail {
+  id: number
+  email: string
+  source: string
+  createdAt: string
+}
+
+// Plan change with pagination (Bloc 9)
+export interface PaginatedPlanChanges {
+  changes: PlanChangeLog[]
+  meta: { total: number; perPage: number; currentPage: number; lastPage: number }
+}
+
 export const adminApi = {
   // Dashboard
   getOverview: () => http.get<AdminOverview>('/api/admin/overview'),
@@ -224,6 +303,17 @@ export const adminApi = {
         subscriptionEndsAt: string | null
       }
     }>(`/api/admin/subscribers/${userId}/subscription`, { subscriptionStatus }),
+
+  extendSubscription: (userId: number, days: number, reason: string) =>
+    http.patch<{
+      user: { id: number; email: string; subscriptionStatus: SubscriptionStatus; subscriptionEndsAt: string | null }
+      extended: { days: number; reason: string; newEndDate: string }
+    }>(`/api/admin/subscribers/${userId}/extend`, { days, reason }),
+
+  toggleFounder: (userId: number) =>
+    http.patch<{
+      user: { id: number; email: string; isFounder: boolean }
+    }>(`/api/admin/subscribers/${userId}/founder`, {}),
 
   // Notes
   getNotes: (userId: number) =>
@@ -269,4 +359,34 @@ export const adminApi = {
       `/api/admin/plans/${planId}`,
       data
     ),
+
+  // Pulse (Bloc 9)
+  getPulse: () => http.get<PulseData>('/api/admin/pulse'),
+
+  // Site settings (Bloc 9)
+  getSiteSettings: () => http.get<SiteSettings>('/api/admin/site-settings'),
+  updateSiteSettings: (data: Partial<SiteSettings>) =>
+    http.put<SiteSettings>('/api/admin/site-settings', data),
+
+  // Promo codes (Bloc 9)
+  getPromoCodes: () => http.get<PromoCode[]>('/api/admin/promo-codes'),
+  createPromoCode: (data: Omit<PromoCode, 'id' | 'currentUses' | 'createdAt' | 'updatedAt'>) =>
+    http.post<PromoCode>('/api/admin/promo-codes', data),
+  updatePromoCode: (id: number, data: Partial<PromoCode>) =>
+    http.put<PromoCode>(`/api/admin/promo-codes/${id}`, data),
+  deletePromoCode: (id: number) =>
+    http.delete(`/api/admin/promo-codes/${id}`),
+
+  // Waitlist (Bloc 9)
+  getWaitlist: (params?: { page?: number; limit?: number }) =>
+    http.get<{ emails: WaitlistEmail[]; meta: { total: number; perPage: number; currentPage: number; lastPage: number } }>('/api/admin/waitlist', { params }),
+  exportWaitlistUrl: () => '/api/admin/waitlist/export',
+
+  // Plan changes paginated (Bloc 9)
+  getPlanChanges: (params?: { page?: number; limit?: number }) =>
+    http.get<PaginatedPlanChanges>('/api/admin/plan-changes', { params }),
+
+  // Apply to existing (Bloc 9)
+  applyToExisting: (planId: number, reason: string) =>
+    http.post<{ affectedCount: number; planName: string }>(`/api/admin/plans/${planId}/apply-to-existing`, { reason }),
 }

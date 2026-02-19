@@ -99,7 +99,7 @@ export default function Layout() {
   }
 
   return (
-    <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-stone-50 dark:bg-stone-900 text-foreground flex flex-col lg:flex-row transition-colors">
+    <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-stone-50 text-foreground flex flex-col lg:flex-row transition-colors">
       {/* Skip link for accessibility */}
       <a href="#main" className="skip-link">
         {t('common.skipToContent')}
@@ -107,7 +107,7 @@ export default function Layout() {
 
       {/* Desktop Sidebar */}
       <aside
-        className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 lg:z-40 border-r border-stone-200 dark:border-stone-700 bg-primary"
+        className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 lg:z-40 border-r border-stone-200 bg-primary"
       >
         {/* Logo */}
         <div className="flex items-center gap-3 px-6 py-5 border-b border-white/10">
@@ -188,7 +188,7 @@ export default function Layout() {
       </aside>
 
       {/* Mobile Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-white dark:bg-stone-800 border-b border-stone-200 dark:border-stone-700">
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-white border-b border-stone-200">
         <div className="flex items-center justify-between px-4 h-16">
           <Link to="/" className="flex items-center gap-2">
             <OfraLogo size={32} />
@@ -204,7 +204,7 @@ export default function Layout() {
             <NotificationBell />
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-lg text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors"
+              className="p-2 rounded-lg text-stone-500 hover:bg-stone-100 transition-colors"
               aria-expanded={mobileMenuOpen}
             >
               <span className="sr-only">{t('common.openMenu')}</span>
@@ -231,7 +231,7 @@ export default function Layout() {
       {/* Main Content Area */}
       <div className="flex-1 w-full min-w-0 lg:pl-64 flex flex-col h-screen lg:h-auto lg:min-h-screen">
         {/* Desktop top bar */}
-        <header className="hidden lg:flex items-center justify-end h-16 px-8 bg-white dark:bg-stone-800 border-b border-stone-200 dark:border-stone-700 shrink-0">
+        <header className="hidden lg:flex items-center justify-end h-16 px-8 bg-white border-b border-stone-200 shrink-0">
           <NotificationBell />
         </header>
 
@@ -247,7 +247,7 @@ export default function Layout() {
         </main>
 
         {/* Footer - fixed on mobile, normal flow on desktop */}
-        <footer className="fixed bottom-0 left-0 right-0 lg:relative lg:bottom-auto lg:left-auto lg:right-auto shrink-0 border-t border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 z-10">
+        <footer className="fixed bottom-0 left-0 right-0 lg:relative lg:bottom-auto lg:left-auto lg:right-auto shrink-0 border-t border-stone-200 bg-white z-10">
           <div className="max-w-6xl mx-auto py-3 lg:py-4 px-4 sm:px-6 lg:px-8">
             <p className="text-center text-xs text-stone-400">
               {BRAND.copyright}

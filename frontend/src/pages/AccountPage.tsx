@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { authApi } from '../api/auth.api'
 import { profileApi, type UpdateProfileInfoRequest } from '../api/profile.api'
 import { subscriptionApi } from '../api/subscription.api'
+import { stripeApi } from '../api/stripe.api'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
 import {
@@ -25,7 +26,9 @@ import {
   HardHat,
   Infinity,
   Loader2,
+  XCircle,
 } from 'lucide-react'
+import { toast } from '../hooks/use-toast'
 
 type TabType = 'profile' | 'security' | 'subscription'
 
@@ -168,6 +171,22 @@ export default function AccountPage() {
     staleTime: 2 * 60 * 1000,
   })
   const sub = subData?.data
+
+  // Cancel subscription mutation
+  const cancelMutation = useMutation({
+    mutationFn: stripeApi.cancel,
+    onSuccess: (res) => {
+      if (res.success) {
+        toast({ title: t('account.subscription.cancelSuccess'), variant: 'success' })
+        queryClient.invalidateQueries({ queryKey: ['subscription'] })
+      } else {
+        toast({ title: res.error?.message || t('common.error'), variant: 'destructive' })
+      }
+    },
+    onError: () => {
+      toast({ title: t('common.error'), variant: 'destructive' })
+    },
+  })
 
   const tabs = [
     { id: 'profile' as const, label: t('account.tabs.profile'), icon: User },
@@ -590,6 +609,34 @@ export default function AccountPage() {
                         : t('account.subscription.graceWarning', { days: sub.grace.daysRemaining })
                       }
                     </p>
+                  </div>
+                )}
+
+                {/* Cancel subscription */}
+                {sub.billing.subscriptionStatus === 'active' && sub.plan && (
+                  <div className="bg-white rounded-xl shadow-sm p-6">
+                    <h2 className="text-lg font-semibold text-stone-900 mb-2 flex items-center gap-2">
+                      <XCircle className="w-5 h-5 text-stone-400" />
+                      {t('account.subscription.cancelTitle')}
+                    </h2>
+                    <p className="text-sm text-stone-500 mb-4">
+                      {t('account.subscription.cancelDesc')}
+                    </p>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => {
+                        if (window.confirm(t('account.subscription.cancelConfirm'))) {
+                          cancelMutation.mutate()
+                        }
+                      }}
+                      disabled={cancelMutation.isPending}
+                    >
+                      {cancelMutation.isPending ? (
+                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      ) : null}
+                      {t('account.subscription.cancelButton')}
+                    </Button>
                   </div>
                 )}
               </>

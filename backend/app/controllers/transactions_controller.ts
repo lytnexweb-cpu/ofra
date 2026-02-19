@@ -119,6 +119,7 @@ export default class TransactionsController {
         folderUrl: payload.folderUrl ?? null,
         profile: autoConditionsEnabled && payload.profile ? payload.profile : undefined,
         autoConditionsEnabled,
+        clientRole: payload.clientRole ?? null,
       })
 
       // D53: Mark trial TX as used
@@ -138,6 +139,7 @@ export default class TransactionsController {
       await transaction.load('client')
       await transaction.load('conditions')
       await transaction.load('offers')
+      await transaction.load('parties')
       await transaction.load('currentStep', (sq) => sq.preload('workflowStep'))
       await transaction.load('transactionSteps', (sq) => sq.orderBy('step_order', 'asc'))
       if (transaction.propertyId) await transaction.load('property')

@@ -16,12 +16,12 @@ interface OffersSectionProps {
 }
 
 const statusBadgeClasses: Record<OfferStatus, string> = {
-  received: 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300',
-  countered: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300',
-  accepted: 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300',
-  rejected: 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300',
-  expired: 'bg-stone-100 text-stone-800 dark:bg-stone-700 dark:text-stone-300',
-  withdrawn: 'bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300',
+  received: 'bg-blue-100 text-blue-800',
+  countered: 'bg-yellow-100 text-yellow-800',
+  accepted: 'bg-green-100 text-green-800',
+  rejected: 'bg-red-100 text-red-800',
+  expired: 'bg-stone-100 text-stone-800',
+  withdrawn: 'bg-orange-100 text-orange-800',
 }
 
 function formatCAD(amount: number): string {
@@ -164,10 +164,10 @@ export default function OffersSection({ transactionId, transactionStatus: _trans
   }
 
   return (
-    <div className="bg-white dark:bg-stone-800 shadow sm:rounded-lg overflow-hidden">
+    <div className="bg-white shadow sm:rounded-lg overflow-hidden">
       <div className="px-4 py-4 sm:p-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-          <h3 className="text-lg font-medium leading-6 text-stone-900 dark:text-white">
+          <h3 className="text-lg font-medium leading-6 text-stone-900">
             {t('offers.title')}
           </h3>
           <button
@@ -179,9 +179,9 @@ export default function OffersSection({ transactionId, transactionStatus: _trans
         </div>
 
         {isLoading ? (
-          <p className="text-sm text-stone-500 dark:text-stone-400">{t('offers.loading')}</p>
+          <p className="text-sm text-stone-500">{t('offers.loading')}</p>
         ) : offers.length === 0 ? (
-          <p className="text-sm text-stone-500 dark:text-stone-400">{t('offers.empty')}</p>
+          <p className="text-sm text-stone-500">{t('offers.empty')}</p>
         ) : (
           <div className="space-y-3">
             {offers.map((offer) => {
@@ -192,29 +192,29 @@ export default function OffersSection({ transactionId, transactionStatus: _trans
               return (
                 <div
                   key={offer.id}
-                  className="border border-stone-200 dark:border-stone-600 rounded-lg overflow-hidden"
+                  className="border border-stone-200 rounded-lg overflow-hidden"
                 >
                   {/* Offer card header */}
                   <button
                     type="button"
                     onClick={() => setExpandedOfferId(isExpanded ? null : offer.id)}
-                    className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-stone-50 dark:hover:bg-stone-700 transition-colors"
+                    className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-stone-50 transition-colors"
                   >
                     <div className="flex items-center gap-3 min-w-0">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${badgeClasses}`}>
                         {getStatusLabel(offer.status)}
                       </span>
-                      <span className="text-sm font-semibold text-stone-900 dark:text-white">
+                      <span className="text-sm font-semibold text-stone-900">
                         {lastRev ? formatCAD(lastRev.price) : '—'}
                       </span>
                       {lastRev && (
-                        <span className="text-xs text-stone-500 dark:text-stone-400">
+                        <span className="text-xs text-stone-500">
                           {getDirectionLabelFull(lastRev)}
                         </span>
                       )}
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
-                      <span className="text-xs text-stone-500 dark:text-stone-400">
+                      <span className="text-xs text-stone-500">
                         {new Date(offer.createdAt).toLocaleDateString('en-CA', { month: 'short', day: 'numeric' })}
                       </span>
                       <svg
@@ -238,11 +238,11 @@ export default function OffersSection({ transactionId, transactionStatus: _trans
                         transition={{ duration: 0.2 }}
                         className="overflow-hidden"
                       >
-                        <div className="px-4 pb-4 border-t border-stone-100 dark:border-stone-700">
+                        <div className="px-4 pb-4 border-t border-stone-100">
                           {/* Revision History */}
                           {offer.revisions && offer.revisions.length > 0 && (
                             <div className="mt-3">
-                              <h4 className="text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wide mb-2">
+                              <h4 className="text-xs font-semibold text-stone-500 uppercase tracking-wide mb-2">
                                 {t('offers.revisionHistory')}
                               </h4>
                               <div className="space-y-2">
@@ -253,39 +253,39 @@ export default function OffersSection({ transactionId, transactionStatus: _trans
                                       key={rev.id}
                                       className="flex items-start gap-3 text-sm"
                                     >
-                                      <div className="flex-shrink-0 mt-1.5 w-2 h-2 rounded-full bg-blue-400 dark:bg-blue-500" />
+                                      <div className="flex-shrink-0 mt-1.5 w-2 h-2 rounded-full bg-blue-400" />
                                       <div className="flex-1 min-w-0">
                                         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                                          <span className="font-medium text-stone-700 dark:text-stone-300">
+                                          <span className="font-medium text-stone-700">
                                             #{rev.revisionNumber}
                                           </span>
-                                          <span className="text-stone-500 dark:text-stone-400">
+                                          <span className="text-stone-500">
                                             {new Date(rev.createdAt).toLocaleDateString('en-CA', { month: 'short', day: 'numeric' })}
                                           </span>
-                                          <span className="text-stone-500 dark:text-stone-400">
+                                          <span className="text-stone-500">
                                             {getDirectionLabel(rev)}
                                           </span>
-                                          <span className="font-semibold text-stone-900 dark:text-white">
+                                          <span className="font-semibold text-stone-900">
                                             {formatCAD(rev.price)}
                                           </span>
                                           {rev.deposit != null && (
-                                            <span className="text-stone-500 dark:text-stone-400">
+                                            <span className="text-stone-500">
                                               {t('offers.deposit')}: {formatCAD(rev.deposit)}
                                             </span>
                                           )}
                                           {rev.financingAmount != null && (
-                                            <span className="text-stone-500 dark:text-stone-400">
+                                            <span className="text-stone-500">
                                               {t('offers.financing')}: {formatCAD(rev.financingAmount)}
                                             </span>
                                           )}
                                         </div>
                                         {rev.notes && (
-                                          <p className="mt-0.5 text-xs text-stone-400 dark:text-stone-500 italic">
+                                          <p className="mt-0.5 text-xs text-stone-400 italic">
                                             {rev.notes}
                                           </p>
                                         )}
                                         {rev.expiryAt && (
-                                          <p className="mt-0.5 text-xs text-stone-400 dark:text-stone-500">
+                                          <p className="mt-0.5 text-xs text-stone-400">
                                             {t('offers.expires')}: {new Date(rev.expiryAt).toLocaleString('en-CA')}
                                           </p>
                                         )}
@@ -331,7 +331,7 @@ export default function OffersSection({ transactionId, transactionStatus: _trans
                             {offer.status !== 'accepted' && (
                               <button
                                 onClick={() => setDeleteConfirm({ isOpen: true, offerId: offer.id })}
-                                className="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                className="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md text-red-600 hover:text-red-800 hover:bg-red-50"
                               >
                                 {t('offers.delete')}
                               </button>

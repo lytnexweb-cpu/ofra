@@ -9,17 +9,18 @@ import {
   Check,
   Lock,
   AlertTriangle,
-  Package,
   ArrowRight,
   Mail,
   RefreshCw,
   Copy,
   ChevronDown,
-  ClipboardList,
+  MessageCircle,
 } from 'lucide-react'
 import { offersApi } from '../../api/offers.api'
-import { packsApi, type PackTemplate, type ConditionPack } from '../../api/packs.api'
-import type { Offer, OfferRevision, Transaction } from '../../api/transactions.api'
+import { partiesApi } from '../../api/parties.api'
+import type { Offer, OfferRevision, Transaction, OfferStatus } from '../../api/transactions.api'
+import { formatDate, parseISO } from '../../lib/date'
+import NegotiationThread from './NegotiationThread'
 import PartyPicker from './PartyPicker'
 
 interface CreateOfferModalProps {
@@ -56,14 +57,13 @@ function computeExpiryAt(option: ExpiryOption, customDate: string): string | nul
   }
 }
 
-const BADGE_COLORS: Record<string, string> = {
-  auto: 'bg-[rgba(30,58,95,.1)] text-[#1e3a5f]',
-  pack: 'bg-[rgba(224,122,47,.1)] text-[#e07a2f]',
-  legal: 'bg-[#ede9fe] text-[#7c3aed]',
-  industry: 'bg-[#e0f2fe] text-[#0284c7]',
-  finance: 'bg-[#e0f2fe] text-[#0284c7]',
-  inspection: 'bg-[#e0f2fe] text-[#0284c7]',
-  status: 'bg-[#d1fae5] text-[#059669]',
+const STATUS_COLORS: Record<string, string> = {
+  received: 'bg-blue-100 text-blue-700',
+  countered: 'bg-amber-100 text-amber-700',
+  accepted: 'bg-emerald-100 text-emerald-700',
+  rejected: 'bg-red-100 text-red-700',
+  expired: 'bg-stone-100 text-stone-500',
+  withdrawn: 'bg-stone-100 text-stone-500',
 }
 
 export default function CreateOfferModal({
@@ -97,12 +97,6 @@ export default function CreateOfferModal({
   const [message, setMessage] = useState('')
   const [emailNotify, setEmailNotify] = useState(true)
 
-  // ── Pack state ──
-  const [selectedPackType, setSelectedPackType] = useState<string | null>(null)
-  const [packTemplates, setPackTemplates] = useState<PackTemplate[]>([])
-  const [packLoaded, setPackLoaded] = useState(false)
-  const [loadingPack, setLoadingPack] = useState(false)
-
   // ── Validation ──
   const [showErrors, setShowErrors] = useState(false)
 
@@ -116,6 +110,13 @@ export default function CreateOfferModal({
 
   // ── Mobile accordion ──
   const [accordionOpen, setAccordionOpen] = useState(false)
+
+  // C4: Pre-fetch parties for pre-selection
+  const { data: partiesData } = useQuery({
+    queryKey: ['parties', transaction.id],
+    queryFn: () => partiesApi.list(transaction.id),
+    enabled: isOpen,
+  })
 
   // ── Reset on open ──
   useEffect(() => {
@@ -135,9 +136,6 @@ export default function CreateOfferModal({
       setInclusions(isCounter && lastRevision!.inclusions ? lastRevision!.inclusions : '')
       setMessage(isCounter && lastRevision!.message ? lastRevision!.message : '')
       setEmailNotify(true)
-      setSelectedPackType(null)
-      setPackTemplates([])
-      setPackLoaded(false)
       setShowErrors(false)
       setAccordionOpen(false)
       setCopiedDetails(false)
@@ -158,6 +156,21 @@ export default function CreateOfferModal({
       }
     }
   }, [isOpen, isCounter, lastRevision])
+
+  // C4: Pre-select primary buyer/seller parties when data loads (new offer only)
+  useEffect(() => {
+    if (!isOpen || isCounter || !partiesData?.data?.parties) return
+    const allParties = partiesData.data.parties
+    if (buyerPartyId === null) {
+      const primaryBuyer = allParties.find((p) => p.role === 'buyer' && p.isPrimary) ?? allParties.find((p) => p.role === 'buyer')
+      if (primaryBuyer) setBuyerPartyId(primaryBuyer.id)
+    }
+    if (sellerPartyId === null) {
+      const primarySeller = allParties.find((p) => p.role === 'seller' && p.isPrimary) ?? allParties.find((p) => p.role === 'seller')
+      if (primarySeller) setSellerPartyId(primarySeller.id)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, isCounter, partiesData])
 
   // ── Escape key ──
   useEffect(() => {
@@ -193,41 +206,13 @@ export default function CreateOfferModal({
   const errorCount = Object.keys(errors).length
   const hasErrors = showErrors && errorCount > 0
 
-  // ── Packs query ──
-  const { data: packsData } = useQuery({
-    queryKey: ['condition-packs'],
-    queryFn: () => packsApi.listPacks(),
+  // ── Offers query (for history panel) ──
+  const { data: offersData } = useQuery({
+    queryKey: ['offers', transaction.id],
+    queryFn: () => offersApi.list(transaction.id),
     enabled: isOpen,
   })
-  const packs = packsData?.data?.packs ?? []
-
-  // ── Recommended pack ──
-  const recommendedPack = useMemo((): ConditionPack | null => {
-    if (packs.length === 0) return null
-    const profile = transaction.profile
-    if (profile?.isFinanced) return packs.find(p => p.packType === 'finance_nb') || null
-    if (profile?.propertyType === 'condo') return packs.find(p => p.packType === 'condo_nb') || null
-    if (profile?.propertyContext === 'rural') return packs.find(p => p.packType === 'rural_nb') || null
-    return packs.find(p => p.packType === 'universal') || packs[0] || null
-  }, [packs, transaction.profile])
-
-  const packLabel = (pack: ConditionPack) =>
-    i18n.language === 'en' && pack.labelEn ? pack.labelEn : pack.label
-
-  // ── Load pack templates ──
-  const handleLoadPack = async (packType: string) => {
-    setLoadingPack(true)
-    try {
-      const res = await packsApi.getPackTemplates(packType)
-      if (res.success && res.data) {
-        setPackTemplates(res.data.templates)
-        setSelectedPackType(packType)
-        setPackLoaded(true)
-      }
-    } finally {
-      setLoadingPack(false)
-    }
-  }
+  const allOffers: Offer[] = (offersData as any)?.data?.offers ?? []
 
   // ── Submit mutation ──
   const createMutation = useMutation({
@@ -259,14 +244,6 @@ export default function CreateOfferModal({
 
       if (!result.success) {
         throw { type: 'permission', message: result.error?.message || '' }
-      }
-
-      // Apply pack if loaded
-      const offerId = isCounter
-        ? existingOffer!.id
-        : (result.data as any)?.offer?.id
-      if (packLoaded && selectedPackType && offerId) {
-        await packsApi.applyPack(offerId, selectedPackType)
       }
 
       return result
@@ -368,10 +345,6 @@ export default function CreateOfferModal({
                 <div className="flex justify-between text-xs">
                   <span className="text-stone-500">{t('addOffer.successExpiration')}</span>
                   <span className="font-medium text-stone-900">{expiryLabel}</span>
-                </div>
-                <div className="flex justify-between text-xs">
-                  <span className="text-stone-500">{t('addOffer.successConditions')}</span>
-                  <span className="font-medium text-stone-900">{packTemplates.length}</span>
                 </div>
                 <div className="flex justify-between text-xs">
                   <span className="text-stone-500">{t('addOffer.successNotification')}</span>
@@ -579,7 +552,10 @@ export default function CreateOfferModal({
         : 'border-stone-200 focus:border-[#1e3a5f]'
     } focus:outline-none focus:ring-[3px] focus:ring-[rgba(30,58,95,.1)]`
 
-  const selectedPackData = packs.find(p => p.packType === selectedPackType) || null
+  // ── Party names for draft preview ──
+  const allParties = partiesData?.data?.parties ?? []
+  const buyerName = allParties.find(p => p.id === buyerPartyId)?.fullName ?? t('addOffer.buyerParty')
+  const sellerName = allParties.find(p => p.id === sellerPartyId)?.fullName ?? t('addOffer.sellerParty')
 
   return createPortal(
     <div className="fixed inset-0 z-50" role="dialog" aria-modal="true">
@@ -903,14 +879,10 @@ export default function CreateOfferModal({
                   <span className="text-stone-500">{t('addOffer.summaryExpiration')}</span>
                   <span className="font-medium text-stone-900">{expiryLabel}</span>
                 </div>
-                <div className="flex justify-between text-[11px] py-1">
-                  <span className="text-stone-500">{t('addOffer.summaryConditions')}</span>
-                  <span className="font-medium text-stone-900">{packTemplates.length}</span>
-                </div>
               </div>
             </div>
 
-            {/* ═══ RIGHT COLUMN — PACKS ═══ */}
+            {/* ═══ RIGHT COLUMN — HISTORY ═══ */}
             <div className="border-t sm:border-t-0 sm:border-l border-stone-200 bg-stone-50 px-5 sm:px-6 py-5 space-y-4 overflow-y-auto">
               {/* Mobile accordion toggle */}
               <button
@@ -919,139 +891,127 @@ export default function CreateOfferModal({
                 className="flex sm:hidden items-center justify-between w-full py-2.5 border-t border-stone-200"
               >
                 <span className="text-[11px] uppercase font-semibold text-stone-700">
-                  {t('addOffer.accordionConditions')}
+                  {t('addOffer.accordionHistory')}
                 </span>
                 <ChevronDown className={`w-3.5 h-3.5 text-stone-500 transition-transform ${accordionOpen ? 'rotate-180' : ''}`} />
               </button>
 
               <div className={`${accordionOpen ? 'block' : 'hidden'} sm:block space-y-4`}>
-                {/* Pack recommandé card */}
-                {recommendedPack && !packLoaded && (
-                  <div className="flex items-center gap-2.5 p-3 rounded-lg border border-stone-200 bg-white">
-                    <div className="w-9 h-9 rounded-lg bg-[rgba(30,58,95,.08)] flex items-center justify-center shrink-0">
-                      <Package className="w-[18px] h-[18px] text-[#1e3a5f]" strokeWidth={2} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-semibold text-stone-900">{packLabel(recommendedPack)}</p>
-                      <span className="text-[10px] text-stone-400">
-                        {t('addOffer.conditionsInfo', { count: recommendedPack.templateCount, tags: recommendedPack.description || '' })}
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleLoadPack(recommendedPack.packType)}
-                      disabled={loadingPack}
-                      className="px-3.5 py-1.5 rounded-md bg-[#1e3a5f] hover:bg-[#16304d] text-white text-[11px] font-semibold shrink-0 disabled:opacity-50"
-                    >
-                      {loadingPack ? '...' : t('addOffer.loadPack')}
-                    </button>
-                  </div>
-                )}
-
-                {/* Pack loaded card */}
-                {packLoaded && selectedPackData && (
-                  <div className="flex items-center gap-2.5 p-3 rounded-lg border border-[#059669] bg-[#f0fdf4]">
-                    <div className="w-9 h-9 rounded-lg bg-[rgba(5,150,105,.1)] flex items-center justify-center shrink-0">
-                      <Check className="w-[18px] h-[18px] text-[#059669]" strokeWidth={2} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-semibold text-[#059669]">
-                        {t('addOffer.packLoadedLabel', { name: packLabel(selectedPackData) })}
-                      </p>
-                      <span className="text-[10px] text-[#059669]/70">
-                        {t('addOffer.packConditionsApplied', { count: packTemplates.length })}
-                      </span>
-                    </div>
-                  </div>
-                )}
-
-                {/* Packs chips */}
+                {/* ── Draft preview card ── */}
                 <div>
                   <h3 className="text-[10px] uppercase font-bold text-stone-500 mb-2 tracking-wide">
-                    {t('addOffer.packsTitle')}
+                    {t('addOffer.draftTitle')}
                   </h3>
-                  <div className="flex flex-wrap gap-1.5">
-                    {packs.map(pack => (
-                      <button
-                        key={pack.packType}
-                        type="button"
-                        onClick={() => handleLoadPack(pack.packType)}
-                        disabled={loadingPack}
-                        className={`px-3 py-[5px] rounded-2xl text-[11px] font-medium border transition-colors ${
-                          selectedPackType === pack.packType
-                            ? 'bg-[#1e3a5f] text-white border-[#1e3a5f]'
-                            : 'bg-white text-stone-600 border-stone-200 hover:border-[#1e3a5f] hover:text-[#1e3a5f]'
-                        }`}
-                      >
-                        {packLabel(pack)}
-                      </button>
-                    ))}
+                  <div className="rounded-lg border border-dashed border-[#1e3a5f]/40 bg-white p-3 space-y-1.5 relative">
+                    <span className="absolute top-2 right-2 px-1.5 py-0.5 rounded-full text-[9px] font-bold uppercase bg-[rgba(30,58,95,.08)] text-[#1e3a5f]">
+                      {t('addOffer.draftBadge')}
+                    </span>
+                    <div className="flex justify-between text-[11px] pr-16">
+                      <span className="text-stone-500">{t('addOffer.amountLabel')}</span>
+                      <span className="font-medium text-stone-900">
+                        {priceNum > 0 ? `${formatCAD(priceNum)} $` : '—'}
+                      </span>
+                    </div>
+                    {depositNum > 0 && (
+                      <div className="flex justify-between text-[11px]">
+                        <span className="text-stone-500">{t('addOffer.depositLabel')}</span>
+                        <span className="font-medium text-stone-900">{formatCAD(depositNum)} $</span>
+                      </div>
+                    )}
+                    {closingDate && (
+                      <div className="flex justify-between text-[11px]">
+                        <span className="text-stone-500">{t('addOffer.closingDateLabel')}</span>
+                        <span className="font-medium text-stone-900">{closingDate}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between text-[11px]">
+                      <span className="text-stone-500">{t('addOffer.expirationLabel')}</span>
+                      <span className="font-medium text-stone-900">{expiryLabel}</span>
+                    </div>
+                    {financingEnabled && parseMoney(financingAmount) > 0 && (
+                      <div className="flex justify-between text-[11px]">
+                        <span className="text-stone-500">{t('addOffer.financingLabel')}</span>
+                        <span className="font-medium text-stone-900">{formatCAD(parseMoney(financingAmount))} $</span>
+                      </div>
+                    )}
+                    {inspectionEnabled && inspectionDelay && (
+                      <div className="flex justify-between text-[11px]">
+                        <span className="text-stone-500">{t('addOffer.inspectionLabel')}</span>
+                        <span className="font-medium text-stone-900">{inspectionDelay} {t('addOffer.inspectionPlaceholder').includes('jours') ? 'jours' : 'days'}</span>
+                      </div>
+                    )}
+                    <div className="border-t border-stone-100 pt-1.5 mt-1">
+                      <span className="text-[10px] text-stone-400">
+                        {offerType === 'offer'
+                          ? t('addOffer.draftDirection', { from: buyerName, to: sellerName })
+                          : t('addOffer.draftDirection', { from: sellerName, to: buyerName })}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
-                {/* Conditions list */}
+                {/* ── Offers history ── */}
                 <div>
                   <div className="flex items-center gap-2 mb-2">
                     <h3 className="text-[10px] uppercase font-bold text-stone-500 tracking-wide">
-                      {t('addOffer.conditionsTitle')}
+                      {t('addOffer.historyTitle')}
                     </h3>
-                    {packTemplates.length > 0 && (
+                    {allOffers.length > 0 && (
                       <span className="px-1.5 py-0.5 rounded-full bg-[#1e3a5f] text-white text-[10px] font-bold">
-                        {packTemplates.length}
+                        {allOffers.length}
                       </span>
                     )}
                   </div>
 
-                  {packTemplates.length === 0 ? (
-                    /* Empty state */
+                  {allOffers.length === 0 ? (
                     <div className="text-center py-6">
-                      <ClipboardList className="w-8 h-8 text-stone-300 mx-auto mb-3" strokeWidth={1.5} />
-                      <p className="text-xs text-stone-400">
-                        {t('addOffer.conditionsEmpty')}
+                      <MessageCircle className="w-8 h-8 text-stone-300 mx-auto mb-3" strokeWidth={1.5} />
+                      <p className="text-xs text-stone-500 font-medium">
+                        {t('addOffer.historyEmpty')}
+                      </p>
+                      <p className="text-[10px] text-stone-400 mt-1">
+                        {t('addOffer.historyEmptyHint')}
                       </p>
                     </div>
                   ) : (
-                    /* Conditions list */
-                    <div className="flex flex-col gap-1.5">
-                      {packTemplates.map(tpl => (
-                        <div
-                          key={tpl.id}
-                          className="flex items-center justify-between gap-2 px-2.5 py-2 rounded-lg border border-stone-200 bg-white"
-                        >
-                          <div className="min-w-0 flex-1">
-                            <p className="text-xs font-medium text-stone-900 truncate">
-                              {i18n.language === 'en' && tpl.titleEn ? tpl.titleEn : tpl.title}
-                            </p>
-                            <div className="flex flex-wrap gap-1 mt-1">
-                              <span className="px-[7px] py-px rounded-full text-[9px] font-bold uppercase bg-[rgba(224,122,47,.1)] text-[#e07a2f]">
-                                {t('addOffer.badgePack')}
-                              </span>
-                              {tpl.conditionType && (
-                                <span className={`px-[7px] py-px rounded-full text-[9px] font-bold uppercase ${
-                                  BADGE_COLORS[tpl.conditionType] || 'bg-stone-100 text-stone-500'
-                                }`}>
-                                  {tpl.conditionType}
+                    <div className="flex flex-col gap-2.5">
+                      {allOffers.map((offer, idx) => {
+                        const lastRev = offer.revisions?.length
+                          ? [...offer.revisions].sort((a, b) => b.revisionNumber - a.revisionNumber)[0]
+                          : null
+                        const lastPrice = lastRev?.price ?? 0
+                        const badgeClass = STATUS_COLORS[offer.status] || 'bg-stone-100 text-stone-500'
+
+                        return (
+                          <div key={offer.id} className="rounded-lg border border-stone-200 bg-white overflow-hidden">
+                            {/* Offer header */}
+                            <div className="px-3 py-2.5 flex items-center justify-between gap-2">
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs font-semibold text-stone-900">
+                                    {t('addOffer.offerLabel', { number: idx + 1 })}
+                                  </span>
+                                  <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-bold uppercase ${badgeClass}`}>
+                                    {t(`offers.status.${offer.status}`)}
+                                  </span>
+                                </div>
+                                <span className="text-[10px] text-stone-400">
+                                  {offer.createdAt ? formatDate(parseISO(offer.createdAt), 'd MMM yyyy') : ''}
                                 </span>
-                              )}
+                              </div>
+                              <span className="text-sm font-semibold text-stone-900 shrink-0">
+                                {lastPrice > 0 ? `${formatCAD(lastPrice)} $` : '—'}
+                              </span>
+                            </div>
+                            {/* Negotiation thread */}
+                            <div className="px-3 pb-2.5">
+                              <NegotiationThread offer={offer} compact={false} showSingle />
                             </div>
                           </div>
-                          <span className="px-[7px] py-px rounded-full text-[9px] font-bold uppercase bg-[#d1fae5] text-[#059669] shrink-0">
-                            {t('addOffer.badgeActive')}
-                          </span>
-                        </div>
-                      ))}
+                        )
+                      })}
                     </div>
                   )}
-
-                  {/* Manage link */}
-                  <button
-                    type="button"
-                    onClick={() => navigate(`/transactions/${transaction.id}`)}
-                    className="flex items-center gap-1.5 text-[11px] text-[#1e3a5f] hover:underline font-medium mt-3"
-                  >
-                    {t('addOffer.conditionsManageLink')}
-                    <ArrowRight className="w-3 h-3" />
-                  </button>
                 </div>
               </div>
             </div>

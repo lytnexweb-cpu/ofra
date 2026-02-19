@@ -16,13 +16,15 @@ const NB_PROVINCES = [
 ]
 
 export default function RegisterPage() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [address, setAddress] = useState('')
   const [city, setCity] = useState('')
   const [provinceCode, setProvinceCode] = useState('NB')
+  const [agency, setAgency] = useState('')
+  const [licenseNumber, setLicenseNumber] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -86,6 +88,9 @@ export default function RegisterPage() {
       address: address.trim() || undefined,
       city: city.trim() || undefined,
       provinceCode,
+      agency: agency.trim() || undefined,
+      licenseNumber: licenseNumber.trim() || undefined,
+      preferredLanguage: (i18n.language?.startsWith('fr') ? 'fr' : 'en') as 'fr' | 'en',
     })
   }
 
@@ -95,7 +100,7 @@ export default function RegisterPage() {
     password.trim().length >= 8 &&
     password === confirmPassword
 
-  const inputClass = "w-full px-3.5 py-2.5 rounded-md border border-stone-300 dark:border-stone-600 bg-white dark:bg-stone-800 text-stone-900 dark:text-white placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors text-sm"
+  const inputClass = "w-full px-3.5 py-2.5 rounded-md border border-stone-300 bg-white text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors text-sm"
 
   return (
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2">
@@ -141,16 +146,16 @@ export default function RegisterPage() {
       </div>
 
       {/* Right Panel — Registration form */}
-      <div className="relative flex items-center justify-center bg-white dark:bg-stone-900 py-8 px-6 sm:px-12 lg:px-16 transition-colors">
-        <LanguageToggle className="absolute top-4 right-4 text-stone-400 hover:text-primary dark:hover:text-white" />
+      <div className="relative flex items-center justify-center bg-white py-8 px-6 sm:px-12 lg:px-16 transition-colors">
+        <LanguageToggle className="absolute top-4 right-4 text-stone-400 hover:text-primary" />
         <div className="w-full max-w-sm">
           {/* Logo — small, no tagline */}
           <OfraLogoFull className="mb-8" showTagline={false} iconSize={32} />
 
-          <h2 className="text-2xl font-semibold text-stone-900 dark:text-white mb-1">
+          <h2 className="text-2xl font-semibold text-stone-900 mb-1">
             {t('auth.createAccount')}
           </h2>
-          <p className="text-sm text-stone-500 dark:text-stone-400 mb-6">
+          <p className="text-sm text-stone-500 mb-6">
             {t('auth.alreadyHaveAccount').split('?')[0]}?{' '}
             <Link to="/login" className="text-primary hover:underline font-medium">
               {t('auth.login')}
@@ -159,19 +164,22 @@ export default function RegisterPage() {
 
           {/* Error Message */}
           {error && (
-            <div className="mb-5 rounded-md bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 px-4 py-3">
-              <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+            <div className="mb-5 rounded-md bg-red-50 border border-red-200 px-4 py-3">
+              <p className="text-sm text-red-700">{error}</p>
             </div>
           )}
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-3.5">
             <div>
-              <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">
+              <label htmlFor="reg-fullname" className="block text-sm font-medium text-stone-700 mb-1">
                 {t('auth.fullName')}
               </label>
               <input
+                id="reg-fullname"
                 type="text"
+                autoComplete="name"
+                autoFocus
                 required
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
@@ -180,11 +188,13 @@ export default function RegisterPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">
+              <label htmlFor="reg-email" className="block text-sm font-medium text-stone-700 mb-1">
                 {t('auth.email')}
               </label>
               <input
+                id="reg-email"
                 type="email"
+                autoComplete="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -193,11 +203,13 @@ export default function RegisterPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">
+              <label htmlFor="reg-phone" className="block text-sm font-medium text-stone-700 mb-1">
                 {t('auth.phone', 'Téléphone')}
               </label>
               <input
+                id="reg-phone"
                 type="tel"
+                autoComplete="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 className={inputClass}
@@ -205,11 +217,13 @@ export default function RegisterPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">
+              <label htmlFor="reg-address" className="block text-sm font-medium text-stone-700 mb-1">
                 {t('auth.address', 'Adresse')}
               </label>
               <input
+                id="reg-address"
                 type="text"
+                autoComplete="street-address"
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
                 className={inputClass}
@@ -218,11 +232,13 @@ export default function RegisterPage() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">
+                <label htmlFor="reg-city" className="block text-sm font-medium text-stone-700 mb-1">
                   {t('auth.city', 'Ville')}
                 </label>
                 <input
+                  id="reg-city"
                   type="text"
+                  autoComplete="address-level2"
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
                   className={inputClass}
@@ -230,10 +246,12 @@ export default function RegisterPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">
+                <label htmlFor="reg-province" className="block text-sm font-medium text-stone-700 mb-1">
                   {t('auth.province', 'Province')}
                 </label>
                 <select
+                  id="reg-province"
+                  autoComplete="address-level1"
                   value={provinceCode}
                   onChange={(e) => setProvinceCode(e.target.value)}
                   className={inputClass}
@@ -244,14 +262,45 @@ export default function RegisterPage() {
                 </select>
               </div>
             </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label htmlFor="reg-agency" className="block text-sm font-medium text-stone-700 mb-1">
+                  {t('auth.agency', 'Agence')}
+                </label>
+                <input
+                  id="reg-agency"
+                  type="text"
+                  autoComplete="organization"
+                  value={agency}
+                  onChange={(e) => setAgency(e.target.value)}
+                  className={inputClass}
+                  placeholder="RE/MAX, Royal LePage..."
+                />
+              </div>
+              <div>
+                <label htmlFor="reg-license" className="block text-sm font-medium text-stone-700 mb-1">
+                  {t('auth.licenseNumber', 'No. permis')}
+                </label>
+                <input
+                  id="reg-license"
+                  type="text"
+                  value={licenseNumber}
+                  onChange={(e) => setLicenseNumber(e.target.value)}
+                  className={inputClass}
+                  placeholder="NB-12345"
+                />
+              </div>
+            </div>
 
             <div className="pt-1">
-              <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">
+              <label htmlFor="reg-password" className="block text-sm font-medium text-stone-700 mb-1">
                 {t('auth.password')}
               </label>
               <div className="relative">
                 <input
+                  id="reg-password"
                   type={showPassword ? 'text' : 'password'}
+                  autoComplete="new-password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -261,20 +310,23 @@ export default function RegisterPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-stone-400 hover:text-stone-600 dark:hover:text-stone-300"
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-stone-400 hover:text-stone-600"
                   tabIndex={-1}
+                  aria-label={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">
+              <label htmlFor="reg-confirm-password" className="block text-sm font-medium text-stone-700 mb-1">
                 {t('auth.confirmPassword')}
               </label>
               <div className="relative">
                 <input
+                  id="reg-confirm-password"
                   type={showConfirmPassword ? 'text' : 'password'}
+                  autoComplete="new-password"
                   required
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
@@ -284,8 +336,9 @@ export default function RegisterPage() {
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-stone-400 hover:text-stone-600 dark:hover:text-stone-300"
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-stone-400 hover:text-stone-600"
                   tabIndex={-1}
+                  aria-label={showConfirmPassword ? t('auth.hidePassword') : t('auth.showPassword')}
                 >
                   {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>

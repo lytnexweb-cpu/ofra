@@ -1,25 +1,19 @@
 import { lazy, Suspense, useEffect } from 'react'
 import { createBrowserRouter, Navigate, Outlet, useLocation } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
+import { useQuery } from '@tanstack/react-query'
 import { authApi } from '../api/auth.api'
 import Layout from '../components/Layout'
 import AdminLayout from '../components/AdminLayout'
 
+const MARKETING_URL = import.meta.env.VITE_MARKETING_URL || 'https://ofra.ca'
+
 // Lazy-loaded pages for code splitting
-const LandingPage = lazy(() => import('../pages/LandingPage'))
-const PricingPage = lazy(() => import('../pages/PricingPage'))
-const PrivacyPage = lazy(() => import('../pages/PrivacyPage'))
-const TermsPage = lazy(() => import('../pages/TermsPage'))
-const ContactPage = lazy(() => import('../pages/ContactPage'))
-const AboutPage = lazy(() => import('../pages/AboutPage'))
-const FounderPage = lazy(() => import('../pages/FounderPage'))
-const FeaturesPage = lazy(() => import('../pages/FeaturesPage'))
-const FaqPage = lazy(() => import('../pages/FaqPage'))
 const LoginPage = lazy(() => import('../pages/LoginPage'))
 const AdminLoginPage = lazy(() => import('../pages/AdminLoginPage'))
 const RegisterPage = lazy(() => import('../pages/RegisterPage'))
 const ForgotPasswordPage = lazy(() => import('../pages/ForgotPasswordPage'))
+const ResetPasswordPage = lazy(() => import('../pages/ResetPasswordPage'))
 const VerifyEmailPage = lazy(() => import('../pages/VerifyEmailPage'))
 const OnboardingPage = lazy(() => import('../pages/OnboardingPage'))
 const DashboardPage = lazy(() => import('../pages/DashboardPage'))
@@ -35,11 +29,10 @@ const SettingsPage = lazy(() => import('../pages/SettingsPage'))
 const AccountPage = lazy(() => import('../pages/AccountPage'))
 const NotFoundPage = lazy(() => import('../pages/NotFoundPage'))
 
-const AdminDashboardPage = lazy(() => import('../pages/admin/AdminDashboardPage'))
-const AdminSubscribersPage = lazy(() => import('../pages/admin/AdminSubscribersPage'))
-const AdminActivityPage = lazy(() => import('../pages/admin/AdminActivityPage'))
-const AdminSystemPage = lazy(() => import('../pages/admin/AdminSystemPage'))
-const AdminPlansPage = lazy(() => import('../pages/admin/AdminPlansPage'))
+// Admin pages
+const AdminPulsePage = lazy(() => import('../pages/admin/AdminPulsePage'))
+const AdminGensPage = lazy(() => import('../pages/admin/AdminGensPage'))
+const AdminConfigPage = lazy(() => import('../pages/admin/AdminConfigPage'))
 
 function PageLoading() {
   return (
@@ -81,9 +74,10 @@ function ProtectedRoute({ children, skipOnboardingCheck = false }: { children: R
   }
 
   if (!data?.success) {
-    // Show landing page for unauthenticated visitors at root /
+    // Redirect unauthenticated visitors at root / to marketing site
     if (location.pathname === '/') {
-      return <LazyPage><LandingPage /></LazyPage>
+      window.location.href = MARKETING_URL
+      return null
     }
     return <Navigate to="/login" replace />
   }
@@ -129,6 +123,7 @@ function ScrollToTop() {
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [pathname])
+
   return <Outlet />
 }
 
@@ -136,42 +131,6 @@ export const router = createBrowserRouter([
   {
     element: <ScrollToTop />,
     children: [
-  {
-    path: '/welcome',
-    element: <Navigate to="/" replace />,
-  },
-  {
-    path: '/pricing',
-    element: <LazyPage><PricingPage /></LazyPage>,
-  },
-  {
-    path: '/privacy',
-    element: <LazyPage><PrivacyPage /></LazyPage>,
-  },
-  {
-    path: '/terms',
-    element: <LazyPage><TermsPage /></LazyPage>,
-  },
-  {
-    path: '/about',
-    element: <LazyPage><AboutPage /></LazyPage>,
-  },
-  {
-    path: '/founder',
-    element: <LazyPage><FounderPage /></LazyPage>,
-  },
-  {
-    path: '/features',
-    element: <LazyPage><FeaturesPage /></LazyPage>,
-  },
-  {
-    path: '/faq',
-    element: <LazyPage><FaqPage /></LazyPage>,
-  },
-  {
-    path: '/contact',
-    element: <LazyPage><ContactPage /></LazyPage>,
-  },
   {
     path: '/login',
     element: <LazyPage><LoginPage /></LazyPage>,
@@ -183,6 +142,10 @@ export const router = createBrowserRouter([
   {
     path: '/forgot-password',
     element: <LazyPage><ForgotPasswordPage /></LazyPage>,
+  },
+  {
+    path: '/reset-password',
+    element: <LazyPage><ResetPasswordPage /></LazyPage>,
   },
   {
     path: '/verify-email',
@@ -271,23 +234,15 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <LazyPage><AdminDashboardPage /></LazyPage>,
+        element: <LazyPage><AdminPulsePage /></LazyPage>,
       },
       {
-        path: 'subscribers',
-        element: <LazyPage><AdminSubscribersPage /></LazyPage>,
+        path: 'gens',
+        element: <LazyPage><AdminGensPage /></LazyPage>,
       },
       {
-        path: 'activity',
-        element: <LazyPage><AdminActivityPage /></LazyPage>,
-      },
-      {
-        path: 'system',
-        element: <LazyPage><AdminSystemPage /></LazyPage>,
-      },
-      {
-        path: 'plans',
-        element: <LazyPage><AdminPlansPage /></LazyPage>,
+        path: 'config',
+        element: <LazyPage><AdminConfigPage /></LazyPage>,
       },
     ],
   },

@@ -13,6 +13,7 @@ export const createTransactionValidator = vine.compile(
     folderUrl: vine.string().trim().maxLength(2048).optional(),
     address: vine.string().trim().maxLength(500).optional(),
     closingDate: vine.string().trim().optional(),
+    clientRole: vine.enum(['buyer', 'seller']).optional(),
     autoConditionsEnabled: vine.boolean().optional(),
     profile: vine
       .object({
@@ -44,6 +45,7 @@ export const updateTransactionValidator = vine.compile(
       'financing_refused', 'inspection_failed', 'buyer_withdrawal',
       'seller_withdrawal', 'deadline_expired', 'mutual_agreement', 'other',
     ]).optional(),
+    clientRole: vine.enum(['buyer', 'seller']).optional(),
     // M09: Property fields (inline update)
     address: vine.string().trim().maxLength(500).optional(),
     city: vine.string().trim().maxLength(200).optional(),

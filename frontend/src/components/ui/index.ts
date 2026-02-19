@@ -17,4 +17,3 @@ export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from './Tool
 
 // Custom components
 export { default as PageTransition } from './PageTransition'
-export { default as ThemeToggle } from './ThemeToggle'

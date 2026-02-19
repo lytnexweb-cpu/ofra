@@ -84,4 +84,13 @@ export default await Env.create(new URL('../', import.meta.url), {
   |----------------------------------------------------------
   */
   SENTRY_DSN: Env.schema.string.optional(),
+
+  /*
+  |----------------------------------------------------------
+  | Stripe billing
+  |----------------------------------------------------------
+  */
+  STRIPE_SECRET_KEY: Env.schema.string.optional(),
+  STRIPE_WEBHOOK_SECRET: Env.schema.string.optional(),
+  STRIPE_PUBLISHABLE_KEY: Env.schema.string.optional(),
 })

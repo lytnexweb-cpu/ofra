@@ -82,23 +82,47 @@ export class OfferService {
   }): Promise<Offer> {
     const direction = params.direction || 'buyer_to_seller'
 
+    // C1b: Auto-deduce fromPartyId/toPartyId from buyerPartyId/sellerPartyId + direction (per-party)
+    let derivedFromPartyId = params.fromPartyId ?? null
+    let derivedToPartyId = params.toPartyId ?? null
+    if (!derivedFromPartyId) {
+      const src = direction === 'buyer_to_seller' ? params.buyerPartyId : params.sellerPartyId
+      if (src) derivedFromPartyId = src
+    }
+    if (!derivedToPartyId) {
+      const src = direction === 'buyer_to_seller' ? params.sellerPartyId : params.buyerPartyId
+      if (src) derivedToPartyId = src
+    }
+
+    // C1b reverse: deduce buyerPartyId/sellerPartyId from from/to + direction (per-party)
+    let derivedBuyerPartyId = params.buyerPartyId ?? null
+    let derivedSellerPartyId = params.sellerPartyId ?? null
+    if (!derivedBuyerPartyId) {
+      const src = direction === 'buyer_to_seller' ? derivedFromPartyId : derivedToPartyId
+      if (src) derivedBuyerPartyId = src
+    }
+    if (!derivedSellerPartyId) {
+      const src = direction === 'buyer_to_seller' ? derivedToPartyId : derivedFromPartyId
+      if (src) derivedSellerPartyId = src
+    }
+
     const { fromPartyId, toPartyId } = await this.validatePartyCoherence(
       params.transactionId,
       direction,
-      params.fromPartyId,
-      params.toPartyId
+      derivedFromPartyId,
+      derivedToPartyId
     )
 
     // Validate buyer/seller party coherence if provided
-    if (params.buyerPartyId) {
-      const buyerParty = await TransactionParty.find(params.buyerPartyId)
-      if (!buyerParty) throw new Error(`Party not found: buyerPartyId=${params.buyerPartyId}`)
+    if (derivedBuyerPartyId) {
+      const buyerParty = await TransactionParty.find(derivedBuyerPartyId)
+      if (!buyerParty) throw new Error(`Party not found: buyerPartyId=${derivedBuyerPartyId}`)
       if (buyerParty.transactionId !== params.transactionId) throw new Error('buyerParty must belong to the same transaction')
       if (buyerParty.role !== 'buyer') throw new Error(`buyerPartyId requires role=buyer, got ${buyerParty.role}`)
     }
-    if (params.sellerPartyId) {
-      const sellerParty = await TransactionParty.find(params.sellerPartyId)
-      if (!sellerParty) throw new Error(`Party not found: sellerPartyId=${params.sellerPartyId}`)
+    if (derivedSellerPartyId) {
+      const sellerParty = await TransactionParty.find(derivedSellerPartyId)
+      if (!sellerParty) throw new Error(`Party not found: sellerPartyId=${derivedSellerPartyId}`)
       if (sellerParty.transactionId !== params.transactionId) throw new Error('sellerParty must belong to the same transaction')
       if (sellerParty.role !== 'seller') throw new Error(`sellerPartyId requires role=seller, got ${sellerParty.role}`)
     }
@@ -106,8 +130,8 @@ export class OfferService {
     const offer = await Offer.create({
       transactionId: params.transactionId,
       status: 'received',
-      buyerPartyId: params.buyerPartyId ?? null,
-      sellerPartyId: params.sellerPartyId ?? null,
+      buyerPartyId: derivedBuyerPartyId,
+      sellerPartyId: derivedSellerPartyId,
       initialDirection: direction,
     })
 

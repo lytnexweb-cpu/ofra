@@ -13,7 +13,9 @@
   },
   "dashboard": {
     "error": "Échec du chargement du tableau de bord",
-    "greeting": "Bonjour, {{name}} \ud83d\udc4b",
+    "onboardingSkipped": "Complétez votre profil pour débloquer les suggestions automatiques de conditions.",
+    "completeProfile": "Compléter",
+    "greeting": "Bonjour, {{name}} 👋",
     "subtitle": "Voici l'état de vos transactions.",
     "transactions": "Transactions",
     "thisWeek": "Cette semaine",
@@ -39,7 +41,13 @@
         "step2": "Ajoutez/validez vos conditions",
         "step3": "Ofra vous alerte avant les deadlines",
         "cta": "Créer ma première transaction",
-        "csvHint": "Astuce : import CSV clients disponible (optionnel)"
+        "csvHint": "Astuce : import CSV clients disponible (optionnel)",
+        "cardTransaction": "Créer une transaction",
+        "cardTransactionDesc": "Ajoutez votre première offre ou mandat",
+        "cardClient": "Ajouter un client",
+        "cardClientDesc": "Constituez votre base de contacts",
+        "cardImport": "Importer un CSV",
+        "cardImportDesc": "Importez vos clients existants"
       },
       "card": {
         "open": "Ouvrir",
@@ -446,7 +454,23 @@
     "address": "Adresse",
     "city": "Ville",
     "province": "Province",
-    "emailNotVerified": "Veuillez vérifier votre adresse courriel avant de vous connecter. Consultez votre boîte de réception."
+    "agency": "Agence",
+    "licenseNumber": "No. permis",
+    "emailNotVerified": "Veuillez vérifier votre adresse courriel avant de vous connecter. Consultez votre boîte de réception.",
+    "resetPasswordTitle": "Nouveau mot de passe",
+    "resetPasswordDescription": "Entrez votre nouveau mot de passe ci-dessous.",
+    "newPassword": "Nouveau mot de passe",
+    "resetPassword": "Réinitialiser le mot de passe",
+    "resetting": "Réinitialisation...",
+    "resetTokenExpired": "Ce lien de réinitialisation est invalide ou a expiré. Veuillez en demander un nouveau.",
+    "resetPasswordFailed": "Échec de la réinitialisation. Veuillez réessayer.",
+    "passwordResetSuccess": "Mot de passe réinitialisé !",
+    "passwordResetSuccessDesc": "Votre mot de passe a été changé avec succès. Vous pouvez maintenant vous connecter.",
+    "resetLinkInvalid": "Lien invalide",
+    "resetLinkInvalidDesc": "Ce lien de réinitialisation est invalide. Veuillez demander un nouveau lien.",
+    "requestNewLink": "Demander un nouveau lien",
+    "hidePassword": "Masquer le mot de passe",
+    "showPassword": "Afficher le mot de passe"
   },
   "verify": {
     "loading": "Vérification en cours...",
@@ -456,7 +480,10 @@
     "errorDesc": "Ce lien de vérification est invalide ou a expiré. Veuillez vous inscrire à nouveau.",
     "tryAgain": "S'inscrire à nouveau",
     "checkEmail": "Vérifiez votre courriel",
-    "checkEmailDesc": "Un courriel de vérification a été envoyé. Cliquez sur le lien dans le courriel pour activer votre compte."
+    "checkEmailDesc": "Un courriel de vérification a été envoyé. Cliquez sur le lien dans le courriel pour activer votre compte.",
+    "resendLink": "Renvoyer le courriel de vérification",
+    "resending": "Envoi en cours...",
+    "resendSuccess": "Courriel renvoyé ! Vérifiez votre boîte de réception."
   },
   "register": {
     "heroTagline": "Le premier gestionnaire transactionnel du Nouveau-Brunswick",
@@ -553,7 +580,13 @@
       "closingDate": "Date de closing",
       "offerExpiry": "Expiration offre",
       "inspection": "Date limite inspection",
-      "financing": "Date limite financement"
+      "financing": "Date limite financement",
+      "clientRole": "Rôle du client dans cette transaction",
+      "selectClient": "Rechercher un client..."
+    },
+    "clientRole": {
+      "buyer": "Acheteur",
+      "seller": "Vendeur"
     },
     "property": {
       "title": "Informations du bien"
@@ -601,7 +634,8 @@
     },
     "errors": {
       "title": "{{count}} erreur(s) de validation",
-      "desc": "Corrigez les erreurs ci-dessous avant de pouvoir enregistrer."
+      "desc": "Corrigez les erreurs ci-dessous avant de pouvoir enregistrer.",
+      "clientRoleRequired": "Rôle du client requis"
     },
     "sidebar": {
       "title": "Résumé des changements",
@@ -1015,16 +1049,6 @@
   "settings": {
     "title": "Paramètres",
     "subtitle": "Personnalisez l'apparence et le comportement de l'application",
-    "appearance": {
-      "title": "Apparence",
-      "darkMode": "Mode sombre",
-      "darkModeDescription": "Activer le thème sombre pour réduire la fatigue oculaire",
-      "theme": {
-        "light": "Clair",
-        "dark": "Sombre",
-        "system": "Système"
-      }
-    },
     "language": {
       "title": "Langue",
       "description": "Choisissez la langue de l'interface",
@@ -1072,7 +1096,12 @@
         "past_due": "En retard",
         "cancelled": "Annulé",
         "expired": "Expiré"
-      }
+      },
+      "cancelTitle": "Annuler l'abonnement",
+      "cancelDesc": "Votre abonnement restera actif jusqu'à la fin de la période de facturation en cours.",
+      "cancelConfirm": "Êtes-vous sûr de vouloir annuler votre abonnement ?",
+      "cancelButton": "Annuler l'abonnement",
+      "cancelSuccess": "Abonnement annulé. Il restera actif jusqu'à la fin de la période."
     },
     "profile": {
       "title": "Informations du profil",
@@ -1173,545 +1202,6 @@
       "cta": "Accéder à mon tableau de bord"
     }
   },
-  "about": {
-    "hero": {
-      "badge": "Notre histoire",
-      "title": "Qui est",
-      "titleHighlight": "Ofra ?",
-      "subtitle": "Ofra est né d'un constat simple : les courtiers immobiliers du Nouveau-Brunswick méritent un outil moderne, bilingue et conforme à leur réalité."
-    },
-    "mission": {
-      "title": "Notre mission",
-      "p1": "Au Nouveau-Brunswick, les courtiers immobiliers jonglent entre des dizaines de conditions, des échéances critiques et une réglementation FINTRAC exigeante — souvent avec des outils qui n'ont pas été conçus pour eux.",
-      "p2": "Ofra existe pour éliminer les oublis, réduire le stress et redonner aux courtiers le temps de faire ce qu'ils font le mieux : accompagner leurs clients vers la transaction parfaite.",
-      "quote": "Chaque courtier devrait pouvoir dormir tranquille en sachant que rien ne passe entre les mailles du filet.",
-      "quoteAuthor": "L'équipe Ofra"
-    },
-    "problem": {
-      "title": "Le problème qu'on résout",
-      "subtitle": "Trop de courtiers perdent du temps et de l'argent à cause d'outils inadaptés à la réalité du Nouveau-Brunswick.",
-      "pain1": {
-        "title": "Conditions oubliées",
-        "desc": "Des inspections manquées, des financements non suivis — chaque oubli peut coûter une transaction entière."
-      },
-      "pain2": {
-        "title": "Conformité complexe",
-        "desc": "FINTRAC, vérification d'identité, traçabilité des fonds — les exigences sont réelles et les conséquences sérieuses."
-      },
-      "pain3": {
-        "title": "Outils génériques",
-        "desc": "Des CRMs américains traduits en français qui ne comprennent ni les puits artésiens, ni les fosses septiques, ni le marché du NB."
-      }
-    },
-    "values": {
-      "title": "Ce qui nous guide",
-      "subtitle": "Quatre convictions qui façonnent chaque fonctionnalité d'Ofra.",
-      "simplicity": {
-        "title": "Simplicité d'abord",
-        "desc": "Un outil puissant n'a pas besoin d'être compliqué. Chaque écran est conçu pour que l'essentiel soit visible en un coup d'œil."
-      },
-      "compliance": {
-        "title": "Conformité intégrée",
-        "desc": "La conformité FINTRAC et la traçabilité ne sont pas des extras — elles sont tissées dans chaque étape du workflow."
-      },
-      "bilingual": {
-        "title": "100% bilingue",
-        "desc": "Français et anglais de bout en bout. Pas une traduction approximative, mais une expérience native dans les deux langues."
-      },
-      "independence": {
-        "title": "Indépendance",
-        "desc": "Ofra est un outil indépendant, conçu par et pour les courtiers du Nouveau-Brunswick. Pas de bannière, pas de franchise."
-      }
-    },
-    "nb": {
-      "title": "Conçu pour le",
-      "titleHighlight": "Nouveau-Brunswick",
-      "subtitle": "Pas un outil générique adapté — un outil né ici, pour les courtiers d'ici.",
-      "local": {
-        "title": "Ancré localement",
-        "desc": "Basé à Moncton. On connaît le marché, les réglementations provinciales et les réalités terrain des courtiers du NB."
-      },
-      "community": {
-        "title": "Par la communauté",
-        "desc": "Développé en collaboration directe avec des courtiers actifs. Chaque fonctionnalité répond à un besoin réel exprimé par le terrain."
-      },
-      "mission": {
-        "title": "Mission locale",
-        "desc": "Notre objectif : que chaque courtier du NB ait accès à un outil professionnel, moderne et abordable — peu importe la taille de sa pratique."
-      }
-    },
-    "cta": {
-      "title": "Prêt à simplifier votre pratique ?",
-      "subtitle": "Essayez Ofra gratuitement pendant 30 jours. Sans carte de crédit, sans engagement.",
-      "trial": "Essayer 30 jours gratuit",
-      "contact": "Nous contacter"
-    }
-  },
-  "founderPage": {
-    "hero": {
-      "badge": "Programme Fondateur",
-      "title": "Devenez",
-      "titleHighlight": "Fondateur d'Ofra",
-      "subtitle": "Rejoignez les 25 premiers courtiers à façonner l'avenir d'Ofra. Prix garanti à vie, accès prioritaire et reconnaissance permanente.",
-      "spotsLeft": "{{count}} places restantes sur {{total}}"
-    },
-    "what": {
-      "title": "Qu'est-ce que le Programme Fondateur ?",
-      "p1": "Le Programme Fondateur est une invitation exclusive pour les 25 premiers courtiers qui croient en notre vision. En tant que Fondateur, vous bénéficiez d'un prix garanti à vie — peu importe les futures augmentations de tarifs.",
-      "p2": "Ce n'est pas juste un rabais. C'est un partenariat. Vous façonnez l'outil avec nous, et en retour, vous gardez le prix du jour où vous avez rejoint le mouvement. Pour toujours.",
-      "cardTitle": "Carte Fondateur",
-      "cardDesc": "Ce que vous recevez en tant que membre fondateur :",
-      "perk1": "Prix garanti à vie sur votre forfait",
-      "perk2": "Accès prioritaire aux nouvelles fonctionnalités",
-      "perk3": "Badge Fondateur sur votre profil",
-      "perk4": "Ligne directe avec l'équipe de développement"
-    },
-    "benefits": {
-      "title": "Les avantages Fondateur",
-      "subtitle": "Quatre avantages exclusifs qui récompensent votre confiance.",
-      "priceLock": {
-        "title": "Prix garanti à vie",
-        "desc": "Votre prix mensuel ne changera jamais. Quand nos tarifs augmenteront, vous garderez le prix du jour 1."
-      },
-      "earlyAccess": {
-        "title": "Accès prioritaire",
-        "desc": "Testez les nouvelles fonctionnalités en avant-première. Votre feedback façonne directement le produit."
-      },
-      "badge": {
-        "title": "Badge Fondateur",
-        "desc": "Un badge permanent sur votre profil qui reconnaît votre statut de pionnier. Vous êtes les premiers."
-      },
-      "directSupport": {
-        "title": "Support direct",
-        "desc": "Accès direct à l'équipe fondatrice. Pas de file d'attente, pas de chatbot — des vrais humains qui vous connaissent."
-      }
-    },
-    "howItWorks": {
-      "title": "Comment ça fonctionne ?",
-      "subtitle": "Trois étapes simples pour devenir Fondateur.",
-      "stepLabel": "Étape {{n}}",
-      "signup": {
-        "title": "Créez votre compte",
-        "desc": "Inscrivez-vous gratuitement et profitez de 30 jours d'essai avec toutes les fonctionnalités Pro."
-      },
-      "choose": {
-        "title": "Choisissez votre forfait",
-        "desc": "À la fin de votre essai, sélectionnez le forfait qui correspond à votre pratique."
-      },
-      "locked": {
-        "title": "Prix verrouillé à vie",
-        "desc": "Votre prix est gelé dès votre abonnement. Vous ne paierez jamais plus, même si nos tarifs augmentent."
-      }
-    },
-    "faq": {
-      "title": "Questions fréquentes",
-      "q1": "Combien de places de Fondateur reste-t-il ?",
-      "a1": "Le programme est limité à 25 places. Une fois les 25 places prises, le programme se ferme définitivement. Les places restantes sont affichées en temps réel sur cette page.",
-      "q2": "Qu'est-ce que « prix garanti à vie » signifie exactement ?",
-      "a2": "Le prix que vous payez le jour de votre abonnement ne changera jamais. Si vous êtes sur le forfait Pro à 79$/mois et que nous augmentons à 99$/mois dans le futur, vous restez à 79$/mois — pour toujours.",
-      "q3": "Est-ce que je peux changer de forfait en tant que Fondateur ?",
-      "a3": "Oui. Si vous passez à un forfait supérieur, vous bénéficiez du prix actuel de ce forfait, qui sera aussi verrouillé à vie. Si vous descendez, vous gardez le prix du forfait inférieur tel qu'il était au moment de votre première inscription.",
-      "q4": "L'essai gratuit est-il inclus pour les Fondateurs ?",
-      "a4": "Absolument. Vous bénéficiez des mêmes 30 jours d'essai gratuit avec toutes les fonctionnalités Pro. Le prix se verrouille au moment où vous choisissez votre forfait payant.",
-      "q5": "Comment je sais que c'est réellement limité à 25 places ?",
-      "a5": "Le compteur sur cette page est connecté en temps réel à notre base de données. Quand il affiche 0 places restantes, le programme se ferme automatiquement. C'est un engagement ferme, pas une tactique marketing."
-    },
-    "cta": {
-      "title": "Rejoignez les pionniers",
-      "subtitle": "Les prix augmenteront. Votre prix ne changera jamais.",
-      "button": "Devenir Fondateur",
-      "trust1": "30 jours gratuits",
-      "trust2": "Sans carte de crédit",
-      "trust3": "Prix garanti à vie"
-    }
-  },
-  "featuresPage": {
-    "hero": {
-      "badge": "Fonctionnalités",
-      "title": "Tout ce qu'il faut pour",
-      "titleHighlight": "zéro oubli",
-      "subtitle": "4 piliers conçus spécifiquement pour les courtiers immobiliers du Nouveau-Brunswick. Chaque fonctionnalité élimine un risque."
-    },
-    "pillars": {
-      "workflow": {
-        "badge": "Pilier 1",
-        "title": "Workflow guidé en 8 étapes",
-        "desc": "De la consultation initiale à la post-clôture, chaque transaction suit un parcours structuré. Plus besoin de se demander « qu'est-ce que je dois faire maintenant ? »",
-        "steps": {
-          "title": "8 étapes structurées",
-          "desc": "Consultation → Offre soumise → Offre acceptée → Période conditionnelle → Ferme → Pré-clôture → Jour de clôture → Post-clôture."
-        },
-        "validation": {
-          "title": "Validation à chaque étape",
-          "desc": "Impossible de passer à l'étape suivante sans avoir complété les conditions requises. Les bloquantes doivent être résolues."
-        },
-        "visibility": {
-          "title": "Vision 360° en temps réel",
-          "desc": "Conditions, documents, parties et échéances — tout est visible en un coup d'œil depuis le tableau de bord de la transaction."
-        },
-        "check1": "Consultation à post-clôture en un parcours",
-        "check2": "Validation obligatoire des conditions bloquantes",
-        "check3": "Tableau de bord par transaction",
-        "check4": "Historique complet de chaque étape"
-      },
-      "conditions": {
-        "badge": "Pilier 2",
-        "title": "Conditions automatisées",
-        "desc": "52 modèles de conditions auto-générées selon le profil de la propriété. Rural avec puits artésien ? Condo en ville ? Financé ? Ofra sait quoi vérifier.",
-        "auto": {
-          "title": "Auto-génération contextuelle",
-          "desc": "Le moteur analyse le type de propriété, le contexte (rural, condo) et le financement pour générer les conditions pertinentes automatiquement."
-        },
-        "tracking": {
-          "title": "Suivi des échéances",
-          "desc": "Chaque condition a une date d'échéance. Ofra vous alerte avant qu'il ne soit trop tard — pas après."
-        },
-        "alerts": {
-          "title": "Alertes proactives",
-          "desc": "Conditions en retard, bloquantes non résolues, échéances dans 48h — le tableau de bord urgences vous dit ce qui brûle."
-        },
-        "check1": "52 modèles de conditions (Universal, Rural, Condo, Financé)",
-        "check2": "3 niveaux : bloquante, requise, recommandée",
-        "check3": "Résolution avec pièce justificative",
-        "check4": "Audit trail complet de chaque résolution"
-      },
-      "offers": {
-        "badge": "Pilier 3",
-        "title": "Négociation centralisée",
-        "desc": "Offres, contre-offres, acceptation — tout l'historique de négociation en un seul endroit. Plus de courriels perdus ou de versions confuses.",
-        "intake": {
-          "title": "Formulaire d'offre externe",
-          "desc": "Envoyez un lien sécurisé au courtier collaborateur. Il remplit l'offre en ligne, vous la recevez directement dans la transaction."
-        },
-        "history": {
-          "title": "Historique complet",
-          "desc": "Chaque offre, chaque contre-offre, chaque statut — tout est tracé chronologiquement. Rien ne se perd."
-        },
-        "parties": {
-          "title": "Gestion des parties",
-          "desc": "Acheteurs, vendeurs, courtiers collaborateurs, notaires — chaque intervenant est lié à la transaction avec son rôle."
-        },
-        "check1": "Formulaire d'offre avec lien partageable",
-        "check2": "Statuts : en attente, acceptée, rejetée, contre-offre",
-        "check3": "Parties liées automatiquement à la transaction",
-        "check4": "Historique chronologique de la négociation"
-      },
-      "documents": {
-        "badge": "Pilier 4",
-        "title": "Documents & preuves",
-        "desc": "Chaque condition résolue peut avoir sa preuve attachée. Versioning, upload sécurisé et traçabilité complète pour la conformité.",
-        "upload": {
-          "title": "Upload sécurisé",
-          "desc": "Glissez-déposez vos fichiers. Support PDF, images, documents — tout est stocké de façon sécurisée."
-        },
-        "versioning": {
-          "title": "Versioning de documents",
-          "desc": "Nouvelle version d'un contrat ? Uploadez-la. L'historique des versions est conservé automatiquement."
-        },
-        "compliance": {
-          "title": "Conformité FINTRAC",
-          "desc": "Vérification d'identité, confirmation des fonds — les preuves FINTRAC sont intégrées au workflow, pas dans un dossier séparé."
-        },
-        "check1": "Upload drag-and-drop (PDF, images, docs)",
-        "check2": "Versioning automatique des documents",
-        "check3": "Preuves liées aux conditions",
-        "check4": "Conformité FINTRAC intégrée"
-      }
-    },
-    "extras": {
-      "title": "Tout ce qui vous fait dormir tranquille",
-      "subtitle": "Au-delà des 4 piliers, Ofra intègre tout ce qu'il faut pour ne plus jamais stresser sur une transaction.",
-      "dashboard": {
-        "title": "Dashboard urgences",
-        "desc": "Dès la connexion, voyez ce qui brûle : conditions en retard, échéances dans 48h, transactions critiques. Zéro surprise."
-      },
-      "pdfExport": {
-        "title": "Export PDF personnalisable",
-        "desc": "Générez un PDF complet de votre transaction : offres, conditions, documents, historique. Choisissez les sections, la langue et le filigrane."
-      },
-      "shareLinks": {
-        "title": "Liens de partage sécurisés",
-        "desc": "Partagez une transaction avec un collègue ou un notaire via un lien sécurisé. Expiration configurable, mot de passe optionnel, compteur de vues."
-      },
-      "permissions": {
-        "title": "Permissions granulaires",
-        "desc": "Propriétaire, admin, éditeur, lecteur — contrôlez exactement qui voit quoi. Invitez des collaborateurs par courriel avec le bon niveau d'accès."
-      },
-      "csvImport": {
-        "title": "Import CSV de clients",
-        "desc": "Migrez vos clients existants en un clic. Téléchargez notre modèle CSV, remplissez-le et importez. Fini la saisie manuelle."
-      },
-      "fintrac": {
-        "title": "Conformité FINTRAC intégrée",
-        "desc": "Vérification d'identité et traçabilité des fonds intégrées dans le workflow. Chaque preuve est liée à sa condition — pas dans un dossier séparé."
-      },
-      "bilingual": {
-        "title": "100% bilingue FR/EN",
-        "desc": "Interface native en français et en anglais. Changez de langue en un clic, toute l'expérience s'adapte instantanément."
-      },
-      "notifications": {
-        "title": "Notifications proactives",
-        "desc": "Soyez alerté quand une condition approche son échéance, quand une offre est reçue ou quand un collaborateur modifie votre transaction."
-      },
-      "mobile": {
-        "title": "Design responsive",
-        "desc": "Ofra fonctionne sur mobile, tablette et desktop. Vérifiez une condition, validez un document — même en déplacement."
-      }
-    },
-    "cta": {
-      "title": "Prêt à tout voir en action ?",
-      "subtitle": "Essayez Ofra gratuitement pendant 30 jours avec toutes les fonctionnalités Pro.",
-      "trial": "Essayer 30 jours gratuit",
-      "pricing": "Voir les forfaits"
-    }
-  },
-  "landing": {
-    "nav": {
-      "features": "Fonctionnalités",
-      "pricing": "Tarifs",
-      "founder": "Fondateur",
-      "login": "Connexion",
-      "freeTrial": "Essai gratuit"
-    },
-    "hero": {
-      "badge": "Conçu pour le Nouveau-Brunswick",
-      "titleLine1": "Chaque transaction,",
-      "titleLine2": "maîtrisée.",
-      "subtitle": "Workflow en 8 étapes, conditions auto-générées, documents centralisés — tout ce dont les courtiers du N.-B. ont besoin, dans un seul outil.",
-      "cta": "Essayer 30 jours gratuit",
-      "demo": "Découvrir",
-      "trust1": "30 jours gratuits",
-      "trust2": "Sans carte de crédit",
-      "trust3": "100% canadien",
-      "trust4": "Sans contrat"
-    },
-    "scroll": "Découvrir",
-    "why": {
-      "title": "Le suivi transactionnel, simplifié",
-      "subtitle": "Trop de courtiers jonglent entre Excel, courriels et post-it pour suivre leurs transactions. Les oublis coûtent cher. OFRA change la donne.",
-      "benefit1": "Workflow en 8 étapes adapté aux transactions du Nouveau-Brunswick",
-      "benefit2": "Conditions auto-générées selon le profil de la propriété",
-      "benefit3": "Documents et preuves centralisés, versionnés et validés"
-    },
-    "features": {
-      "title": "Les 4 piliers d'OFRA",
-      "subtitle": "Chaque fonctionnalité est conçue pour éliminer les oublis et réduire le stress.",
-      "workflow": {
-        "title": "Workflow guidé",
-        "desc": "8 étapes structurées de la consultation à la post-clôture. Validations, conditions et documents à chaque étape."
-      },
-      "conditions": {
-        "title": "Conditions automatisées",
-        "desc": "Générées automatiquement selon le profil de la propriété : rural, condo, financé. Fini les oublis."
-      },
-      "offers": {
-        "title": "Négociation centralisée",
-        "desc": "Offres, contre-offres, acceptation — tout l'historique de négociation en un seul endroit."
-      },
-      "documents": {
-        "title": "Documents & preuves",
-        "desc": "Upload, versioning et validation des preuves pour chaque condition. Tout est tracé."
-      }
-    },
-    "productTour": {
-      "title": "Votre transaction, en un coup d'œil",
-      "subtitle": "Un tableau de bord complet pour suivre chaque étape, condition et document en temps réel."
-    },
-    "moreFeatures": {
-      "title": "Dormez tranquille, on gère le reste",
-      "subtitle": "Au-delà du workflow et des conditions, Ofra protège vos commissions sur tous les fronts.",
-      "seeAll": "Voir toutes les fonctionnalités",
-      "dashboard": {
-        "title": "Dashboard urgences",
-        "desc": "Ce qui brûle en premier : conditions en retard, échéances 48h, transactions critiques."
-      },
-      "pdfExport": {
-        "title": "Export PDF",
-        "desc": "Générez un résumé complet de votre transaction en PDF. Sections, langue et filigrane au choix."
-      },
-      "shareLinks": {
-        "title": "Liens de partage",
-        "desc": "Partagez une transaction par lien sécurisé avec expiration et mot de passe optionnel."
-      },
-      "permissions": {
-        "title": "Permissions par membre",
-        "desc": "Contrôlez qui voit quoi : propriétaire, admin, éditeur ou lecteur. Invitations par courriel."
-      },
-      "csvImport": {
-        "title": "Import CSV clients",
-        "desc": "Migrez vos clients existants en un clic avec notre modèle CSV prêt à remplir."
-      },
-      "notifications": {
-        "title": "Alertes proactives",
-        "desc": "Échéances, offres reçues, modifications — soyez alerté avant qu'il ne soit trop tard."
-      }
-    },
-    "founder": {
-      "badge": "Programme Fondateur",
-      "title": "Rejoignez les pionniers",
-      "subtitle": "Soyez parmi les 25 premiers courtiers à façonner l'avenir d'OFRA.",
-      "benefit1": "Prix garanti à vie",
-      "benefit1Desc": "Le prix que vous choisissez ne changera jamais, même si nos tarifs augmentent.",
-      "benefit2": "Accès prioritaire",
-      "benefit2Desc": "Nouvelles fonctionnalités en avant-première et support direct avec l'équipe.",
-      "benefit3": "Badge Fondateur",
-      "benefit3Desc": "Reconnaissance permanente sur votre profil. Vous êtes les premiers.",
-      "spotsLeft": "{{count}} places restantes sur 25",
-      "cta": "Devenir Fondateur",
-      "ctaSub": "Places limitées · Prix garanti à vie"
-    },
-    "pricingPreview": {
-      "title": "Tarification simple",
-      "subtitle": "30 jours d'essai gratuit avec toutes les fonctionnalités Pro. Sans carte de crédit.",
-      "perMonth": "/mois",
-      "popular": "Populaire",
-      "allPlans": "Comparer tous les forfaits",
-      "trialIncluded": "Essai 30 jours inclus"
-    },
-    "plans": {
-      "starter": { "name": "Starter", "price": "29", "desc": "L'essentiel pour démarrer" },
-      "solo": { "name": "Solo", "price": "49", "desc": "Pour l'agent indépendant" },
-      "pro": { "name": "Pro", "price": "79", "desc": "Pour les agents en croissance" },
-      "agence": { "name": "Agence", "price": "149", "desc": "Pour les équipes" }
-    },
-    "cta": {
-      "title": "Prêt à simplifier vos transactions?",
-      "subtitle": "Commencez votre essai gratuit de 30 jours. Toutes les fonctionnalités Pro, sans carte de crédit.",
-      "button": "Commencer gratuitement"
-    },
-    "footer": {
-      "tagline": "Zéro oubli. Zéro stress.",
-      "product": "Produit",
-      "company": "Entreprise",
-      "legal": "Légal",
-      "contact": "Contact",
-      "about": "À propos",
-      "faq": "FAQ",
-      "signup": "Inscription",
-      "privacy": "Politique de confidentialité",
-      "terms": "Conditions d'utilisation",
-      "contactUs": "Nous contacter",
-      "rights": "Tous droits réservés."
-    },
-    "mockup": {
-      "closingDateLabel": "Fermeture prévue",
-      "closingDate": "15 mars 2026",
-      "progression": "Progression",
-      "inDays": "dans {{count}} jours",
-      "stepOf": "Étape {{current}} / {{total}}",
-      "steps": "Étapes",
-      "currentStep": "Étape actuelle",
-      "conditionalPeriod": "Période conditionnelle",
-      "legalCompliance": "Conformité légale",
-      "validated": "Validée",
-      "idVerified": "Pièce d'identité vérifiée",
-      "fundsConfirmed": "Source des fonds confirmée",
-      "wellInspection": "Inspection puits artésien",
-      "autoBadge": "Auto",
-      "autoGeneratedWell": "Auto-générée · Propriété rurale avec puits détectée",
-      "blocking": "Bloquante",
-      "dueInDays": "Échéance dans {{count}}j",
-      "backTransactions": "Transactions",
-      "residentialPurchase": "Achat résidentiel",
-      "offerAccepted": "offre acceptée",
-      "propertyProfile": "Profil de la propriété",
-      "locked": "Verrouillé",
-      "residential": "Résidentiel",
-      "rural": "Rural",
-      "financed": "Financé",
-      "artesianWell": "Puits artésien",
-      "septicTank": "Fosse septique",
-      "nextActions": "Prochaines actions",
-      "wellWaterTest": "Test eau potable — puits artésien",
-      "financingApproval": "Approbation de financement",
-      "daysRemaining": "{{count}} jours restants",
-      "documents": "Documents",
-      "docValidated": "Validées",
-      "docPending": "En attente",
-      "docMissing": "Manquante",
-      "step1": "1. Consultation",
-      "step1Date": "12 jan.",
-      "step2": "2. Offre soumise",
-      "step2Date": "20 jan.",
-      "step3": "3. Offre acceptée",
-      "step3Date": "25 jan.",
-      "step4": "4. Période conditionnelle",
-      "step4Since": "Depuis {{days}} jours",
-      "blockingCount": "Bloquantes ({{count}})",
-      "residentialInspection": "Inspection résidentielle",
-      "completedFeb5": "Complétée le 5 fév.",
-      "proofUploaded": "Preuve uploadée",
-      "nDays": "{{count}} jours",
-      "requiredCount": "Requises ({{count}})",
-      "awaitingLender": "En attente du prêteur · Soumis le 1 fév.",
-      "recommendedCount": "Recommandées ({{count}})",
-      "septicInspection": "Inspection fosse septique",
-      "completedFeb6": "Complétée le 6 fév.",
-      "reportReceived": "Rapport reçu",
-      "step5": "5. Ferme en attente",
-      "step6": "6. Pré-closing",
-      "step7": "7. Jour du closing",
-      "step8": "8. Post-closing"
-    }
-  },
-  "legal": {
-    "privacy": {
-      "title": "Politique de confidentialité",
-      "lastUpdated": "Dernière mise à jour",
-      "sections": {
-        "collection": {
-          "title": "Informations collectées",
-          "content": "Nous collectons les informations que vous fournissez directement, y compris votre nom, adresse courriel et données de transaction. Nous collectons également automatiquement des données d'utilisation pour améliorer nos services."
-        },
-        "usage": {
-          "title": "Utilisation de vos informations",
-          "content": "Nous utilisons vos informations pour fournir et améliorer les services Ofra, communiquer avec vous au sujet de votre compte et envoyer des mises à jour importantes sur vos transactions."
-        },
-        "storage": {
-          "title": "Stockage et sécurité des données",
-          "content": "Vos données sont stockées en toute sécurité sur des serveurs situés au Canada. Nous utilisons le chiffrement et les mesures de sécurité standard de l'industrie pour protéger vos informations."
-        },
-        "rights": {
-          "title": "Vos droits",
-          "content": "Vous avez le droit d'accéder, de corriger ou de supprimer vos données personnelles. Vous pouvez également demander une copie de vos données ou restreindre certaines activités de traitement."
-        },
-        "contact": {
-          "title": "Nous contacter",
-          "content": "Pour les demandes liées à la confidentialité, contactez-nous à privacy@ofra.ca ou écrivez à : Ofra, Moncton, Nouveau-Brunswick, Canada."
-        }
-      }
-    },
-    "terms": {
-      "title": "Conditions d'utilisation",
-      "lastUpdated": "Dernière mise à jour",
-      "sections": {
-        "acceptance": {
-          "title": "Acceptation des conditions",
-          "content": "En accédant ou en utilisant Ofra, vous acceptez d'être lié par ces conditions d'utilisation et notre politique de confidentialité. Si vous n'acceptez pas, veuillez ne pas utiliser nos services."
-        },
-        "services": {
-          "title": "Nos services",
-          "content": "Ofra fournit des outils de gestion de transactions immobilières pour les professionnels. Nous nous réservons le droit de modifier, suspendre ou interrompre toute partie de nos services à tout moment."
-        },
-        "account": {
-          "title": "Votre compte",
-          "content": "Vous êtes responsable de maintenir la confidentialité de vos identifiants de compte et de toutes les activités sous votre compte. Informez-nous immédiatement de toute utilisation non autorisée."
-        },
-        "payment": {
-          "title": "Conditions de paiement",
-          "content": "Les forfaits payants sont facturés mensuellement ou annuellement. Les prix sont en dollars canadiens et soumis aux taxes applicables. Les remboursements sont fournis selon notre politique de remboursement."
-        },
-        "termination": {
-          "title": "Résiliation",
-          "content": "Vous pouvez annuler votre compte à tout moment. Nous pouvons résilier ou suspendre votre compte pour violation de ces conditions ou pour toute autre raison à notre discrétion."
-        },
-        "liability": {
-          "title": "Limitation de responsabilité",
-          "content": "Ofra est fourni « tel quel » sans garanties. Nous ne sommes pas responsables des dommages indirects, accessoires ou consécutifs découlant de votre utilisation de nos services."
-        }
-      }
-    }
-  },
   "offers": {
     "title": "Offres",
     "new": "Nouvelle offre",
@@ -1719,7 +1209,7 @@
     "loading": "Chargement des offres...",
     "empty": "Aucune offre pour le moment.",
     "revisionHistory": "Historique des révisions",
-    "deposit": "Dépôt",
+    "deposit": "Dépôt (CAD)",
     "financing": "Financement",
     "expires": "Expire",
     "accept": "Accepter",
@@ -1789,7 +1279,6 @@
     },
     "counterOffer": "Contre-offre",
     "price": "Prix (CAD)",
-    "deposit": "Dépôt (CAD)",
     "financingAmount": "Montant financement (CAD)",
     "expiryDate": "Date d'expiration",
     "directionLabel": "Direction",
@@ -1864,6 +1353,11 @@
     },
     "requiredFields": "Champs obligatoires",
     "nameRequired": "Le prénom et le nom sont obligatoires.",
+    "clientType": "Type de client",
+    "clientTypeNone": "— Non spécifié —",
+    "clientTypeBuyer": "Acheteur",
+    "clientTypeSeller": "Vendeur",
+    "clientTypeBoth": "Acheteur & Vendeur",
     "creating": "Création...",
     "createClient": "Créer le client",
     "saving": "Enregistrement...",
@@ -1884,204 +1378,6 @@
       "deleteBlockedMessage": "Impossible de supprimer ce client car il a {{count}} transaction(s). Veuillez d'abord supprimer ou réaffecter les transactions.",
       "address": "Adresse"
     }
-  },
-  "faqPage": {
-    "hero": {
-      "title": "Questions fréquentes",
-      "subtitle": "Tout ce que vous devez savoir sur Ofra. Vous ne trouvez pas votre réponse ? Contactez-nous."
-    },
-    "categories": {
-      "general": "Général",
-      "trial": "Essai gratuit",
-      "features": "Fonctionnalités",
-      "billing": "Facturation",
-      "security": "Sécurité & conformité"
-    },
-    "general": {
-      "q1": "Qu'est-ce qu'Ofra ?",
-      "a1": "Ofra est un logiciel de gestion de transactions immobilières conçu spécifiquement pour les courtiers du Nouveau-Brunswick. Il couvre le workflow complet de la consultation à la post-clôture, avec des conditions automatisées, la gestion des offres et la conformité FINTRAC intégrée.",
-      "q2": "Ofra est-il disponible partout au Canada ?",
-      "a2": "Ofra est actuellement optimisé pour le marché du Nouveau-Brunswick (conditions spécifiques, réglementations provinciales, bilinguisme FR/EN). Nous prévoyons d'étendre notre couverture à d'autres provinces dans le futur.",
-      "q3": "Ofra remplace-t-il mon CRM actuel ?",
-      "a3": "Ofra n'est pas un CRM généraliste — c'est un outil de suivi de transactions. Il se concentre sur le workflow de chaque transaction individuelle (conditions, offres, documents, étapes). Il complète votre CRM existant plutôt que de le remplacer.",
-      "q4": "En quelle langue est disponible Ofra ?",
-      "a4": "Ofra est 100% bilingue français et anglais. Vous pouvez changer de langue en un clic depuis votre profil, et toute l'interface s'adapte instantanément."
-    },
-    "trial": {
-      "q1": "Comment fonctionne l'essai gratuit ?",
-      "a1": "Vous bénéficiez de 30 jours d'essai gratuit avec toutes les fonctionnalités du forfait Pro. Aucune carte de crédit n'est requise pour commencer. À la fin de l'essai, vous choisissez le forfait qui correspond à votre pratique.",
-      "q2": "Que se passe-t-il à la fin de l'essai ?",
-      "a2": "À la fin des 30 jours, vous choisissez un forfait payant pour continuer. Vos données et transactions sont conservées. Si vous ne choisissez pas de forfait, votre compte reste accessible en lecture seule.",
-      "q3": "Puis-je annuler pendant l'essai ?",
-      "a3": "Absolument. Vous pouvez annuler à tout moment pendant l'essai sans aucun frais. Aucune carte de crédit n'est demandée à l'inscription."
-    },
-    "features": {
-      "q1": "Combien de transactions puis-je gérer ?",
-      "a1": "Cela dépend de votre forfait. Starter permet 3 transactions actives, Solo 10, Pro 25 et Agence est illimité. Les transactions archivées ne comptent pas dans la limite.",
-      "q2": "Comment fonctionnent les conditions automatisées ?",
-      "a2": "Lorsque vous créez une transaction avec le profil de propriété rempli, Ofra analyse automatiquement le type (résidentiel, condo, terrain), le contexte (rural, urbain) et le financement pour générer les conditions pertinentes. 52 modèles sont disponibles.",
-      "q3": "Puis-je personnaliser le workflow ?",
-      "a3": "Le workflow en 8 étapes est standardisé pour garantir la conformité et la cohérence. Cependant, les conditions sont entièrement personnalisables et vous pouvez ajouter des conditions manuelles à chaque étape.",
-      "q4": "Comment fonctionne le formulaire d'offre externe ?",
-      "a4": "Vous générez un lien sécurisé depuis une transaction. Le courtier collaborateur remplit le formulaire en ligne avec les détails de l'offre, et celle-ci apparaît directement dans votre transaction pour révision."
-    },
-    "billing": {
-      "q1": "Les prix sont-ils en dollars canadiens ?",
-      "a1": "Oui, tous les prix affichés sont en dollars canadiens (CAD). Aucun frais caché, aucune surprise.",
-      "q2": "Puis-je changer de forfait ?",
-      "a2": "Oui, vous pouvez passer à un forfait supérieur à tout moment. Le changement prend effet immédiatement. Pour passer à un forfait inférieur, vous devrez peut-être archiver des transactions actives pour respecter la nouvelle limite.",
-      "q3": "Y a-t-il un contrat à long terme ?",
-      "a3": "Non. Tous les forfaits sont mensuels sans engagement. Vous pouvez annuler à tout moment. Pas de frais d'annulation, pas de pénalité."
-    },
-    "security": {
-      "q1": "Mes données sont-elles en sécurité ?",
-      "a1": "Oui. Ofra utilise le chiffrement HTTPS/TLS pour toutes les communications, les mots de passe sont hashés avec bcrypt, et les sessions utilisent des cookies HTTP-only. Vos données sont hébergées au Canada.",
-      "q2": "Ofra est-il conforme à FINTRAC ?",
-      "a2": "Ofra intègre des outils de conformité FINTRAC directement dans le workflow : vérification d'identité, confirmation de la provenance des fonds et traçabilité complète. L'outil facilite votre conformité mais ne remplace pas votre responsabilité légale de courtier.",
-      "q3": "Qui a accès à mes transactions ?",
-      "a3": "Par défaut, seul vous avez accès à vos transactions. Vous pouvez partager l'accès à des collaborateurs spécifiques avec des permissions granulaires (lecture seule, édition). Les administrateurs de votre agence peuvent avoir une vue d'ensemble si applicable."
-    },
-    "cta": {
-      "title": "Vous n'avez pas trouvé votre réponse ?",
-      "subtitle": "Notre équipe est là pour vous aider. Écrivez-nous et nous vous répondrons dans les 24 à 48 heures.",
-      "contact": "Nous contacter",
-      "trial": "Essayer 30 jours gratuit"
-    }
-  },
-  "contact": {
-    "hero": {
-      "badge": "Contact"
-    },
-    "title": "Parlons de votre pratique",
-    "subtitle": "Une question, une suggestion ou besoin d'aide ? Notre équipe basée à Moncton est là pour vous.",
-    "info": {
-      "title": "Coordonnées",
-      "subtitle": "On vous répond rapidement, en français ou en anglais.",
-      "email": { "label": "Courriel" },
-      "location": { "label": "Emplacement" },
-      "response": { "label": "Temps de réponse", "value": "24–48 heures ouvrables" }
-    },
-    "form": {
-      "name": "Nom complet",
-      "namePlaceholder": "Jean Dupont",
-      "email": "Adresse courriel",
-      "emailPlaceholder": "jean@entreprise.com",
-      "company": "Nom de l'agence",
-      "companyPlaceholder": "Votre agence",
-      "teamSize": "Taille de l'équipe",
-      "selectTeamSize": "Sélectionner la taille",
-      "solo": "solo",
-      "message": "Message",
-      "messagePlaceholder": "Parlez-nous de vos besoins...",
-      "submit": "Envoyer le message",
-      "sending": "Envoi..."
-    },
-    "success": {
-      "title": "Message envoyé !",
-      "message": "Merci pour votre message. Notre équipe vous contactera dans les 24 à 48 heures ouvrables."
-    }
-  },
-  "pricing": {
-    "title": "Tarification simple et transparente",
-    "subtitle": "Commencez avec 30 jours gratuits, puis choisissez votre forfait. Prix en CAD, sans frais cachés.",
-    "perMonth": "/mois",
-    "popular": "Le plus populaire",
-    "plans": {
-      "essentiel": {
-        "name": "Essentiel",
-        "desc": "Pour les agents indépendants qui débutent",
-        "cta": "Commencer avec Essentiel"
-      },
-      "pro": {
-        "name": "Pro",
-        "desc": "Pour les agents en croissance",
-        "cta": "Commencer avec Pro"
-      },
-      "agence": {
-        "name": "Agence",
-        "desc": "Pour les équipes et courtages",
-        "cta": "Commencer avec Agence"
-      }
-    },
-    "features": {
-      "users": "Utilisateurs",
-      "transactions": "Transactions",
-      "storage": "Stockage",
-      "fileSize": "Taille max fichier",
-      "workflow": "Flux de travail guidé",
-      "conditions": "Suivi des conditions",
-      "customWorkflows": "Workflows personnalisés",
-      "reminders": "Rappels intelligents",
-      "csvImport": "Import CSV",
-      "reports": "Rapports",
-      "advancedReports": "Rapports avancés",
-      "api": "Accès API",
-      "onboarding": "Onboarding dédié",
-      "support": "Support"
-    },
-    "comparison": {
-      "toggle": "Comparer tous les forfaits",
-      "feature": "Fonctionnalité",
-      "limits": "Limites",
-      "base": "Fonctionnalités de base",
-      "exports": "Exports & Partage",
-      "premium": "Fonctionnalités premium",
-      "txActives": "Transactions actives",
-      "storage": "Stockage",
-      "users": "Utilisateurs",
-      "pdfExports": "Exports PDF",
-      "shareLinks": "Liens de partage"
-    },
-    "faq": {
-      "title": "Questions fréquentes",
-      "q1": "Puis-je essayer Ofra avant de payer?",
-      "a1": "Oui! Tous les nouveaux comptes bénéficient de 30 jours gratuits avec toutes les fonctionnalités Pro. Sans carte de crédit requise.",
-      "q2": "Puis-je annuler à tout moment?",
-      "a2": "Absolument. Il n'y a pas de contrat à long terme. Annulez votre abonnement à tout moment depuis vos paramètres.",
-      "q3": "Mes données sont-elles sécurisées?",
-      "a3": "Oui, nous utilisons le cryptage et les pratiques de sécurité standard de l'industrie. Vos données sont stockées au Canada.",
-      "q4": "Qu'est-ce que le Programme Fondateur?",
-      "a4": "Les 25 premiers courtiers à rejoindre Ofra bénéficient d'un prix garanti à vie — le prix que vous choisissez ne changera jamais, même si nos tarifs augmentent."
-    },
-    "month": "mois",
-    "monthly": "Mensuel",
-    "annual": "Annuel",
-    "activeTransactions": "actives",
-    "unlimited": "illimité",
-    "storage": "stockage",
-    "gates": {
-      "guidedWorkflow": "Workflow guidé 8 étapes",
-      "conditionsEngine": "Moteur de conditions",
-      "pdfExportsLimited": "{{count}} exports PDF/mois",
-      "shareLinksLimited": "{{count}} lien partage/TX",
-      "conditionPacks": "Conditions auto (packs NB)",
-      "fintrac": "Identité FINTRAC",
-      "evidence": "Preuves de résolution",
-      "auditHistory": "Historique d'audit",
-      "exportsUnlimited": "Exports & partage illimités",
-      "multiUser": "{{count}} utilisateurs"
-    },
-    "comingSoon": "Bientôt disponible",
-    "year": "an",
-    "save": "Économisez {{amount}}$",
-    "saveMonths": "2 mois gratuits",
-    "trust": "30 jours gratuits · Sans carte de crédit · 100% Canada 🍁 · FR/EN · Sans contrat",
-    "founder": {
-      "title": "Programme Fondateur",
-      "spots": "19/25 places restantes",
-      "desc": "30 jours gratuits + prix garanti à vie sur tous les forfaits. Les prix augmenteront.",
-      "cta": "Devenir Fondateur"
-    },
-    "cta": {
-      "title": "Prêt à simplifier vos transactions?",
-      "subtitle": "30 jours d'essai gratuit. Toutes les fonctionnalités Pro, sans carte de crédit.",
-      "button": "Commencer gratuitement",
-      "start": "Commencer"
-    },
-    "selectPlan": "Choisir ce forfait",
-    "currentPlan": "Forfait actuel",
-    "downgradeBlocked": "Archivez {{count}} transaction(s) d'abord.",
-    "planChanged": "Forfait changé avec succès!"
   },
   "csvImport": {
     "button": "Importer",
@@ -2284,71 +1580,6 @@
       "cancelled": "Annulé",
       "expired": "Expiré"
     }
-  },
-  "comingSoon": {
-    "hook": "Un dimanche soir. Votre téléphone sonne.\nUne condition expire demain matin.",
-    "pill": "Lancement exclusif — Nouveau-Brunswick",
-    "subtitle": "Vous pensiez être à jour. Mais une seule date peut faire basculer une transaction.",
-    "microCopy": "Conditions. Deadlines. FINTRAC. Surveillées automatiquement.",
-    "heroCta": "Rejoindre le Founder 25",
-    "heroCtaSecondary": "Demander un accès fondateur",
-    "act1Time": "Dimanche soir",
-    "act1Line1": "Votre téléphone sonne.",
-    "act1Line2": "La condition de financement expire demain matin.",
-    "act1Line3": "Vous aviez oublié.",
-    "act1Coda": "Ce scénario, chaque courtier l'a vécu.",
-    "act2Line1": "Et si chaque deadline, chaque condition, chaque obligation FINTRAC était suivie.",
-    "act2Highlight": "Automatiquement.",
-    "act2Sub": "Sans Excel. Sans post-it. Sans stress du dimanche soir.",
-    "act3Title": "Ofra surveille vos transactions 24/7.",
-    "act3Features": "Conditions intelligentes.\nAlertes proactives.\nConformité FINTRAC intégrée.",
-    "act3Line1": "Zéro oubli.",
-    "act3Line2": "Zéro stress.",
-    "act3Mantra2": "100% conforme.",
-    "founderPill": "Founder 25",
-    "founderTitle": "— Le cercle fondateur d'Ofra.",
-    "founderSub": "Réservé aux 25 agents les plus stratégiques du Nouveau-Brunswick.",
-    "founderBenefit1Title": "Accès avant-première",
-    "founderBenefit1Desc": "Accédez à Ofra 30\u00a0jours avant le lancement public. Configurez vos transactions, explorez chaque fonctionnalité, prenez de l'avance.",
-    "founderBenefit2Title": "30\u00a0jours gratuits",
-    "founderBenefit2Desc": "Testez la plateforme complète sans engagement. Aucune carte de crédit requise. Si Ofra ne vous convainc pas, vous ne payez rien.",
-    "founderBenefit3Title": "Prix garanti à vie",
-    "founderBenefit3Desc": "Votre tarif fondateur est verrouillé pour toujours. Même si le prix public augmente, le vôtre ne changera jamais.",
-    "founderBenefit4Title": "25\u00a0places. Pas une de plus.",
-    "founderBenefit4Desc": "Le programme fondateur est strictement limité. Vous aurez un canal direct avec l'équipe et votre voix comptera dans l'évolution du produit.",
-    "priceLockBadge": "\uD83D\uDD12 Prix bloqué à vie",
-    "countdownPrefix": "Lancement dans",
-    "days": "jours",
-    "hours": "heures",
-    "and": "et",
-    "minutes": "minutes",
-    "spotsRemaining": "places restantes sur 25.",
-    "spotsLimited": "Programme strictement limité à 25 agents.",
-    "spotsSubtitle": "25 agents fondateurs. Prix garanti à vie.",
-    "codeButton": "Rejoindre le Founder 25",
-    "codePlaceholder": "Votre code fondateur",
-    "validate": "Valider",
-    "codeRequired": "Veuillez entrer votre code.",
-    "codeAccepted": "Code accepté ! Redirection...",
-    "codeInvalid": "Code invalide. Vérifiez votre courriel d'invitation.",
-    "noCode": "Demander un accès fondateur",
-    "emailPlaceholder": "votre@courriel.ca",
-    "notify": "M'aviser",
-    "emailRequired": "Veuillez entrer votre courriel.",
-    "emailInvalid": "Courriel invalide.",
-    "emailSuccess": "Vous serez notifié au lancement !",
-    "footerLine1": "Conçu pour le marché immobilier du Nouveau-Brunswick.",
-    "footerLine2": "Pensé pour les réalités du terrain.",
-    "footerCopyright": "© 2026 Ofra · Moncton, NB · 100% hébergé au Canada"
-  },
-  "maintenance": {
-    "title": "Maintenance en cours",
-    "description": "Nous effectuons une mise à jour pour améliorer votre expérience.",
-    "backSoon": "Nous serons de retour dans quelques minutes.",
-    "updating": "Mise à jour en cours...",
-    "dataSafe": "Vos données sont en sécurité.",
-    "noAction": "Aucune action requise de votre part.",
-    "contact": "Questions ?"
   },
   "subscription": {
     "banner": {
@@ -2662,18 +1893,17 @@
     "summaryDiff": "Différence",
     "summaryClosing": "Clôture",
     "summaryExpiration": "Expiration",
-    "summaryConditions": "Conditions",
     "emailNotify": "Notifier par email",
     "cancel": "Annuler",
     "submit": "Soumettre l'offre",
-    "conditionsInfo": "{{count}} conditions • {{tags}}",
-    "loadPack": "Charger",
-    "packLoadedLabel": "{{name}} chargé",
-    "packConditionsApplied": "{{count}} conditions appliquées",
-    "packsTitle": "Packs",
-    "conditionsTitle": "Conditions générées",
-    "conditionsEmpty": "Aucune condition. Chargez un pack ou ajoutez manuellement.",
-    "conditionsManageLink": "Gérer en détail dans Conditions & preuves",
+    "accordionHistory": "Historique",
+    "historyTitle": "Historique",
+    "historyEmpty": "Première offre pour cette transaction",
+    "historyEmptyHint": "L'historique de négociation apparaîtra ici",
+    "draftTitle": "Aperçu",
+    "draftBadge": "Brouillon",
+    "draftDirection": "{{from}} → {{to}}",
+    "offerLabel": "Offre #{{number}}",
     "errorBanner": "{{count}} erreurs empêchent la soumission. Corrigez les champs ci-dessous.",
     "errorAmountRequired": "Le montant est requis",
     "errorDepositExceeds": "Le dépôt dépasse le montant offert",
@@ -2685,7 +1915,6 @@
     "successType": "Type",
     "successAmount": "Montant",
     "successExpiration": "Expiration",
-    "successConditions": "Conditions",
     "successNotification": "Notification",
     "successEmailSent": "Email envoyé",
     "viewTimeline": "Voir dans la timeline",
@@ -2706,9 +1935,6 @@
     "retry": "Réessayer",
     "copyDetails": "Copier les détails",
     "copied": "Copié !",
-    "badgePack": "Pack",
-    "badgeActive": "Active",
-    "accordionConditions": "Conditions de l'offre",
     "buyerParty": "Acheteur",
     "sellerParty": "Vendeur",
     "selectParty": "Sélectionner une partie",
@@ -2911,6 +2137,8 @@
   },
   "notificationBell": {
     "markAllRead": "Tout marquer lu",
+    "clearAll": "Tout effacer",
+    "delete": "Supprimer",
     "empty": "Aucune notification",
     "emailSentTo": "Courriel envoyé à"
   },
@@ -2974,5 +2202,28 @@
     "activeLink": "Lien d'offre actif",
     "disableLink": "Désactiver",
     "noActiveLink": "Aucun lien d'offre actif"
+  },
+  "stripe": {
+    "title": "Paiement",
+    "titleSubscribe": "S'abonner",
+    "titleChangePlan": "Changer de forfait",
+    "descSubscribe": "Entrez votre carte pour activer votre abonnement.",
+    "descChangePlan": "Confirmez le changement de forfait. La facturation sera ajustée au prorata.",
+    "notConfigured": "Le paiement n'est pas encore configuré. Contactez le support.",
+    "cardDetails": "Informations de la carte",
+    "founderPrice": "Prix fondateur",
+    "perMonth": "/mois",
+    "perYear": "/an",
+    "securePayment": "Paiement sécurisé par Stripe. Vos données bancaires ne sont jamais stockées sur nos serveurs.",
+    "processing": "Traitement en cours...",
+    "subscribeCta": "S'abonner — {{price}} {{interval}}",
+    "changePlanCta": "Confirmer le changement",
+    "subscriptionActive": "Abonnement activé !",
+    "planChanged": "Forfait changé avec succès !",
+    "thankYou": "Merci pour votre confiance.",
+    "errorSetupIntent": "Impossible de préparer le paiement.",
+    "errorCardConfirm": "La vérification de la carte a échoué.",
+    "errorAttach": "Impossible d'enregistrer la carte.",
+    "errorSubscribe": "L'abonnement a échoué."
   }
 }

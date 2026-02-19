@@ -9,14 +9,14 @@ primary_region = 'yyz'
 [build]
 
 [deploy]
-  release_command = 'node build/bin/console.js migration:run --force && node build/bin/console.js db:seed'
+  release_command = 'node build/bin/console.js migration:run --force'
 
 [http_service]
   internal_port = 3333
   force_https = true
   auto_stop_machines = 'stop'
   auto_start_machines = true
-  min_machines_running = 0
+  min_machines_running = 1
   processes = ['app']
 
 [[vm]]

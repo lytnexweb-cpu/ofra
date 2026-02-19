@@ -5,21 +5,36 @@ import { DateTime } from 'luxon'
 
 export default class extends BaseSeeder {
   async run() {
-    // Delete existing user first
+    const now = DateTime.now().toSQL()
+
+    // --- Superadmin ---
+    await db.from('users').where('email', 'admin@ofra.ca').delete()
+    const adminPassword = await hash.make('Admin2026!')
+
+    await db.table('users').insert({
+      email: 'admin@ofra.ca',
+      full_name: 'Sam Admin',
+      password: adminPassword,
+      role: 'superadmin',
+      email_verified: true,
+      created_at: now,
+      updated_at: now,
+    })
+
+    console.log('Superadmin created: admin@ofra.ca / Admin2026!')
+
+    // --- Demo user ---
     await db.from('users').where('email', 'demo@ofra.local').delete()
+    const demoPassword = await hash.make('password123')
 
-    // Hash password manually
-    const hashedPassword = await hash.make('password123')
-
-    // Insert directly with query builder to bypass model hooks
     await db.table('users').insert({
       email: 'demo@ofra.local',
       full_name: 'Demo User',
-      password: hashedPassword,
-      created_at: DateTime.now().toSQL(),
-      updated_at: DateTime.now().toSQL(),
+      password: demoPassword,
+      created_at: now,
+      updated_at: now,
     })
 
-    console.log('User created with manually hashed password (bypassing hooks)')
+    console.log('Demo user created: demo@ofra.local / password123')
   }
 }

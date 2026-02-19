@@ -100,6 +100,7 @@ export interface Transaction {
   cancellationReason: string | null
   archivedAt: string | null
   archivedReason: string | null
+  clientRole: ClientRole | null
   createdAt: string
   updatedAt: string
   client?: Client
@@ -110,6 +111,8 @@ export interface Transaction {
   offers?: Offer[]
   notes?: any[]
 }
+
+export type ClientRole = 'buyer' | 'seller'
 
 export interface CreateTransactionRequest {
   clientId: number
@@ -123,6 +126,7 @@ export interface CreateTransactionRequest {
   folderUrl?: string
   address?: string
   closingDate?: string
+  clientRole?: ClientRole
   autoConditionsEnabled?: boolean
   profile?: {
     propertyType: PropertyType

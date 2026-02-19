@@ -80,4 +80,27 @@ export class NotificationService {
       .whereNull('readAt')
       .update({ readAt: DateTime.now().toSQL() })
   }
+
+  /**
+   * Delete a single notification (must belong to user)
+   */
+  static async delete(notificationId: number, userId: number): Promise<void> {
+    const notification = await Notification.query()
+      .where('id', notificationId)
+      .where('userId', userId)
+      .firstOrFail()
+
+    await notification.delete()
+  }
+
+  /**
+   * Delete all notifications for a user
+   */
+  static async deleteAll(userId: number): Promise<number> {
+    const result = await Notification.query()
+      .where('userId', userId)
+      .delete()
+
+    return result[0] ?? 0
+  }
 }

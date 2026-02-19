@@ -15,6 +15,7 @@ export const createClientValidator = vine.compile(
     homePhone: vine.string().trim().optional(),
     workPhone: vine.string().trim().optional(),
     cellPhone: vine.string().trim().optional(),
+    clientType: vine.enum(['buyer', 'seller', 'both']).optional(),
   })
 )
 
@@ -33,5 +34,6 @@ export const updateClientValidator = vine.compile(
     homePhone: vine.string().trim().optional(),
     workPhone: vine.string().trim().optional(),
     cellPhone: vine.string().trim().optional(),
+    clientType: vine.enum(['buyer', 'seller', 'both']).optional(),
   })
 )

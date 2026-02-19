@@ -223,6 +223,7 @@ export class ReminderService {
         new DailyDigestMail({
           to: user.email,
           userName: user.fullName ?? user.email,
+          language: user.language,
           overdue: overdue.map((c) => ({
             title: c.title,
             clientName: c.transaction.clientName,

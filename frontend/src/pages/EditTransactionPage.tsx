@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from 'react'
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
@@ -10,8 +10,10 @@ import {
   type CreateTransactionRequest,
   type PropertyType,
   type PropertyContext,
+  type ClientRole,
 } from '../api/transactions.api'
 import { clientsApi } from '../api/clients.api'
+import CreateClientModal from '../components/CreateClientModal'
 import {
   workflowTemplatesApi,
   type WorkflowTemplate,
@@ -46,6 +48,7 @@ type TabKey = 'property' | 'parties' | 'dates'
 interface FormData {
   // Create-only
   clientId: number
+  clientRole: ClientRole | ''
   autoConditionsEnabled: boolean
   // Property
   address: string
@@ -73,6 +76,7 @@ interface OriginalData extends FormData {}
 function getInitialForm(t: Transaction, profile?: TransactionProfile | null): FormData {
   return {
     clientId: t.clientId ?? 0,
+    clientRole: t.clientRole ?? '',
     autoConditionsEnabled: true,
     address: t.property?.address ?? '',
     city: t.property?.city ?? '',
@@ -95,6 +99,7 @@ function getInitialForm(t: Transaction, profile?: TransactionProfile | null): Fo
 function getEmptyForm(autoConditions: boolean): FormData {
   return {
     clientId: 0,
+    clientRole: '',
     autoConditionsEnabled: autoConditions,
     address: '',
     city: '',
@@ -198,6 +203,7 @@ export default function EditTransactionPage() {
   const [savedChanges, setSavedChanges] = useState<FieldChange[]>([])
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
   const [createdTxId, setCreatedTxId] = useState<number | null>(null)
+  const [showCreateClient, setShowCreateClient] = useState(false)
 
   // Edit mode: load transaction
   const { data, isLoading, error } = useQuery({
@@ -304,6 +310,7 @@ export default function EditTransactionPage() {
       // Validate required fields
       const errors: Record<string, string> = {}
       if (!form.clientId) errors.clientId = t('editTransaction.errors.clientRequired', 'Client requis')
+      if (!form.clientRole) errors.clientRole = t('editTransaction.errors.clientRoleRequired', 'Rôle du client requis')
       if (!form.address.trim()) errors.address = t('editTransaction.errors.addressRequired', 'Adresse requise')
       if (Object.keys(errors).length > 0) {
         setValidationErrors(errors)
@@ -329,6 +336,7 @@ export default function EditTransactionPage() {
         type: form.type as 'purchase' | 'sale',
         workflowTemplateId: selectedTemplateId,
         autoConditionsEnabled: form.autoConditionsEnabled,
+        clientRole: form.clientRole || undefined,
         address: form.address.trim() || undefined,
         closingDate: form.closingDate || undefined,
         salePrice: !isNaN(price) ? price : undefined,
@@ -617,6 +625,7 @@ export default function EditTransactionPage() {
                 form={form} original={original} updateField={updateField}
                 validationErrors={validationErrors} t={t} isLocked={isLocked}
                 isCreateMode={isCreateMode} clients={clients}
+                onCreateClient={isCreateMode ? () => setShowCreateClient(true) : undefined}
               />
             )}
             {activeTab === 'parties' && (
@@ -704,6 +713,12 @@ export default function EditTransactionPage() {
                     <span className="text-stone-500 w-20">{t('editTransaction.fields.type', 'Type')}</span>
                     <span className="text-stone-800 font-medium">{form.type === 'purchase' ? t('editTransaction.type.purchase', 'Achat') : t('editTransaction.type.sale', 'Vente')}</span>
                   </div>
+                  {form.clientRole && (
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className="text-stone-500 w-20">{t('editTransaction.fields.clientRole', 'Rôle')}</span>
+                      <span className="text-stone-800 font-medium">{form.clientRole === 'buyer' ? t('editTransaction.clientRole.buyer', 'Acheteur') : t('editTransaction.clientRole.seller', 'Vendeur')}</span>
+                    </div>
+                  )}
                   <div className="flex items-center gap-2 text-xs">
                     <span className="text-stone-500 w-20">{t('editTransaction.fields.propertyType', 'Bien')}</span>
                     <span className="text-stone-800 font-medium">{form.propertyType} · {form.propertyContext}</span>
@@ -789,6 +804,17 @@ export default function EditTransactionPage() {
           </div>
         </div>
       )}
+
+      {/* Create Client Modal (inline from transaction) */}
+      <CreateClientModal
+        isOpen={showCreateClient}
+        onClose={() => setShowCreateClient(false)}
+        onCreated={(client) => {
+          if (form) {
+            updateField('clientId', client.id)
+          }
+        }}
+      />
     </div>
   )
 }
@@ -912,28 +938,145 @@ function CreateSidebar({ form, updateField, t }: {
 
 /* ─── Property Tab ─── */
 
-function PropertyTab({ form, original, updateField, validationErrors, t, isLocked, isCreateMode, clients }: {
+function ClientCombobox({ clients, value, onChange, onCreateClient, placeholder, error }: {
+  clients: { id: number; firstName: string; lastName: string }[]
+  value: number
+  onChange: (id: number) => void
+  onCreateClient?: () => void
+  placeholder: string
+  error?: boolean
+}) {
+  const [search, setSearch] = useState('')
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  const selected = clients.find((c) => c.id === value)
+  const filtered = search
+    ? clients.filter((c) => `${c.firstName} ${c.lastName}`.toLowerCase().includes(search.toLowerCase()))
+    : clients
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  return (
+    <div className="flex gap-2">
+      <div ref={ref} className="relative flex-1">
+        <input
+          type="text"
+          value={open ? search : (selected ? `${selected.firstName} ${selected.lastName}` : '')}
+          onChange={(e) => { setSearch(e.target.value); if (!open) setOpen(true) }}
+          onFocus={() => { setOpen(true); setSearch('') }}
+          placeholder={placeholder}
+          className={fieldClasses(false, !!error)}
+          autoComplete="off"
+        />
+        {open && (
+          <div className="absolute z-20 left-0 right-0 top-full mt-1 bg-white border border-stone-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+            {filtered.length === 0 ? (
+              <div className="px-3 py-2 text-xs text-stone-400">Aucun client trouvé</div>
+            ) : (
+              filtered.map((c) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  className={`w-full text-left px-3 py-2 text-sm hover:bg-stone-50 transition-colors ${c.id === value ? 'bg-primary/5 text-primary font-medium' : 'text-stone-700'}`}
+                  onClick={() => { onChange(c.id); setOpen(false); setSearch('') }}
+                >
+                  {c.firstName} {c.lastName}
+                </button>
+              ))
+            )}
+          </div>
+        )}
+      </div>
+      {onCreateClient && (
+        <button
+          type="button"
+          onClick={onCreateClient}
+          className="px-3 py-2 rounded-md border border-stone-300 bg-white text-stone-600 hover:bg-stone-50 hover:text-primary transition-colors text-sm font-medium"
+          title="Nouveau client"
+        >
+          +
+        </button>
+      )}
+    </div>
+  )
+}
+
+function PropertyTab({ form, original, updateField, validationErrors, t, isLocked, isCreateMode, clients, onCreateClient }: {
   form: FormData; original: OriginalData; updateField: <K extends keyof FormData>(k: K, v: FormData[K]) => void
   validationErrors: Record<string, string>; t: (k: string, f?: string) => string; isLocked: boolean
-  isCreateMode?: boolean; clients?: { id: number; firstName: string; lastName: string }[]
+  isCreateMode?: boolean; clients?: { id: number; firstName: string; lastName: string; clientType?: string | null }[]
+  onCreateClient?: () => void
 }) {
+  // C3b: Pre-select clientRole from client's clientType when client changes
+  const selectedClient = clients?.find((c) => c.id === form.clientId)
+  useEffect(() => {
+    if (!isCreateMode || !selectedClient) return
+    const ct = selectedClient.clientType
+    if (ct === 'buyer' || ct === 'seller') {
+      updateField('clientRole', ct)
+    } else {
+      // 'both' or null — always clear so user must choose
+      updateField('clientRole', '')
+    }
+  }, [form.clientId, isCreateMode, selectedClient, updateField])
   return (
     <div className={`bg-white rounded-xl border ${Object.keys(validationErrors).some(k => ['address','city','postalCode','clientId'].includes(k)) ? 'border-red-200' : 'border-stone-200'} p-5`}>
       {/* Create mode: Client select */}
       {isCreateMode && (
         <div className="mb-5 pb-5 border-b border-stone-200">
           <FieldLabel label={t('transaction.client', 'Client')} required error={!!validationErrors.clientId} />
-          <select
+          <ClientCombobox
+            clients={clients ?? []}
             value={form.clientId}
-            onChange={(e) => updateField('clientId', parseInt(e.target.value))}
-            className={fieldClasses(false, !!validationErrors.clientId)}
-          >
-            <option value="0">{t('editTransaction.fields.selectClient', 'Sélectionner un client...')}</option>
-            {(clients ?? []).map((c) => (
-              <option key={c.id} value={c.id}>{c.firstName} {c.lastName}</option>
-            ))}
-          </select>
+            onChange={(id) => updateField('clientId', id)}
+            onCreateClient={onCreateClient}
+            placeholder={t('editTransaction.fields.selectClient', 'Rechercher un client...')}
+            error={!!validationErrors.clientId}
+          />
           {validationErrors.clientId && <p className="text-[10px] text-red-600 mt-1">{validationErrors.clientId}</p>}
+
+          {/* C3b: Client role radio */}
+          {form.clientId > 0 && (
+            <div className="mt-3">
+              <FieldLabel label={t('editTransaction.fields.clientRole', 'Rôle du client dans cette transaction')} required error={!!validationErrors.clientRole} />
+              <div className="flex gap-3">
+                <label className={`flex items-center gap-2 px-3 py-2 rounded-lg border-2 cursor-pointer transition-all ${form.clientRole === 'buyer' ? 'border-[#1e3a5f] bg-[#1e3a5f]/5' : 'border-stone-200 hover:border-stone-300'}`}>
+                  <input
+                    type="radio"
+                    name="clientRole"
+                    value="buyer"
+                    checked={form.clientRole === 'buyer'}
+                    onChange={() => updateField('clientRole', 'buyer')}
+                    className="text-[#1e3a5f] focus:ring-[#1e3a5f]/30"
+                  />
+                  <span className={`text-sm font-medium ${form.clientRole === 'buyer' ? 'text-[#1e3a5f]' : 'text-stone-600'}`}>
+                    {t('editTransaction.clientRole.buyer', 'Acheteur')}
+                  </span>
+                </label>
+                <label className={`flex items-center gap-2 px-3 py-2 rounded-lg border-2 cursor-pointer transition-all ${form.clientRole === 'seller' ? 'border-[#1e3a5f] bg-[#1e3a5f]/5' : 'border-stone-200 hover:border-stone-300'}`}>
+                  <input
+                    type="radio"
+                    name="clientRole"
+                    value="seller"
+                    checked={form.clientRole === 'seller'}
+                    onChange={() => updateField('clientRole', 'seller')}
+                    className="text-[#1e3a5f] focus:ring-[#1e3a5f]/30"
+                  />
+                  <span className={`text-sm font-medium ${form.clientRole === 'seller' ? 'text-[#1e3a5f]' : 'text-stone-600'}`}>
+                    {t('editTransaction.clientRole.seller', 'Vendeur')}
+                  </span>
+                </label>
+              </div>
+              {validationErrors.clientRole && <p className="text-[10px] text-red-600 mt-1">{validationErrors.clientRole}</p>}
+            </div>
+          )}
         </div>
       )}
 

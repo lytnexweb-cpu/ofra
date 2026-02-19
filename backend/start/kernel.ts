@@ -50,4 +50,5 @@ export const middleware = router.named({
   planLimit: () => import('#middleware/plan_limit_middleware'),
   txPermission: () => import('#middleware/transaction_permission_middleware'),
   trialGuard: () => import('#middleware/trial_guard_middleware'),
+  siteMode: () => import('#middleware/site_mode_middleware'),
 })

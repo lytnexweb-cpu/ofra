@@ -3,12 +3,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { authApi } from '../api/auth.api'
 import { profileApi, type UpdateProfileInfoRequest } from '../api/profile.api'
-import { useTheme } from '../contexts/ThemeContext'
 import { Button } from '../components/ui/Button'
 import {
-  Sun,
-  Moon,
-  Monitor,
   Globe,
   Calendar,
   Clock,
@@ -16,12 +12,9 @@ import {
   AlertCircle,
 } from 'lucide-react'
 
-type ThemeMode = 'light' | 'dark' | 'system'
-
 export default function SettingsPage() {
   const { t, i18n } = useTranslation()
   const queryClient = useQueryClient()
-  const { theme, setTheme } = useTheme()
 
   // Get current user data
   const { data: userData } = useQuery({
@@ -104,79 +97,85 @@ export default function SettingsPage() {
     updateProfileMutation.mutate(data)
   }
 
-  const themeOptions = [
-    { value: 'light', label: t('settings.appearance.theme.light'), icon: Sun },
-    { value: 'dark', label: t('settings.appearance.theme.dark'), icon: Moon },
-    { value: 'system', label: t('settings.appearance.theme.system'), icon: Monitor },
-  ]
-
   return (
     <div data-testid="settings-page">
       {/* Header */}
       <div className="mb-8">
         <h1
-          className="text-2xl font-bold text-stone-900 dark:text-stone-100"
+          className="text-2xl font-bold text-stone-900"
           style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}
         >
           {t('settings.title')}
         </h1>
-        <p className="mt-1 text-stone-500 dark:text-stone-400">{t('settings.subtitle')}</p>
+        <p className="mt-1 text-stone-500">{t('settings.subtitle')}</p>
       </div>
 
       {/* Success/Error Messages */}
       {successMessage && (
-        <div className="mb-6 flex items-center gap-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border-l-4 border-emerald-500 p-4">
-          <Check className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-          <p className="text-sm text-emerald-700 dark:text-emerald-300">{successMessage}</p>
+        <div className="mb-6 flex items-center gap-3 rounded-lg bg-emerald-50 border-l-4 border-emerald-500 p-4">
+          <Check className="w-5 h-5 text-emerald-600" />
+          <p className="text-sm text-emerald-700">{successMessage}</p>
         </div>
       )}
       {errorMessage && (
-        <div className="mb-6 flex items-center gap-3 rounded-lg bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 p-4">
-          <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
-          <p className="text-sm text-red-700 dark:text-red-300">{errorMessage}</p>
+        <div className="mb-6 flex items-center gap-3 rounded-lg bg-red-50 border-l-4 border-red-500 p-4">
+          <AlertCircle className="w-5 h-5 text-red-600" />
+          <p className="text-sm text-red-700">{errorMessage}</p>
         </div>
       )}
 
-      <div className="max-w-2xl space-y-6">
-        {/* Appearance Section */}
-        <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm p-6">
-          <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100 mb-2 flex items-center gap-2">
-            <Sun className="w-5 h-5 text-stone-400" />
-            {t('settings.appearance.title')}
-          </h2>
-          <p className="text-sm text-stone-500 dark:text-stone-400 mb-6">{t('settings.appearance.darkModeDescription')}</p>
-
-          <div className="grid grid-cols-3 gap-3">
-            {themeOptions.map((option) => {
-              const Icon = option.icon
-              const isActive = theme === option.value
-              return (
-                <button
-                  key={option.value}
-                  onClick={() => setTheme(option.value as ThemeMode)}
-                  className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
-                    isActive
-                      ? 'border-primary bg-primary/5'
-                      : 'border-stone-200 dark:border-stone-600 hover:border-stone-300 dark:hover:border-stone-500'
-                  }`}
-                >
-                  <Icon className={`w-6 h-6 ${isActive ? 'text-primary' : 'text-stone-400'}`} />
-                  <span className={`text-sm font-medium ${isActive ? 'text-primary' : 'text-stone-600 dark:text-stone-400'}`}>
-                    {option.label}
-                  </span>
-                </button>
-              )
-            })}
+      {/* Profile completion checklist */}
+      {user && (() => {
+        const checks = [
+          { key: 'fullName', done: !!user.fullName, label: t('settings.checklist.fullName', 'Nom complet') },
+          { key: 'phone', done: !!user.phone, label: t('settings.checklist.phone', 'Téléphone') },
+          { key: 'agency', done: !!user.agency, label: t('settings.checklist.agency', 'Agence') },
+          { key: 'licenseNumber', done: !!user.licenseNumber, label: t('settings.checklist.license', 'No. de permis') },
+          { key: 'profilePhoto', done: !!user.profilePhoto, label: t('settings.checklist.photo', 'Photo de profil') },
+          { key: 'onboarding', done: !!user.onboardingCompleted && !user.onboardingSkipped, label: t('settings.checklist.onboarding', 'Profil de pratique') },
+        ]
+        const doneCount = checks.filter((c) => c.done).length
+        const total = checks.length
+        const pct = Math.round((doneCount / total) * 100)
+        if (pct >= 100) return null
+        return (
+          <div className="max-w-2xl mb-6 bg-white rounded-xl shadow-sm p-5">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-stone-900">
+                {t('settings.checklist.title', 'Complétion du profil')}
+              </h3>
+              <span className="text-xs font-medium text-stone-500">{pct}%</span>
+            </div>
+            <div className="w-full h-2 bg-stone-100 rounded-full mb-3 overflow-hidden">
+              <div
+                className="h-full bg-primary rounded-full transition-all duration-500"
+                style={{ width: `${pct}%` }}
+              />
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {checks.map((c) => (
+                <div key={c.key} className="flex items-center gap-2 text-xs">
+                  {c.done ? (
+                    <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                  ) : (
+                    <div className="w-3.5 h-3.5 rounded-full border-2 border-stone-300 shrink-0" />
+                  )}
+                  <span className={c.done ? 'text-stone-400 line-through' : 'text-stone-700'}>{c.label}</span>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        )
+      })()}
 
+      <div className="max-w-2xl space-y-6">
         {/* Language Section */}
-        <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm p-6">
-          <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100 mb-2 flex items-center gap-2">
+        <div className="bg-white rounded-xl shadow-sm p-6">
+          <h2 className="text-lg font-semibold text-stone-900 mb-2 flex items-center gap-2">
             <Globe className="w-5 h-5 text-stone-400" />
             {t('settings.language.title')}
           </h2>
-          <p className="text-sm text-stone-500 dark:text-stone-400 mb-6">{t('settings.language.description')}</p>
+          <p className="text-sm text-stone-500 mb-6">{t('settings.language.description')}</p>
 
           <div className="grid grid-cols-2 gap-3">
             <button
@@ -184,11 +183,11 @@ export default function SettingsPage() {
               className={`flex items-center justify-center gap-2 p-4 rounded-xl border-2 transition-all ${
                 language === 'fr'
                   ? 'border-primary bg-primary/5'
-                  : 'border-stone-200 dark:border-stone-600 hover:border-stone-300 dark:hover:border-stone-500'
+                  : 'border-stone-200 hover:border-stone-300'
               }`}
             >
               <span className="text-xl">🇫🇷</span>
-              <span className={`font-medium ${language === 'fr' ? 'text-primary' : 'text-stone-600 dark:text-stone-400'}`}>
+              <span className={`font-medium ${language === 'fr' ? 'text-primary' : 'text-stone-600'}`}>
                 {t('settings.language.french')}
               </span>
             </button>
@@ -197,11 +196,11 @@ export default function SettingsPage() {
               className={`flex items-center justify-center gap-2 p-4 rounded-xl border-2 transition-all ${
                 language === 'en'
                   ? 'border-primary bg-primary/5'
-                  : 'border-stone-200 dark:border-stone-600 hover:border-stone-300 dark:hover:border-stone-500'
+                  : 'border-stone-200 hover:border-stone-300'
               }`}
             >
               <span className="text-xl">🇬🇧</span>
-              <span className={`font-medium ${language === 'en' ? 'text-primary' : 'text-stone-600 dark:text-stone-400'}`}>
+              <span className={`font-medium ${language === 'en' ? 'text-primary' : 'text-stone-600'}`}>
                 {t('settings.language.english')}
               </span>
             </button>
@@ -209,8 +208,8 @@ export default function SettingsPage() {
         </div>
 
         {/* Regional Settings Section */}
-        <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm p-6">
-          <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100 mb-6 flex items-center gap-2">
+        <div className="bg-white rounded-xl shadow-sm p-6">
+          <h2 className="text-lg font-semibold text-stone-900 mb-6 flex items-center gap-2">
             <Calendar className="w-5 h-5 text-stone-400" />
             {t('settings.regional.title')}
           </h2>
@@ -218,14 +217,14 @@ export default function SettingsPage() {
           <form onSubmit={handleRegionalSubmit} className="space-y-5">
             {/* Date Format */}
             <div>
-              <label className="flex items-center gap-2 text-sm font-medium text-stone-700 dark:text-stone-300 mb-2">
+              <label className="flex items-center gap-2 text-sm font-medium text-stone-700 mb-2">
                 <Calendar className="w-4 h-4 text-stone-400" />
                 {t('settings.regional.dateFormat')}
               </label>
               <select
                 value={dateFormat}
                 onChange={(e) => setDateFormat(e.target.value as 'DD/MM/YYYY' | 'MM/DD/YYYY')}
-                className="w-full px-4 py-3 rounded-lg border border-stone-200 dark:border-stone-600 bg-white dark:bg-stone-700 text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-shadow"
+                className="w-full px-4 py-3 rounded-lg border border-stone-200 bg-white text-stone-900 focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-shadow"
               >
                 <option value="DD/MM/YYYY">DD/MM/YYYY (25/12/2026)</option>
                 <option value="MM/DD/YYYY">MM/DD/YYYY (12/25/2026)</option>
@@ -234,14 +233,14 @@ export default function SettingsPage() {
 
             {/* Timezone */}
             <div>
-              <label className="flex items-center gap-2 text-sm font-medium text-stone-700 dark:text-stone-300 mb-2">
+              <label className="flex items-center gap-2 text-sm font-medium text-stone-700 mb-2">
                 <Clock className="w-4 h-4 text-stone-400" />
                 {t('settings.regional.timezone')}
               </label>
               <select
                 value={timezone}
                 onChange={(e) => setTimezone(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-stone-200 dark:border-stone-600 bg-white dark:bg-stone-700 text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-shadow"
+                className="w-full px-4 py-3 rounded-lg border border-stone-200 bg-white text-stone-900 focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-shadow"
               >
                 <option value="America/Moncton">America/Moncton (AST/ADT)</option>
                 <option value="America/Halifax">America/Halifax (AST/ADT)</option>

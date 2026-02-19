@@ -72,21 +72,21 @@ export default function AdminLoginPage() {
   const isFormValid = email.trim().length > 0 && password.trim().length > 0
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-stone-100 dark:bg-stone-900 py-12 px-4 sm:px-6 lg:px-8 transition-colors">
+    <div className="min-h-screen flex items-center justify-center bg-stone-100 py-12 px-4 sm:px-6 lg:px-8 transition-colors">
       <div className="w-full max-w-md">
-        <div className="bg-white dark:bg-stone-800 rounded-2xl shadow-xl p-10">
+        <div className="bg-white rounded-2xl shadow-xl p-10">
           <OfraLogoFull className="mb-4" />
 
           {/* Admin badge */}
-          <div className="flex items-center justify-center gap-2 mb-8 text-sm text-stone-500 dark:text-stone-400">
+          <div className="flex items-center justify-center gap-2 mb-8 text-sm text-stone-500">
             <Shield className="h-4 w-4" />
             <span>{t('auth.adminPanel', 'Administration')}</span>
           </div>
 
           {/* Error Message */}
           {(error || validationError) && (
-            <div className="mb-6 rounded-lg bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 p-4">
-              <p className="text-sm text-red-700 dark:text-red-300">
+            <div className="mb-6 rounded-lg bg-red-50 border-l-4 border-red-500 p-4">
+              <p className="text-sm text-red-700">
                 {validationError || error}
               </p>
             </div>
@@ -95,29 +95,37 @@ export default function AdminLoginPage() {
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
+              <label htmlFor="admin-email" className="sr-only">{t('auth.email')}</label>
               <input
+                id="admin-email"
                 type="email"
+                autoComplete="email"
+                autoFocus
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-stone-200 dark:border-stone-600 bg-white dark:bg-stone-700 text-stone-900 dark:text-white placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-shadow"
+                className="w-full px-4 py-3 rounded-lg border border-stone-200 bg-white text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-shadow"
                 placeholder={t('auth.email')}
               />
             </div>
             <div className="relative">
+              <label htmlFor="admin-password" className="sr-only">{t('auth.password')}</label>
               <input
+                id="admin-password"
                 type={showPassword ? 'text' : 'password'}
+                autoComplete="current-password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 pr-12 rounded-lg border border-stone-200 dark:border-stone-600 bg-white dark:bg-stone-700 text-stone-900 dark:text-white placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-shadow"
+                className="w-full px-4 py-3 pr-12 rounded-lg border border-stone-200 bg-white text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-shadow"
                 placeholder={t('auth.password')}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 flex items-center pr-4 text-stone-400 hover:text-stone-600 dark:hover:text-stone-300"
+                className="absolute inset-y-0 right-0 flex items-center pr-4 text-stone-400 hover:text-stone-600"
                 tabIndex={-1}
+                aria-label={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
               >
                 {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
               </button>

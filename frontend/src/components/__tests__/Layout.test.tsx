@@ -117,11 +117,7 @@ describe('Layout', () => {
   it('renders without error and has dark mode classes available', () => {
     const { container } = renderWithProviders(<Layout />)
 
-    // The component should render and contain dark-mode-ready classes
     expect(container.querySelector('nav')).toBeInTheDocument()
     expect(container.querySelector('main')).toBeInTheDocument()
-    // Verify dark mode classes are present on elements (e.g., dark:bg-stone-900)
-    const mainContainer = container.firstChild
-    expect(mainContainer).toHaveClass('dark:bg-stone-900')
   })
 })

@@ -26,10 +26,10 @@ export default function TrialBanner() {
   // Soft wall — urgent banner
   if (trial.softWall) {
     return (
-      <div className="px-4 py-3 flex flex-col sm:flex-row items-start sm:items-center gap-3 bg-red-50 dark:bg-red-950/30 border-b border-red-200 dark:border-red-800">
+      <div className="px-4 py-3 flex flex-col sm:flex-row items-start sm:items-center gap-3 bg-red-50 border-b border-red-200">
         <div className="flex items-center gap-2 flex-1 min-w-0">
           <XCircle className="w-5 h-5 shrink-0 text-red-500" />
-          <p className="text-sm text-red-700 dark:text-red-300">
+          <p className="text-sm text-red-700">
             {t('trial.banner.softWall')}
           </p>
         </div>
@@ -51,8 +51,8 @@ export default function TrialBanner() {
       <div
         className={`px-4 py-2.5 flex flex-col sm:flex-row items-start sm:items-center gap-3 border-b ${
           isUrgent
-            ? 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800'
-            : 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800'
+            ? 'bg-amber-50 border-amber-200'
+            : 'bg-blue-50 border-blue-200'
         }`}
       >
         <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -64,8 +64,8 @@ export default function TrialBanner() {
           <p
             className={`text-sm ${
               isUrgent
-                ? 'text-amber-700 dark:text-amber-300'
-                : 'text-blue-700 dark:text-blue-300'
+                ? 'text-amber-700'
+                : 'text-blue-700'
             }`}
           >
             {t('trial.banner.active', { days: trial.daysRemaining })}

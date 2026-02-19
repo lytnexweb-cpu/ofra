@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { authApi } from '../api/auth.api'
-import { Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff, RefreshCw, CheckCircle } from 'lucide-react'
 import { OfraLogo, OfraLogoFull } from '../components/OfraLogo'
 import { LanguageToggle } from '../components/ui/LanguageToggle'
 
@@ -13,7 +13,9 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
+  const [errorCode, setErrorCode] = useState('')
   const [validationError, setValidationError] = useState('')
+  const [resendStatus, setResendStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
@@ -29,7 +31,8 @@ export default function LoginPage() {
         }, 100)
       } else {
         if (data.error?.code === 'E_EMAIL_NOT_VERIFIED') {
-          setError(t('auth.emailNotVerified', 'Veuillez vérifier votre adresse courriel avant de vous connecter. Consultez votre boîte de réception.'))
+          setError(t('auth.emailNotVerified'))
+          setErrorCode('E_EMAIL_NOT_VERIFIED')
         } else if (data.error?.code === 'E_INVALID_CREDENTIALS') {
           setError(t('auth.invalidCredentials', 'Courriel ou mot de passe invalide.'))
         } else if (data.error?.code === 'E_VALIDATION_FAILED') {
@@ -53,10 +56,23 @@ export default function LoginPage() {
     return emailRegex.test(email)
   }
 
+  const handleResendVerification = async () => {
+    if (!email.trim() || resendStatus === 'sending') return
+    setResendStatus('sending')
+    try {
+      await authApi.resendVerification(email.trim())
+      setResendStatus('sent')
+    } catch {
+      setResendStatus('error')
+    }
+  }
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    setErrorCode('')
     setValidationError('')
+    setResendStatus('idle')
 
     if (!email.trim() || !password.trim()) {
       setValidationError(t('auth.fillAllFields'))
@@ -117,16 +133,16 @@ export default function LoginPage() {
       </div>
 
       {/* Right Panel — Login form */}
-      <div className="relative flex items-center justify-center bg-white dark:bg-stone-900 py-12 px-6 sm:px-12 lg:px-16 transition-colors">
-        <LanguageToggle className="absolute top-4 right-4 text-stone-400 hover:text-primary dark:hover:text-white" />
+      <div className="relative flex items-center justify-center bg-white py-12 px-6 sm:px-12 lg:px-16 transition-colors">
+        <LanguageToggle className="absolute top-4 right-4 text-stone-400 hover:text-primary" />
         <div className="w-full max-w-sm">
           {/* Logo — small, no tagline */}
           <OfraLogoFull className="mb-10" showTagline={false} iconSize={32} />
 
-          <h2 className="text-2xl font-semibold text-stone-900 dark:text-white mb-1">
+          <h2 className="text-2xl font-semibold text-stone-900 mb-1">
             {t('auth.login')}
           </h2>
-          <p className="text-sm text-stone-500 dark:text-stone-400 mb-8">
+          <p className="text-sm text-stone-500 mb-8">
             {t('auth.noAccountYet')}{' '}
             <Link to="/register" className="text-primary hover:underline font-medium">
               {t('auth.createAccountLink')}
@@ -135,31 +151,56 @@ export default function LoginPage() {
 
           {/* Error Message */}
           {(error || validationError) && (
-            <div className="mb-6 rounded-md bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 px-4 py-3">
-              <p className="text-sm text-red-700 dark:text-red-300">
+            <div className="mb-6 rounded-md bg-red-50 border border-red-200 px-4 py-3">
+              <p className="text-sm text-red-700">
                 {validationError || error}
               </p>
+              {errorCode === 'E_EMAIL_NOT_VERIFIED' && email.trim() && (
+                <div className="mt-2">
+                  {resendStatus === 'sent' ? (
+                    <p className="text-sm text-green-600 flex items-center gap-1.5">
+                      <CheckCircle className="h-4 w-4" />
+                      {t('verify.resendSuccess')}
+                    </p>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleResendVerification}
+                      disabled={resendStatus === 'sending'}
+                      className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <RefreshCw className={`h-3.5 w-3.5 ${resendStatus === 'sending' ? 'animate-spin' : ''}`} />
+                      {resendStatus === 'sending'
+                        ? t('verify.resending')
+                        : t('verify.resendLink')}
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1.5">
+              <label htmlFor="login-email" className="block text-sm font-medium text-stone-700 mb-1.5">
                 {t('auth.email')}
               </label>
               <input
+                id="login-email"
                 type="email"
+                autoComplete="email"
+                autoFocus
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-md border border-stone-300 dark:border-stone-600 bg-white dark:bg-stone-800 text-stone-900 dark:text-white placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors text-sm"
+                className="w-full px-3.5 py-2.5 rounded-md border border-stone-300 bg-white text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors text-sm"
                 placeholder="vous@exemple.com"
               />
             </div>
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-sm font-medium text-stone-700 dark:text-stone-300">
+                <label htmlFor="login-password" className="block text-sm font-medium text-stone-700">
                   {t('auth.password')}
                 </label>
                 <Link to="/forgot-password" className="text-xs text-stone-500 hover:text-primary transition-colors">
@@ -168,18 +209,21 @@ export default function LoginPage() {
               </div>
               <div className="relative">
                 <input
+                  id="login-password"
                   type={showPassword ? 'text' : 'password'}
+                  autoComplete="current-password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-3.5 py-2.5 pr-10 rounded-md border border-stone-300 dark:border-stone-600 bg-white dark:bg-stone-800 text-stone-900 dark:text-white placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors text-sm"
+                  className="w-full px-3.5 py-2.5 pr-10 rounded-md border border-stone-300 bg-white text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors text-sm"
                   placeholder="••••••••"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-stone-400 hover:text-stone-600 dark:hover:text-stone-300"
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-stone-400 hover:text-stone-600"
                   tabIndex={-1}
+                  aria-label={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>

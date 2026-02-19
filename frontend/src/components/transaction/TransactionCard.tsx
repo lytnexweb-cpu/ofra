@@ -96,8 +96,8 @@ export default function TransactionCard({ transaction }: TransactionCardProps) {
             <div
               className={`shrink-0 flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
                 isPurchase
-                  ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
-                  : 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
+                  ? 'bg-blue-50 text-blue-700'
+                  : 'bg-emerald-50 text-emerald-700'
               }`}
             >
               {isPurchase ? <ShoppingBag className="w-3 h-3" /> : <Home className="w-3 h-3" />}
@@ -124,7 +124,7 @@ export default function TransactionCard({ transaction }: TransactionCardProps) {
               </p>
               {/* Mini progress bar */}
               <div className="mt-1 flex items-center gap-2">
-                <div className="w-16 h-1.5 bg-stone-200 dark:bg-stone-700 rounded-full overflow-hidden">
+                <div className="w-16 h-1.5 bg-stone-200 rounded-full overflow-hidden">
                   <div
                     className="h-full rounded-full transition-all duration-300"
                     style={{
@@ -139,11 +139,11 @@ export default function TransactionCard({ transaction }: TransactionCardProps) {
           </div>
 
           {/* Footer: Urgency indicators + Chevron */}
-          <div className="mt-4 pt-3 border-t border-stone-100 dark:border-stone-800 flex items-center justify-between">
+          <div className="mt-4 pt-3 border-t border-stone-100 flex items-center justify-between">
             <div className="flex items-center gap-2">
               {blockingCount > 0 && (
                 <div
-                  className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300"
+                  className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-red-50 text-red-700"
                   data-testid="blocking-badge"
                 >
                   <AlertTriangle className="w-3 h-3" />
@@ -152,7 +152,7 @@ export default function TransactionCard({ transaction }: TransactionCardProps) {
               )}
               {nearestDeadline && <CountdownBadge dueDate={nearestDeadline} />}
               {!blockingCount && !nearestDeadline && (
-                <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+                <span className="text-xs text-emerald-600 font-medium">
                   ✓ {t('actionZone.readyToAdvance')}
                 </span>
               )}
@@ -191,7 +191,7 @@ export function TransactionCardSkeleton() {
         </div>
 
         {/* Footer */}
-        <div className="mt-4 pt-3 border-t border-stone-100 dark:border-stone-800 flex items-center justify-between">
+        <div className="mt-4 pt-3 border-t border-stone-100 flex items-center justify-between">
           <Skeleton className="h-6 w-32 rounded-full" />
           <Skeleton className="h-5 w-5 rounded" />
         </div>

@@ -46,16 +46,16 @@ export default function ForgotPasswordPage() {
 
   if (submitted) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-stone-50 dark:bg-stone-900 py-12 px-4 sm:px-6 lg:px-8 transition-colors">
+      <div className="min-h-screen flex items-center justify-center bg-stone-50 py-12 px-4 sm:px-6 lg:px-8 transition-colors">
         <div className="w-full max-w-md">
-          <div className="bg-white dark:bg-stone-800 rounded-2xl shadow-xl p-10 text-center">
-            <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-6">
-              <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
+          <div className="bg-white rounded-2xl shadow-xl p-10 text-center">
+            <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
+              <CheckCircle className="h-8 w-8 text-green-600" />
             </div>
-            <h2 className="text-2xl font-bold text-stone-900 dark:text-white mb-3">
+            <h2 className="text-2xl font-bold text-stone-900 mb-3">
               {t('auth.checkYourEmail')}
             </h2>
-            <p className="text-stone-500 dark:text-stone-400 mb-6">
+            <p className="text-stone-500 mb-6">
               {t('auth.resetEmailSent')}
             </p>
             <Link
@@ -72,36 +72,40 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-stone-50 dark:bg-stone-900 py-12 px-4 sm:px-6 lg:px-8 transition-colors">
+    <div className="min-h-screen flex items-center justify-center bg-stone-50 py-12 px-4 sm:px-6 lg:px-8 transition-colors">
       <div className="w-full max-w-md">
         {/* Card */}
-        <div className="bg-white dark:bg-stone-800 rounded-2xl shadow-xl p-10">
+        <div className="bg-white rounded-2xl shadow-xl p-10">
           {/* Logo + Tagline */}
           <OfraLogoFull className="mb-8" />
 
-          <h2 className="text-xl font-semibold text-stone-900 dark:text-white text-center mb-2">
+          <h2 className="text-xl font-semibold text-stone-900 text-center mb-2">
             {t('auth.forgotPasswordTitle')}
           </h2>
-          <p className="text-sm text-stone-500 dark:text-stone-400 text-center mb-6">
+          <p className="text-sm text-stone-500 text-center mb-6">
             {t('auth.forgotPasswordDescription')}
           </p>
 
           {/* Error Message */}
           {error && (
-            <div className="mb-6 rounded-lg bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 p-4">
-              <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+            <div className="mb-6 rounded-lg bg-red-50 border-l-4 border-red-500 p-4">
+              <p className="text-sm text-red-700">{error}</p>
             </div>
           )}
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
+              <label htmlFor="forgot-email" className="sr-only">{t('auth.email')}</label>
               <input
+                id="forgot-email"
                 type="email"
+                autoComplete="email"
+                autoFocus
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-stone-200 dark:border-stone-600 bg-white dark:bg-stone-700 text-stone-900 dark:text-white placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-shadow"
+                className="w-full px-4 py-3 rounded-lg border border-stone-200 bg-white text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-shadow"
                 placeholder={t('auth.email')}
               />
             </div>

@@ -12,6 +12,7 @@ import {
   resetPasswordValidator,
 } from '#validators/auth_validator'
 import WelcomeMail from '#mails/welcome_mail'
+import logger from '@adonisjs/core/services/logger'
 import { ReminderService } from '#services/reminder_service'
 import PasswordResetMail from '#mails/password_reset_mail'
 import EmailVerificationMail from '#mails/email_verification_mail'
@@ -81,12 +82,14 @@ export default class AuthController {
             language: data.preferredLanguage,
           })
         )
-        .catch(() => {
-          // Log but don't fail registration
+        .catch((err) => {
+          logger.error({ err }, 'Failed to send verification email — SMTP may be unavailable')
         })
 
       // D53: Schedule trial reminder emails (J7, J21, J27) — fire and forget
-      ReminderService.scheduleTrialReminders(user).catch(() => {})
+      ReminderService.scheduleTrialReminders(user).catch((err) => {
+        logger.error({ userId: user.id, err }, 'Failed to schedule trial reminders — Redis/BullMQ may be unavailable')
+      })
 
       return response.created({
         success: true,

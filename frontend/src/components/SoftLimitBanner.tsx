@@ -30,8 +30,8 @@ export default function SoftLimitBanner() {
     <div
       className={`px-4 py-3 flex flex-col sm:flex-row items-start sm:items-center gap-3 ${
         isExpired
-          ? 'bg-red-50 dark:bg-red-950/30 border-b border-red-200 dark:border-red-800'
-          : 'bg-amber-50 dark:bg-amber-950/30 border-b border-amber-200 dark:border-amber-800'
+          ? 'bg-red-50 border-b border-red-200'
+          : 'bg-amber-50 border-b border-amber-200'
       }`}
     >
       <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -40,7 +40,7 @@ export default function SoftLimitBanner() {
             isExpired ? 'text-red-500' : 'text-amber-500'
           }`}
         />
-        <p className={`text-sm ${isExpired ? 'text-red-700 dark:text-red-300' : 'text-amber-700 dark:text-amber-300'}`}>
+        <p className={`text-sm ${isExpired ? 'text-red-700' : 'text-amber-700'}`}>
           {isExpired
             ? t('subscription.banner.expired', { active: activeCount, max: maxCount })
             : t('subscription.banner.warning', { active: activeCount, max: maxCount, days: daysRemaining })

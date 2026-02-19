@@ -9,7 +9,7 @@ inputDocuments:
   - docs/roadmap.md (SUPPRIMÉ — remplacé par ce PRD)
   - _bmad-output/session-2026-02-02-ux-refonte.md
 workflowType: 'prd'
-version: '2.16'
+version: '2.20'
 date: '2026-02-19'
 author: 'Sam + Équipe BMAD (Party Mode)'
 status: 'SOURCE DE VÉRITÉ'
@@ -23,8 +23,40 @@ supersedes:
 
 > **⚠️ CE DOCUMENT EST LA SOURCE DE VÉRITÉ UNIQUE**
 > Tout conflit avec un autre document se résout en faveur de ce PRD.
-> Dernière mise à jour : 2026-02-19 (v2.16)
+> Dernière mise à jour : 2026-02-19 (v2.20)
 > Auteur : Sam + Équipe BMAD (Party Mode)
+>
+> **Changements v2.20 (2026-02-19) — Vision Produit Élargie + Roadmap 3 Tiers :**
+> - **§1.1 Vision enrichie** : Ajout du principe directeur post-lancement — "L'agent gère un dossier, pas des modules"
+> - **§1.4 Moat** : 3 nouveaux différenciateurs (FINTRAC intégré, portail client, formulaires NBREA)
+> - **§9.2 Phase 2 — "Les Connexions"** (~8j) : Offre↔Parties liées, UI buyer/seller contextuelle, Carnet de pros, Sprint 2-4 conditions
+> - **§9.3 Phase 3 — "Le Copilote"** (~5j) : Rappels proactifs parties tierces, Portail client lecture seule, Dashboard commission
+> - **§9.4 Phase 4 — "L'Arme Secrète"** (~5j) : Génération PDF formulaires NBREA, Collaboration agent-agent, Export fiscal
+> - **§9.5 Phase 5 — Intelligence Augmentée** (12-24 mois) : IA documents, détection risques, agenda intégré
+> - Roadmap issue de la discussion collective Party Mode (Sam + ChatGPT vision convergée)
+>
+> **Changements v2.19 (2026-02-19) — Tier 0+1 Polish : Auth Flows + A11y :**
+> - **Tier 0 — Flows cassés réparés :**
+>   - ResetPasswordPage créée (3 états: no-token, form, success) + route `/reset-password` + SiteMode exempt
+>   - `resetPassword` API ajoutée à `auth.api.ts`
+>   - Bouton "Renvoyer le courriel de vérification" sur LoginPage quand `E_EMAIL_NOT_VERIFIED`
+>   - 21 clés i18n FR/EN ajoutées (auth.reset*, verify.resend*)
+> - **Tier 1 — A11y formulaires (4 pages auth) :**
+>   - `htmlFor`/`id` sur tous les labels/inputs (LoginPage, RegisterPage, ForgotPasswordPage, AdminLoginPage)
+>   - `autoComplete` sur tous les inputs (email, current-password, new-password, name, tel, street-address, address-level1/2, organization)
+>   - `aria-label` sur 4 boutons toggle mot de passe
+>   - `autoFocus` sur le premier champ de chaque page
+> - Whitelist i18n parity test : 9 cognates admin/comingSoon ajoutés
+> - Tests frontend : **327/327 PASS** (0 fail — première fois 100%)
+> - Tests backend : 277/277 PASS
+>
+> **Changements v2.18 (2026-02-19) — Retrait Dark Mode (D62) :**
+> - Décision D62 : Retrait complet du dark mode — complexité CSS inutile, jamais audité visuellement, non demandé par le marché NB
+> - Suppression de toutes les classes `dark:*`, ThemeContext, toggle Settings, config Tailwind
+>
+> **Changements v2.17 (2026-02-19) — Fixes Onboarding 8/8 :**
+> - OB-1→OB-8 tous implémentés : langue signup, client inline+autocomplete, re-prompt onboarding, empty state enrichi, agence/licence signup, checklist profil, type client
+> - Migration `1782000000001_add_client_type_to_clients`
 >
 > **Changements v2.16 (2026-02-19) — Audit Onboarding Agent + Client :**
 > - §11.L ajouté : Audit complet onboarding — 8 issues (2 P0, 4 P1, 2 P2)
@@ -73,6 +105,14 @@ supersedes:
 > - Score conformité maquettes : **~40%** — backend OK, frontend diverge des maquettes validées
 > - Guide superadmin créé : `_bmad-output/guide-superadmin.md`
 > - Plan de correction en 3 phases : P0 sécurité → conformité maquettes → P1 fonctionnels
+>
+> **Changements v2.15 (2026-02-19) — D56 Déploiement Fly.io ✅ :**
+> - §4.1 D56 : `📋 À configurer` → **`✅ Déployé`** — backend + frontend + Postgres live sur Fly.io (`yyz`)
+> - §7.5 Infrastructure : détails réels du déploiement (URLs, proxy nginx, secrets)
+> - §7.5 Emails transactionnels : **Brevo SMTP** confirmé (`smtp-relay.brevo.com:587`)
+> - §11.H.4 : DEPLOY-01 ✅ corrigé (`db:seed` retiré du `release_command`)
+> - Fixes déploiement : `HOST=::` (IPv6 Fly.io), `QUEUE_ENABLED=false` (pas de Redis), `--ignore-ts-errors` build, `npx vite build` (skip tsc)
+> - URLs live : `https://ofra-crm-frontend.fly.dev` (frontend) / `https://ofra-crm-backend.fly.dev` (backend)
 >
 > **Changements v2.11 (2026-02-18) — Sprint Tests complet :**
 > - §11.F : Tests FINTRAC + TenantScope + Admin + Documents + Members + Parties → ✅ DONE (commit `a2f364e`)
@@ -160,6 +200,8 @@ supersedes:
 ### 1.1 Vision
 
 > **"Ofra est le copilote de l'agent immobilier au Nouveau-Brunswick. Il protège ses commissions en s'assurant qu'aucune deadline n'est ratée, qu'aucune condition n'est oubliée. L'agent dort tranquille."**
+>
+> **Principe directeur post-lancement :** "L'agent ne veut pas gérer des modules. Il veut gérer un dossier : client → propriété → offre(s) → conditions → pros → closing." Chaque feature doit s'intégrer dans ce flux naturel, pas exister en silo.
 
 ### 1.2 Proposition de Valeur
 
@@ -185,6 +227,9 @@ Ofra ne vend pas de la gestion de données. Ofra vend de la **réduction d'anxi�
 | **Bilingue FR/EN natif** | Obligatoire légalement dans beaucoup de transactions NB |
 | **Contexte rural NB** | Puits, fosse septique, droit de passage — conditions uniques |
 | **Communauté petite et connectée** | 5 agents convaincus = tout le monde le sait en 2 mois |
+| **FINTRAC intégré** | Conformité identité acheteur/vendeur automatisée — aucun concurrent NB ne l'a |
+| **Portail client** | Lien sécurisé lecture seule pour que le client suive son dossier — fidélise l'agent ET le client |
+| **Formulaires NBREA pré-remplis** | Génération PDF à partir des données Ofra — élimine la saisie manuelle dans les formulaires réglementaires |
 | **Canadian-built** | Tendance "Buy Canadian", FINTRAC-ready, prix en CAD, **100% hébergé au Canada** (serveurs Toronto) |
 
 ### 1.5 Jobs-to-Be-Done (JTBD)
@@ -419,12 +464,13 @@ HARD WALL (J33+)
 | **D53** | **Trial 30j gratuit (1 TX, Pro complet) + Prix garanti à vie fondateur** | **✅ Codé** | Migration `trial_tx_used`, `TrialGuardMiddleware` soft/hard wall, `PlanLimitMiddleware` trial mode, `TrialBanner`, registration init 30j, subscription endpoint enrichi. Reste : emails rappel J7/J21/J27 (Bloc 6). |
 | **D54** | **Gestionnaire de liens partagés (à côté de 🔔 dans le header)** | **📋 À coder** | Icône dédiée ou section dans header pour voir tous les liens actifs, valider expiration, révoquer un lien. Pas uniquement offres — extensible à tous les partages. |
 | **D55** | **Liens de partage multi-parties (avocat, inspecteur, notaire, etc.)** | **📋 Phase 2** | Étendre le système de share links au-delà des offres : créer des liens de consultation pour les autres parties impliquées (avocat, inspecteur, notaire, courtier hypothécaire). Chaque lien = accès lecture seule à une vue filtrée de la transaction. |
-| **D56** | **Infrastructure 100% canadienne** | **📋 À configurer** | Fly.io (`yyz` Toronto) + Fly Postgres (`yyz`) + stockage S3-compatible Canada (DO Spaces ou AWS `ca-central-1`). Zéro donnée hors Canada. LPRPDE/PIPEDA conforme. |
+| **D56** | **Infrastructure 100% canadienne** | **✅ Déployé** | Fly.io (`yyz` Toronto) + Fly Postgres (`yyz`). Frontend nginx proxy `/api/` → backend via réseau privé Fly. Emails via Brevo SMTP. Stockage fichiers S3-compatible Canada TBD (DO Spaces ou AWS `ca-central-1`). LPRPDE/PIPEDA conforme. |
 | **D57** | **Admin dashboard 3 vues (Pulse/Gens/Config)** | **📋 À coder** | Refonte complète admin : (1) **Pulse** = KPIs + alertes actionnables + fil d'activité live + badge mode site, check quotidien. (2) **Gens** = CRM subscribers avec smart segments (Trial J25+, À risque, Fondateurs, Nouveaux, Impayés) + drawer détail avec timeline activité + notes/tâches. (3) **Config** = Plans éditables + SiteMode + Codes promo + System health. Mobile = lecture seule. Remplace les 5 pages admin actuelles (Dashboard, Subscribers, Plans, Activity, System). Maquettes M-ADM-01 à M-ADM-05. |
 | **D58** | **SiteMode 3 états (live/coming_soon/maintenance) + beta fermée fondateurs** | **📋 À coder** | Middleware `SiteModeMiddleware` avec 3 états : `live` (tout le monde), `coming_soon` (page teaser lancement avec countdown, code d'accès anticipé, waitlist email, pitch points — admins bypass), `maintenance` (admins seuls, 503). Table `site_settings` (key/value). Admin personnalise : message, date de lancement (countdown), bullet points pitch, compteur fondateurs visible/caché. **Programme fondateur = beta fermée** : code d'accès global requis (ex: `OFRA-FOUNDER-2026`), `/signup` inaccessible sans code en mode `coming_soon`. Page dark theme premium avec FOMO (countdown + places restantes). **Lancement public : 20 mars 2026** — admin bascule `site_mode` de `coming_soon` à `live`, signup ouvert à tous. Toggle depuis admin Config. |
 | **D59** | **Codes promotionnels** | **📋 À coder** | Table `promo_codes` : code, type (percent/fixed/free_months), value, max_uses, current_uses, valid_from, valid_until, eligible_plans (json), active, stripe_coupon_id. CRUD admin dans vue Config. Champ "code promo" dans le flow inscription. Miroir Stripe coupon à la création. Non cumulable avec statut Fondateur (prix locké > promo). Use cases : partenariat courtage, événements NBREA, referral organique. |
 | **D60** | **Liste d'attente email (page coming soon)** | **📋 À coder** | Table `waitlist_emails` : email, source ('coming_soon_page'), created_at. Formulaire sur la page Coming Soon : "Soyez les premiers informés". Lead capture + compteur fondateurs restants. Exportable CSV depuis admin. |
 | **D61** | **Admin isolé — pas d'accès au monde client** | **✅ Fait** | Suppression du bouton "Retour à l'app" (`AdminLayout.tsx`). L'admin est un espace fermé, aucun pont vers le dashboard courtier. Si besoin support client → drawer read-only dans vue Gens (Phase 2). Deux contextes, deux comptes si nécessaire. |
+| **D62** | **Retrait complet du dark mode** | **✅ Fait** | Le dark mode n'a jamais été audité visuellement, double la complexité CSS (`dark:*` dans ~50 fichiers), et n'est pas demandé par le marché cible (courtiers NB 35-60 ans). Suppression de : toutes classes `dark:*`, `ThemeContext`, toggle Settings, config Tailwind `darkMode`. Un seul thème light à maintenir et tester. |
 
 ### 4.2 Principes UX
 
@@ -1873,7 +1919,14 @@ Le système distingue 3 rôles : `user`, `admin`, `superadmin`. Le champ `role` 
 | **Application (backend + frontend)** | Fly.io | Toronto (`yyz`) | Containers Docker, déploiement simple, région Canada native |
 | **Base de données PostgreSQL** | Fly Postgres | Toronto (`yyz`) | Managed, même région que l'app, `DATABASE_URL` compatible |
 | **Stockage fichiers (documents, pièces jointes)** | À déterminer (DO Spaces Toronto ou AWS S3 `ca-central-1`) | Canada | Compatible S3, résidence données au Canada |
-| **Emails transactionnels** | À déterminer (Postmark ou SES ca-central-1) | Canada / US-East | Évaluer options canadiennes |
+| **Emails transactionnels** | Brevo SMTP | `smtp-relay.brevo.com:587` | Déjà configuré et fonctionnel |
+
+**Déploiement actif (2026-02-19) :**
+- **Frontend** : `https://ofra-crm-frontend.fly.dev` — nginx Alpine, proxy `/api/` vers backend via réseau privé Fly
+- **Backend** : `https://ofra-crm-backend.fly.dev` — AdonisJS, `HOST=::` (IPv6), `min_machines_running=1`
+- **DB** : Fly Postgres `ofra-crm-db` — attaché au backend via `DATABASE_URL`
+- **Proxy interne** : nginx `resolver [fdaa::3]:53` → `ofra-crm-backend.internal:3333` (same-origin, pas de CORS cross-domain)
+- **Queue/Redis** : désactivé (`QUEUE_ENABLED=false`) — pas de Redis en prod pour l'instant
 
 **Pourquoi Fly.io (remplace DigitalOcean App Platform — décision 2026-02-17) :**
 - Région `yyz` (Toronto) = résidence de données Canada confirmée
@@ -2050,41 +2103,86 @@ Actions à réaliser le jour du lancement public :
 | 6 | Vérifier les 25 fondateurs | Sam | S'assurer que tous les fondateurs invités ont bien `is_founder = true` et un trial actif. |
 | 7 | Monitoring post-launch | Dev | Surveiller les erreurs, la charge, les inscriptions pendant les premières 24h. |
 
-### 9.2 Phase 2 — Valeur Perçue (post-lancement, mois 2-3)
+### 9.2 Phase 2 — "Les Connexions" (post-lancement, ~8 jours)
 
-| Feature | Décision |
-|---------|----------|
-| Compteur "Valeur protégée" (données réelles) | D43 |
-| Email du lundi "Votre semaine" | D50 |
-| Alertes proactives 48h (push/SMS) | D51 |
-| Onboarding simplifié "1ère transaction en 2 min" | D40 amélioré |
-| Plan Agence activé | D46 |
-| Sprint 2-4 conditions (lock profile, admin override) | Planifié |
-| M14 Polish : label irrévocabilité, Custom expiration, notes field, NegotiationThread dans modal, OfferComparison conditions count | §11.G |
-| Superadmin : suppression de compte (mot de passe + type-to-confirm, soft delete, cascade, audit log) | Backlog |
-| UI Audit Trail conditions : historique événements par condition (créé, résolu, archivé) — backend `ConditionEvent` déjà actif, manque le composant frontend | Backlog |
+> **Philosophie :** Tout est relié. L'offre connaît ses parties, le client connaît ses pros, le comparateur sait qui offre quoi. L'agent gère un dossier, pas des écrans.
 
-### 9.3 Phase 3 — Copilote Proactif (6 mois)
+**Sprint 1 — Offre ↔ Parties (~3-4 jours)**
 
-| Feature |
-|---------|
-| SMS/emails automatiques aux avocats, clients, inspecteurs |
-| Contacts liés par transaction (avocat, courtier, inspecteur) |
-| Rappels automatiques aux parties prenantes |
-| Intégration calendrier (Google Calendar / Outlook) |
-| Historique communications |
+| # | Feature | Détail | Statut |
+|---|---------|--------|--------|
+| C1 | Migration `from_party_id` / `to_party_id` sur Offer | FK vers `transaction_parties`, direction résolue par les parties et non plus par un enum | ❌ TODO |
+| C2 | Auto-création Party depuis Offer | À la soumission d'une offre, si `fromPartyId` n'existe pas comme Party → créer automatiquement | ❌ TODO |
+| C3 | Auto-création Party depuis Client | À la création d'une transaction, le client assigné devient automatiquement une Party (buyer ou seller selon direction) | ❌ TODO |
+| C4 | Pré-remplissage formulaire offre | Si l'agent a déjà un client avec nom/téléphone/email → auto-populate les champs de l'offre | ❌ TODO |
 
-### 9.4 Phase 4 — Intelligence Augmentée (12-24 mois)
+**Sprint 2 — UI Buyer/Seller Contextuelle (~2-3 jours)**
 
-| Feature |
-|---------|
-| Analyse de documents par IA |
-| Détection de risques automatique |
-| Suggestions d'offres basées sur le marché |
-| Gestion d'agenda intégrée |
-| Templates partagés (données anonymisées entre agents) |
+| # | Feature | Détail | Statut |
+|---|---------|--------|--------|
+| C5 | CTA adaptatif selon direction | Acheteur : "Soumettre une offre" (proactif) / Vendeur : "Offre reçue" (réactif) | ❌ TODO |
+| C6 | Sections différentes buyer vs seller | Acheteur voit : mes offres, conditions, financement / Vendeur voit : offres reçues, comparateur, contre-offres | ❌ TODO |
+| C7 | Comparateur vendeur enrichi | Table side-by-side avec highlight meilleur prix, deadline, conditions — le vendeur compare facilement | Partiellement codé (OfferComparison existant) |
+| C8 | Formulaire client 2 sections | Section acheteur (financement, pré-approbation) vs section vendeur (motivation vente, prix plancher) | ❌ TODO |
 
-### 9.5 Expansion Géographique
+**Sprint 3 — Carnet de Pros (~2 jours)**
+
+| # | Feature | Détail | Statut |
+|---|---------|--------|--------|
+| C9 | Table `professional_contacts` | nom, rôle (inspecteur/notaire/avocat/courtier hypothécaire), téléphone, email, notes, `agent_id` FK | ❌ TODO |
+| C10 | CRUD Carnet de pros | Page `/pros` — liste, ajout, modification. Recherche par nom/rôle | ❌ TODO |
+| C11 | Suggestion sur conditions | Quand une condition type "inspection" est créée → suggérer les inspecteurs du carnet de l'agent | ❌ TODO |
+| C12 | Assignation pro sur condition | L'agent peut assigner un pro de son carnet à une condition (avocat sur "révision titre", etc.) | ❌ TODO |
+
+**Éléments reportés de Phase 2 originale :**
+
+| Feature | Décision | Statut |
+|---------|----------|--------|
+| Sprint 2-4 conditions (lock profile, admin override, audit log) | Planifié | ❌ TODO |
+| M14 Polish offres (irrévocabilité, custom expiration, NegotiationThread modal) | §11.G | ❌ TODO |
+| Compteur "Valeur protégée" (données réelles) | D43 | ❌ TODO |
+| Onboarding simplifié "1ère transaction en 2 min" | D40 | ❌ TODO |
+| Plan Agence activé | D46 | ❌ TODO |
+| UI Audit Trail conditions (composant frontend, backend `ConditionEvent` déjà actif) | Backlog | ❌ TODO |
+
+### 9.3 Phase 3 — "Le Copilote" (mois 2-3, ~5 jours)
+
+> **Philosophie :** Ofra ne se contente plus de suivre — il agit. Il envoie les rappels, il informe le client, il calcule les commissions. L'agent se concentre sur la relation humaine.
+
+| # | Feature | Détail | Statut |
+|---|---------|--------|--------|
+| P1 | **Rappels proactifs aux parties tierces** | Email automatique à l'inspecteur 48h avant la date d'inspection, au notaire 5j avant le closing, à l'avocat pour la révision du titre. Template email configurable par l'agent. | ❌ TODO |
+| P2 | **Portail client (lecture seule)** | Lien sécurisé unique (token expirable) envoyé au client. Le client voit : étapes de sa transaction (timeline), conditions en cours, prochaine deadline, documents partagés. Pas de login requis. | ❌ TODO |
+| P3 | **Dashboard commission** | Réalisé (commissions fermées) + Projeté (TX actives × % probabilité) + Objectif annuel avec barre de progression. Graphique mensuel. | ❌ TODO |
+| P4 | Email du lundi "Votre semaine" | Digest hebdo : TX actives, deadlines cette semaine, conditions en retard, commissions projetées | D50 — ❌ TODO |
+| P5 | Alertes proactives 48h (push/SMS) | Notifications urgentes quand une deadline approche dans 48h — pas juste in-app mais push/SMS | D51 — ❌ TODO |
+| P6 | Superadmin : suppression de compte | Mot de passe + type-to-confirm, soft delete, cascade TX/conditions, audit log | Backlog |
+
+### 9.4 Phase 4 — "L'Arme Secrète" (mois 3-6, ~5 jours)
+
+> **Philosophie :** Ce qu'aucun concurrent NB ne peut offrir. Les features qui font dire à l'agent : "je ne peux plus m'en passer."
+
+| # | Feature | Détail | Statut |
+|---|---------|--------|--------|
+| S1 | **Génération PDF formulaires NBREA** | Pré-remplir les formulaires réglementaires NBREA (Agreement of Purchase & Sale, Counter-Offer, etc.) à partir des données Ofra. L'agent télécharge un PDF prêt à signer. Élimine 30-45 min de saisie manuelle par offre. | ❌ TODO |
+| S2 | **Collaboration agent-agent** | 2 agents (acheteur + vendeur) sur le même dossier. Chacun voit sa perspective. Offres/contre-offres synchronisées en temps réel. Notifications croisées. Invitation par email. | ❌ TODO |
+| S3 | **Export fiscal annuel** | Rapport PDF/CSV de toutes les commissions de l'année : date closing, montant, split, TPS/TVH. Prêt pour le comptable. | ❌ TODO |
+| S4 | Intégration calendrier | Sync Google Calendar / Outlook avec les deadlines de conditions et dates de closing | ❌ TODO |
+| S5 | Historique communications | Log des emails envoyés (rappels pros, portail client) avec statut (envoyé/ouvert/cliqué) | ❌ TODO |
+
+### 9.5 Phase 5 — Intelligence Augmentée (12-24 mois)
+
+> **Philosophie :** L'IA au service de l'agent — pas pour remplacer, mais pour augmenter son jugement.
+
+| Feature | Détail |
+|---------|--------|
+| Analyse de documents par IA | OCR + extraction automatique des données clés d'un contrat scanné |
+| Détection de risques automatique | Alertes quand les conditions d'une TX ressemblent à un pattern de défaillance passé |
+| Suggestions d'offres basées sur le marché | Comparables automatiques basés sur le code postal, type de propriété, historique |
+| Gestion d'agenda intégrée | Vue calendrier unifiée : deadlines, rendez-vous, visites |
+| Templates partagés (données anonymisées) | Les agents partagent anonymement leurs templates de conditions les plus utilisés |
+
+### 9.6 Expansion Géographique
 
 ```
 Année 1 : Nouveau-Brunswick (Moncton → provincial)
@@ -2209,7 +2307,7 @@ Référence croisée : voir section 4.1 de ce document.
 | ~~🔴 P0~~ | ~~**Bloc 9 : SiteMode** (D58 — construction/maintenance/live + code accès fondateurs)~~ | 3h | ✅ DONE (2026-02-18) |
 | ~~🔴 P0~~ | ~~**Bloc 9 : Codes promo** (D59 — CRUD + validation inscription + miroir Stripe)~~ | 4h | ✅ DONE (2026-02-18) |
 | ~~🔴 P0~~ | ~~**Bloc 9 : Apply-to-existing** (modal type-to-confirm, exclut fondateurs)~~ | 2h | ✅ DONE (2026-02-18) |
-| 🔴 P0 | Stripe billing | 5-7 jours | ❌ TODO |
+| 🔴 P0 | Stripe billing | 5-7 jours | 🟡 EN COURS (backend+frontend done, needs env config + Stripe dashboard setup) |
 | ~~🟠 P1~~ | ~~Error Boundary + code splitting frontend~~ | 1h | ✅ DONE (2026-02-18) |
 | ~~🟠 P1~~ | ~~Page 404 / catch-all route~~ | 15 min | ✅ DONE (2026-02-18) |
 | ~~🟠 P1~~ | ~~`FRONTEND_URL` unifié dans `env.ts` (3 fallbacks différents)~~ | 30 min | ✅ DONE (2026-02-18) |
@@ -2320,7 +2418,7 @@ Le flow d'intake (`/api/offer-intake/:token` + `OfferIntakePage`) est un **lead 
 
 **Méthode :** Exploration automatisée exhaustive — 3 agents parallèles (backend, frontend, infra/tests). Lecture de tous les modèles, contrôleurs, services, middleware, routes, composants, API, i18n, configs. ~260 fichiers analysés.
 
-**Score launch-readiness : 82%** (était 80% après Sprint A reminders overhaul 2026-02-18)
+**Score launch-readiness : 84%** (était 82% — auth flows réparés, a11y formulaires, 327/327 frontend 277/277 backend)
 
 #### H.1 Statistiques Projet
 
@@ -2335,7 +2433,7 @@ Le flow d'intake (`/api/offer-intake/:token` + `OfferIntakePage`) est un **lead 
 | Pages frontend | 30+ |
 | Modules API frontend | 22 |
 | Tests backend (Japa) | 277 tests (277 PASS, 0 FAIL) |
-| Tests frontend (Vitest) | 327 tests (40 fichiers) |
+| Tests frontend (Vitest) | 327 tests (327 PASS, 0 FAIL — 40 fichiers) |
 | E2E (Playwright) | 3 specs + tenant isolation (local only, PAS en CI) |
 | i18n FR/EN | 2 836 lignes chaque, parité ✅ |
 | `as any` backend | 11 occurrences |
@@ -2378,14 +2476,14 @@ Le flow d'intake (`/api/offer-intake/:token` + `OfferIntakePage`) est un **lead 
 | ~~**TS-01**~~ | `notification.ts` | ~~`NotificationType` déclare 4 valeurs, 7 autres utilisées en pratique~~ | ✅ CORRIGÉ (Sprint A — 18 types, commit `c368e79`) |
 | **TS-02** | `activity_feed.ts` | `ActivityType` union incomplète — `email_recap_sent`, `fintrac_archived` manquent | ❌ TODO |
 | **VAL-01** | Validators multiples | Dates acceptées comme `string` brut sans validation ISO format | ❌ TODO |
-| **CSS-01** | 13 fichiers | `gray-` vs `stone-` mélangés — visible en dark mode | ❌ TODO |
-| **CSS-02** | `UpgradePrompt.tsx` | Zéro dark mode coverage | ❌ TODO |
+| ~~**CSS-01**~~ | 13 fichiers | ~~`gray-` vs `stone-` mélangés~~ | ✅ CORRIGÉ (Tier 1 polish — 213 occurrences, commit `3d68a51`) |
+| ~~**CSS-02**~~ | `UpgradePrompt.tsx` | ~~Dark mode~~ | ✅ N/A (D62 — dark mode retiré) |
 | **FE-06** | `transactions.api.ts:74,106,109,111` | 4 champs Transaction typés `any[]` / `any` | ❌ TODO |
 | **FE-07** | Multiples | `['subscription']` query avec 5 staleTime différents | ❌ TODO |
 | **DOCKER-01** | `Dockerfile` | Container tourne en root | ❌ TODO |
-| **DEPLOY-01** | `fly.toml` | `db:seed` à chaque deploy — risque duplications | ❌ TODO |
+| ~~**DEPLOY-01**~~ | `fly.toml` | ~~`db:seed` à chaque deploy — risque duplications~~ | ✅ CORRIGÉ (2026-02-19 — retiré du `release_command`) |
 
-#### H.5 Couverture de Tests — État 277 PASS (2026-02-18)
+#### H.5 Couverture de Tests — État 277 backend / 327 frontend PASS (2026-02-19)
 
 **Backend — zones MAINTENANT couvertes ✅ :**
 - ~~`fintrac_controller.ts` / `fintrac_service.ts`~~ → ✅ 15 tests (unit + functional)
@@ -2688,18 +2786,20 @@ Plutôt que corriger les ~65 issues sur l'architecture 5 pages actuelle, la déc
 
 #### L.4 Plan de correction
 
-| # | Fix | Backend | Frontend | Priorité |
-|---|-----|---------|----------|----------|
-| 1 | **Langue emails signup** — Détecter `i18n.language` au frontend, envoyer `preferredLanguage` dans le body register | Ajouter `preferredLanguage` au user create | RegisterPage envoie la langue courante | P0 |
-| 2 | **Création client inline** — Bouton "+" à côté du select client dans EditTransactionPage, ouvre CreateClientModal, auto-sélectionne le client créé | Rien (endpoint existe) | Bouton + modal + callback `onCreated` | P0 |
-| 3 | **Autocomplete client** — Remplacer `<select>` par un Combobox searchable (Radix ou custom) | Rien | Composant `ClientCombobox` | P1 |
-| 4 | **Re-prompt onboarding skippé** — Banner dans Dashboard si `onboardingSkipped=true` : "Complétez votre profil pour débloquer les suggestions" | `GET /api/me` retourne déjà `onboardingSkipped` | Banner conditionnel dans Layout/Dashboard | P1 |
-| 5 | **Empty state enrichi** — Refaire l'empty state dashboard avec illustration, 3 cards cliquables, CTA principal prominent | — | Refonte `EmptyState` dans DashboardUrgencies | P1 |
-| 6 | **Agence + licence dans signup** — Ajouter 2 champs optionnels dans RegisterPage (step 2 ou section "professionnel") | Rien (validator accepte déjà) | 2 inputs supplémentaires | P2 |
+| # | Fix | Backend | Frontend | Priorité | Statut |
+|---|-----|---------|----------|----------|--------|
+| 1 | **Langue emails signup** — Détecter `i18n.language` au frontend, envoyer `preferredLanguage` dans le body register | Ajouter `preferredLanguage` au user create | RegisterPage envoie la langue courante | P0 | ~~DONE~~ |
+| 2 | **Création client inline** — Bouton "+" à côté du select client dans EditTransactionPage, ouvre CreateClientModal, auto-sélectionne le client créé | Rien (endpoint existe) | Bouton + modal + callback `onCreated` | P0 | ~~DONE~~ |
+| 3 | **Autocomplete client** — Remplacer `<select>` par un Combobox searchable (Radix ou custom) | Rien | Composant `ClientCombobox` | P1 | ~~DONE~~ |
+| 4 | **Re-prompt onboarding skippé** — Banner dans Dashboard si `onboardingSkipped=true` : "Complétez votre profil pour débloquer les suggestions" | `GET /api/me` retourne déjà `onboardingSkipped` | Banner conditionnel dans DashboardPage | P1 | ~~DONE~~ |
+| 5 | **Empty state enrichi** — Refaire l'empty state dashboard avec illustration, 3 cards cliquables, CTA principal prominent | — | Refonte `EmptyState` dans DashboardUrgencies | P1 | ~~DONE~~ |
+| 6 | **Agence + licence dans signup** — Ajouter 2 champs optionnels dans RegisterPage (section "professionnel") | Rien (validator accepte déjà) | 2 inputs supplémentaires | P2 | ~~DONE~~ |
+| 7 | **Checklist profil post-onboarding** — Widget progression dans SettingsPage | — | Widget complétion profil (6 items, barre %) | P2 | ~~DONE~~ |
+| 8 | **Type client** (acheteur/vendeur/both) — Champ `client_type` sur le modèle Client | Migration + model + validator | Select dans CreateClientModal + badge liste | P2 | ~~DONE~~ |
 
 ---
 
 _PRD rédigé par l'équipe BMAD en Party Mode — 2026-02-06_
-_Mis à jour v2.16 — 2026-02-19 (Audit onboarding agent + client — 8 issues)_
+_Mis à jour v2.18 — 2026-02-19 (D62: Retrait dark mode — 37 fichiers, 13K chars supprimés)_
 _Validé par : Sam (Product Owner)_
 _Source de vérité unique pour Ofra v2_

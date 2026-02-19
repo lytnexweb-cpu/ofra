@@ -81,4 +81,33 @@ export default class NotificationsController {
 
     return response.ok({ success: true })
   }
+
+  /**
+   * DELETE /api/notifications/:id
+   * Delete a single notification
+   */
+  async destroy({ auth, params, response }: HttpContext) {
+    const user = auth.getUserOrFail()
+
+    try {
+      await NotificationService.delete(params.id, user.id)
+      return response.ok({ success: true })
+    } catch {
+      return response.notFound({
+        success: false,
+        error: { message: 'Notification not found', code: 'E_NOT_FOUND' },
+      })
+    }
+  }
+
+  /**
+   * DELETE /api/notifications
+   * Delete all notifications for the authenticated user
+   */
+  async destroyAll({ auth, response }: HttpContext) {
+    const user = auth.getUserOrFail()
+    const deleted = await NotificationService.deleteAll(user.id)
+
+    return response.ok({ success: true, data: { deleted } })
+  }
 }

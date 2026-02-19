@@ -40,4 +40,10 @@ export const notificationsApi = {
 
   markAllRead: () =>
     http.post('/api/notifications/read-all'),
+
+  delete: (id: number) =>
+    http.delete('/api/notifications/' + id),
+
+  deleteAll: () =>
+    http.delete('/api/notifications'),
 }

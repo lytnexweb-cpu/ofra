@@ -46,6 +46,7 @@ export default class AdminController {
     const role = request.input('role', '')
     const subscription = request.input('subscription', '') // trial, active, past_due, cancelled, expired
     const engagement = request.input('engagement', '') // active, warm, inactive
+    const founder = request.input('founder', '')
     const sortBy = request.input('sortBy', 'createdAt')
     const sortOrder = request.input('sortOrder', 'desc')
 
@@ -56,6 +57,7 @@ export default class AdminController {
         'fullName',
         'role',
         'agency',
+        'isFounder',
         'createdAt',
         'updatedAt',
         'onboardingCompleted',
@@ -83,6 +85,11 @@ export default class AdminController {
     // Subscription filter
     if (subscription) {
       query = query.where('subscriptionStatus', subscription)
+    }
+
+    // Founder filter (§11.K C1 fix)
+    if (founder === 'true') {
+      query = query.where('isFounder', true)
     }
 
     // Sorting
@@ -135,6 +142,7 @@ export default class AdminController {
             fullName: u.fullName,
             role: u.role,
             agency: u.agency,
+            isFounder: u.isFounder ?? false,
             createdAt: u.createdAt,
             lastActivity: u.updatedAt,
             onboardingCompleted: u.onboardingCompleted,
@@ -563,6 +571,84 @@ export default class AdminController {
           subscriptionStatus: user.subscriptionStatus,
           subscriptionStartedAt: user.subscriptionStartedAt,
           subscriptionEndsAt: user.subscriptionEndsAt,
+        },
+      },
+    })
+  }
+
+  /**
+   * PATCH /api/admin/subscribers/:id/extend
+   * Extend a user's subscription by N days (superadmin only)
+   */
+  async extendSubscription({ params, request, response }: HttpContext) {
+    const days = request.input('days')
+    const reason = request.input('reason')
+
+    if (!days || typeof days !== 'number' || days < 1 || days > 365) {
+      return response.badRequest({
+        success: false,
+        error: { message: 'days must be between 1 and 365', code: 'E_INVALID_DAYS' },
+      })
+    }
+
+    if (!reason || typeof reason !== 'string' || reason.trim().length < 3) {
+      return response.badRequest({
+        success: false,
+        error: { message: 'reason is required (min 3 chars)', code: 'E_INVALID_REASON' },
+      })
+    }
+
+    const user = await User.find(params.id)
+    if (!user) {
+      return response.notFound({
+        success: false,
+        error: { message: 'User not found', code: 'E_NOT_FOUND' },
+      })
+    }
+
+    const currentEnd = user.subscriptionEndsAt || DateTime.now()
+    const baseDate = currentEnd > DateTime.now() ? currentEnd : DateTime.now()
+    user.subscriptionEndsAt = baseDate.plus({ days })
+
+    await user.save()
+
+    return response.ok({
+      success: true,
+      data: {
+        user: {
+          id: user.id,
+          email: user.email,
+          subscriptionStatus: user.subscriptionStatus,
+          subscriptionEndsAt: user.subscriptionEndsAt,
+        },
+        extended: { days, reason, newEndDate: user.subscriptionEndsAt },
+      },
+    })
+  }
+
+  /**
+   * PATCH /api/admin/subscribers/:id/founder
+   * Toggle isFounder flag (superadmin only)
+   */
+  async toggleFounder({ params, response }: HttpContext) {
+    const user = await User.find(params.id)
+    if (!user) {
+      return response.notFound({
+        success: false,
+        error: { message: 'User not found', code: 'E_NOT_FOUND' },
+      })
+    }
+
+    user.isFounder = !user.isFounder
+    await user.save()
+
+    return response.ok({
+      success: true,
+      data: {
+        user: {
+          id: user.id,
+          email: user.email,
+          isFounder: user.isFounder,
         },
       },
     })

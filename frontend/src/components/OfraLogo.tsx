@@ -46,14 +46,14 @@ export function OfraLogoFull({ iconSize = 42, className, showTagline = true, inv
         <OfraLogo size={iconSize} variant={invertColors ? 'white' : 'default'} />
         <span
           className={`text-3xl font-extrabold tracking-tight font-outfit ${
-            invertColors ? 'text-white' : 'text-primary dark:text-white'
+            invertColors ? 'text-white' : 'text-primary'
           }`}
         >
           OFRA
         </span>
       </div>
       {showTagline && (
-        <p className={`text-sm font-medium text-center ${invertColors ? 'text-white/70' : 'text-stone-500 dark:text-stone-400'}`}>
+        <p className={`text-sm font-medium text-center ${invertColors ? 'text-white/70' : 'text-stone-500'}`}>
           {t('app.tagline')}
         </p>
       )}

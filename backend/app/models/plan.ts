@@ -37,6 +37,9 @@ export default class Plan extends BaseModel {
   @column()
   declare displayOrder: number
 
+  @column()
+  declare stripeProductId: string | null
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 

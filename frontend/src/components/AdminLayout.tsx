@@ -1,18 +1,27 @@
 import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
+import { Zap, Users, Settings, LogOut } from 'lucide-react'
 import { authApi } from '../api/auth.api'
-import { OfraLogo } from './OfraLogo'
-import {
-  LayoutDashboard,
-  Users,
-  Activity,
-  Server,
-  CreditCard,
-  LogOut,
-  ArrowLeft,
-  ShieldCheck,
-} from 'lucide-react'
+import { adminApi } from '../api/admin.api'
+
+const SITE_MODE_DOT: Record<string, string> = {
+  live: 'bg-emerald-500',
+  coming_soon: 'bg-amber-500',
+  maintenance: 'bg-red-500',
+}
+
+const SITE_MODE_LABELS: Record<string, string> = {
+  live: 'Live',
+  coming_soon: 'Construction',
+  maintenance: 'Maintenance',
+}
+
+const NAV_ITEMS = [
+  { to: '/admin', Icon: Zap, labelKey: 'admin.pulse.title', fallback: 'Pulse', exact: true },
+  { to: '/admin/gens', Icon: Users, labelKey: 'admin.gens.title', fallback: 'Gens' },
+  { to: '/admin/config', Icon: Settings, labelKey: 'admin.config.title', fallback: 'Config' },
+]
 
 export default function AdminLayout() {
   const { t } = useTranslation()
@@ -25,6 +34,12 @@ export default function AdminLayout() {
     queryFn: authApi.me,
   })
 
+  const { data: settingsData } = useQuery({
+    queryKey: ['admin', 'site-settings'],
+    queryFn: () => adminApi.getSiteSettings(),
+    staleTime: 60_000,
+  })
+
   const logoutMutation = useMutation({
     mutationFn: authApi.logout,
     onSuccess: () => {
@@ -33,105 +48,212 @@ export default function AdminLayout() {
     },
   })
 
-  const navLinks = [
-    { to: '/admin', label: t('admin.overview'), icon: LayoutDashboard, exact: true },
-    { to: '/admin/subscribers', label: t('admin.subscribers'), icon: Users },
-    { to: '/admin/activity', label: t('admin.activity'), icon: Activity },
-    { to: '/admin/system', label: t('admin.system'), icon: Server },
-    { to: '/admin/plans', label: t('admin.plans.title', 'Plans'), icon: CreditCard },
-  ]
-
   const isActive = (path: string, exact?: boolean) => {
     if (exact) return location.pathname === path
     return location.pathname.startsWith(path)
   }
 
-  const userInitials =
-    userData?.data?.user?.fullName
+  const user = userData?.data?.user
+  const initials =
+    user?.fullName
       ?.split(' ')
       .map((n: string) => n[0])
       .join('')
       .toUpperCase()
       .slice(0, 2) || '?'
 
+  const siteMode = settingsData?.data?.site_mode || 'live'
+
   return (
-    <div className="min-h-screen bg-stone-50 dark:bg-stone-900 text-foreground flex">
-      {/* Sidebar */}
-      <aside className="w-64 fixed inset-y-0 left-0 z-40 border-r border-stone-200 dark:border-stone-700 bg-stone-900 flex flex-col">
+    <div className="flex min-h-screen" style={{ background: '#F8FAFC' }}>
+      {/* Sidebar — navy #1E3A5F, 240px */}
+      <aside
+        className="hidden md:flex w-60 fixed inset-y-0 left-0 z-50 flex-col"
+        style={{ background: '#1E3A5F', color: '#F8FAFC', padding: '24px 16px', gap: '4px' }}
+      >
         {/* Logo */}
-        <div className="flex items-center gap-3 px-6 py-5 border-b border-white/10">
-          <OfraLogo size={36} variant="white" />
-          <div>
-            <span className="text-xl font-bold text-white block">OFRA</span>
-            <span className="text-xs text-white/60 flex items-center gap-1">
-              <ShieldCheck className="w-3 h-3" />
-              Admin
+        <div style={{ padding: '8px 12px 6px', fontSize: '22px', fontWeight: 700, letterSpacing: '2px' }}>
+          <span style={{ color: '#F59E0B' }}>O</span>FRA
+        </div>
+
+        {/* Subtitle */}
+        <div
+          style={{
+            fontSize: '11px',
+            fontWeight: 500,
+            letterSpacing: '1.5px',
+            textTransform: 'uppercase',
+            color: 'rgba(255,255,255,0.5)',
+            padding: '0 12px 20px',
+            borderBottom: '1px solid rgba(255,255,255,0.12)',
+            marginBottom: '16px',
+          }}
+        >
+          Admin
+        </div>
+
+        {/* Site mode badge */}
+        <div style={{ padding: '0 12px 12px' }}>
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              background: 'rgba(255,255,255,0.05)',
+              padding: '4px 12px',
+              borderRadius: '999px',
+              fontSize: '11px',
+              fontWeight: 600,
+            }}
+          >
+            <span className={`w-2 h-2 rounded-full ${SITE_MODE_DOT[siteMode] || 'bg-stone-500'}`} />
+            <span style={{ color: 'rgba(255,255,255,0.8)' }}>
+              {SITE_MODE_LABELS[siteMode] || siteMode}
             </span>
           </div>
         </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 py-4 px-3 space-y-1">
-          {navLinks.map((link) => {
-            const Icon = link.icon
-            const active = isActive(link.to, link.exact)
+        {/* Nav */}
+        <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          {NAV_ITEMS.map((item) => {
+            const active = isActive(item.to, item.exact)
             return (
               <Link
-                key={link.to}
-                to={link.to}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                  active
-                    ? 'bg-white/10 text-white'
-                    : 'text-white/70 hover:bg-white/5 hover:text-white'
-                }`}
+                key={item.to}
+                to={item.to}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  padding: '10px 12px',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  textDecoration: 'none',
+                  color: active ? '#fff' : 'rgba(255,255,255,0.7)',
+                  background: active ? 'rgba(255,255,255,0.15)' : 'transparent',
+                  transition: 'all 0.15s ease',
+                }}
+                onMouseEnter={(e) => {
+                  if (!active) {
+                    e.currentTarget.style.background = 'rgba(255,255,255,0.1)'
+                    e.currentTarget.style.color = '#fff'
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!active) {
+                    e.currentTarget.style.background = 'transparent'
+                    e.currentTarget.style.color = 'rgba(255,255,255,0.7)'
+                  }
+                }}
               >
-                <Icon className="w-5 h-5" />
-                {link.label}
+                <item.Icon size={18} style={{ flexShrink: 0 }} />
+                {t(item.labelKey, item.fallback)}
               </Link>
             )
           })}
         </nav>
 
-        {/* Back to App */}
-        <div className="border-t border-white/10 p-3">
-          <Link
-            to="/"
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white/70 hover:bg-white/5 hover:text-white transition-colors"
+        {/* Footer — avatar ambre + user info */}
+        <div
+          style={{
+            marginTop: 'auto',
+            padding: '16px 12px',
+            borderTop: '1px solid rgba(255,255,255,0.12)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+          }}
+        >
+          <div
+            style={{
+              width: '32px',
+              height: '32px',
+              borderRadius: '50%',
+              background: '#F59E0B',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '13px',
+              fontWeight: 700,
+              color: '#1E3A5F',
+              flexShrink: 0,
+            }}
           >
-            <ArrowLeft className="w-5 h-5" />
-            {t('admin.backToApp')}
-          </Link>
-        </div>
-
-        {/* User */}
-        <div className="border-t border-white/10 p-4">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white font-medium text-sm">
-              {userInitials}
+            {initials}
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: '13px', fontWeight: 600, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {user?.fullName || user?.email}
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-white truncate">
-                {userData?.data?.user?.fullName || userData?.data?.user?.email}
-              </p>
-              <p className="text-xs text-white/60 capitalize">
-                {userData?.data?.user?.role}
-              </p>
+            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', textTransform: 'capitalize' }}>
+              {user?.role}
             </div>
           </div>
           <button
             onClick={() => logoutMutation.mutate()}
-            className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm text-white/70 hover:bg-white/5 hover:text-white transition-colors"
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: 'rgba(255,255,255,0.5)',
+              cursor: 'pointer',
+              padding: '4px',
+              borderRadius: '4px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+            title={t('nav.logout', 'Deconnexion')}
           >
-            <LogOut className="w-4 h-4" />
-            {t('nav.logout')}
+            <LogOut size={16} />
           </button>
         </div>
       </aside>
 
-      {/* Main content */}
-      <main className="flex-1 ml-64 p-8">
+      {/* Main content — 240px offset, max-width 1200px */}
+      <main
+        className="flex-1 md:ml-60"
+        style={{ padding: '32px 40px', maxWidth: '1200px' }}
+      >
         <Outlet />
       </main>
+
+      {/* Mobile bottom nav */}
+      <div
+        className="md:hidden fixed bottom-0 left-0 right-0 z-50"
+        style={{
+          background: '#fff',
+          borderTop: '1px solid #E2E8F0',
+          padding: '6px 0',
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center' }}>
+          {NAV_ITEMS.map((item) => {
+            const active = isActive(item.to, item.exact)
+            return (
+              <Link
+                key={item.to}
+                to={item.to}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '2px',
+                  padding: '6px 16px',
+                  fontSize: '10px',
+                  fontWeight: 600,
+                  color: active ? '#1E3A5F' : '#64748B',
+                  textDecoration: 'none',
+                  borderRadius: '8px',
+                }}
+              >
+                <item.Icon size={20} />
+                {t(item.labelKey, item.fallback)}
+              </Link>
+            )
+          })}
+        </div>
+      </div>
     </div>
   )
 }

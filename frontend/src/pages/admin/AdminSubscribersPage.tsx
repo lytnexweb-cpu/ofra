@@ -63,7 +63,7 @@ function RoleBadge({ role }: { role: UserRole }) {
 function SubscriptionBadge({ status }: { status: SubscriptionStatus }) {
   const { t } = useTranslation()
   const config: Record<SubscriptionStatus, { color: string; label: string }> = {
-    trial: { color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300', label: t('admin.subscription.trial', 'Trial') },
+    trial: { color: 'bg-blue-100 text-blue-700', label: t('admin.subscription.trial', 'Trial') },
     active: { color: 'bg-success/10 text-success', label: t('admin.subscription.active', 'Active') },
     past_due: { color: 'bg-warning/10 text-warning', label: t('admin.subscription.pastDue', 'Past Due') },
     cancelled: { color: 'bg-muted text-muted-foreground', label: t('admin.subscription.cancelled', 'Cancelled') },

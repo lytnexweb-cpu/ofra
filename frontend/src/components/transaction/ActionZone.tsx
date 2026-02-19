@@ -315,7 +315,7 @@ export default function ActionZone({ transaction }: ActionZoneProps) {
                 <p className="text-sm text-muted-foreground">
                   {t('workflow.skipConfirmModal.typePhrase')}
                 </p>
-                <p className="text-sm font-medium text-foreground bg-stone-100 dark:bg-stone-700 px-3 py-2 rounded-md border border-stone-200 dark:border-stone-600 select-all">
+                <p className="text-sm font-medium text-foreground bg-stone-100 px-3 py-2 rounded-md border border-stone-200 select-all">
                   {confirmPhrase}
                 </p>
                 <input

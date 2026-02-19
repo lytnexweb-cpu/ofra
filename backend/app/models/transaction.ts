@@ -17,6 +17,7 @@ import TransactionMember from './transaction_member.js'
 import TransactionShareLink from './transaction_share_link.js'
 import FintracRecord from './fintrac_record.js'
 
+export type ClientRole = 'buyer' | 'seller'
 export type TransactionType = 'purchase' | 'sale'
 export type TransactionStatus = 'active' | 'cancelled' | 'archived'
 
@@ -104,6 +105,9 @@ export default class Transaction extends BaseModel {
 
   @column()
   declare language: string | null
+
+  @column({ columnName: 'client_role' })
+  declare clientRole: ClientRole | null
 
   @column({ columnName: 'auto_conditions_enabled' })
   declare autoConditionsEnabled: boolean

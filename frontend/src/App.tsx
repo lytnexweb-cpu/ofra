@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next'
 import Sentry from './lib/sentry'
 import { queryClient } from './app/queryClient'
 import { router } from './app/router'
-import { ThemeProvider } from './contexts/ThemeContext'
 import { TooltipProvider } from './components/ui/Tooltip'
 import Toaster from './components/ui/Toaster'
 
@@ -37,15 +36,13 @@ function ErrorFallback() {
 function App() {
   return (
     <Sentry.ErrorBoundary fallback={<ErrorFallback />}>
-      <ThemeProvider>
-        <QueryClientProvider client={queryClient}>
-          <TooltipProvider>
-            <LanguageSync />
-            <RouterProvider router={router} />
-            <Toaster />
-          </TooltipProvider>
-        </QueryClientProvider>
-      </ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <LanguageSync />
+          <RouterProvider router={router} />
+          <Toaster />
+        </TooltipProvider>
+      </QueryClientProvider>
     </Sentry.ErrorBoundary>
   )
 }

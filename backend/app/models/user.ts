@@ -6,6 +6,7 @@ import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import { withAuthFinder } from '@adonisjs/auth/mixins/lucid'
 import Organization from './organization.js'
 import Plan from './plan.js'
+import PromoCode from './promo_code.js'
 
 // D40: Onboarding profile types
 export type PracticeType = 'solo' | 'small_team' | 'agency'
@@ -170,6 +171,20 @@ export default class User extends compose(BaseModel, AuthFinder) {
   @column()
   declare trialTxUsed: boolean
 
+  // Stripe billing
+  @column()
+  declare stripeCustomerId: string | null
+
+  @column()
+  declare stripeSubscriptionId: string | null
+
+  @column()
+  declare stripePaymentMethodId: string | null
+
+  // Bloc 9: Promo code used at registration
+  @column()
+  declare promoCodeId: number | null
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 
@@ -181,4 +196,7 @@ export default class User extends compose(BaseModel, AuthFinder) {
 
   @belongsTo(() => Plan, { foreignKey: 'planId' })
   declare plan: BelongsTo<typeof Plan>
+
+  @belongsTo(() => PromoCode, { foreignKey: 'promoCodeId' })
+  declare promoCode: BelongsTo<typeof PromoCode>
 }

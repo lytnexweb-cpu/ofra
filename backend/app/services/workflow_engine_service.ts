@@ -1,8 +1,10 @@
 import Transaction from '#models/transaction'
 import TransactionStep from '#models/transaction_step'
+import TransactionParty from '#models/transaction_party'
 import WorkflowTemplate from '#models/workflow_template'
 import WorkflowStep from '#models/workflow_step'
 import Condition from '#models/condition'
+import Client from '#models/client'
 import Note from '#models/note'
 import Offer from '#models/offer'
 import TransactionProfile from '#models/transaction_profile'
@@ -39,6 +41,8 @@ interface CreateTransactionParams {
   }
   /** Sprint 1: When false, skip ALL auto-condition creation */
   autoConditionsEnabled?: boolean
+  /** C3a: Role of the primary client in this transaction */
+  clientRole?: 'buyer' | 'seller' | null
 }
 
 interface ConditionResolutionInput {
@@ -87,7 +91,23 @@ export class WorkflowEngineService {
       notesText: params.notesText ?? null,
       folderUrl: params.folderUrl ?? null,
       autoConditionsEnabled,
+      clientRole: params.clientRole ?? null,
     })
+
+    // C3c: Auto-create a TransactionParty from the primary client
+    if (params.clientRole) {
+      const client = await Client.find(params.clientId)
+      if (client) {
+        await TransactionParty.create({
+          transactionId: transaction.id,
+          role: params.clientRole,
+          fullName: `${client.firstName} ${client.lastName}`.trim(),
+          email: client.email ?? null,
+          phone: client.cellPhone ?? client.phone ?? null,
+          isPrimary: true,
+        })
+      }
+    }
 
     // Instantiate all steps
     const transactionSteps: TransactionStep[] = []

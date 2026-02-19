@@ -73,12 +73,21 @@ router.post('/api/reset-password', '#controllers/auth_controller.resetPassword')
 router.get('/api/verify-email', '#controllers/auth_controller.verifyEmail')
 router.post('/api/resend-verification', '#controllers/auth_controller.resendVerification').use(middleware.rateLimit())
 
+// Public site routes (Bloc 9 — SiteMode)
+router.post('/api/site/validate-code', '#controllers/public_site_controller.validateCode').use(middleware.rateLimit())
+router.get('/api/public/site-info', '#controllers/public_site_controller.getPublicInfo')
+router.post('/api/waitlist', '#controllers/public_site_controller.joinWaitlist').use(middleware.rateLimit())
+router.post('/api/promo-codes/validate', '#controllers/public_promo_controller.validate').use(middleware.rateLimit())
+
 // Public share link access (D34 P1.5)
 router.get('/api/share/:token', '#controllers/transaction_share_links_controller.publicAccess')
 
 // Public offer intake (D35)
 router.get('/api/offer-intake/:token', '#controllers/offer_intake_controller.info')
 router.post('/api/offer-intake/:token', '#controllers/offer_intake_controller.submit').use(middleware.rateLimit())
+
+// Stripe webhooks (public, signature-verified internally)
+router.post('/api/webhooks/stripe', '#controllers/stripe_webhooks_controller.handle')
 
 // Routes protégées
 router.group(() => {
@@ -99,6 +108,13 @@ router.group(() => {
   // K2: Subscription
   router.get('/me/subscription', '#controllers/profile_controller.subscription')
   router.post('/me/plan', '#controllers/profile_controller.changePlan')
+
+  // Stripe billing
+  router.post('/stripe/setup-intent', '#controllers/stripe_controller.setupIntent')
+  router.post('/stripe/subscribe', '#controllers/stripe_controller.subscribe')
+  router.post('/stripe/change-plan', '#controllers/stripe_controller.changePlan')
+  router.post('/stripe/cancel', '#controllers/stripe_controller.cancel')
+  router.put('/stripe/payment-method', '#controllers/stripe_controller.updatePaymentMethod')
 
   // Dashboard
   router.get('/dashboard/summary', '#controllers/dashboard_controller.summary')
@@ -235,12 +251,17 @@ router.group(() => {
   // Note sub-resource (no transaction ID in URL — internal check)
   router.delete('/notes/:id', '#controllers/notes_controller.destroy')
 
-  // Notifications
+}).prefix('/api').use([middleware.auth(), middleware.siteMode(), middleware.trialGuard()])
+
+// Notifications — exempt from trialGuard so expired trial users can still read their notifications
+router.group(() => {
   router.get('/notifications', '#controllers/notifications_controller.index')
   router.get('/notifications/unread-count', '#controllers/notifications_controller.unreadCount')
   router.patch('/notifications/:id/read', '#controllers/notifications_controller.markRead')
   router.post('/notifications/read-all', '#controllers/notifications_controller.markAllRead')
-}).prefix('/api').use([middleware.auth(), middleware.trialGuard()])
+  router.delete('/notifications/:id', '#controllers/notifications_controller.destroy')
+  router.delete('/notifications', '#controllers/notifications_controller.destroyAll')
+}).prefix('/api').use([middleware.auth(), middleware.siteMode()])
 
 // Admin routes (require admin or superadmin role)
 router.group(() => {
@@ -265,9 +286,22 @@ router.group(() => {
   router.patch('/tasks/:id', '#controllers/admin_controller.updateTask')
   router.delete('/tasks/:id', '#controllers/admin_controller.deleteTask')
 
-  // Plans management (G2)
+  // Plans management (G2) — read-only for admin
   router.get('/plans', '#controllers/admin_plans_controller.index')
-  router.put('/plans/:id', '#controllers/admin_plans_controller.update')
+  router.get('/plan-changes', '#controllers/admin_plans_controller.getChanges')
+
+  // Pulse dashboard (Bloc 9)
+  router.get('/pulse', '#controllers/admin_pulse_controller.index')
+
+  // Site settings (Bloc 9)
+  router.get('/site-settings', '#controllers/admin_site_settings_controller.index')
+
+  // Promo codes (Bloc 9 Sprint B)
+  router.get('/promo-codes', '#controllers/admin_promo_codes_controller.index')
+
+  // Waitlist (Bloc 9 Sprint B)
+  router.get('/waitlist', '#controllers/admin_waitlist_controller.index')
+  router.get('/waitlist/export', '#controllers/admin_waitlist_controller.export')
 }).prefix('/api/admin').use([middleware.auth(), middleware.admin()])
 
 // Superadmin-only routes
@@ -276,4 +310,20 @@ router.group(() => {
   router.patch('/subscribers/:id/role', '#controllers/admin_controller.updateRole')
   // Subscription status management
   router.patch('/subscribers/:id/subscription', '#controllers/admin_controller.updateSubscription')
+  // Extend subscription by N days (§11.K P0-2)
+  router.patch('/subscribers/:id/extend', '#controllers/admin_controller.extendSubscription')
+  // Toggle founder flag (§11.K H4)
+  router.patch('/subscribers/:id/founder', '#controllers/admin_controller.toggleFounder')
+
+  // Site settings (Bloc 9 — superadmin only for writes)
+  router.put('/site-settings', '#controllers/admin_site_settings_controller.update')
+
+  // Plans — write operations (superadmin only, §11.K H3 fix)
+  router.put('/plans/:id', '#controllers/admin_plans_controller.update')
+  router.post('/plans/:id/apply-to-existing', '#controllers/admin_plans_controller.applyToExisting')
+
+  // Promo codes — CUD (Bloc 9 Sprint B)
+  router.post('/promo-codes', '#controllers/admin_promo_codes_controller.store')
+  router.put('/promo-codes/:id', '#controllers/admin_promo_codes_controller.update')
+  router.delete('/promo-codes/:id', '#controllers/admin_promo_codes_controller.destroy')
 }).prefix('/api/admin').use([middleware.auth(), middleware.superadmin()])

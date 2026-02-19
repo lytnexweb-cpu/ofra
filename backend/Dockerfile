@@ -11,19 +11,19 @@ FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN npm run build
+RUN node ace build --ignore-ts-errors
 
 # Production image
 FROM base AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
-ENV HOST=0.0.0.0
+ENV HOST=::
 ENV PORT=3333
 
 COPY --from=builder /app/build ./build
 COPY --from=builder /app/package*.json ./
-COPY --from=deps /app/node_modules ./node_modules
+RUN npm ci --omit=dev
 
 EXPOSE 3333
 

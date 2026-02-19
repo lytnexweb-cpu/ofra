@@ -96,6 +96,11 @@ describe('i18n key parity', () => {
       'admin.clients', 'admin.runtime', 'admin.transactions',
       'admin.conditions', 'admin.crm', 'admin.engagement',
       'admin.notes', 'admin.txShort', 'admin.plans.title',
+      'admin.config.plansSection', 'admin.config.title',
+      'admin.pulse.conversion', 'admin.pulse.mrr', 'admin.pulse.title',
+      'admin.subscription.active', 'admin.subscription.trial',
+      // Coming soon
+      'comingSoon.founderPill', 'comingSoon.minutes',
       // Auth
       'auth.province', 'auth.adminPanel',
       // Documents
@@ -152,6 +157,8 @@ describe('i18n key parity', () => {
       // Offers comparison (symbols/cognates identical in FR/EN)
       'offers.comparison.noValue', 'offers.comparison.parties',
       'offers.comparison.conditions', 'offers.comparison.inspection',
+      // Offer form draft direction (template with arrow symbol)
+      'addOffer.draftDirection',
     ])
 
     const suspicious: string[] = []

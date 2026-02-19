@@ -28,7 +28,7 @@ export default function TransactionBottomNav({ activeTab, onTabChange }: Transac
 
   return (
     <nav
-      className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-white dark:bg-stone-800 border-t border-stone-200 dark:border-stone-700 safe-area-bottom"
+      className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-stone-200 safe-area-bottom"
       aria-label={t('common.tabNavigation')}
     >
       <div className="flex justify-around items-center h-16">
@@ -43,7 +43,7 @@ export default function TransactionBottomNav({ activeTab, onTabChange }: Transac
               className={`flex flex-col items-center justify-center flex-1 h-full px-1 transition-colors ${
                 isActive
                   ? 'text-primary'
-                  : 'text-stone-400 dark:text-stone-500'
+                  : 'text-stone-400'
               }`}
               aria-current={isActive ? 'page' : undefined}
               data-testid={`bottom-tab-${key}`}

@@ -53,6 +53,9 @@ export default class Client extends BaseModel {
   @column({ columnName: 'cell_phone' })
   declare cellPhone: string | null
 
+  @column({ columnName: 'client_type' })
+  declare clientType: string | null
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 

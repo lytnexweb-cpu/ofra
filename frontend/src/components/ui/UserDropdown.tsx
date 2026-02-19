@@ -54,7 +54,7 @@ export default function UserDropdown({ onLogout, isLoggingOut }: UserDropdownPro
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors"
+        className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-stone-100 transition-colors"
         aria-expanded={isOpen}
         aria-haspopup="true"
       >
@@ -64,12 +64,12 @@ export default function UserDropdown({ onLogout, isLoggingOut }: UserDropdownPro
         </div>
 
         {/* Name (hidden on small screens) */}
-        <span className="hidden md:block text-sm font-medium text-stone-700 dark:text-stone-200 max-w-[120px] truncate">
+        <span className="hidden md:block text-sm font-medium text-stone-700 max-w-[120px] truncate">
           {user?.fullName || user?.email?.split('@')[0] || 'User'}
         </span>
 
         {/* Chevron */}
-        <ChevronDownIcon className={`w-4 h-4 text-stone-500 dark:text-stone-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDownIcon className={`w-4 h-4 text-stone-500 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       <AnimatePresence>
@@ -79,14 +79,14 @@ export default function UserDropdown({ onLogout, isLoggingOut }: UserDropdownPro
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 mt-2 w-56 rounded-xl bg-white dark:bg-stone-800 shadow-lg ring-1 ring-black/5 dark:ring-white/10 py-1 z-50"
+            className="absolute right-0 mt-2 w-56 rounded-xl bg-white shadow-lg ring-1 ring-black/5 py-1 z-50"
           >
             {/* User info header */}
-            <div className="px-4 py-3 border-b border-stone-100 dark:border-stone-700">
-              <p className="text-sm font-medium text-stone-900 dark:text-white truncate">
+            <div className="px-4 py-3 border-b border-stone-100">
+              <p className="text-sm font-medium text-stone-900 truncate">
                 {user?.fullName || 'User'}
               </p>
-              <p className="text-xs text-stone-500 dark:text-stone-400 truncate">
+              <p className="text-xs text-stone-500 truncate">
                 {user?.email}
               </p>
             </div>
@@ -96,22 +96,22 @@ export default function UserDropdown({ onLogout, isLoggingOut }: UserDropdownPro
               <Link
                 to="/settings"
                 onClick={() => setIsOpen(false)}
-                className="flex items-center gap-3 px-4 py-2 text-sm text-stone-700 dark:text-stone-200 hover:bg-stone-50 dark:hover:bg-stone-700 transition-colors"
+                className="flex items-center gap-3 px-4 py-2 text-sm text-stone-700 hover:bg-stone-50 transition-colors"
               >
-                <SettingsIcon className="w-4 h-4 text-stone-500 dark:text-stone-400" />
+                <SettingsIcon className="w-4 h-4 text-stone-500" />
                 {t('nav.settings')}
               </Link>
             </div>
 
             {/* Logout */}
-            <div className="border-t border-stone-100 dark:border-stone-700 py-1">
+            <div className="border-t border-stone-100 py-1">
               <button
                 onClick={() => {
                   setIsOpen(false)
                   onLogout()
                 }}
                 disabled={isLoggingOut}
-                className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50"
+                className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
               >
                 <LogoutIcon className="w-4 h-4" />
                 {isLoggingOut ? t('auth.loggingOut') : t('auth.logout')}

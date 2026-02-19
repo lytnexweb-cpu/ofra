@@ -239,8 +239,8 @@ export default function CreateOfferModal({
   if (!isOpen) return null
 
   const inputClass =
-    'mt-1 block w-full border border-stone-300 dark:border-stone-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-stone-700 dark:text-white'
-  const labelClass = 'block text-sm font-medium text-stone-700 dark:text-stone-300'
+    'mt-1 block w-full border border-stone-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm'
+  const labelClass = 'block text-sm font-medium text-stone-700'
 
   const formSection = (
     <div className="space-y-4">
@@ -372,7 +372,7 @@ export default function CreateOfferModal({
           ) : (
             <div>
               <label className={labelClass}>{t('offers.fromParty')}</label>
-              <p className="mt-1 text-sm text-stone-600 dark:text-stone-400">
+              <p className="mt-1 text-sm text-stone-600">
                 {fromOptions[0]?.fullName ?? '—'}
               </p>
             </div>
@@ -397,7 +397,7 @@ export default function CreateOfferModal({
           ) : (
             <div>
               <label className={labelClass}>{t('offers.toParty')}</label>
-              <p className="mt-1 text-sm text-stone-600 dark:text-stone-400">
+              <p className="mt-1 text-sm text-stone-600">
                 {toOptions[0]?.fullName ?? '—'}
               </p>
             </div>
@@ -422,7 +422,7 @@ export default function CreateOfferModal({
             }
             className="h-4 w-4 rounded border-stone-300 accent-blue-600"
           />
-          <span className="text-sm font-medium text-stone-700 dark:text-stone-300">
+          <span className="text-sm font-medium text-stone-700">
             {t('offers.createModal.financingToggle')}
           </span>
         </label>
@@ -450,7 +450,7 @@ export default function CreateOfferModal({
             }
             className="h-4 w-4 rounded border-stone-300 accent-blue-600"
           />
-          <span className="text-sm font-medium text-stone-700 dark:text-stone-300">
+          <span className="text-sm font-medium text-stone-700">
             {t('offers.createModal.inspectionToggle')}
           </span>
         </label>
@@ -534,7 +534,7 @@ export default function CreateOfferModal({
 
   const packsSection = (
     <div className="space-y-3">
-      <h4 className="text-sm font-semibold text-stone-900 dark:text-white flex items-center gap-2">
+      <h4 className="text-sm font-semibold text-stone-900 flex items-center gap-2">
         <Package className="w-4 h-4" />
         {t('offers.packs.title')}
       </h4>
@@ -571,12 +571,12 @@ export default function CreateOfferModal({
 
       {/* Pack loaded state */}
       {selectedPack && packTemplates.length > 0 && (
-        <div className="rounded-lg border border-green-200 bg-green-50 dark:bg-green-900/20 dark:border-green-800 p-3 space-y-2">
+        <div className="rounded-lg border border-green-200 bg-green-50 p-3 space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-green-800 dark:text-green-300">
+            <span className="text-sm font-medium text-green-800">
               {t('offers.packs.loaded')}
             </span>
-            <span className="text-xs text-green-600 dark:text-green-400">
+            <span className="text-xs text-green-600">
               {packTemplates.length} {t('offers.packs.conditionsCount')}
             </span>
           </div>
@@ -586,7 +586,7 @@ export default function CreateOfferModal({
                 key={tmpl.id}
                 className="flex items-center justify-between gap-2 text-xs py-1"
               >
-                <span className="text-stone-700 dark:text-stone-300 truncate">{tmpl.title}</span>
+                <span className="text-stone-700 truncate">{tmpl.title}</span>
                 {packLevelBadge(tmpl.level)}
               </div>
             ))}
@@ -607,21 +607,21 @@ export default function CreateOfferModal({
       <div className="absolute inset-0 bg-black/40" onClick={handleClose} />
 
       <div className="relative z-10 flex min-h-full items-center justify-center p-4">
-        <div className={`w-full rounded-xl bg-white dark:bg-stone-800 shadow-xl ${isDesktop ? 'max-w-4xl' : 'max-w-lg'}`}>
+        <div className={`w-full rounded-xl bg-white shadow-xl ${isDesktop ? 'max-w-4xl' : 'max-w-lg'}`}>
           <form onSubmit={handleSubmit}>
             <div className="p-6">
-              <h3 className="text-lg font-medium text-stone-900 dark:text-white mb-4">
+              <h3 className="text-lg font-medium text-stone-900 mb-4">
                 {t('offers.new')}
               </h3>
 
               {error && (
-                <div className="mb-4 rounded-md bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 p-4">
-                  <h4 className="text-sm font-semibold text-red-800 dark:text-red-300 mb-1">
+                <div className="mb-4 rounded-md bg-red-50 border border-red-200 p-4">
+                  <h4 className="text-sm font-semibold text-red-800 mb-1">
                     {error.title}
                   </h4>
-                  <p className="text-sm text-red-700 dark:text-red-400">{error.message}</p>
+                  <p className="text-sm text-red-700">{error.message}</p>
                   {error.fieldErrors && (
-                    <ul className="mt-2 text-xs text-red-600 dark:text-red-400 list-disc list-inside">
+                    <ul className="mt-2 text-xs text-red-600 list-disc list-inside">
                       {Object.entries(error.fieldErrors).map(([field, messages]) => (
                         <li key={field}>
                           <strong>{field}:</strong> {messages.join(', ')}
@@ -650,7 +650,7 @@ export default function CreateOfferModal({
                     <button
                       type="button"
                       onClick={() => setPacksExpanded(!packsExpanded)}
-                      className="flex items-center justify-between w-full text-sm font-medium text-stone-700 dark:text-stone-300"
+                      className="flex items-center justify-between w-full text-sm font-medium text-stone-700"
                     >
                       <span className="flex items-center gap-2">
                         <Package className="w-4 h-4" />
@@ -673,12 +673,12 @@ export default function CreateOfferModal({
               )}
             </div>
 
-            <div className="bg-stone-50 dark:bg-stone-700 px-6 py-4 flex justify-end gap-3 rounded-b-xl">
+            <div className="bg-stone-50 px-6 py-4 flex justify-end gap-3 rounded-b-xl">
               <button
                 type="button"
                 onClick={handleClose}
                 disabled={createMutation.isPending}
-                className="px-4 py-2 text-sm font-medium text-stone-700 dark:text-stone-300 bg-white dark:bg-stone-600 border border-stone-300 dark:border-stone-500 rounded-md hover:bg-stone-50 dark:hover:bg-stone-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                className="px-4 py-2 text-sm font-medium text-stone-700 bg-white border border-stone-300 rounded-md hover:bg-stone-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
               >
                 {t('common.cancel')}
               </button>

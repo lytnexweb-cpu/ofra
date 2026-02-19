@@ -7,7 +7,7 @@ import { afterEach, vi, beforeEach } from 'vitest'
 // Register vitest-axe matchers (extend-expect.js is empty in vitest-axe 0.1.0)
 expect.extend(matchers)
 
-// Mock window.matchMedia for ThemeContext (not supported in jsdom)
+// Mock window.matchMedia (not supported in jsdom)
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
   value: vi.fn().mockImplementation((query: string) => ({
