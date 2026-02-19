@@ -20,7 +20,7 @@ const conditionTypeLabels: Record<string, string> = {
 }
 
 const priorityColors = {
-  low: 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300',
+  low: 'bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300',
   medium: 'bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300',
   high: 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300',
 }
@@ -28,8 +28,8 @@ const priorityColors = {
 const stepStatusColors: Record<string, string> = {
   completed: 'bg-green-500 border-green-500',
   active: 'bg-blue-500 border-blue-500',
-  skipped: 'bg-gray-300 dark:bg-gray-600 border-gray-300 dark:border-gray-600',
-  pending: 'bg-white dark:bg-stone-800 border-gray-300 dark:border-gray-600',
+  skipped: 'bg-stone-300 dark:bg-stone-600 border-stone-300 dark:border-stone-600',
+  pending: 'bg-white dark:bg-stone-800 border-stone-300 dark:border-stone-600',
 }
 
 export default function TransactionTimeline({ transaction }: TransactionTimelineProps) {
@@ -120,7 +120,7 @@ export default function TransactionTimeline({ transaction }: TransactionTimeline
 
       {/* Step Timeline */}
       <div className="relative">
-        <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200 dark:bg-gray-700"></div>
+        <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-stone-200 dark:bg-stone-700"></div>
 
         <div className="space-y-6">
           {steps.length > 0 ? (
@@ -144,13 +144,13 @@ export default function TransactionTimeline({ transaction }: TransactionTimeline
                     className={`bg-white dark:bg-stone-800 border rounded-lg p-4 shadow-sm ${
                       isActive
                         ? 'border-blue-300 dark:border-blue-600 ring-1 ring-blue-200 dark:ring-blue-800'
-                        : 'border-gray-200 dark:border-gray-700'
+                        : 'border-stone-200 dark:border-stone-700'
                     }`}
                   >
                     <div className="flex items-start justify-between mb-2">
                       <div>
                         <div className="flex items-center gap-2">
-                          <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                          <p className="text-sm font-semibold text-stone-900 dark:text-stone-100">
                             {step.workflowStep?.name || `Step ${step.stepOrder}`}
                           </p>
                           {isActive && (
@@ -164,13 +164,13 @@ export default function TransactionTimeline({ transaction }: TransactionTimeline
                             </span>
                           )}
                           {isSkipped && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-300">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-stone-100 dark:bg-stone-800 text-stone-800 dark:text-stone-300">
                               Skipped
                             </span>
                           )}
                         </div>
                       </div>
-                      <div className="text-right text-xs text-gray-500 dark:text-gray-400">
+                      <div className="text-right text-xs text-stone-500 dark:text-stone-400">
                         {step.enteredAt && (
                           <div>Entered: {formatDateTime(step.enteredAt)}</div>
                         )}
@@ -182,8 +182,8 @@ export default function TransactionTimeline({ transaction }: TransactionTimeline
 
                     {/* Step conditions */}
                     {stepConditions.length > 0 && (
-                      <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
-                        <p className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <div className="mt-3 pt-3 border-t border-stone-100 dark:border-stone-700">
+                        <p className="text-xs font-medium text-stone-700 dark:text-stone-300 mb-2">
                           Conditions ({stepConditions.filter((c) => c.status === 'completed').length}/{stepConditions.length} complete):
                         </p>
                         <div className="space-y-2">
@@ -207,7 +207,7 @@ export default function TransactionTimeline({ transaction }: TransactionTimeline
                                   </svg>
                                 ) : (
                                   <svg
-                                    className="w-4 h-4 text-gray-400"
+                                    className="w-4 h-4 text-stone-400"
                                     fill="currentColor"
                                     viewBox="0 0 20 20"
                                   >
@@ -224,8 +224,8 @@ export default function TransactionTimeline({ transaction }: TransactionTimeline
                                   <span
                                     className={
                                       condition.status === 'completed'
-                                        ? 'text-gray-500 dark:text-gray-400 line-through'
-                                        : 'text-gray-900 dark:text-gray-100'
+                                        ? 'text-stone-500 dark:text-stone-400 line-through'
+                                        : 'text-stone-900 dark:text-stone-100'
                                     }
                                   >
                                     {condition.title}
@@ -252,7 +252,7 @@ export default function TransactionTimeline({ transaction }: TransactionTimeline
                                   )}
                                 </div>
                                 {condition.dueDate && (
-                                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                  <p className="text-xs text-stone-500 dark:text-stone-400 mt-1">
                                     Due: {formatDate(condition.dueDate)}
                                     {condition.completedAt && (
                                       <span className="ml-2 text-green-600 dark:text-green-400">
@@ -273,7 +273,7 @@ export default function TransactionTimeline({ transaction }: TransactionTimeline
               )
             })
           ) : (
-            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+            <div className="text-center py-8 text-stone-500 dark:text-stone-400">
               <p className="text-sm">No workflow steps available</p>
             </div>
           )}

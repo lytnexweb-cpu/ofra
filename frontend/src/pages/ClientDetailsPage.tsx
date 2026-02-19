@@ -152,7 +152,7 @@ export default function ClientDetailsPage() {
       <div className="py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h3 className="text-lg font-medium text-gray-900">
+            <h3 className="text-lg font-medium text-stone-900">
               {t('clients.details.notFound')}
             </h3>
             <Link
@@ -179,7 +179,7 @@ export default function ClientDetailsPage() {
             ← {t('clients.details.backToClients')}
           </Link>
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-semibold text-gray-900">
+            <h1 className="text-2xl font-semibold text-stone-900">
               {client.firstName} {client.lastName}
             </h1>
             <button
@@ -195,13 +195,13 @@ export default function ClientDetailsPage() {
         <div className="bg-white shadow sm:rounded-lg mb-6">
           <div className="px-4 py-5 sm:p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-medium leading-6 text-gray-900">
+              <h3 className="text-lg font-medium leading-6 text-stone-900">
                 {t('clients.details.contactInfo')}
               </h3>
               {!editingClient && (
                 <button
                   onClick={handleEditClient}
-                  className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="inline-flex items-center px-3 py-1.5 border border-stone-300 shadow-sm text-sm font-medium rounded-md text-stone-700 bg-white hover:bg-stone-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
                   <svg
                     className="h-4 w-4 mr-1.5"
@@ -226,7 +226,7 @@ export default function ClientDetailsPage() {
               <div className="space-y-4">
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
-                    <label htmlFor="edit-firstName" className="block text-sm font-medium text-gray-700">
+                    <label htmlFor="edit-firstName" className="block text-sm font-medium text-stone-700">
                       {t('clients.firstName')} <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -235,11 +235,11 @@ export default function ClientDetailsPage() {
                       required
                       value={editForm.firstName}
                       onChange={(e) => setEditForm({ ...editForm, firstName: e.target.value })}
-                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                      className="mt-1 block w-full border border-stone-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                     />
                   </div>
                   <div>
-                    <label htmlFor="edit-lastName" className="block text-sm font-medium text-gray-700">
+                    <label htmlFor="edit-lastName" className="block text-sm font-medium text-stone-700">
                       {t('clients.lastName')} <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -248,14 +248,14 @@ export default function ClientDetailsPage() {
                       required
                       value={editForm.lastName}
                       onChange={(e) => setEditForm({ ...editForm, lastName: e.target.value })}
-                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                      className="mt-1 block w-full border border-stone-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
-                    <label htmlFor="edit-email" className="block text-sm font-medium text-gray-700">
+                    <label htmlFor="edit-email" className="block text-sm font-medium text-stone-700">
                       {t('clients.email')}
                     </label>
                     <input
@@ -263,11 +263,11 @@ export default function ClientDetailsPage() {
                       id="edit-email"
                       value={editForm.email}
                       onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                      className="mt-1 block w-full border border-stone-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                     />
                   </div>
                   <div>
-                    <label htmlFor="edit-phone" className="block text-sm font-medium text-gray-700">
+                    <label htmlFor="edit-phone" className="block text-sm font-medium text-stone-700">
                       {t('clients.phone')}
                     </label>
                     <input
@@ -275,14 +275,14 @@ export default function ClientDetailsPage() {
                       id="edit-phone"
                       value={editForm.phone}
                       onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
-                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                      className="mt-1 block w-full border border-stone-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                   <div>
-                    <label htmlFor="edit-cellPhone" className="block text-sm font-medium text-gray-700">
+                    <label htmlFor="edit-cellPhone" className="block text-sm font-medium text-stone-700">
                       {t('clients.phones.cell')}
                     </label>
                     <input
@@ -290,11 +290,11 @@ export default function ClientDetailsPage() {
                       id="edit-cellPhone"
                       value={editForm.cellPhone}
                       onChange={(e) => setEditForm({ ...editForm, cellPhone: e.target.value })}
-                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                      className="mt-1 block w-full border border-stone-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                     />
                   </div>
                   <div>
-                    <label htmlFor="edit-homePhone" className="block text-sm font-medium text-gray-700">
+                    <label htmlFor="edit-homePhone" className="block text-sm font-medium text-stone-700">
                       {t('clients.phones.home')}
                     </label>
                     <input
@@ -302,11 +302,11 @@ export default function ClientDetailsPage() {
                       id="edit-homePhone"
                       value={editForm.homePhone}
                       onChange={(e) => setEditForm({ ...editForm, homePhone: e.target.value })}
-                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                      className="mt-1 block w-full border border-stone-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                     />
                   </div>
                   <div>
-                    <label htmlFor="edit-workPhone" className="block text-sm font-medium text-gray-700">
+                    <label htmlFor="edit-workPhone" className="block text-sm font-medium text-stone-700">
                       {t('clients.phones.work')}
                     </label>
                     <input
@@ -314,13 +314,13 @@ export default function ClientDetailsPage() {
                       id="edit-workPhone"
                       value={editForm.workPhone}
                       onChange={(e) => setEditForm({ ...editForm, workPhone: e.target.value })}
-                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                      className="mt-1 block w-full border border-stone-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label htmlFor="edit-addressLine1" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="edit-addressLine1" className="block text-sm font-medium text-stone-700">
                     {t('clients.address.line1')}
                   </label>
                   <input
@@ -328,12 +328,12 @@ export default function ClientDetailsPage() {
                     id="edit-addressLine1"
                     value={editForm.addressLine1}
                     onChange={(e) => setEditForm({ ...editForm, addressLine1: e.target.value })}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    className="mt-1 block w-full border border-stone-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="edit-addressLine2" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="edit-addressLine2" className="block text-sm font-medium text-stone-700">
                     {t('clients.address.line2')}
                   </label>
                   <input
@@ -341,13 +341,13 @@ export default function ClientDetailsPage() {
                     id="edit-addressLine2"
                     value={editForm.addressLine2}
                     onChange={(e) => setEditForm({ ...editForm, addressLine2: e.target.value })}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    className="mt-1 block w-full border border-stone-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   />
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                   <div>
-                    <label htmlFor="edit-city" className="block text-sm font-medium text-gray-700">
+                    <label htmlFor="edit-city" className="block text-sm font-medium text-stone-700">
                       {t('clients.address.city')}
                     </label>
                     <input
@@ -355,11 +355,11 @@ export default function ClientDetailsPage() {
                       id="edit-city"
                       value={editForm.city}
                       onChange={(e) => setEditForm({ ...editForm, city: e.target.value })}
-                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                      className="mt-1 block w-full border border-stone-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                     />
                   </div>
                   <div>
-                    <label htmlFor="edit-provinceState" className="block text-sm font-medium text-gray-700">
+                    <label htmlFor="edit-provinceState" className="block text-sm font-medium text-stone-700">
                       {t('clients.address.provinceState')}
                     </label>
                     <input
@@ -367,11 +367,11 @@ export default function ClientDetailsPage() {
                       id="edit-provinceState"
                       value={editForm.provinceState}
                       onChange={(e) => setEditForm({ ...editForm, provinceState: e.target.value })}
-                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                      className="mt-1 block w-full border border-stone-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                     />
                   </div>
                   <div>
-                    <label htmlFor="edit-postalCode" className="block text-sm font-medium text-gray-700">
+                    <label htmlFor="edit-postalCode" className="block text-sm font-medium text-stone-700">
                       {t('clients.address.postalCode')}
                     </label>
                     <input
@@ -379,13 +379,13 @@ export default function ClientDetailsPage() {
                       id="edit-postalCode"
                       value={editForm.postalCode}
                       onChange={(e) => setEditForm({ ...editForm, postalCode: e.target.value })}
-                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                      className="mt-1 block w-full border border-stone-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label htmlFor="edit-notes" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="edit-notes" className="block text-sm font-medium text-stone-700">
                     {t('clients.notes')}
                   </label>
                   <textarea
@@ -393,16 +393,16 @@ export default function ClientDetailsPage() {
                     rows={3}
                     value={editForm.notes}
                     onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    className="mt-1 block w-full border border-stone-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   />
                 </div>
 
-                <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+                <div className="flex justify-end gap-3 pt-4 border-t border-stone-200">
                   <button
                     type="button"
                     onClick={handleCancelEditClient}
                     disabled={updateClientMutation.isPending}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                    className="px-4 py-2 text-sm font-medium text-stone-700 bg-white border border-stone-300 rounded-md hover:bg-stone-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
                   >
                     {t('common.cancel')}
                   </button>
@@ -420,8 +420,8 @@ export default function ClientDetailsPage() {
               <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
               {client.email && (
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">{t('clients.email')}</dt>
-                  <dd className="mt-1 text-sm text-gray-900">
+                  <dt className="text-sm font-medium text-stone-500">{t('clients.email')}</dt>
+                  <dd className="mt-1 text-sm text-stone-900">
                     <a
                       href={`mailto:${client.email}`}
                       className="text-blue-600 hover:text-blue-800"
@@ -433,8 +433,8 @@ export default function ClientDetailsPage() {
               )}
               {client.phone && (
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">{t('clients.phone')}</dt>
-                  <dd className="mt-1 text-sm text-gray-900">
+                  <dt className="text-sm font-medium text-stone-500">{t('clients.phone')}</dt>
+                  <dd className="mt-1 text-sm text-stone-900">
                     <a
                       href={`tel:${client.phone}`}
                       className="text-blue-600 hover:text-blue-800"
@@ -446,8 +446,8 @@ export default function ClientDetailsPage() {
               )}
               {client.cellPhone && (
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">{t('clients.phones.cell')}</dt>
-                  <dd className="mt-1 text-sm text-gray-900">
+                  <dt className="text-sm font-medium text-stone-500">{t('clients.phones.cell')}</dt>
+                  <dd className="mt-1 text-sm text-stone-900">
                     <a
                       href={`tel:${client.cellPhone}`}
                       className="text-blue-600 hover:text-blue-800"
@@ -459,8 +459,8 @@ export default function ClientDetailsPage() {
               )}
               {client.homePhone && (
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">{t('clients.phones.home')}</dt>
-                  <dd className="mt-1 text-sm text-gray-900">
+                  <dt className="text-sm font-medium text-stone-500">{t('clients.phones.home')}</dt>
+                  <dd className="mt-1 text-sm text-stone-900">
                     <a
                       href={`tel:${client.homePhone}`}
                       className="text-blue-600 hover:text-blue-800"
@@ -472,8 +472,8 @@ export default function ClientDetailsPage() {
               )}
               {client.workPhone && (
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">{t('clients.phones.work')}</dt>
-                  <dd className="mt-1 text-sm text-gray-900">
+                  <dt className="text-sm font-medium text-stone-500">{t('clients.phones.work')}</dt>
+                  <dd className="mt-1 text-sm text-stone-900">
                     <a
                       href={`tel:${client.workPhone}`}
                       className="text-blue-600 hover:text-blue-800"
@@ -485,8 +485,8 @@ export default function ClientDetailsPage() {
               )}
               {(client.addressLine1 || client.city || client.provinceState || client.postalCode) && (
                 <div className="sm:col-span-2">
-                  <dt className="text-sm font-medium text-gray-500">{t('clients.details.address')}</dt>
-                  <dd className="mt-1 text-sm text-gray-900">
+                  <dt className="text-sm font-medium text-stone-500">{t('clients.details.address')}</dt>
+                  <dd className="mt-1 text-sm text-stone-900">
                     {client.addressLine1 && <div>{client.addressLine1}</div>}
                     {client.addressLine2 && <div>{client.addressLine2}</div>}
                     {(client.city || client.provinceState || client.postalCode) && (
@@ -501,8 +501,8 @@ export default function ClientDetailsPage() {
               )}
               {client.notes && (
                 <div className="sm:col-span-2">
-                  <dt className="text-sm font-medium text-gray-500">{t('clients.notes')}</dt>
-                  <dd className="mt-1 text-sm text-gray-900">{client.notes}</dd>
+                  <dt className="text-sm font-medium text-stone-500">{t('clients.notes')}</dt>
+                  <dd className="mt-1 text-sm text-stone-900">{client.notes}</dd>
                 </div>
               )}
             </dl>
@@ -513,7 +513,7 @@ export default function ClientDetailsPage() {
         {/* Transactions Timeline */}
         <div className="bg-white shadow sm:rounded-lg">
           <div className="px-4 py-5 sm:p-6">
-            <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">
+            <h3 className="text-lg font-medium leading-6 text-stone-900 mb-4">
               {t('clients.details.transactionsHistory')}
             </h3>
 
@@ -545,10 +545,10 @@ export default function ClientDetailsPage() {
                 {transactions.map((transaction) => (
                   <div
                     key={transaction.id}
-                    className="border border-gray-200 rounded-lg p-6"
+                    className="border border-stone-200 rounded-lg p-6"
                   >
                     <div className="flex items-center justify-between mb-4">
-                      <h4 className="text-md font-semibold text-gray-900">
+                      <h4 className="text-md font-semibold text-stone-900">
                         {t('clients.details.transactionNumber', { id: transaction.id })}
                       </h4>
                       <Link
@@ -563,7 +563,7 @@ export default function ClientDetailsPage() {
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-stone-500">
                 {t('clients.details.noTransactions')}
               </p>
             )}

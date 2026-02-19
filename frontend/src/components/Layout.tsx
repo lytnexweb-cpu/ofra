@@ -42,7 +42,7 @@ export default function Layout() {
   })
 
   // D53: Trial status for hard wall redirect
-  const { data: subData } = useQuery({
+  const { data: subData, isLoading: isSubLoading } = useQuery({
     queryKey: ['subscription'],
     queryFn: subscriptionApi.get,
     staleTime: 2 * 60 * 1000,
@@ -242,7 +242,7 @@ export default function Layout() {
         {/* Page Content - scrollable on mobile, normal flow on desktop */}
         <main id="main" className="flex-1 overflow-y-auto lg:overflow-visible p-4 sm:p-6 lg:p-8 pt-20 lg:pt-6 pb-20 lg:pb-8 overflow-x-hidden">
           <div className="max-w-6xl mx-auto">
-            <Outlet />
+            {isSubLoading ? null : <Outlet />}
           </div>
         </main>
 

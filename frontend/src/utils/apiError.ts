@@ -1,3 +1,5 @@
+import i18n from '../i18n'
+
 export interface ParsedError {
   title: string
   message: string
@@ -9,6 +11,8 @@ export interface ParsedError {
  * Handles: 401/419 (session), validation errors, network errors
  */
 export function parseApiError(error: unknown): ParsedError {
+  const t = (key: string) => i18n.t(key)
+
   // Type guard for error with response
   if (
     error &&
@@ -22,9 +26,8 @@ export function parseApiError(error: unknown): ParsedError {
     // 401/419 - Session expired
     if (response.status === 401 || response.status === 419) {
       return {
-        title: 'Session expirée',
-        message:
-          'Votre session a expiré. Merci de vous reconnecter pour continuer.',
+        title: t('common.sessionExpiredTitle'),
+        message: t('common.sessionExpiredMessage'),
       }
     }
 
@@ -35,23 +38,23 @@ export function parseApiError(error: unknown): ParsedError {
       // Check for errors array or details
       if (data.error?.details) {
         return {
-          title: 'Erreurs de validation',
-          message: 'Veuillez corriger les erreurs ci-dessous.',
+          title: t('common.validationErrorsTitle'),
+          message: t('common.validationErrorsMessage'),
           fieldErrors: data.error.details,
         }
       }
 
       if (data.errors) {
         return {
-          title: 'Erreurs de validation',
-          message: 'Veuillez corriger les erreurs ci-dessous.',
+          title: t('common.validationErrorsTitle'),
+          message: t('common.validationErrorsMessage'),
           fieldErrors: data.errors,
         }
       }
 
       if (data.error?.message) {
         return {
-          title: 'Erreur de validation',
+          title: t('common.validationErrorTitle'),
           message: data.error.message,
         }
       }
@@ -60,7 +63,7 @@ export function parseApiError(error: unknown): ParsedError {
     // Other error responses
     if (response.data?.error?.message) {
       return {
-        title: 'Erreur',
+        title: t('common.errorTitle'),
         message: response.data.error.message,
       }
     }
@@ -76,17 +79,16 @@ export function parseApiError(error: unknown): ParsedError {
     const message = error.message.toLowerCase()
     if (message.includes('network') || message.includes('fetch')) {
       return {
-        title: 'Erreur réseau',
-        message:
-          'Impossible de joindre le serveur. Vérifie que le backend tourne (port 3333).',
+        title: t('common.networkErrorTitle'),
+        message: t('common.networkErrorMessage'),
       }
     }
   }
 
   // Fallback
   return {
-    title: 'Erreur inattendue',
-    message: 'Une erreur est survenue. Veuillez réessayer.',
+    title: t('common.unexpectedErrorTitle'),
+    message: t('common.unexpectedErrorMessage'),
   }
 }
 

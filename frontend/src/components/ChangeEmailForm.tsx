@@ -58,8 +58,8 @@ export default function ChangeEmailForm({ currentEmail, onSuccess }: ChangeEmail
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-      <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Change Email</h2>
+    <div className="bg-white dark:bg-stone-800 shadow rounded-lg p-6">
+      <h2 className="text-xl font-semibold text-stone-900 dark:text-white mb-4">Change Email</h2>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Success Message */}
@@ -78,18 +78,18 @@ export default function ChangeEmailForm({ currentEmail, onSuccess }: ChangeEmail
 
         {/* Current Email (read-only) */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Current Email</label>
+          <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">Current Email</label>
           <input
             type="email"
             value={currentEmail}
             disabled
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
+            className="w-full px-3 py-2 border border-stone-300 dark:border-stone-600 rounded-md bg-stone-50 dark:bg-stone-700 text-stone-500 dark:text-stone-400"
           />
         </div>
 
         {/* New Email */}
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label htmlFor="email" className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">
             New Email
           </label>
           <input
@@ -98,14 +98,14 @@ export default function ChangeEmailForm({ currentEmail, onSuccess }: ChangeEmail
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-stone-300 dark:border-stone-600 rounded-md bg-white dark:bg-stone-700 text-stone-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             disabled={updateProfileMutation.isPending}
           />
         </div>
 
         {/* Current Password (for security) */}
         <div>
-          <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label htmlFor="currentPassword" className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">
             Current Password
           </label>
           <input
@@ -114,10 +114,10 @@ export default function ChangeEmailForm({ currentEmail, onSuccess }: ChangeEmail
             value={currentPassword}
             onChange={(e) => setCurrentPassword(e.target.value)}
             required
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-stone-300 dark:border-stone-600 rounded-md bg-white dark:bg-stone-700 text-stone-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             disabled={updateProfileMutation.isPending}
           />
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Required to confirm your identity</p>
+          <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">Required to confirm your identity</p>
         </div>
 
         {/* Submit Button */}

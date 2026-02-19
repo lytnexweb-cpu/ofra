@@ -12,7 +12,7 @@ function LevelBadge({ level }: { level: string }) {
     recommended: 'bg-green-600 text-white',
   }
   return (
-    <span className={`px-1.5 py-0.5 text-xs font-semibold rounded ${styles[level] || 'bg-gray-500 text-white'}`}>
+    <span className={`px-1.5 py-0.5 text-xs font-semibold rounded ${styles[level] || 'bg-stone-500 text-white'}`}>
       {t(`conditions.levels.${level}`)}
     </span>
   )

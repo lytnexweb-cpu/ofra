@@ -46,20 +46,20 @@ export default function RevenueChart({ data = [], totalRevenue = 0, monthRevenue
   const hasData = data.length > 0 && data.some((d) => d.total > 0)
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+    <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-stone-100 dark:border-stone-700 p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t('dashboard.charts.commissions')}</h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400">{t('dashboard.charts.last6Months')}</p>
+          <h3 className="text-lg font-semibold text-stone-900 dark:text-white">{t('dashboard.charts.commissions')}</h3>
+          <p className="text-sm text-stone-500 dark:text-stone-400">{t('dashboard.charts.last6Months')}</p>
         </div>
         <div className="text-right">
           <p className="text-2xl font-bold text-green-600 dark:text-green-400">{formatCurrency(monthRevenue)}</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">{t('dashboard.charts.thisMonth')}</p>
+          <p className="text-xs text-stone-500 dark:text-stone-400">{t('dashboard.charts.thisMonth')}</p>
         </div>
       </div>
 
       {!hasData ? (
-        <div className="h-64 flex items-center justify-center text-gray-400 dark:text-gray-500">
+        <div className="h-64 flex items-center justify-center text-stone-400 dark:text-stone-500">
           <div className="text-center">
             <svg className="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -113,10 +113,10 @@ export default function RevenueChart({ data = [], totalRevenue = 0, monthRevenue
             </ResponsiveContainer>
           </div>
 
-          <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+          <div className="mt-4 pt-4 border-t border-stone-100 dark:border-stone-700">
             <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-500 dark:text-gray-400">{t('dashboard.charts.totalEarned')}</span>
-              <span className="text-lg font-semibold text-gray-900 dark:text-white">
+              <span className="text-sm text-stone-500 dark:text-stone-400">{t('dashboard.charts.totalEarned')}</span>
+              <span className="text-lg font-semibold text-stone-900 dark:text-white">
                 {formatCurrency(totalRevenue)}
               </span>
             </div>

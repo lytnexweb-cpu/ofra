@@ -54,7 +54,7 @@ function getActivityIcon(activityType: string) {
     )
   }
   return (
-    <div className="p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400">
+    <div className="p-2 rounded-full bg-stone-100 dark:bg-stone-700 text-stone-600 dark:text-stone-400">
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
@@ -84,11 +84,11 @@ export default function RecentActivity({ activities = [] }: RecentActivityProps)
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">{t('dashboard.charts.recentActivity')}</h3>
+    <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-stone-100 dark:border-stone-700 p-6">
+      <h3 className="text-lg font-semibold text-stone-900 dark:text-white mb-4">{t('dashboard.charts.recentActivity')}</h3>
 
       {activities.length === 0 ? (
-        <div className="py-8 text-center text-gray-400 dark:text-gray-500">
+        <div className="py-8 text-center text-stone-400 dark:text-stone-500">
           <svg className="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
@@ -100,17 +100,17 @@ export default function RecentActivity({ activities = [] }: RecentActivityProps)
             <Link
               key={`${activity.activityType}-${activity.id}`}
               to={`/transactions/${activity.transactionId}`}
-              className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              className="flex items-start gap-3 p-3 rounded-lg hover:bg-stone-50 dark:hover:bg-stone-700 transition-colors"
             >
               {getActivityIcon(activity.activityType)}
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                <p className="text-sm font-medium text-stone-900 dark:text-white truncate">
                   {activity.clientName}
                 </p>
-                <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                <p className="text-sm text-stone-500 dark:text-stone-400 truncate">
                   {getActivityDescription(activity)}
                 </p>
-                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                <p className="text-xs text-stone-400 dark:text-stone-500 mt-1">
                   {formatDistanceToNow(activity.createdAt)}
                 </p>
               </div>

@@ -128,10 +128,10 @@ export default function CounterOfferModal({
       <div className="absolute inset-0 bg-black/40" onClick={handleClose} />
 
       <div className="relative z-10 flex min-h-full items-center justify-center p-4">
-        <div className="w-full max-w-lg rounded-xl bg-white dark:bg-gray-800 shadow-xl">
+        <div className="w-full max-w-lg rounded-xl bg-white dark:bg-stone-800 shadow-xl">
           <form onSubmit={handleSubmit}>
             <div className="p-6">
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+              <h3 className="text-lg font-medium text-stone-900 dark:text-white mb-4">
                 {t('offers.counterOffer')}
               </h3>
 
@@ -146,7 +146,7 @@ export default function CounterOfferModal({
 
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="counter-price" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label htmlFor="counter-price" className="block text-sm font-medium text-stone-700 dark:text-stone-300">
                     {t('offers.price')} <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -157,13 +157,13 @@ export default function CounterOfferModal({
                     step="0.01"
                     value={formData.price}
                     onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                    className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white"
+                    className="mt-1 block w-full border border-stone-300 dark:border-stone-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-stone-700 dark:text-white"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label htmlFor="counter-deposit" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <label htmlFor="counter-deposit" className="block text-sm font-medium text-stone-700 dark:text-stone-300">
                       {t('offers.deposit')}
                     </label>
                     <input
@@ -173,11 +173,11 @@ export default function CounterOfferModal({
                       step="0.01"
                       value={formData.deposit}
                       onChange={(e) => setFormData({ ...formData, deposit: e.target.value })}
-                      className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white"
+                      className="mt-1 block w-full border border-stone-300 dark:border-stone-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-stone-700 dark:text-white"
                     />
                   </div>
                   <div>
-                    <label htmlFor="counter-financing" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <label htmlFor="counter-financing" className="block text-sm font-medium text-stone-700 dark:text-stone-300">
                       {t('offers.financingAmount')}
                     </label>
                     <input
@@ -187,14 +187,14 @@ export default function CounterOfferModal({
                       step="0.01"
                       value={formData.financingAmount}
                       onChange={(e) => setFormData({ ...formData, financingAmount: e.target.value })}
-                      className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white"
+                      className="mt-1 block w-full border border-stone-300 dark:border-stone-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-stone-700 dark:text-white"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label htmlFor="counter-expiry" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <label htmlFor="counter-expiry" className="block text-sm font-medium text-stone-700 dark:text-stone-300">
                       {t('offers.expiryDate')}
                     </label>
                     <input
@@ -202,11 +202,11 @@ export default function CounterOfferModal({
                       id="counter-expiry"
                       value={formData.expiryAt}
                       onChange={(e) => setFormData({ ...formData, expiryAt: e.target.value })}
-                      className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white"
+                      className="mt-1 block w-full border border-stone-300 dark:border-stone-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-stone-700 dark:text-white"
                     />
                   </div>
                   <div>
-                    <label htmlFor="counter-direction" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <label htmlFor="counter-direction" className="block text-sm font-medium text-stone-700 dark:text-stone-300">
                       {t('offers.direction')}
                     </label>
                     <select
@@ -215,7 +215,7 @@ export default function CounterOfferModal({
                       onChange={(e) =>
                         setFormData({ ...formData, direction: e.target.value as AddRevisionRequest['direction'] })
                       }
-                      className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white"
+                      className="mt-1 block w-full border border-stone-300 dark:border-stone-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-stone-700 dark:text-white"
                     >
                       <option value="buyer_to_seller">{t('offers.buyerToSeller')}</option>
                       <option value="seller_to_buyer">{t('offers.sellerToBuyer')}</option>
@@ -224,7 +224,7 @@ export default function CounterOfferModal({
                 </div>
 
                 <div>
-                  <label htmlFor="counter-notes" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label htmlFor="counter-notes" className="block text-sm font-medium text-stone-700 dark:text-stone-300">
                     {t('offers.notes')}
                   </label>
                   <textarea
@@ -232,19 +232,19 @@ export default function CounterOfferModal({
                     rows={3}
                     value={formData.notes}
                     onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                    className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white"
+                    className="mt-1 block w-full border border-stone-300 dark:border-stone-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-stone-700 dark:text-white"
                     placeholder={t('offers.counterNotesPlaceholder')}
                   />
                 </div>
               </div>
             </div>
 
-            <div className="bg-gray-50 dark:bg-gray-700 px-6 py-4 flex justify-end gap-3 rounded-b-xl">
+            <div className="bg-stone-50 dark:bg-stone-700 px-6 py-4 flex justify-end gap-3 rounded-b-xl">
               <button
                 type="button"
                 onClick={handleClose}
                 disabled={counterMutation.isPending}
-                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md hover:bg-gray-50 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                className="px-4 py-2 text-sm font-medium text-stone-700 dark:text-stone-300 bg-white dark:bg-stone-600 border border-stone-300 dark:border-stone-500 rounded-md hover:bg-stone-50 dark:hover:bg-stone-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
               >
                 {t('common.cancel')}
               </button>

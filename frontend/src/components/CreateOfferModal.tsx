@@ -239,8 +239,8 @@ export default function CreateOfferModal({
   if (!isOpen) return null
 
   const inputClass =
-    'mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white'
-  const labelClass = 'block text-sm font-medium text-gray-700 dark:text-gray-300'
+    'mt-1 block w-full border border-stone-300 dark:border-stone-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-stone-700 dark:text-white'
+  const labelClass = 'block text-sm font-medium text-stone-700 dark:text-stone-300'
 
   const formSection = (
     <div className="space-y-4">
@@ -372,7 +372,7 @@ export default function CreateOfferModal({
           ) : (
             <div>
               <label className={labelClass}>{t('offers.fromParty')}</label>
-              <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+              <p className="mt-1 text-sm text-stone-600 dark:text-stone-400">
                 {fromOptions[0]?.fullName ?? '—'}
               </p>
             </div>
@@ -397,7 +397,7 @@ export default function CreateOfferModal({
           ) : (
             <div>
               <label className={labelClass}>{t('offers.toParty')}</label>
-              <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+              <p className="mt-1 text-sm text-stone-600 dark:text-stone-400">
                 {toOptions[0]?.fullName ?? '—'}
               </p>
             </div>
@@ -420,9 +420,9 @@ export default function CreateOfferModal({
             onChange={(e) =>
               setFormData({ ...formData, financingEnabled: e.target.checked })
             }
-            className="h-4 w-4 rounded border-gray-300 accent-blue-600"
+            className="h-4 w-4 rounded border-stone-300 accent-blue-600"
           />
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          <span className="text-sm font-medium text-stone-700 dark:text-stone-300">
             {t('offers.createModal.financingToggle')}
           </span>
         </label>
@@ -448,9 +448,9 @@ export default function CreateOfferModal({
             onChange={(e) =>
               setFormData({ ...formData, inspectionRequired: e.target.checked })
             }
-            className="h-4 w-4 rounded border-gray-300 accent-blue-600"
+            className="h-4 w-4 rounded border-stone-300 accent-blue-600"
           />
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          <span className="text-sm font-medium text-stone-700 dark:text-stone-300">
             {t('offers.createModal.inspectionToggle')}
           </span>
         </label>
@@ -526,7 +526,7 @@ export default function CreateOfferModal({
       recommended: 'bg-blue-100 text-blue-700',
     }
     return (
-      <span className={`inline-flex px-1.5 py-0.5 text-[10px] font-medium rounded ${colors[level] ?? 'bg-gray-100 text-gray-600'}`}>
+      <span className={`inline-flex px-1.5 py-0.5 text-[10px] font-medium rounded ${colors[level] ?? 'bg-stone-100 text-stone-600'}`}>
         {t(`conditions.levels.${level}`)}
       </span>
     )
@@ -534,7 +534,7 @@ export default function CreateOfferModal({
 
   const packsSection = (
     <div className="space-y-3">
-      <h4 className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+      <h4 className="text-sm font-semibold text-stone-900 dark:text-white flex items-center gap-2">
         <Package className="w-4 h-4" />
         {t('offers.packs.title')}
       </h4>
@@ -586,7 +586,7 @@ export default function CreateOfferModal({
                 key={tmpl.id}
                 className="flex items-center justify-between gap-2 text-xs py-1"
               >
-                <span className="text-gray-700 dark:text-gray-300 truncate">{tmpl.title}</span>
+                <span className="text-stone-700 dark:text-stone-300 truncate">{tmpl.title}</span>
                 {packLevelBadge(tmpl.level)}
               </div>
             ))}
@@ -607,10 +607,10 @@ export default function CreateOfferModal({
       <div className="absolute inset-0 bg-black/40" onClick={handleClose} />
 
       <div className="relative z-10 flex min-h-full items-center justify-center p-4">
-        <div className={`w-full rounded-xl bg-white dark:bg-gray-800 shadow-xl ${isDesktop ? 'max-w-4xl' : 'max-w-lg'}`}>
+        <div className={`w-full rounded-xl bg-white dark:bg-stone-800 shadow-xl ${isDesktop ? 'max-w-4xl' : 'max-w-lg'}`}>
           <form onSubmit={handleSubmit}>
             <div className="p-6">
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+              <h3 className="text-lg font-medium text-stone-900 dark:text-white mb-4">
                 {t('offers.new')}
               </h3>
 
@@ -650,7 +650,7 @@ export default function CreateOfferModal({
                     <button
                       type="button"
                       onClick={() => setPacksExpanded(!packsExpanded)}
-                      className="flex items-center justify-between w-full text-sm font-medium text-gray-700 dark:text-gray-300"
+                      className="flex items-center justify-between w-full text-sm font-medium text-stone-700 dark:text-stone-300"
                     >
                       <span className="flex items-center gap-2">
                         <Package className="w-4 h-4" />
@@ -673,12 +673,12 @@ export default function CreateOfferModal({
               )}
             </div>
 
-            <div className="bg-gray-50 dark:bg-gray-700 px-6 py-4 flex justify-end gap-3 rounded-b-xl">
+            <div className="bg-stone-50 dark:bg-stone-700 px-6 py-4 flex justify-end gap-3 rounded-b-xl">
               <button
                 type="button"
                 onClick={handleClose}
                 disabled={createMutation.isPending}
-                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md hover:bg-gray-50 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                className="px-4 py-2 text-sm font-medium text-stone-700 dark:text-stone-300 bg-white dark:bg-stone-600 border border-stone-300 dark:border-stone-500 rounded-md hover:bg-stone-50 dark:hover:bg-stone-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
               >
                 {t('common.cancel')}
               </button>

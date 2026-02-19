@@ -1,18 +1,19 @@
 import { describe, it, expect } from 'vitest'
 import { parseApiError, isSessionExpired } from './apiError'
+import i18n from '../i18n'
 
 describe('parseApiError', () => {
   it('handles 401 session expired', () => {
     const error = { response: { status: 401 } }
     const result = parseApiError(error)
-    expect(result.title).toBe('Session expirée')
-    expect(result.message).toContain('reconnecter')
+    expect(result.title).toBe(i18n.t('common.sessionExpiredTitle'))
+    expect(result.message).toBe(i18n.t('common.sessionExpiredMessage'))
   })
 
   it('handles 419 session expired', () => {
     const error = { response: { status: 419 } }
     const result = parseApiError(error)
-    expect(result.title).toBe('Session expirée')
+    expect(result.title).toBe(i18n.t('common.sessionExpiredTitle'))
   })
 
   it('handles 422 validation with error.details', () => {
@@ -27,7 +28,7 @@ describe('parseApiError', () => {
       },
     }
     const result = parseApiError(error)
-    expect(result.title).toBe('Erreurs de validation')
+    expect(result.title).toBe(i18n.t('common.validationErrorsTitle'))
     expect(result.fieldErrors).toEqual({ email: ['Email is required'] })
   })
 
@@ -41,7 +42,7 @@ describe('parseApiError', () => {
       },
     }
     const result = parseApiError(error)
-    expect(result.title).toBe('Erreurs de validation')
+    expect(result.title).toBe(i18n.t('common.validationErrorsTitle'))
     expect(result.fieldErrors).toEqual({ name: ['Name too short'] })
   })
 
@@ -55,7 +56,7 @@ describe('parseApiError', () => {
       },
     }
     const result = parseApiError(error)
-    expect(result.title).toBe('Erreur de validation')
+    expect(result.title).toBe(i18n.t('common.validationErrorTitle'))
     expect(result.message).toBe('Validation failed')
   })
 
@@ -69,31 +70,31 @@ describe('parseApiError', () => {
       },
     }
     const result = parseApiError(error)
-    expect(result.title).toBe('Erreur')
+    expect(result.title).toBe(i18n.t('common.errorTitle'))
     expect(result.message).toBe('Internal server error')
   })
 
   it('handles network errors', () => {
     const error = { message: 'Network Error' }
     const result = parseApiError(error)
-    expect(result.title).toBe('Erreur réseau')
-    expect(result.message).toContain('serveur')
+    expect(result.title).toBe(i18n.t('common.networkErrorTitle'))
+    expect(result.message).toBe(i18n.t('common.networkErrorMessage'))
   })
 
   it('handles fetch errors', () => {
     const error = { message: 'Failed to fetch' }
     const result = parseApiError(error)
-    expect(result.title).toBe('Erreur réseau')
+    expect(result.title).toBe(i18n.t('common.networkErrorTitle'))
   })
 
   it('returns fallback for unknown errors', () => {
     const result = parseApiError('something weird')
-    expect(result.title).toBe('Erreur inattendue')
+    expect(result.title).toBe(i18n.t('common.unexpectedErrorTitle'))
   })
 
   it('returns fallback for null', () => {
     const result = parseApiError(null)
-    expect(result.title).toBe('Erreur inattendue')
+    expect(result.title).toBe(i18n.t('common.unexpectedErrorTitle'))
   })
 })
 

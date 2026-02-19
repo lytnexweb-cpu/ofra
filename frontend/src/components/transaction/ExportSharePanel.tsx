@@ -178,7 +178,7 @@ export default function ExportSharePanel({ isOpen, onClose, transactionId }: Exp
                     onChange={(e) =>
                       setPdfSections({ ...pdfSections, [section]: e.target.checked })
                     }
-                    className="h-4 w-4 rounded border-gray-300 accent-blue-600"
+                    className="h-4 w-4 rounded border-stone-300 accent-blue-600"
                   />
                   <span className="text-sm">{t(`export.section.${section}`)}</span>
                 </label>
@@ -190,7 +190,7 @@ export default function ExportSharePanel({ isOpen, onClose, transactionId }: Exp
                 type="checkbox"
                 checked={pdfWatermark}
                 onChange={(e) => setPdfWatermark(e.target.checked)}
-                className="h-4 w-4 rounded border-gray-300 accent-blue-600"
+                className="h-4 w-4 rounded border-stone-300 accent-blue-600"
               />
               <span className="text-sm">{t('export.watermark')}</span>
             </label>
@@ -247,7 +247,7 @@ export default function ExportSharePanel({ isOpen, onClose, transactionId }: Exp
                       type="checkbox"
                       checked={shareLink.isActive}
                       onChange={() => toggleLinkMutation.mutate()}
-                      className="h-4 w-4 rounded border-gray-300 accent-blue-600"
+                      className="h-4 w-4 rounded border-stone-300 accent-blue-600"
                     />
                     <span className="text-sm font-medium">
                       {shareLink.isActive ? t('shareLink.active') : t('shareLink.inactive')}
