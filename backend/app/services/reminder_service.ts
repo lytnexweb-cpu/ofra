@@ -47,6 +47,7 @@ export class ReminderService {
         subQuery
           .from('transactions')
           .whereColumn('transactions.owner_user_id', 'users.id')
+          .where('transactions.status', 'active')
       })
 
     logger.info({ userCount: usersWithTransactions.length }, 'Users with transactions to process')
@@ -153,10 +154,10 @@ export class ReminderService {
     const now = DateTime.now()
     const sevenDaysFromNow = now.plus({ days: 7 })
 
-    // Get all transactions for this user
-    // Note: Transactions don't have a status column - they use workflow steps
+    // Get active transactions for this user (exclude cancelled/archived)
     const transactions = await Transaction.query()
       .where('owner_user_id', user.id)
+      .where('status', 'active')
       .preload('client')
       .preload('property')
 
@@ -327,7 +328,7 @@ export class ReminderService {
           to: user.email,
           userName: user.fullName ?? user.email,
           daysRemaining,
-          language: user.preferredLanguage,
+          language: user.language,
         })
       )
       logger.info({ userId, daysRemaining }, 'Trial reminder email sent')
@@ -347,9 +348,10 @@ export class ReminderService {
     const in48h = now.plus({ hours: 48 })
     const in49h = now.plus({ hours: 49 }) // 1-hour window
 
-    // Get all transactions (they don't have a status column - they use workflow steps)
+    // Only check active transactions (exclude cancelled/archived)
     const activeTransactionIds = await Transaction.query()
       .select('id')
+      .where('status', 'active')
 
     const transactionIds = activeTransactionIds.map((t) => t.id)
 

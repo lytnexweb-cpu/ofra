@@ -6,17 +6,23 @@ import Transaction from './transaction.js'
 
 export type NotificationType =
   | 'deadline_warning'
-  | 'condition_overdue'
+  | 'daily_digest'
+  | 'condition_created'
+  | 'condition_completed'
   | 'condition_resolved'
-  | 'blocking_alert'
   | 'step_advanced'
+  | 'step_skipped'
+  | 'transaction_cancelled'
+  | 'offer_created'
+  | 'offer_countered'
+  | 'offer_accepted'
+  | 'offer_rejected'
+  | 'offer_withdrawn'
   | 'offer_update'
-  | 'email_sent'
   | 'member_invited'
   | 'party_added'
-  | 'transaction_cancelled'
-  | 'share_sent'
-  | 'daily_digest'
+  | 'share_link_created'
+  | 'email_recap_sent'
 
 export type NotificationSeverity = 'info' | 'warning' | 'urgent'
 
@@ -31,7 +37,7 @@ export default class Notification extends BaseModel {
   declare transactionId: number | null
 
   @column()
-  declare type: string
+  declare type: NotificationType | (string & {})
 
   @column()
   declare title: string

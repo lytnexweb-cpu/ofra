@@ -1,11 +1,11 @@
 import { DateTime } from 'luxon'
 import Notification from '#models/notification'
-import type { NotificationSeverity } from '#models/notification'
+import type { NotificationType, NotificationSeverity } from '#models/notification'
 
 interface NotifyOptions {
   userId: number
   transactionId?: number
-  type: string
+  type: NotificationType | string
   icon: string
   severity?: NotificationSeverity
   title: string
@@ -23,7 +23,7 @@ export class NotificationService {
       userId: opts.userId,
       transactionId: opts.transactionId ?? null,
       type: opts.type,
-      icon: opts.icon,
+      icon: opts.icon || '🔔',
       severity: opts.severity ?? 'info',
       title: opts.title,
       body: opts.body ?? null,

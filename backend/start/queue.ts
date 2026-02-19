@@ -9,6 +9,7 @@
  * This file is preloaded by AdonisJS and starts the queue system automatically.
  */
 
+import app from '@adonisjs/core/services/app'
 import env from '#start/env'
 import { queueService } from '#services/queue_service'
 import { ReminderService } from '#services/reminder_service'
@@ -120,4 +121,9 @@ if (shouldStartQueue) {
       logger.error({ err }, 'Failed to auto-start queue system')
     })
   }, 2000)
+
+  // Hook graceful shutdown into AdonisJS termination
+  app.terminating(async () => {
+    await stopQueueSystem()
+  })
 }

@@ -24,6 +24,8 @@ import TransactionDocument from '#models/transaction_document'
 import TransactionMember from '#models/transaction_member'
 import PlanChangeLog from '#models/plan_change_log'
 import Plan from '#models/plan'
+import SiteSetting from '#models/site_setting'
+import SiteModeMiddleware from '#middleware/site_mode_middleware'
 
 /**
  * Truncate all tables in correct order (respecting FK constraints)
@@ -58,4 +60,8 @@ export async function truncateAll() {
   await PlanChangeLog.query().delete()
   await Plan.query().delete()
   await Organization.query().delete()
+
+  // Reset site_mode to 'live' so siteMode middleware doesn't block test requests
+  await SiteSetting.query().where('key', 'site_mode').update({ value: 'live' })
+  SiteModeMiddleware.invalidateCache()
 }

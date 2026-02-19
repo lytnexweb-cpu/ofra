@@ -8,8 +8,8 @@ export default class NotificationsController {
    */
   async index({ auth, request, response }: HttpContext) {
     const user = auth.getUserOrFail()
-    const page = request.input('page', 1)
-    const limit = request.input('limit', 20)
+    const page = Math.max(1, Math.floor(Number(request.input('page', 1))) || 1)
+    const limit = Math.min(100, Math.max(1, Math.floor(Number(request.input('limit', 20))) || 20))
 
     const notifications = await NotificationService.list(user.id, page, limit)
 
