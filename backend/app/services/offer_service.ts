@@ -101,6 +101,12 @@ export class OfferService {
     toPartyId?: number
     buyerPartyId?: number
     sellerPartyId?: number
+    depositDeadline?: DateTime
+    closingDate?: DateTime
+    inspectionRequired?: boolean
+    inspectionDelay?: string
+    inclusions?: string
+    message?: string
   }): Promise<Offer> {
     // C1: Infer direction from party roles if not explicitly provided
     const inferred = !params.direction
@@ -169,6 +175,12 @@ export class OfferService {
       financingAmount: params.financingAmount ?? null,
       expiryAt: params.expiryAt ?? null,
       notes: params.notes ?? null,
+      depositDeadline: params.depositDeadline ?? null,
+      closingDate: params.closingDate ?? null,
+      inspectionRequired: params.inspectionRequired ?? false,
+      inspectionDelay: params.inspectionDelay ?? null,
+      inclusions: params.inclusions ?? null,
+      message: params.message ?? null,
       direction,
       createdByUserId: params.createdByUserId,
       fromPartyId,
@@ -203,6 +215,11 @@ export class OfferService {
     conditionIds?: number[]
     fromPartyId?: number
     toPartyId?: number
+    depositDeadline?: DateTime
+    closingDate?: DateTime
+    inspectionRequired?: boolean
+    inspectionDelay?: string
+    inclusions?: string
   }): Promise<OfferRevision> {
     const offer = await Offer.findOrFail(params.offerId)
 
@@ -255,6 +272,11 @@ export class OfferService {
       financingAmount: params.financingAmount ?? null,
       expiryAt: params.expiryAt ?? null,
       notes: params.notes ?? null,
+      depositDeadline: params.depositDeadline ?? null,
+      closingDate: params.closingDate ?? null,
+      inspectionRequired: params.inspectionRequired ?? false,
+      inspectionDelay: params.inspectionDelay ?? null,
+      inclusions: params.inclusions ?? null,
       direction,
       createdByUserId: params.createdByUserId,
       fromPartyId: validated.fromPartyId,

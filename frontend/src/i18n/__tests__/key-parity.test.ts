@@ -160,6 +160,8 @@ describe('i18n key parity', () => {
       'offers.comparison.conditionCount', 'offers.comparison.inclusions',
       // Offer form draft direction (template with arrow symbol)
       'addOffer.draftDirection',
+      // Offer intake (Phase B — cognate)
+      'offerIntake.inclusionsLabel',
     ])
 
     const suspicious: string[] = []

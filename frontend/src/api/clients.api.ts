@@ -26,6 +26,15 @@ export interface Client {
   workPhone: string | null
   cellPhone: string | null
   clientType: ClientType | null
+  // Buyer profile
+  isPreApproved: boolean | null
+  preApprovalAmount: number | null
+  preApprovalLender: string | null
+  financingBudget: number | null
+  // Seller profile
+  motivationLevel: 'low' | 'medium' | 'high' | 'urgent' | null
+  floorPrice: number | null
+  targetCloseDate: string | null
   createdAt: string
   updatedAt: string
 }
@@ -45,6 +54,13 @@ export interface CreateClientRequest {
   workPhone?: string
   cellPhone?: string
   clientType?: ClientType
+  isPreApproved?: boolean
+  preApprovalAmount?: number
+  preApprovalLender?: string
+  financingBudget?: number
+  motivationLevel?: 'low' | 'medium' | 'high' | 'urgent'
+  floorPrice?: number
+  targetCloseDate?: string
 }
 
 export interface UpdateClientRequest {
@@ -62,6 +78,13 @@ export interface UpdateClientRequest {
   workPhone?: string
   cellPhone?: string
   clientType?: ClientType
+  isPreApproved?: boolean
+  preApprovalAmount?: number
+  preApprovalLender?: string
+  financingBudget?: number
+  motivationLevel?: 'low' | 'medium' | 'high' | 'urgent'
+  floorPrice?: number
+  targetCloseDate?: string
 }
 
 export interface CsvImportResult {

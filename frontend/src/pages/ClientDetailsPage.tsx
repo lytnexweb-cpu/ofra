@@ -28,6 +28,14 @@ export default function ClientDetailsPage() {
     provinceState: '',
     postalCode: '',
     notes: '',
+    clientType: '' as string,
+    isPreApproved: false,
+    preApprovalAmount: '' as string | number,
+    preApprovalLender: '',
+    financingBudget: '' as string | number,
+    motivationLevel: '' as string,
+    floorPrice: '' as string | number,
+    targetCloseDate: '',
   })
 
   const { data: clientData, isLoading: isLoadingClient } = useQuery({
@@ -89,6 +97,14 @@ export default function ClientDetailsPage() {
       provinceState: client.provinceState || '',
       postalCode: client.postalCode || '',
       notes: client.notes || '',
+      clientType: client.clientType || '',
+      isPreApproved: client.isPreApproved ?? false,
+      preApprovalAmount: client.preApprovalAmount ?? '',
+      preApprovalLender: client.preApprovalLender || '',
+      financingBudget: client.financingBudget ?? '',
+      motivationLevel: client.motivationLevel || '',
+      floorPrice: client.floorPrice ?? '',
+      targetCloseDate: client.targetCloseDate || '',
     })
     setEditingClient(true)
   }
@@ -109,6 +125,14 @@ export default function ClientDetailsPage() {
     if (editForm.provinceState?.trim()) payload.provinceState = editForm.provinceState.trim()
     if (editForm.postalCode?.trim()) payload.postalCode = editForm.postalCode.trim()
     if (editForm.notes?.trim()) payload.notes = editForm.notes.trim()
+    if (editForm.clientType) payload.clientType = editForm.clientType
+    payload.isPreApproved = editForm.isPreApproved || false
+    if (editForm.preApprovalAmount !== '' && editForm.preApprovalAmount != null) payload.preApprovalAmount = Number(editForm.preApprovalAmount)
+    if (editForm.preApprovalLender?.trim()) payload.preApprovalLender = editForm.preApprovalLender.trim()
+    if (editForm.financingBudget !== '' && editForm.financingBudget != null) payload.financingBudget = Number(editForm.financingBudget)
+    if (editForm.motivationLevel) payload.motivationLevel = editForm.motivationLevel
+    if (editForm.floorPrice !== '' && editForm.floorPrice != null) payload.floorPrice = Number(editForm.floorPrice)
+    if (editForm.targetCloseDate?.trim()) payload.targetCloseDate = editForm.targetCloseDate.trim()
 
     updateClientMutation.mutate(payload)
   }
@@ -384,6 +408,136 @@ export default function ClientDetailsPage() {
                   </div>
                 </div>
 
+                {/* Client Type */}
+                <div>
+                  <label htmlFor="edit-clientType" className="block text-sm font-medium text-stone-700">
+                    {t('clients.clientType', 'Type de client')}
+                  </label>
+                  <select
+                    id="edit-clientType"
+                    value={editForm.clientType}
+                    onChange={(e) => setEditForm({ ...editForm, clientType: e.target.value })}
+                    className="mt-1 block w-full border border-stone-300 rounded-md shadow-sm py-2 px-3 bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  >
+                    <option value="">{t('clients.clientTypeNone', '— Non spécifié —')}</option>
+                    <option value="buyer">{t('clients.clientTypeBuyer', 'Acheteur')}</option>
+                    <option value="seller">{t('clients.clientTypeSeller', 'Vendeur')}</option>
+                    <option value="both">{t('clients.clientTypeBoth', 'Acheteur & Vendeur')}</option>
+                  </select>
+                </div>
+
+                {/* Buyer section */}
+                {(editForm.clientType === 'buyer' || editForm.clientType === 'both') && (
+                  <div className="rounded-lg border border-blue-100 bg-blue-50/50 p-4 space-y-3">
+                    <h4 className="text-sm font-semibold text-blue-800">{t('clients.buyerSection')}</h4>
+                    <div className="flex items-center gap-3">
+                      <label className="flex items-center gap-2 text-sm text-stone-700 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={editForm.isPreApproved}
+                          onChange={(e) => setEditForm({ ...editForm, isPreApproved: e.target.checked })}
+                          className="rounded border-stone-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        {t('clients.isPreApproved')}
+                      </label>
+                    </div>
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      <div>
+                        <label htmlFor="edit-preApprovalAmount" className="block text-xs font-medium text-stone-600">
+                          {t('clients.preApprovalAmount')}
+                        </label>
+                        <input
+                          type="number"
+                          id="edit-preApprovalAmount"
+                          min="0"
+                          step="1000"
+                          value={editForm.preApprovalAmount}
+                          onChange={(e) => setEditForm({ ...editForm, preApprovalAmount: e.target.value ? Number(e.target.value) : '' })}
+                          className="mt-1 block w-full border border-stone-300 rounded-md shadow-sm py-1.5 px-2.5 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="edit-preApprovalLender" className="block text-xs font-medium text-stone-600">
+                          {t('clients.preApprovalLender')}
+                        </label>
+                        <input
+                          type="text"
+                          id="edit-preApprovalLender"
+                          value={editForm.preApprovalLender}
+                          onChange={(e) => setEditForm({ ...editForm, preApprovalLender: e.target.value })}
+                          className="mt-1 block w-full border border-stone-300 rounded-md shadow-sm py-1.5 px-2.5 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label htmlFor="edit-financingBudget" className="block text-xs font-medium text-stone-600">
+                        {t('clients.financingBudget')}
+                      </label>
+                      <input
+                        type="number"
+                        id="edit-financingBudget"
+                        min="0"
+                        step="1000"
+                        value={editForm.financingBudget}
+                        onChange={(e) => setEditForm({ ...editForm, financingBudget: e.target.value ? Number(e.target.value) : '' })}
+                        className="mt-1 block w-full border border-stone-300 rounded-md shadow-sm py-1.5 px-2.5 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Seller section */}
+                {(editForm.clientType === 'seller' || editForm.clientType === 'both') && (
+                  <div className="rounded-lg border border-amber-100 bg-amber-50/50 p-4 space-y-3">
+                    <h4 className="text-sm font-semibold text-amber-800">{t('clients.sellerSection')}</h4>
+                    <div>
+                      <label htmlFor="edit-motivationLevel" className="block text-xs font-medium text-stone-600">
+                        {t('clients.motivationLevel')}
+                      </label>
+                      <select
+                        id="edit-motivationLevel"
+                        value={editForm.motivationLevel}
+                        onChange={(e) => setEditForm({ ...editForm, motivationLevel: e.target.value })}
+                        className="mt-1 block w-full border border-stone-300 rounded-md shadow-sm py-1.5 px-2.5 bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+                      >
+                        <option value="">—</option>
+                        <option value="low">{t('clients.motivationLow')}</option>
+                        <option value="medium">{t('clients.motivationMedium')}</option>
+                        <option value="high">{t('clients.motivationHigh')}</option>
+                        <option value="urgent">{t('clients.motivationUrgent')}</option>
+                      </select>
+                    </div>
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      <div>
+                        <label htmlFor="edit-floorPrice" className="block text-xs font-medium text-stone-600">
+                          {t('clients.floorPrice')}
+                        </label>
+                        <input
+                          type="number"
+                          id="edit-floorPrice"
+                          min="0"
+                          step="1000"
+                          value={editForm.floorPrice}
+                          onChange={(e) => setEditForm({ ...editForm, floorPrice: e.target.value ? Number(e.target.value) : '' })}
+                          className="mt-1 block w-full border border-stone-300 rounded-md shadow-sm py-1.5 px-2.5 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="edit-targetCloseDate" className="block text-xs font-medium text-stone-600">
+                          {t('clients.targetCloseDate')}
+                        </label>
+                        <input
+                          type="date"
+                          id="edit-targetCloseDate"
+                          value={editForm.targetCloseDate}
+                          onChange={(e) => setEditForm({ ...editForm, targetCloseDate: e.target.value })}
+                          className="mt-1 block w-full border border-stone-300 rounded-md shadow-sm py-1.5 px-2.5 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div>
                   <label htmlFor="edit-notes" className="block text-sm font-medium text-stone-700">
                     {t('clients.notes')}
@@ -418,6 +572,22 @@ export default function ClientDetailsPage() {
               </div>
             ) : (
               <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+              {client.clientType && (
+                <div>
+                  <dt className="text-sm font-medium text-stone-500">{t('clients.clientType')}</dt>
+                  <dd className="mt-1">
+                    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                      client.clientType === 'buyer' ? 'bg-blue-100 text-blue-800' :
+                      client.clientType === 'seller' ? 'bg-amber-100 text-amber-800' :
+                      'bg-purple-100 text-purple-800'
+                    }`}>
+                      {client.clientType === 'buyer' ? t('clients.clientTypeBuyer') :
+                       client.clientType === 'seller' ? t('clients.clientTypeSeller') :
+                       t('clients.clientTypeBoth')}
+                    </span>
+                  </dd>
+                </div>
+              )}
               {client.email && (
                 <div>
                   <dt className="text-sm font-medium text-stone-500">{t('clients.email')}</dt>
@@ -503,6 +673,70 @@ export default function ClientDetailsPage() {
                 <div className="sm:col-span-2">
                   <dt className="text-sm font-medium text-stone-500">{t('clients.notes')}</dt>
                   <dd className="mt-1 text-sm text-stone-900">{client.notes}</dd>
+                </div>
+              )}
+              {/* Buyer profile read-only */}
+              {(client.clientType === 'buyer' || client.clientType === 'both') && (client.isPreApproved || client.preApprovalAmount || client.financingBudget) && (
+                <div className="sm:col-span-2 rounded-lg border border-blue-100 bg-blue-50/50 p-4">
+                  <dt className="text-sm font-semibold text-blue-800 mb-2">{t('clients.buyerSection')}</dt>
+                  <dd className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                    {client.isPreApproved && (
+                      <div>
+                        <span className="text-stone-500">{t('clients.isPreApproved')}:</span>{' '}
+                        <span className="text-emerald-700 font-medium">{t('clients.isPreApproved')}</span>
+                      </div>
+                    )}
+                    {client.preApprovalAmount != null && (
+                      <div>
+                        <span className="text-stone-500">{t('clients.preApprovalAmount')}:</span>{' '}
+                        <span className="text-stone-900 font-medium">{new Intl.NumberFormat('fr-CA', { style: 'currency', currency: 'CAD', maximumFractionDigits: 0 }).format(client.preApprovalAmount)}</span>
+                      </div>
+                    )}
+                    {client.preApprovalLender && (
+                      <div>
+                        <span className="text-stone-500">{t('clients.preApprovalLender')}:</span>{' '}
+                        <span className="text-stone-900">{client.preApprovalLender}</span>
+                      </div>
+                    )}
+                    {client.financingBudget != null && (
+                      <div>
+                        <span className="text-stone-500">{t('clients.financingBudget')}:</span>{' '}
+                        <span className="text-stone-900 font-medium">{new Intl.NumberFormat('fr-CA', { style: 'currency', currency: 'CAD', maximumFractionDigits: 0 }).format(client.financingBudget)}</span>
+                      </div>
+                    )}
+                  </dd>
+                </div>
+              )}
+              {/* Seller profile read-only */}
+              {(client.clientType === 'seller' || client.clientType === 'both') && (client.motivationLevel || client.floorPrice || client.targetCloseDate) && (
+                <div className="sm:col-span-2 rounded-lg border border-amber-100 bg-amber-50/50 p-4">
+                  <dt className="text-sm font-semibold text-amber-800 mb-2">{t('clients.sellerSection')}</dt>
+                  <dd className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                    {client.motivationLevel && (
+                      <div>
+                        <span className="text-stone-500">{t('clients.motivationLevel')}:</span>{' '}
+                        <span className={`font-medium ${
+                          client.motivationLevel === 'urgent' ? 'text-red-600' :
+                          client.motivationLevel === 'high' ? 'text-amber-600' :
+                          'text-stone-900'
+                        }`}>
+                          {t(`clients.motivation${client.motivationLevel.charAt(0).toUpperCase() + client.motivationLevel.slice(1)}`)}
+                        </span>
+                      </div>
+                    )}
+                    {client.floorPrice != null && (
+                      <div>
+                        <span className="text-stone-500">{t('clients.floorPrice')}:</span>{' '}
+                        <span className="text-stone-900 font-medium">{new Intl.NumberFormat('fr-CA', { style: 'currency', currency: 'CAD', maximumFractionDigits: 0 }).format(client.floorPrice)}</span>
+                      </div>
+                    )}
+                    {client.targetCloseDate && (
+                      <div>
+                        <span className="text-stone-500">{t('clients.targetCloseDate')}:</span>{' '}
+                        <span className="text-stone-900">{client.targetCloseDate}</span>
+                      </div>
+                    )}
+                  </dd>
                 </div>
               )}
             </dl>

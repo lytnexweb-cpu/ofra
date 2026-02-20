@@ -82,9 +82,11 @@ router.post('/api/promo-codes/validate', '#controllers/public_promo_controller.v
 // Public share link access (D34 P1.5)
 router.get('/api/share/:token', '#controllers/transaction_share_links_controller.publicAccess')
 
-// Public offer intake (D35)
+// Public offer intake (D35 — Phase A/B/C)
 router.get('/api/offer-intake/:token', '#controllers/offer_intake_controller.info')
 router.post('/api/offer-intake/:token', '#controllers/offer_intake_controller.submit').use(middleware.rateLimit())
+router.get('/api/offer-intake/:token/status/:offerId', '#controllers/offer_intake_controller.status')
+router.post('/api/offer-intake/:token/respond/:offerId', '#controllers/offer_intake_controller.respond').use(middleware.rateLimit())
 
 // Stripe webhooks (public, signature-verified internally)
 router.post('/api/webhooks/stripe', '#controllers/stripe_webhooks_controller.handle')

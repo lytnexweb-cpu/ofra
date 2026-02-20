@@ -56,6 +56,29 @@ export default class Client extends BaseModel {
   @column({ columnName: 'client_type' })
   declare clientType: string | null
 
+  // Buyer profile fields
+  @column({ columnName: 'is_pre_approved' })
+  declare isPreApproved: boolean | null
+
+  @column({ columnName: 'pre_approval_amount' })
+  declare preApprovalAmount: number | null
+
+  @column({ columnName: 'pre_approval_lender' })
+  declare preApprovalLender: string | null
+
+  @column({ columnName: 'financing_budget' })
+  declare financingBudget: number | null
+
+  // Seller profile fields
+  @column({ columnName: 'motivation_level' })
+  declare motivationLevel: string | null
+
+  @column({ columnName: 'floor_price' })
+  declare floorPrice: number | null
+
+  @column({ columnName: 'target_close_date', serialize: (value: any) => value ? value : null })
+  declare targetCloseDate: string | null
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 

@@ -30,6 +30,13 @@ export default function CreateClientModal({ isOpen, onClose, onCreated }: Create
     homePhone: '',
     workPhone: '',
     cellPhone: '',
+    isPreApproved: undefined,
+    preApprovalAmount: undefined,
+    preApprovalLender: '',
+    financingBudget: undefined,
+    motivationLevel: undefined,
+    floorPrice: undefined,
+    targetCloseDate: '',
   })
   const [error, setError] = useState<ParsedError | null>(null)
   const queryClient = useQueryClient()
@@ -81,6 +88,13 @@ export default function CreateClientModal({ isOpen, onClose, onCreated }: Create
       homePhone: '',
       workPhone: '',
       cellPhone: '',
+      isPreApproved: undefined,
+      preApprovalAmount: undefined,
+      preApprovalLender: '',
+      financingBudget: undefined,
+      motivationLevel: undefined,
+      floorPrice: undefined,
+      targetCloseDate: '',
     })
     setError(null)
     setActiveTab('basic')
@@ -113,6 +127,13 @@ export default function CreateClientModal({ isOpen, onClose, onCreated }: Create
       workPhone: formData.workPhone?.trim() || undefined,
       cellPhone: formData.cellPhone?.trim() || undefined,
       clientType: formData.clientType || undefined,
+      isPreApproved: formData.isPreApproved ?? undefined,
+      preApprovalAmount: formData.preApprovalAmount || undefined,
+      preApprovalLender: formData.preApprovalLender?.trim() || undefined,
+      financingBudget: formData.financingBudget || undefined,
+      motivationLevel: formData.motivationLevel || undefined,
+      floorPrice: formData.floorPrice || undefined,
+      targetCloseDate: formData.targetCloseDate?.trim() || undefined,
     })
   }
 
@@ -295,6 +316,118 @@ export default function CreateClientModal({ isOpen, onClose, onCreated }: Create
                         <option value="both">{t('clients.clientTypeBoth', 'Acheteur & Vendeur')}</option>
                       </select>
                     </div>
+
+                    {/* Buyer section — visible when clientType is buyer or both */}
+                    {(formData.clientType === 'buyer' || formData.clientType === 'both') && (
+                      <div className="rounded-lg border border-blue-100 bg-blue-50/50 p-4 space-y-3">
+                        <h4 className="text-sm font-semibold text-blue-800">{t('clients.buyerSection')}</h4>
+                        <div className="flex items-center gap-3">
+                          <label className="flex items-center gap-2 text-sm text-stone-700 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={formData.isPreApproved ?? false}
+                              onChange={(e) => setFormData({ ...formData, isPreApproved: e.target.checked })}
+                              className="rounded border-stone-300 text-blue-600 focus:ring-blue-500"
+                            />
+                            {t('clients.isPreApproved')}
+                          </label>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label htmlFor="preApprovalAmount" className="block text-xs font-medium text-stone-600">
+                              {t('clients.preApprovalAmount')}
+                            </label>
+                            <input
+                              type="number"
+                              id="preApprovalAmount"
+                              min="0"
+                              step="1000"
+                              value={formData.preApprovalAmount ?? ''}
+                              onChange={(e) => setFormData({ ...formData, preApprovalAmount: e.target.value ? Number(e.target.value) : undefined })}
+                              className="mt-1 block w-full border border-stone-300 rounded-md shadow-sm py-1.5 px-2.5 bg-white text-stone-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+                            />
+                          </div>
+                          <div>
+                            <label htmlFor="preApprovalLender" className="block text-xs font-medium text-stone-600">
+                              {t('clients.preApprovalLender')}
+                            </label>
+                            <input
+                              type="text"
+                              id="preApprovalLender"
+                              value={formData.preApprovalLender ?? ''}
+                              onChange={(e) => setFormData({ ...formData, preApprovalLender: e.target.value })}
+                              className="mt-1 block w-full border border-stone-300 rounded-md shadow-sm py-1.5 px-2.5 bg-white text-stone-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label htmlFor="financingBudget" className="block text-xs font-medium text-stone-600">
+                            {t('clients.financingBudget')}
+                          </label>
+                          <input
+                            type="number"
+                            id="financingBudget"
+                            min="0"
+                            step="1000"
+                            value={formData.financingBudget ?? ''}
+                            onChange={(e) => setFormData({ ...formData, financingBudget: e.target.value ? Number(e.target.value) : undefined })}
+                            className="mt-1 block w-full border border-stone-300 rounded-md shadow-sm py-1.5 px-2.5 bg-white text-stone-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Seller section — visible when clientType is seller or both */}
+                    {(formData.clientType === 'seller' || formData.clientType === 'both') && (
+                      <div className="rounded-lg border border-amber-100 bg-amber-50/50 p-4 space-y-3">
+                        <h4 className="text-sm font-semibold text-amber-800">{t('clients.sellerSection')}</h4>
+                        <div>
+                          <label htmlFor="motivationLevel" className="block text-xs font-medium text-stone-600">
+                            {t('clients.motivationLevel')}
+                          </label>
+                          <select
+                            id="motivationLevel"
+                            value={formData.motivationLevel || ''}
+                            onChange={(e) => setFormData({ ...formData, motivationLevel: (e.target.value || undefined) as CreateClientRequest['motivationLevel'] })}
+                            className="mt-1 block w-full border border-stone-300 rounded-md shadow-sm py-1.5 px-2.5 bg-white text-stone-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+                          >
+                            <option value="">—</option>
+                            <option value="low">{t('clients.motivationLow')}</option>
+                            <option value="medium">{t('clients.motivationMedium')}</option>
+                            <option value="high">{t('clients.motivationHigh')}</option>
+                            <option value="urgent">{t('clients.motivationUrgent')}</option>
+                          </select>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label htmlFor="floorPrice" className="block text-xs font-medium text-stone-600">
+                              {t('clients.floorPrice')}
+                            </label>
+                            <input
+                              type="number"
+                              id="floorPrice"
+                              min="0"
+                              step="1000"
+                              value={formData.floorPrice ?? ''}
+                              onChange={(e) => setFormData({ ...formData, floorPrice: e.target.value ? Number(e.target.value) : undefined })}
+                              className="mt-1 block w-full border border-stone-300 rounded-md shadow-sm py-1.5 px-2.5 bg-white text-stone-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+                            />
+                          </div>
+                          <div>
+                            <label htmlFor="targetCloseDate" className="block text-xs font-medium text-stone-600">
+                              {t('clients.targetCloseDate')}
+                            </label>
+                            <input
+                              type="date"
+                              id="targetCloseDate"
+                              value={formData.targetCloseDate ?? ''}
+                              onChange={(e) => setFormData({ ...formData, targetCloseDate: e.target.value })}
+                              className="mt-1 block w-full border border-stone-300 rounded-md shadow-sm py-1.5 px-2.5 bg-white text-stone-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
 
                     <div>
                       <label

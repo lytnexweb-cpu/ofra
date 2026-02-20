@@ -16,6 +16,15 @@ export const createClientValidator = vine.compile(
     workPhone: vine.string().trim().optional(),
     cellPhone: vine.string().trim().optional(),
     clientType: vine.enum(['buyer', 'seller', 'both']).optional(),
+    // Buyer profile
+    isPreApproved: vine.boolean().optional(),
+    preApprovalAmount: vine.number().positive().optional(),
+    preApprovalLender: vine.string().trim().optional(),
+    financingBudget: vine.number().positive().optional(),
+    // Seller profile
+    motivationLevel: vine.enum(['low', 'medium', 'high', 'urgent']).optional(),
+    floorPrice: vine.number().positive().optional(),
+    targetCloseDate: vine.string().trim().optional(),
   })
 )
 
@@ -35,5 +44,14 @@ export const updateClientValidator = vine.compile(
     workPhone: vine.string().trim().optional(),
     cellPhone: vine.string().trim().optional(),
     clientType: vine.enum(['buyer', 'seller', 'both']).optional(),
+    // Buyer profile
+    isPreApproved: vine.boolean().optional(),
+    preApprovalAmount: vine.number().positive().optional(),
+    preApprovalLender: vine.string().trim().optional(),
+    financingBudget: vine.number().positive().optional(),
+    // Seller profile
+    motivationLevel: vine.enum(['low', 'medium', 'high', 'urgent']).optional(),
+    floorPrice: vine.number().positive().optional(),
+    targetCloseDate: vine.string().trim().optional(),
   })
 )
