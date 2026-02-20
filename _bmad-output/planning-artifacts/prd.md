@@ -2478,9 +2478,17 @@ Référence croisée : voir section 4.1 de ce document.
 | `AcceptOfferModal` packs hardcodé | Texte `'Universal + Finance NB'` en dur | Rendre dynamique |
 | `AcceptOfferModal` email/note non envoyés | `emailNotify` et `note` collectés mais pas passés à `offersApi.accept()` | Étendre l'API accept ou retirer les champs |
 
-#### G.5 Système d'Intake Public (Constat)
+#### G.5 Système d'Intake Public — Phases B+C (ref D35)
 
-Le flow d'intake (`/api/offer-intake/:token` + `OfferIntakePage`) est un **lead capture minimal** (nom, email, téléphone, prix, message) — pas un formulaire juridique. C'est le bon pattern : le courtier reçoit l'intérêt puis reformalise l'offre complète dans Ofra. Aucune action requise.
+> ~~Le flow d'intake est un lead capture minimal. Aucune action requise.~~ **PÉRIMÉ** — Voir D35 Phase B+C ci-dessous.
+
+Le lien d'offre public (`/offer/:token`) doit gérer l'**aller-retour complet de négociation** sur un seul lien. Ref: `_bmad-output/decisions/D35-offer-intake-link.md` (approuvé 9/9).
+
+**Phase A (MVP) : ✅ FAIT** — Formulaire minimaliste (nom, email, prix, message) → crée Offre + Party.
+
+**Phase B (formulaire enrichi) : ❌ À FAIRE** — Enrichir `OfferIntakePage` avec les mêmes champs que `CreateOfferModal` : dépôt, depositDeadline, closingDate, financement, inspection (delay), inclusions. Notifications temps réel quand offre reçue.
+
+**Phase C (portail négo aller-retour) : ❌ À FAIRE** — Le même lien `/offer/:token` affiche l'état actuel de la négociation (offre initiale, contre-offre(s), historique). La partie externe peut **répondre** à une contre-offre directement depuis le lien. Statut visible (en attente acheteur / en attente vendeur). Notification email quand l'autre partie répond.
 
 #### G.6 Références Recherche NB
 
