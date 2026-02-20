@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { authApi } from '../api/auth.api'
-import { profileApi, type UpdateProfileInfoRequest } from '../api/profile.api'
-import { Button } from '../components/ui/Button'
+import { profileApi } from '../api/profile.api'
 import {
   Globe,
   Calendar,
@@ -71,30 +71,27 @@ export default function SettingsPage() {
     }
   }
 
-  // Update profile mutation for regional settings
-  const updateProfileMutation = useMutation({
-    mutationFn: profileApi.updateProfileInfo,
-    onSuccess: (response) => {
-      if (response.success && response.data) {
-        setSuccessMessage(t('settings.updateSuccess'))
-        setErrorMessage('')
-        queryClient.invalidateQueries({ queryKey: ['auth', 'me'] })
-        setTimeout(() => setSuccessMessage(''), 3000)
-      }
-    },
-    onError: () => {
-      setErrorMessage(t('settings.updateError'))
-      setSuccessMessage('')
-    },
-  })
+  // Auto-save regional preference (same pattern as language)
+  const handleRegionalChange = async (field: 'dateFormat' | 'timezone', value: string) => {
+    const previous = field === 'dateFormat' ? dateFormat : timezone
+    if (field === 'dateFormat') setDateFormat(value as 'DD/MM/YYYY' | 'MM/DD/YYYY')
+    else setTimezone(value)
 
-  const handleRegionalSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    const data: UpdateProfileInfoRequest = {
-      dateFormat,
-      timezone,
+    try {
+      const response = await profileApi.updateProfileInfo({ [field]: value })
+      if (response.success) {
+        setSuccessMessage(t('settings.updateSuccess'))
+        setTimeout(() => setSuccessMessage(''), 3000)
+        queryClient.invalidateQueries({ queryKey: ['auth', 'me'] })
+      } else {
+        throw new Error('API returned failure')
+      }
+    } catch {
+      if (field === 'dateFormat') setDateFormat(previous as 'DD/MM/YYYY' | 'MM/DD/YYYY')
+      else setTimezone(previous)
+      setErrorMessage(t('settings.updateError'))
+      setTimeout(() => setErrorMessage(''), 5000)
     }
-    updateProfileMutation.mutate(data)
   }
 
   return (
@@ -127,12 +124,12 @@ export default function SettingsPage() {
       {/* Profile completion checklist */}
       {user && (() => {
         const checks = [
-          { key: 'fullName', done: !!user.fullName, label: t('settings.checklist.fullName', 'Nom complet') },
-          { key: 'phone', done: !!user.phone, label: t('settings.checklist.phone', 'Téléphone') },
-          { key: 'agency', done: !!user.agency, label: t('settings.checklist.agency', 'Agence') },
-          { key: 'licenseNumber', done: !!user.licenseNumber, label: t('settings.checklist.license', 'No. de permis') },
-          { key: 'profilePhoto', done: !!user.profilePhoto, label: t('settings.checklist.photo', 'Photo de profil') },
-          { key: 'onboarding', done: !!user.onboardingCompleted && !user.onboardingSkipped, label: t('settings.checklist.onboarding', 'Profil de pratique') },
+          { key: 'fullName', done: !!user.fullName, label: t('settings.checklist.fullName', 'Nom complet'), link: '/account' },
+          { key: 'phone', done: !!user.phone, label: t('settings.checklist.phone', 'Téléphone'), link: '/account' },
+          { key: 'agency', done: !!user.agency, label: t('settings.checklist.agency', 'Agence'), link: '/account' },
+          { key: 'licenseNumber', done: !!user.licenseNumber, label: t('settings.checklist.license', 'No. de permis'), link: '/account' },
+          { key: 'profilePhoto', done: !!user.profilePhoto, label: t('settings.checklist.photo', 'Photo de profil'), link: '/account' },
+          { key: 'onboarding', done: !!user.onboardingCompleted && !user.onboardingSkipped, label: t('settings.checklist.onboarding', 'Profil de pratique'), link: null },
         ]
         const doneCount = checks.filter((c) => c.done).length
         const total = checks.length
@@ -148,21 +145,35 @@ export default function SettingsPage() {
             </div>
             <div className="w-full h-2 bg-stone-100 rounded-full mb-3 overflow-hidden">
               <div
-                className="h-full bg-primary rounded-full transition-all duration-500"
+                className="h-full bg-[#1e3a5f] rounded-full transition-all duration-500"
                 style={{ width: `${pct}%` }}
               />
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              {checks.map((c) => (
-                <div key={c.key} className="flex items-center gap-2 text-xs">
-                  {c.done ? (
-                    <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                  ) : (
-                    <div className="w-3.5 h-3.5 rounded-full border-2 border-stone-300 shrink-0" />
-                  )}
-                  <span className={c.done ? 'text-stone-400 line-through' : 'text-stone-700'}>{c.label}</span>
-                </div>
-              ))}
+              {checks.map((c) => {
+                const content = (
+                  <>
+                    {c.done ? (
+                      <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                    ) : (
+                      <div className="w-3.5 h-3.5 rounded-full border-2 border-stone-300 shrink-0" />
+                    )}
+                    <span className={c.done ? 'text-stone-400 line-through' : 'text-stone-700'}>{c.label}</span>
+                  </>
+                )
+                if (!c.done && c.link) {
+                  return (
+                    <Link key={c.key} to={c.link} className="flex items-center gap-2 text-xs hover:text-[#1e3a5f] transition-colors">
+                      {content}
+                    </Link>
+                  )
+                }
+                return (
+                  <div key={c.key} className="flex items-center gap-2 text-xs">
+                    {content}
+                  </div>
+                )
+              })}
             </div>
           </div>
         )
@@ -214,7 +225,7 @@ export default function SettingsPage() {
             {t('settings.regional.title')}
           </h2>
 
-          <form onSubmit={handleRegionalSubmit} className="space-y-5">
+          <div className="space-y-5">
             {/* Date Format */}
             <div>
               <label className="flex items-center gap-2 text-sm font-medium text-stone-700 mb-2">
@@ -223,7 +234,7 @@ export default function SettingsPage() {
               </label>
               <select
                 value={dateFormat}
-                onChange={(e) => setDateFormat(e.target.value as 'DD/MM/YYYY' | 'MM/DD/YYYY')}
+                onChange={(e) => handleRegionalChange('dateFormat', e.target.value)}
                 className="w-full px-4 py-3 rounded-lg border border-stone-200 bg-white text-stone-900 focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-shadow"
               >
                 <option value="DD/MM/YYYY">DD/MM/YYYY (25/12/2026)</option>
@@ -239,7 +250,7 @@ export default function SettingsPage() {
               </label>
               <select
                 value={timezone}
-                onChange={(e) => setTimezone(e.target.value)}
+                onChange={(e) => handleRegionalChange('timezone', e.target.value)}
                 className="w-full px-4 py-3 rounded-lg border border-stone-200 bg-white text-stone-900 focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-shadow"
               >
                 <option value="America/Moncton">America/Moncton (AST/ADT)</option>
@@ -251,15 +262,7 @@ export default function SettingsPage() {
                 <option value="America/Vancouver">America/Vancouver (PST/PDT)</option>
               </select>
             </div>
-
-            <Button
-              type="submit"
-              disabled={updateProfileMutation.isPending}
-              className="w-full bg-primary hover:bg-primary/90"
-            >
-              {updateProfileMutation.isPending ? t('settings.updating') : t('settings.update')}
-            </Button>
-          </form>
+          </div>
         </div>
       </div>
     </div>

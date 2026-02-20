@@ -1068,11 +1068,6 @@
       "dateFormat": "Format de date",
       "timezone": "Fuseau horaire"
     },
-    "notifications": {
-      "title": "Notifications",
-      "emailNotifications": "Notifications par courriel",
-      "emailDescription": "Recevez des rappels et mises à jour par courriel"
-    },
     "update": "Mettre à jour",
     "updating": "Mise à jour...",
     "updateSuccess": "Mis à jour avec succès",
@@ -1918,6 +1913,8 @@
     "errorClosingPast": "La date de clôture est dans le passé",
     "errorExpirationRequired": "Sélectionnez une expiration",
     "errorFinancingRequired": "Montant requis si financement activé",
+    "errorBuyerRequired": "Sélectionnez un acheteur",
+    "errorSellerRequired": "Sélectionnez un vendeur",
     "successTitle": "Offre soumise avec succès",
     "successSubtitle": "L'offre a été ajoutée à la transaction.",
     "successType": "Type",

@@ -8,6 +8,7 @@ import { subscriptionApi } from '../api/subscription.api'
 import { stripeApi } from '../api/stripe.api'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
+import ChangeEmailForm from '../components/ChangeEmailForm'
 import {
   User,
   Shield,
@@ -66,6 +67,7 @@ export default function AccountPage() {
 
   const [successMessage, setSuccessMessage] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
+  const [showChangeEmail, setShowChangeEmail] = useState(false)
 
   // Update profile mutation
   const updateProfileMutation = useMutation({
@@ -296,18 +298,34 @@ export default function AccountPage() {
                   />
                 </div>
 
-                {/* Email (read-only) */}
+                {/* Email */}
                 <div>
-                  <label className="flex items-center gap-2 text-sm font-medium text-stone-700 mb-2">
-                    <Mail className="w-4 h-4 text-stone-400" />
-                    {t('account.profile.email')}
-                  </label>
-                  <Input
-                    type="email"
-                    value={user?.email || ''}
-                    disabled
-                    className="bg-stone-50 text-stone-500"
-                  />
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="flex items-center gap-2 text-sm font-medium text-stone-700">
+                      <Mail className="w-4 h-4 text-stone-400" />
+                      {t('account.profile.email')}
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setShowChangeEmail(!showChangeEmail)}
+                      className="text-xs font-medium text-[#1e3a5f] hover:underline"
+                    >
+                      {showChangeEmail ? t('addOffer.cancel') : t('account.security.changeEmail')}
+                    </button>
+                  </div>
+                  {showChangeEmail ? (
+                    <ChangeEmailForm
+                      currentEmail={user?.email || ''}
+                      onSuccess={() => setShowChangeEmail(false)}
+                    />
+                  ) : (
+                    <Input
+                      type="email"
+                      value={user?.email || ''}
+                      disabled
+                      className="bg-stone-50 text-stone-500"
+                    />
+                  )}
                 </div>
 
                 {/* Phone */}
@@ -522,11 +540,9 @@ export default function AccountPage() {
                     {t(`account.subscription.status.${sub.billing.subscriptionStatus}`)}
                   </p>
 
-                  <Link to="/pricing">
-                    <Button variant="outline" size="sm">
-                      {t('account.subscription.changePlan')}
-                    </Button>
-                  </Link>
+                  <Button variant="outline" size="sm" disabled className="opacity-50 cursor-not-allowed">
+                    {t('account.subscription.changePlan')}
+                  </Button>
                 </div>
 
                 {/* Usage */}
