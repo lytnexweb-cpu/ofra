@@ -26,6 +26,14 @@ supersedes:
 > Dernière mise à jour : 2026-02-19 (v2.20)
 > Auteur : Sam + Équipe BMAD (Party Mode)
 >
+> **Changements v2.21 (2026-02-19) — Sprint 1-2 Les Connexions avancées :**
+> - **§9.2 C1** : `❌ TODO` → `✅ DONE` — `inferDirection()` dans `OfferService`, `direction` optionnel dans validators + API types, controller ne masque plus l'inférence, mails utilisent direction résolue
+> - **§9.2 C2** : `❌ TODO` → `🔄 PARTIEL` — Flux intake auto-crée party, flux agent principal non. Gap documenté.
+> - **§9.2 C4** : `❌ TODO` → `🔄 PARTIEL` — PartyPicker pré-sélectionne, lookup client reste à faire
+> - **§9.2 C5** : `❌ TODO` → `✅ DONE` — CTA adaptatif buyer/seller, intégré dans C6
+> - **§9.2 C6** : `❌ TODO` → `✅ DONE` — Titre adaptatif, action gating par tour, bannière contextuelle, intake masqué buyer, auto-open comparateur seller, direction role-aware CreateOfferModal, i18n FR+EN
+> - 327 tests frontend verts, 0 régressions
+>
 > **Changements v2.20 (2026-02-19) — Vision Produit Élargie + Roadmap 3 Tiers :**
 > - **§1.1 Vision enrichie** : Ajout du principe directeur post-lancement — "L'agent gère un dossier, pas des modules"
 > - **§1.4 Moat** : 3 nouveaux différenciateurs (FINTRAC intégré, portail client, formulaires NBREA)
