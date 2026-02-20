@@ -140,10 +140,6 @@ Tous les AC sont couverts. Les gaps restants sont **hors scope** ou **optionnels
 
 ## Dev Agent Record
 
-### Agent Model Used
-
-Claude Opus 4.5 (claude-opus-4-5-20251101)
-
 ### Debug Log References
 
 - No errors encountered — pure validation story

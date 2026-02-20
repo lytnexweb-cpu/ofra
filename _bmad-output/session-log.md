@@ -8,7 +8,7 @@
 
 **Date**: 2026-02-17
 **Admin**: Sam
-**Agents actifs**: Claude Code + Party Mode (John, Sally, Winston, Paige)
+**Agents actifs**: Party Mode (John, Sally, Winston, Paige)
 
 ### Objectif
 
@@ -48,7 +48,7 @@ Définir et maquetter un deuxième dashboard "Mon espace agent" accessible via u
 
 **Date**: 2026-02-17
 **Admin**: Sam
-**Agents actifs**: Claude Code + Party Mode (Paige, Bob, Mary)
+**Agents actifs**: Party Mode (Paige, Bob, Mary)
 
 ### Objectif
 

@@ -187,10 +187,6 @@ frontend/src/
 
 ## Dev Agent Record
 
-### Agent Model Used
-
-Claude Opus 4.5 (claude-opus-4-5-20251101)
-
 ### Debug Log References
 
 - 4 test failures fixed: timezone offset on UTC midnight dates (T00:00:00Z → T12:00:00.000Z for CountdownBadge tests)

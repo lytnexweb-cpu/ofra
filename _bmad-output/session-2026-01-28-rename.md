@@ -52,9 +52,9 @@ Dernier commit: bdd956c chore: update env examples to use ofra_dev/ofra_test dat
 ## Prochaine Session
 
 ### Action Immédiate
-1. Fermer Claude Code
+1. Fermer l'IDE
 2. Renommer `C:\Users\Lytnex\crm-yanick` → `C:\Users\Lytnex\ofra`
-3. Rouvrir Claude Code dans `ofra`
+3. Rouvrir l'IDE dans `ofra`
 
 ### Validation Post-Rename
 ```bash

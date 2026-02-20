@@ -186,10 +186,6 @@ Le commit `e5222a6` a créé Layout.tsx (222 lignes), Breadcrumb.tsx, router.tsx
 
 ## Dev Agent Record
 
-### Agent Model Used
-
-Claude Opus 4.5 (claude-opus-4-5-20251101)
-
 ### Debug Log References
 
 - No errors encountered during implementation

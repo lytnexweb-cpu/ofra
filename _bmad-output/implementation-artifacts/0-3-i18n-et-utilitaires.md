@@ -222,10 +222,6 @@ Les Story 0.1 et 0.2 (non commitées) ont ajouté le setup i18n, les locales, no
 
 ## Dev Agent Record
 
-### Agent Model Used
-
-Claude Opus 4.5 (claude-opus-4-5-20251101)
-
 ### Debug Log References
 
 - 1 test failure fixed: timezone offset on UTC string date in date.test.ts (T00:00:00Z → T12:00:00Z)

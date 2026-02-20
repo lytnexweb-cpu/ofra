@@ -99,10 +99,6 @@ frontend/src/
 
 ## Dev Agent Record
 
-### Agent Model Used
-
-Claude Opus 4.5 (claude-opus-4-5-20251101)
-
 ### Debug Log References
 
 - 0 failures — all 7 new tests passed on first run

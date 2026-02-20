@@ -5,5 +5,4 @@ installation:
 modules:
   - core
   - bmm
-ides:
-  - claude-code
+ides: []

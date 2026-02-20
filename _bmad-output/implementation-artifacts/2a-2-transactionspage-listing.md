@@ -74,10 +74,6 @@ frontend/src/
 
 ## Dev Agent Record
 
-### Agent Model Used
-
-Claude Opus 4.5 (claude-opus-4-5-20251101)
-
 ### Debug Log References
 
 - 6 test timeouts fixed: `vi.useFakeTimers()` freezes `setTimeout` used by `waitFor` → switched to `vi.useFakeTimers({ shouldAdvanceTime: true })`

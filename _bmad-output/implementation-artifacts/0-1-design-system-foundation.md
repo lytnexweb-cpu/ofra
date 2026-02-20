@@ -171,10 +171,6 @@ Le commit `e5222a6` (+21126/-6271 lignes, 148 fichiers) a déjà livré l'essent
 
 ## Dev Agent Record
 
-### Agent Model Used
-
-Claude Opus 4.5 (claude-opus-4-5-20251101)
-
 ### Debug Log References
 
 - No errors encountered during implementation
