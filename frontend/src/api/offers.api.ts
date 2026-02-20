@@ -8,7 +8,7 @@ export interface CreateOfferRequest {
   closingDate?: string | null
   financingAmount?: number | null
   expiryAt?: string | null
-  direction: 'buyer_to_seller' | 'seller_to_buyer'
+  direction?: 'buyer_to_seller' | 'seller_to_buyer'
   notes?: string | null
   inspectionRequired?: boolean
   inspectionDelay?: number | null
@@ -28,7 +28,7 @@ export interface AddRevisionRequest {
   closingDate?: string | null
   financingAmount?: number | null
   expiryAt?: string | null
-  direction: 'buyer_to_seller' | 'seller_to_buyer'
+  direction?: 'buyer_to_seller' | 'seller_to_buyer'
   notes?: string | null
   inspectionRequired?: boolean
   inspectionDelay?: number | null

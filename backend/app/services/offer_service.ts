@@ -22,6 +22,28 @@ export class OfferService {
    * Create a new offer for a transaction with an initial revision.
    */
   /**
+   * C1: Infer direction from fromParty role when direction is not explicitly provided.
+   */
+  private static async inferDirection(
+    fromPartyId?: number | null,
+    toPartyId?: number | null
+  ): Promise<'buyer_to_seller' | 'seller_to_buyer' | null> {
+    if (fromPartyId) {
+      const fromParty = await TransactionParty.find(fromPartyId)
+      if (fromParty) {
+        return fromParty.role === 'buyer' ? 'buyer_to_seller' : 'seller_to_buyer'
+      }
+    }
+    if (toPartyId) {
+      const toParty = await TransactionParty.find(toPartyId)
+      if (toParty) {
+        return toParty.role === 'seller' ? 'buyer_to_seller' : 'seller_to_buyer'
+      }
+    }
+    return null
+  }
+
+  /**
    * Validate that fromPartyId/toPartyId are coherent with the direction and transaction.
    */
   private static async validatePartyCoherence(
@@ -80,7 +102,11 @@ export class OfferService {
     buyerPartyId?: number
     sellerPartyId?: number
   }): Promise<Offer> {
-    const direction = params.direction || 'buyer_to_seller'
+    // C1: Infer direction from party roles if not explicitly provided
+    const inferred = !params.direction
+      ? await this.inferDirection(params.fromPartyId, params.buyerPartyId ?? params.fromPartyId)
+      : null
+    const direction = params.direction || inferred || 'buyer_to_seller'
 
     // C1b: Auto-deduce fromPartyId/toPartyId from buyerPartyId/sellerPartyId + direction (per-party)
     let derivedFromPartyId = params.fromPartyId ?? null
@@ -172,7 +198,7 @@ export class OfferService {
     financingAmount?: number
     expiryAt?: DateTime
     notes?: string
-    direction: 'buyer_to_seller' | 'seller_to_buyer'
+    direction?: 'buyer_to_seller' | 'seller_to_buyer'
     createdByUserId: number
     conditionIds?: number[]
     fromPartyId?: number
@@ -201,10 +227,22 @@ export class OfferService {
       toPartyId = lastRevision.fromPartyId
     }
 
+    // C1: Infer direction — if not provided, invert last revision's direction;
+    // if no last revision, try inferring from party roles; fallback to buyer_to_seller
+    let direction: 'buyer_to_seller' | 'seller_to_buyer'
+    if (params.direction) {
+      direction = params.direction
+    } else if (lastRevision) {
+      direction = lastRevision.direction === 'buyer_to_seller' ? 'seller_to_buyer' : 'buyer_to_seller'
+    } else {
+      const inferred = await this.inferDirection(fromPartyId, toPartyId)
+      direction = inferred || 'buyer_to_seller'
+    }
+
     // Validate coherence if we have party IDs
     const validated = await this.validatePartyCoherence(
       offer.transactionId,
-      params.direction,
+      direction,
       fromPartyId,
       toPartyId
     )
@@ -217,7 +255,7 @@ export class OfferService {
       financingAmount: params.financingAmount ?? null,
       expiryAt: params.expiryAt ?? null,
       notes: params.notes ?? null,
-      direction: params.direction,
+      direction,
       createdByUserId: params.createdByUserId,
       fromPartyId: validated.fromPartyId,
       toPartyId: validated.toPartyId,

@@ -57,7 +57,7 @@ export default class OffersController {
         financingAmount: payload.financingAmount,
         expiryAt: payload.expiryAt ? DateTime.fromISO(payload.expiryAt) : undefined,
         notes: payload.notes,
-        direction: payload.direction || 'buyer_to_seller',
+        direction: payload.direction,
         createdByUserId: auth.user!.id,
         conditionIds: payload.conditionIds,
         fromPartyId: payload.fromPartyId,
@@ -78,7 +78,7 @@ export default class OffersController {
         await mail.send(new OfferSubmittedMail({
           to: auth.user!.email,
           price: payload.price,
-          direction: payload.direction || 'buyer_to_seller',
+          direction: offer.initialDirection,
           transactionId: transaction.id,
           language: auth.user!.language,
         }))
@@ -224,7 +224,7 @@ export default class OffersController {
           to: auth.user!.email,
           price: payload.price,
           revisionNumber: revision.revisionNumber,
-          direction: payload.direction,
+          direction: revision.direction,
           transactionId: offer.transactionId,
           language: auth.user!.language,
         }))

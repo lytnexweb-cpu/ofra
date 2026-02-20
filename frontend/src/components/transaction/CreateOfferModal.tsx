@@ -122,7 +122,7 @@ export default function CreateOfferModal({
   useEffect(() => {
     if (isOpen) {
       setView('form')
-      setOfferType(isCounter ? 'counter' : 'offer')
+      setOfferType(isCounter ? 'counter' : (transaction.clientRole === 'seller' ? 'counter' : 'offer'))
       setPrice(isCounter ? String(lastRevision!.price) : '')
       setDeposit(isCounter && lastRevision!.deposit != null ? String(lastRevision!.deposit) : '')
       setDepositDeadline(isCounter && lastRevision!.depositDeadline ? lastRevision!.depositDeadline.substring(0, 10) : '')
@@ -217,7 +217,14 @@ export default function CreateOfferModal({
   // ── Submit mutation ──
   const createMutation = useMutation({
     mutationFn: async () => {
-      const direction = offerType === 'counter' ? 'seller_to_buyer' as const : 'buyer_to_seller' as const
+      let direction: 'buyer_to_seller' | 'seller_to_buyer'
+      if (isCounter && lastRevision) {
+        // Counter-offer: invert the direction of the last revision
+        direction = lastRevision.direction === 'buyer_to_seller' ? 'seller_to_buyer' : 'buyer_to_seller'
+      } else {
+        // New offer: based on clientRole
+        direction = transaction.clientRole === 'seller' ? 'seller_to_buyer' : 'buyer_to_seller'
+      }
       const payload = {
         price: priceNum,
         deposit: depositNum || null,

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -154,6 +154,13 @@ export default function OffersPanel({ transaction }: OffersPanelProps) {
     () => offers.filter((o) => o.status === 'received' || o.status === 'countered'),
     [offers]
   )
+  // Auto-open comparison for sellers with 2+ active offers
+  useEffect(() => {
+    if (transaction.clientRole === 'seller' && activeOffers.length >= 2) {
+      setShowComparison(true)
+    }
+  }, [transaction.clientRole, activeOffers.length])
+
   const historyOffers = useMemo(
     () => offers.filter((o) => o.status !== 'received' && o.status !== 'countered'),
     [offers]
@@ -336,42 +343,87 @@ export default function OffersPanel({ transaction }: OffersPanelProps) {
               )
             })()}
 
+            {/* Contextual banner: who sent / whose turn */}
+            {(() => {
+              const clientRole = transaction.clientRole
+              if (!clientRole || !lastRev) return null
+              const weAreRecipient =
+                (clientRole === 'buyer' && lastRev.direction === 'seller_to_buyer') ||
+                (clientRole === 'seller' && lastRev.direction === 'buyer_to_seller')
+              if (weAreRecipient) {
+                const senderName = lastRev.fromParty?.fullName ?? t('offers.otherParty', { defaultValue: 'l\'autre partie' })
+                return (
+                  <div className="flex items-center gap-1.5 mb-2 px-2 py-1.5 rounded bg-blue-50 border border-blue-200">
+                    <span className="text-xs text-blue-700">
+                      {t('transaction.detail.offerReceivedFrom', { name: senderName })} — <strong>{t('transaction.detail.yourTurn')}</strong>
+                    </span>
+                  </div>
+                )
+              }
+              return (
+                <div className="flex items-center gap-1.5 mb-2 px-2 py-1.5 rounded bg-stone-50 border border-stone-200">
+                  <span className="text-xs text-stone-600">
+                    {t('transaction.detail.youSubmittedThis')} — {t('transaction.detail.waitingResponse')}
+                  </span>
+                </div>
+              )
+            })()}
+
             {/* Actions: Accepter / Contre-offre / Refuser + Retirer (ml-auto) */}
-            <div className={`flex flex-wrap items-center gap-1.5 pt-2 border-t ${config.expandBorder}`}>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
+            {(() => {
+              const clientRole = transaction.clientRole
+              // Determine if it's "our turn" based on last move direction
+              const weAreRecipient = clientRole === null ? null :
+                (clientRole === 'buyer' && lastRev.direction === 'seller_to_buyer') ||
+                (clientRole === 'seller' && lastRev.direction === 'buyer_to_seller')
+              // null = show all (backward compat)
+              const showAcceptCounterReject = weAreRecipient === null || weAreRecipient === true
+              const showWithdraw = weAreRecipient === null || weAreRecipient === false
+
+              return (
+                <div className={`flex flex-wrap items-center gap-1.5 pt-2 border-t ${config.expandBorder}`}>
+                  {showAcceptCounterReject && (
+                    <>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              onClick={() => setAcceptOfferTarget(offer)}
+                              className="px-2.5 py-1 text-xs font-medium rounded-lg bg-emerald-500 text-white hover:bg-emerald-600"
+                            >
+                              {t('offers.accept')}
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="text-xs">{t('actionZone.acceptTooltip')}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                      <button
+                        onClick={() => setCounterOffer({ offer, lastRevision: lastRev })}
+                        className="px-2.5 py-1 text-xs font-medium rounded-lg bg-blue-500 text-white hover:bg-blue-600"
+                      >
+                        {t('offers.counter')}
+                      </button>
+                      <button
+                        onClick={() => setRejectConfirm({ isOpen: true, offerId: offer.id })}
+                        className="px-2.5 py-1 text-xs font-medium rounded-lg bg-red-500 text-white hover:bg-red-600"
+                      >
+                        {t('offers.reject')}
+                      </button>
+                    </>
+                  )}
+                  {showWithdraw && (
                     <button
-                      onClick={() => setAcceptOfferTarget(offer)}
-                      className="px-2.5 py-1 text-xs font-medium rounded-lg bg-emerald-500 text-white hover:bg-emerald-600"
+                      onClick={() => setWithdrawConfirm({ isOpen: true, offerId: offer.id })}
+                      className={`px-2.5 py-1 text-xs font-medium rounded-lg text-stone-500 hover:bg-stone-100 ${showAcceptCounterReject ? 'ml-auto' : ''}`}
                     >
-                      {t('offers.accept')}
+                      {t('offers.withdraw')}
                     </button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="text-xs">{t('actionZone.acceptTooltip')}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              <button
-                onClick={() => setCounterOffer({ offer, lastRevision: lastRev })}
-                className="px-2.5 py-1 text-xs font-medium rounded-lg bg-blue-500 text-white hover:bg-blue-600"
-              >
-                {t('offers.counter')}
-              </button>
-              <button
-                onClick={() => setRejectConfirm({ isOpen: true, offerId: offer.id })}
-                className="px-2.5 py-1 text-xs font-medium rounded-lg bg-red-500 text-white hover:bg-red-600"
-              >
-                {t('offers.reject')}
-              </button>
-              <button
-                onClick={() => setWithdrawConfirm({ isOpen: true, offerId: offer.id })}
-                className="px-2.5 py-1 text-xs font-medium rounded-lg text-stone-500 hover:bg-stone-100 ml-auto"
-              >
-                {t('offers.withdraw')}
-              </button>
-            </div>
+                  )}
+                </div>
+              )
+            })()}
           </div>
         )}
       </div>
@@ -509,7 +561,7 @@ export default function OffersPanel({ transaction }: OffersPanelProps) {
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-xs sm:text-sm font-semibold text-stone-700 flex items-center gap-2">
           <FileText className="w-4 h-4 text-stone-400" />
-          {t('transaction.detail.offersTitle')}
+          {t(transaction.clientRole === 'buyer' ? 'transaction.detail.offersTitleBuyer' : transaction.clientRole === 'seller' ? 'transaction.detail.offersTitleSeller' : 'transaction.detail.offersTitle')}
           <span className="text-xs text-stone-400 font-normal">({offers.length})</span>
         </h3>
         <div className="flex items-center gap-1.5">
@@ -538,19 +590,27 @@ export default function OffersPanel({ transaction }: OffersPanelProps) {
               className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg ${
                 hasAcceptedOffer
                   ? 'border border-stone-200 text-stone-400 hover:text-stone-600 hover:bg-stone-50'
-                  : 'text-white bg-primary hover:bg-primary/90'
+                  : transaction.clientRole === 'seller'
+                    ? 'border border-stone-200 text-stone-600 hover:bg-stone-50'
+                    : 'text-white bg-primary hover:bg-primary/90'
               }`}
             >
               <Plus className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">{t('transaction.detail.newOffer')}</span>
+              <span className="hidden sm:inline">
+                {transaction.clientRole === 'buyer'
+                  ? t('transaction.detail.submitOffer')
+                  : transaction.clientRole === 'seller'
+                    ? t('transaction.detail.addManually')
+                    : t('transaction.detail.newOffer')}
+              </span>
               <span className="sm:hidden">{t('transaction.detail.offerMobile')}</span>
             </button>
           )}
         </div>
       </div>
 
-      {/* Offer intake link section */}
-      {transaction.status === 'active' && (
+      {/* Offer intake link section — hidden for buyers (they don't receive offers via intake) */}
+      {transaction.status === 'active' && transaction.clientRole !== 'buyer' && (
         <div className="mb-3 rounded-lg border border-dashed border-stone-200 bg-stone-50/50 px-3 py-2.5">
           {activeOfferLink ? (
             <div className="flex items-center gap-2 flex-wrap">

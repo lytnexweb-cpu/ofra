@@ -35,7 +35,7 @@ export const addRevisionValidator = vine.compile(
     inclusions: vine.string().trim().optional(),
     message: vine.string().trim().optional(),
     notes: vine.string().trim().optional(),
-    direction: vine.enum(['buyer_to_seller', 'seller_to_buyer']),
+    direction: vine.enum(['buyer_to_seller', 'seller_to_buyer']).optional(),
     conditionIds: vine.array(vine.number()).optional(),
     fromPartyId: vine.number().positive().optional(),
     toPartyId: vine.number().positive().optional(),

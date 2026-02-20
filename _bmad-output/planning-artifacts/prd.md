@@ -2111,17 +2111,17 @@ Actions à réaliser le jour du lancement public :
 
 | # | Feature | Détail | Statut |
 |---|---------|--------|--------|
-| C1 | Migration `from_party_id` / `to_party_id` sur Offer | FK vers `transaction_parties`, direction résolue par les parties et non plus par un enum | ❌ TODO |
-| C2 | Auto-création Party depuis Offer | À la soumission d'une offre, si `fromPartyId` n'existe pas comme Party → créer automatiquement | ❌ TODO |
-| C3 | Auto-création Party depuis Client | À la création d'une transaction, le client assigné devient automatiquement une Party (buyer ou seller selon direction) | ❌ TODO |
-| C4 | Pré-remplissage formulaire offre | Si l'agent a déjà un client avec nom/téléphone/email → auto-populate les champs de l'offre | ❌ TODO |
+| C1 | Migration `from_party_id` / `to_party_id` sur Offer | FK vers `transaction_parties`, direction résolue par les parties et non plus par un enum | ✅ DONE — FK Bloc 8 + inférence direction depuis rôle party (`inferDirection()` dans `OfferService`). `direction` optionnel dans validators, auto-inféré si `fromPartyId`/`buyerPartyId` fourni. `addRevision` auto-inverse direction depuis dernière revision. |
+| C2 | Auto-création Party depuis Offer | À la soumission d'une offre, si `fromPartyId` n'existe pas comme Party → créer automatiquement | 🔄 PARTIEL — Flux intake public auto-crée buyer party (`OfferIntakeController`). Flux agent principal = aucune auto-création (`validatePartyCoherence` throw). Reste : validator `newBuyerParty`/`newSellerParty`, création inline dans `OffersController.store()`, mode "+" dans `PartyPicker`. |
+| C3 | Auto-création Party depuis Client | À la création d'une transaction, le client assigné devient automatiquement une Party (buyer ou seller selon direction) | ❌ TODO — Aucun code. `TransactionsController.store()` ne crée pas de `TransactionParty` depuis le client. |
+| C4 | Pré-remplissage formulaire offre | Si l'agent a déjà un client avec nom/téléphone/email → auto-populate les champs de l'offre | 🔄 PARTIEL — `PartyPicker` pré-sélectionne parties existantes (`isPrimary`). Reste : lookup table `clients` pour pré-remplir nom/email/téléphone dans le formulaire. |
 
 **Sprint 2 — UI Buyer/Seller Contextuelle (~2-3 jours)**
 
 | # | Feature | Détail | Statut |
 |---|---------|--------|--------|
-| C5 | CTA adaptatif selon direction | Acheteur : "Soumettre une offre" (proactif) / Vendeur : "Offre reçue" (réactif) | ❌ TODO |
-| C6 | Sections différentes buyer vs seller | Acheteur voit : mes offres, conditions, financement / Vendeur voit : offres reçues, comparateur, contre-offres | ❌ TODO |
+| C5 | CTA adaptatif selon direction | Acheteur : "Soumettre une offre" (proactif) / Vendeur : "Ajouter manuellement" (réactif, outline) | ✅ DONE — Intégré dans C6 |
+| C6 | Sections différentes buyer vs seller | Titre adaptatif, CTA role-aware, gating actions (accept/counter/reject vs withdraw selon tour), bannière contextuelle, intake link masqué pour buyer, auto-open comparateur seller, direction role-aware dans CreateOfferModal | ✅ DONE — `OffersPanel.tsx`, `CreateOfferModal.tsx`, i18n FR+EN, 327 tests verts |
 | C7 | Comparateur vendeur enrichi | Table side-by-side avec highlight meilleur prix, deadline, conditions — le vendeur compare facilement | Partiellement codé (OfferComparison existant) |
 | C8 | Formulaire client 2 sections | Section acheteur (financement, pré-approbation) vs section vendeur (motivation vente, prix plancher) | ❌ TODO |
 
