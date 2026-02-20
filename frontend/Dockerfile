@@ -12,6 +12,11 @@ RUN npm ci
 # Copy source code
 COPY . .
 
+# Vite env vars injected at build time
+ARG VITE_STRIPE_PUBLISHABLE_KEY
+ARG VITE_API_URL
+ARG VITE_MARKETING_URL
+
 # Build the app (skip tsc, Vite handles its own transpilation)
 RUN npx vite build
 

@@ -2,6 +2,9 @@ app = 'ofra-crm-frontend'
 primary_region = 'yyz'
 
 [build]
+  [build.args]
+    VITE_STRIPE_PUBLISHABLE_KEY = "pk_test_51T2m7bGh2qoqF54RUuQmzIqsJtKspjAWKJQuPP7OPNekrAY3NCOlAjYPTDVa24HVBCWtwIgukvPQEpJiqOZWMhJS00Xua2UtuR"
+    VITE_API_URL = "https://ofra-crm-backend.fly.dev"
 
 [http_service]
   internal_port = 80
