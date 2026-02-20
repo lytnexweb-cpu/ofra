@@ -540,9 +540,11 @@ export default function AccountPage() {
                     {t(`account.subscription.status.${sub.billing.subscriptionStatus}`)}
                   </p>
 
-                  <Button variant="outline" size="sm" disabled className="opacity-50 cursor-not-allowed">
-                    {t('account.subscription.changePlan')}
-                  </Button>
+                  <a href={`${import.meta.env.VITE_MARKETING_URL || 'https://ofra.ca'}/pricing`} target="_blank" rel="noopener noreferrer">
+                    <Button variant="outline" size="sm">
+                      {t('account.subscription.changePlan')}
+                    </Button>
+                  </a>
                 </div>
 
                 {/* Usage */}

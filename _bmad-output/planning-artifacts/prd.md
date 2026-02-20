@@ -26,11 +26,12 @@ supersedes:
 > Dernière mise à jour : 2026-02-19 (v2.20)
 > Auteur : Sam + Équipe BMAD (Party Mode)
 >
-> **Changements v2.24 (2026-02-20) — C4 DONE + C7/C8 specs :**
+> **Changements v2.24 (2026-02-20) — C4 DONE + C7 DONE + C8 spec :**
 > - **§9.2 C4** : `🔄 PARTIEL` → `✅ DONE` — Fix `fullName` bug dans CreateOfferModal (Client a `firstName`/`lastName`, pas `fullName`). PartyPicker : autocomplete client lookup (accent-safe, `clientsApi.list()`, staleTime 5min). Auto-fill nom/email/téléphone sur sélection. 2 clés i18n FR+EN.
-> - **§9.2 C7 spec** : Spec technique complète du comparateur vendeur enrichi — 6 gaps documentés (closingDate highlight, expiry highlight, fix row conditions/inclusions, depositDeadline, inspectionDelay unité, worst rouge). 5 clés i18n prévues, 1 changement backend (preload conditions).
+> - **§9.2 C7** : `❌ TODO` → `✅ DONE` — 6 enrichissements OfferComparison : closingDate highlight (earliest=best), expiry highlight (latest=best), depositDeadline row, inspectionDelay + unité "jours"/"days", fix row conditions (count réel via preload) + row inclusions séparée, worst rouge sur toutes les rows. 5 clés i18n FR+EN. Type `conditions` ajouté sur `OfferRevision` frontend.
 > - **§9.2 C8 spec** : Spec technique complète du formulaire client 2 sections — migration 7 colonnes (buyer: pré-approbation/financement, seller: motivation/plancher/date cible), sections conditionnelles CreateClientModal + ClientDetailsPage, ~12 clés i18n. Liens futurs C7/C4 documentés.
-> - Sprint 1 score : C1 ✅ C2 ✅ C3 ✅ C4 ✅ — **4/4 DONE**
+> - Sprint 1 : C1 ✅ C2 ✅ C3 ✅ C4 ✅ — **4/4 DONE**
+> - Sprint 2 : C5 ✅ C6 ✅ C7 ✅ C8 📋 — **3/4 DONE**
 >
 > **Changements v2.23 (2026-02-20) — C3 DONE + auto clientRole + UX polish :**
 > - **§9.2 C3** : `❌ TODO` → `✅ DONE` — Était déjà codé dans `WorkflowEngineService` (C3c) + auto-détection `clientRole` depuis `client.clientType` (C3b). Ajout : auto-déduction depuis `transaction.type` (purchase→buyer, sale→seller) + warning mismatch.
@@ -2149,7 +2150,7 @@ Actions à réaliser le jour du lancement public :
 |---|---------|--------|--------|
 | C5 | CTA adaptatif selon direction | Acheteur : "Soumettre une offre" (proactif) / Vendeur : "Ajouter manuellement" (réactif, outline) | ✅ DONE — Intégré dans C6 |
 | C6 | Sections différentes buyer vs seller | Titre adaptatif, CTA role-aware, gating actions (accept/counter/reject vs withdraw selon tour), bannière contextuelle, intake link masqué pour buyer, auto-open comparateur seller, direction role-aware dans CreateOfferModal | ✅ DONE — `OffersPanel.tsx`, `CreateOfferModal.tsx`, i18n FR+EN, 327 tests verts |
-| C7 | Comparateur vendeur enrichi | Table side-by-side avec highlight meilleur prix, deadline, conditions — le vendeur compare facilement | ❌ TODO (spec v2.24) |
+| C7 | Comparateur vendeur enrichi | Table side-by-side avec highlight meilleur prix, deadline, conditions — le vendeur compare facilement | ✅ DONE — 6 enrichissements : closingDate highlight (earliest=best), expiry highlight (latest=best), depositDeadline row, inspectionDelay + "jours"/"days", fix conditions/inclusions row (count réel via preload), worst rouge sur toutes les rows. 5 clés i18n FR+EN. Type `conditions` ajouté sur `OfferRevision`. |
 | C8 | Formulaire client 2 sections | Section acheteur (financement, pré-approbation) vs section vendeur (motivation vente, prix plancher) | ❌ TODO (spec v2.24) |
 
 **Spec C7 — Comparateur vendeur enrichi**

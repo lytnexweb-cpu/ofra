@@ -157,6 +157,7 @@ describe('i18n key parity', () => {
       // Offers comparison (symbols/cognates identical in FR/EN)
       'offers.comparison.noValue', 'offers.comparison.parties',
       'offers.comparison.conditions', 'offers.comparison.inspection',
+      'offers.comparison.conditionCount', 'offers.comparison.inclusions',
       // Offer form draft direction (template with arrow symbol)
       'addOffer.draftDirection',
     ])

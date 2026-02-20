@@ -32,6 +32,7 @@ export interface OfferRevision {
   toPartyId: number | null
   fromParty?: OfferRevisionParty | null
   toParty?: OfferRevisionParty | null
+  conditions?: { id: number; title: string; status: string }[]
   createdAt: string
 }
 

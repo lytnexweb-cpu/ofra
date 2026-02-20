@@ -93,9 +93,9 @@ export default function Layout() {
     .toUpperCase()
     .slice(0, 2) || '?'
 
-  // D53: Hard wall — redirect to pricing if trial expired beyond grace
+  // D53: Hard wall — redirect to account if trial expired beyond grace
   if (trialHardWall && location.pathname !== '/pricing' && location.pathname !== '/settings' && location.pathname !== '/account') {
-    return <Navigate to="/pricing" replace />
+    return <Navigate to="/account" replace />
   }
 
   return (

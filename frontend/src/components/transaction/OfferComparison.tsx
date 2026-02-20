@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { Check, X } from 'lucide-react'
+import { Check } from 'lucide-react'
 import type { Offer, OfferRevision } from '../../api/transactions.api'
 import { formatDate, parseISO } from '../../lib/date'
 
@@ -24,6 +24,11 @@ function getLastRevision(offer: Offer): OfferRevision | null {
   )
 }
 
+/** Compare ISO date strings: -1 if a < b, 1 if a > b, 0 if equal */
+function compareDates(a: string, b: string): number {
+  return a < b ? -1 : a > b ? 1 : 0
+}
+
 export default function OfferComparison({
   offers,
   onAccept,
@@ -32,7 +37,7 @@ export default function OfferComparison({
 
   if (offers.length < 2) return null
 
-  // Compute highlights: for numeric rows, find best/worst
+  // ── Numeric highlights ──
   const prices = offers.map((o) => getLastRevision(o)?.price ?? 0)
   const bestPrice = Math.max(...prices)
   const worstPrice = Math.min(...prices)
@@ -47,7 +52,51 @@ export default function OfferComparison({
   const bestFinancing = validFinancings.length > 1 ? Math.min(...validFinancings) : null
   const worstFinancing = validFinancings.length > 1 ? Math.max(...validFinancings) : null
 
+  // ── Date highlights ──
+  const closingDates = offers.map((o) => getLastRevision(o)?.closingDate ?? null)
+  const validClosingDates = closingDates.filter((d): d is string => d != null)
+  const earliestClosing = validClosingDates.length > 1
+    ? validClosingDates.reduce((a, b) => (compareDates(a, b) < 0 ? a : b))
+    : null
+  const latestClosing = validClosingDates.length > 1
+    ? validClosingDates.reduce((a, b) => (compareDates(a, b) > 0 ? a : b))
+    : null
+
+  const expiries = offers.map((o) => getLastRevision(o)?.expiryAt ?? null)
+  const validExpiries = expiries.filter((d): d is string => d != null)
+  const earliestExpiry = validExpiries.length > 1
+    ? validExpiries.reduce((a, b) => (compareDates(a, b) < 0 ? a : b))
+    : null
+  const latestExpiry = validExpiries.length > 1
+    ? validExpiries.reduce((a, b) => (compareDates(a, b) > 0 ? a : b))
+    : null
+
+  const depositDeadlines = offers.map((o) => getLastRevision(o)?.depositDeadline ?? null)
+  const validDepositDeadlines = depositDeadlines.filter((d): d is string => d != null)
+  const earliestDepositDeadline = validDepositDeadlines.length > 1
+    ? validDepositDeadlines.reduce((a, b) => (compareDates(a, b) < 0 ? a : b))
+    : null
+  const latestDepositDeadline = validDepositDeadlines.length > 1
+    ? validDepositDeadlines.reduce((a, b) => (compareDates(a, b) > 0 ? a : b))
+    : null
+
+  // ── Inspection delay highlights ──
+  const inspectionDelays = offers.map((o) => {
+    const rev = getLastRevision(o)
+    return rev?.inspectionRequired && rev.inspectionDelay != null ? rev.inspectionDelay : null
+  })
+  const validDelays = inspectionDelays.filter((d): d is number => d != null)
+  const bestDelay = validDelays.length > 1 ? Math.min(...validDelays) : null
+  const worstDelay = validDelays.length > 1 ? Math.max(...validDelays) : null
+
   function highlightNumeric(val: number | null, best: number | null, worst: number | null): 'best' | 'worst' | undefined {
+    if (val == null || best == null || worst == null || best === worst) return undefined
+    if (val === best) return 'best'
+    if (val === worst) return 'worst'
+    return undefined
+  }
+
+  function highlightDate(val: string | null, best: string | null, worst: string | null): 'best' | 'worst' | undefined {
     if (val == null || best == null || worst == null || best === worst) return undefined
     if (val === best) return 'best'
     if (val === worst) return 'worst'
@@ -89,6 +138,18 @@ export default function OfferComparison({
           : t('offers.comparison.noValue')
       }),
     },
+    // #4 — New row: deposit deadline (earliest = best for seller)
+    {
+      key: 'depositDeadline',
+      label: t('offers.comparison.depositDeadline'),
+      values: offers.map((o) => {
+        const rev = getLastRevision(o)
+        const dd = rev?.depositDeadline ?? null
+        return dd
+          ? { text: formatDate(parseISO(dd), 'd MMM yyyy'), highlight: highlightDate(dd, earliestDepositDeadline, latestDepositDeadline) }
+          : t('offers.comparison.noValue')
+      }),
+    },
     {
       key: 'financing',
       label: t('offers.comparison.financing'),
@@ -100,41 +161,60 @@ export default function OfferComparison({
           : t('offers.comparison.noValue')
       }),
     },
+    // #1 — closingDate with highlight (earliest = best for seller)
     {
       key: 'closingDate',
       label: t('offers.comparison.closingDate'),
       values: offers.map((o) => {
         const rev = getLastRevision(o)
-        return rev?.closingDate
-          ? formatDate(parseISO(rev.closingDate), 'd MMM yyyy')
+        const cd = rev?.closingDate ?? null
+        return cd
+          ? { text: formatDate(parseISO(cd), 'd MMM yyyy'), highlight: highlightDate(cd, earliestClosing, latestClosing) }
           : t('offers.comparison.noValue')
       }),
     },
+    // #2 — expiry with highlight (latest = best for seller — more time to negotiate)
     {
       key: 'expiry',
       label: t('offers.comparison.expiry'),
       values: offers.map((o) => {
         const rev = getLastRevision(o)
-        return rev?.expiryAt
-          ? formatDate(parseISO(rev.expiryAt), 'd MMM yyyy')
+        const exp = rev?.expiryAt ?? null
+        return exp
+          ? { text: formatDate(parseISO(exp), 'd MMM yyyy'), highlight: highlightDate(exp, latestExpiry, earliestExpiry) }
           : t('offers.comparison.noValue')
       }),
     },
+    // #5 — inspection with unit suffix + highlight (shortest = best)
     {
       key: 'inspection',
       label: t('offers.comparison.inspection'),
       values: offers.map((o) => {
         const rev = getLastRevision(o)
-        return rev?.inspectionRequired ? `${rev.inspectionDelay ?? '—'}` : t('offers.comparison.noValue')
+        if (!rev?.inspectionRequired) return t('offers.comparison.noValue')
+        const delay = rev.inspectionDelay
+        return delay != null
+          ? { text: `${delay} ${t('offers.comparison.inspectionDays')}`, highlight: highlightNumeric(delay, bestDelay, worstDelay) }
+          : t('offers.comparison.noValue')
       }),
     },
+    // #3 — Real conditions count (from preloaded conditions on revision)
     {
       key: 'conditions',
-      label: t('offers.comparison.conditions'),
+      label: t('offers.comparison.conditionCount'),
       values: offers.map((o) => {
         const rev = getLastRevision(o)
-        const count = rev?.inclusions ? 1 : 0
-        return count > 0 ? rev!.inclusions! : t('offers.comparison.noValue')
+        const count = rev?.conditions?.length ?? 0
+        return count > 0 ? String(count) : t('offers.comparison.noConditions')
+      }),
+    },
+    // #3 — Inclusions (renamed from old "conditions" row)
+    {
+      key: 'inclusions',
+      label: t('offers.comparison.inclusions'),
+      values: offers.map((o) => {
+        const rev = getLastRevision(o)
+        return rev?.inclusions || t('offers.comparison.noValue')
       }),
     },
     {
