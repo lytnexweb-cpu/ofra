@@ -1014,18 +1014,24 @@ function PropertyTab({ form, original, updateField, validationErrors, t, isLocke
   isCreateMode?: boolean; clients?: { id: number; firstName: string; lastName: string; clientType?: string | null }[]
   onCreateClient?: () => void
 }) {
-  // C3b: Pre-select clientRole from client's clientType when client changes
+  // C3b: Pre-select clientRole from client's clientType, then fallback to transaction type
   const selectedClient = clients?.find((c) => c.id === form.clientId)
   useEffect(() => {
     if (!isCreateMode || !selectedClient) return
     const ct = selectedClient.clientType
     if (ct === 'buyer' || ct === 'seller') {
+      // Priority 1: client has explicit type
       updateField('clientRole', ct)
     } else {
-      // 'both' or null — always clear so user must choose
-      updateField('clientRole', '')
+      // Priority 2: deduce from transaction type
+      const deduced = form.type === 'purchase' ? 'buyer' : form.type === 'sale' ? 'seller' : ''
+      updateField('clientRole', deduced)
     }
-  }, [form.clientId, isCreateMode, selectedClient, updateField])
+  }, [form.clientId, form.type, isCreateMode, selectedClient, updateField])
+
+  // Mismatch warning: clientRole doesn't match transaction type
+  const expectedRole = form.type === 'purchase' ? 'buyer' : form.type === 'sale' ? 'seller' : null
+  const roleMismatch = !!form.clientRole && !!expectedRole && form.clientRole !== expectedRole
   return (
     <div className={`bg-white rounded-xl border ${Object.keys(validationErrors).some(k => ['address','city','postalCode','clientId'].includes(k)) ? 'border-red-200' : 'border-stone-200'} p-5`}>
       {/* Create mode: Client select */}
@@ -1075,6 +1081,12 @@ function PropertyTab({ form, original, updateField, validationErrors, t, isLocke
                 </label>
               </div>
               {validationErrors.clientRole && <p className="text-[10px] text-red-600 mt-1">{validationErrors.clientRole}</p>}
+              {roleMismatch && !validationErrors.clientRole && (
+                <p className="text-[10px] text-amber-600 mt-1.5 flex items-center gap-1">
+                  <span>&#9888;&#65039;</span>
+                  {t('editTransaction.clientRoleMismatch', 'Rôle différent du type de transaction — vérifiez que c\'est voulu.')}
+                </p>
+              )}
             </div>
           )}
         </div>

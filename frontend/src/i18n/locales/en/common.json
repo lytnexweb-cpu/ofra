@@ -637,6 +637,7 @@
       "desc": "Fix the errors below before saving.",
       "clientRoleRequired": "Client role is required"
     },
+    "clientRoleMismatch": "Role differs from transaction type — make sure this is intentional.",
     "sidebar": {
       "title": "Changes summary",
       "noChanges": "No changes",
@@ -1866,6 +1867,7 @@
   },
   "addOffer": {
     "title": "Add an Offer",
+    "titleCounter": "Counter-offer",
     "transactionLabel": "Transaction: {{client}} • {{address}}",
     "typeLabel": "Type",
     "typeOffer": "Offer",
@@ -1899,6 +1901,8 @@
     "emailNotify": "Notify by email",
     "cancel": "Cancel",
     "submit": "Submit offer",
+    "submitCounter": "Send counter-offer",
+    "revisionBadge": "Revision #{{number}}",
     "accordionHistory": "History",
     "historyTitle": "History",
     "historyEmpty": "First offer for this transaction",
@@ -1948,7 +1952,8 @@
     "partyNamePlaceholder": "Full name",
     "partyEmailPlaceholder": "Email (optional)",
     "partyPhonePlaceholder": "Phone (optional)",
-    "partyCreated": "Party added"
+    "partyCreated": "Party added",
+    "partyCreateError": "Creation failed. Please try again."
   },
   "permissionsPage": {
     "title": "Access & Permissions",

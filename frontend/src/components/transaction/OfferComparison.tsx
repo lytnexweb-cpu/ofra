@@ -32,10 +32,27 @@ export default function OfferComparison({
 
   if (offers.length < 2) return null
 
-  // Find the best (highest) price
+  // Compute highlights: for numeric rows, find best/worst
   const prices = offers.map((o) => getLastRevision(o)?.price ?? 0)
   const bestPrice = Math.max(...prices)
   const worstPrice = Math.min(...prices)
+
+  const deposits = offers.map((o) => getLastRevision(o)?.deposit ?? null)
+  const validDeposits = deposits.filter((d): d is number => d != null && d > 0)
+  const bestDeposit = validDeposits.length > 1 ? Math.max(...validDeposits) : null
+  const worstDeposit = validDeposits.length > 1 ? Math.min(...validDeposits) : null
+
+  const financings = offers.map((o) => getLastRevision(o)?.financingAmount ?? null)
+  const validFinancings = financings.filter((f): f is number => f != null && f > 0)
+  const bestFinancing = validFinancings.length > 1 ? Math.min(...validFinancings) : null
+  const worstFinancing = validFinancings.length > 1 ? Math.max(...validFinancings) : null
+
+  function highlightNumeric(val: number | null, best: number | null, worst: number | null): 'best' | 'worst' | undefined {
+    if (val == null || best == null || worst == null || best === worst) return undefined
+    if (val === best) return 'best'
+    if (val === worst) return 'worst'
+    return undefined
+  }
 
   const rows: {
     key: string
@@ -66,7 +83,10 @@ export default function OfferComparison({
       label: t('offers.comparison.deposit'),
       values: offers.map((o) => {
         const rev = getLastRevision(o)
-        return rev?.deposit != null ? `${formatCAD(rev.deposit)} $` : t('offers.comparison.noValue')
+        const dep = rev?.deposit ?? null
+        return dep != null
+          ? { text: `${formatCAD(dep)} $`, highlight: highlightNumeric(dep, bestDeposit, worstDeposit) }
+          : t('offers.comparison.noValue')
       }),
     },
     {
@@ -74,8 +94,9 @@ export default function OfferComparison({
       label: t('offers.comparison.financing'),
       values: offers.map((o) => {
         const rev = getLastRevision(o)
-        return rev?.financingAmount != null
-          ? `${formatCAD(rev.financingAmount)} $`
+        const fin = rev?.financingAmount ?? null
+        return fin != null
+          ? { text: `${formatCAD(fin)} $`, highlight: highlightNumeric(fin, bestFinancing, worstFinancing) }
           : t('offers.comparison.noValue')
       }),
     },

@@ -26,6 +26,18 @@ supersedes:
 > Dernière mise à jour : 2026-02-19 (v2.20)
 > Auteur : Sam + Équipe BMAD (Party Mode)
 >
+> **Changements v2.23 (2026-02-20) — C3 DONE + auto clientRole + UX polish :**
+> - **§9.2 C3** : `❌ TODO` → `✅ DONE` — Était déjà codé dans `WorkflowEngineService` (C3c) + auto-détection `clientRole` depuis `client.clientType` (C3b). Ajout : auto-déduction depuis `transaction.type` (purchase→buyer, sale→seller) + warning mismatch.
+> - **UX polish** (5 écarts maquette corrigés) : titre modal "Contre-offre" en mode counter, badge "Révision #N", bouton "Envoyer la contre-offre", bordure rouge PartyPicker trigger en erreur, highlighting multi-lignes comparateur (deposit + financing)
+> - **i18n** : "Custom" → "Personnalisé" (FR), 4 nouvelles clés (titleCounter, submitCounter, revisionBadge, clientRoleMismatch)
+> - Sprint 1 score : C1 ✅ C2 ✅ C3 ✅ C4 🔄 — 3/4 DONE
+> - 327 tests frontend verts, 0 régressions
+>
+> **Changements v2.22 (2026-02-20) — C2 DONE + audit fixes :**
+> - **§9.2 C2** : `🔄 PARTIEL` → `✅ DONE` — PartyPicker "+" inline crée party avant submit (two-step). Validation front buyerPartyId/sellerPartyId requis (KO #3). Contre-offre convertit buyer/seller en from/to selon direction (KO #5). Error handling inline dans PartyPicker (KO #8). 3 i18n keys ajoutées FR+EN.
+> - Maquette `maquettes/15-offre-parties-flow.html` — 6 scènes (buyer panel, seller panel, create modal, PartyPicker "+", counter-offer, comparator)
+> - 327 tests frontend verts, 0 régressions
+>
 > **Changements v2.21 (2026-02-19) — Sprint 1-2 Les Connexions avancées :**
 > - **§9.2 C1** : `❌ TODO` → `✅ DONE` — `inferDirection()` dans `OfferService`, `direction` optionnel dans validators + API types, controller ne masque plus l'inférence, mails utilisent direction résolue
 > - **§9.2 C2** : `❌ TODO` → `🔄 PARTIEL` — Flux intake auto-crée party, flux agent principal non. Gap documenté.
@@ -2120,8 +2132,8 @@ Actions à réaliser le jour du lancement public :
 | # | Feature | Détail | Statut |
 |---|---------|--------|--------|
 | C1 | Migration `from_party_id` / `to_party_id` sur Offer | FK vers `transaction_parties`, direction résolue par les parties et non plus par un enum | ✅ DONE — FK Bloc 8 + inférence direction depuis rôle party (`inferDirection()` dans `OfferService`). `direction` optionnel dans validators, auto-inféré si `fromPartyId`/`buyerPartyId` fourni. `addRevision` auto-inverse direction depuis dernière revision. |
-| C2 | Auto-création Party depuis Offer | À la soumission d'une offre, si `fromPartyId` n'existe pas comme Party → créer automatiquement | 🔄 PARTIEL — Flux intake public auto-crée buyer party (`OfferIntakeController`). Flux agent principal = aucune auto-création (`validatePartyCoherence` throw). Reste : validator `newBuyerParty`/`newSellerParty`, création inline dans `OffersController.store()`, mode "+" dans `PartyPicker`. |
-| C3 | Auto-création Party depuis Client | À la création d'une transaction, le client assigné devient automatiquement une Party (buyer ou seller selon direction) | ❌ TODO — Aucun code. `TransactionsController.store()` ne crée pas de `TransactionParty` depuis le client. |
+| C2 | Auto-création Party depuis Offer | À la soumission d'une offre, si `fromPartyId` n'existe pas comme Party → créer automatiquement | ✅ DONE — Two-step : `PartyPicker` crée la party inline ("+", nom/email/téléphone → `partiesApi.create()`) AVANT soumission. Flux intake public (`OfferIntakeController`) crée en atomique. Validation front : `buyerPartyId`/`sellerPartyId` requis au submit. Contre-offre : conversion buyer/seller → from/to selon direction. Error handling inline dans PartyPicker. |
+| C3 | Auto-création Party depuis Client | À la création d'une transaction, le client assigné devient automatiquement une Party (buyer ou seller selon direction) | ✅ DONE — `WorkflowEngineService.createTransaction()` crée `TransactionParty` depuis `Client` avec `role=clientRole`, `isPrimary=true`. Frontend auto-détecte `clientRole` depuis `client.clientType` (C3b) puis depuis `transaction.type` (purchase→buyer, sale→seller). Warning mismatch si override. |
 | C4 | Pré-remplissage formulaire offre | Si l'agent a déjà un client avec nom/téléphone/email → auto-populate les champs de l'offre | 🔄 PARTIEL — `PartyPicker` pré-sélectionne parties existantes (`isPrimary`). Reste : lookup table `clients` pour pré-remplir nom/email/téléphone dans le formulaire. |
 
 **Sprint 2 — UI Buyer/Seller Contextuelle (~2-3 jours)**

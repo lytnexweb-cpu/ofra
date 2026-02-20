@@ -203,6 +203,8 @@ export default function CreateOfferModal({
   if (closingDate && new Date(closingDate) < new Date(new Date().toDateString())) errors.closingDate = t('addOffer.errorClosingPast')
   if (!expiryOption) errors.expiry = t('addOffer.errorExpirationRequired')
   if (financingEnabled && !parseMoney(financingAmount)) errors.financing = t('addOffer.errorFinancingRequired')
+  if (!buyerPartyId) errors.buyerParty = t('addOffer.errorBuyerRequired')
+  if (!sellerPartyId) errors.sellerParty = t('addOffer.errorSellerRequired')
   const errorCount = Object.keys(errors).length
   const hasErrors = showErrors && errorCount > 0
 
@@ -244,7 +246,14 @@ export default function CreateOfferModal({
 
       let result
       if (isCounter) {
-        result = await offersApi.addRevision(existingOffer!.id, payload)
+        // Convert buyer/seller to from/to based on direction for addRevision
+        const fromPartyId = direction === 'buyer_to_seller' ? buyerPartyId : sellerPartyId
+        const toPartyId = direction === 'buyer_to_seller' ? sellerPartyId : buyerPartyId
+        result = await offersApi.addRevision(existingOffer!.id, {
+          ...payload,
+          fromPartyId: fromPartyId ?? undefined,
+          toPartyId: toPartyId ?? undefined,
+        })
       } else {
         result = await offersApi.create(transaction.id, payload)
       }
@@ -586,11 +595,11 @@ export default function CreateOfferModal({
               <div>
                 <div className="flex items-center gap-2">
                   <h2 className="text-[15px] font-bold text-stone-900" style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}>
-                    {t('addOffer.title')}
+                    {isCounter ? t('addOffer.titleCounter') : t('addOffer.title')}
                   </h2>
-                  {offerType === 'counter' && (
+                  {isCounter && lastRevision && (
                     <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[rgba(224,122,47,.15)] text-[#e07a2f]">
-                      {t('addOffer.typeCounter')}
+                      {t('addOffer.revisionBadge', { number: (lastRevision.revisionNumber ?? 0) + 1 })}
                     </span>
                   )}
                 </div>
@@ -654,18 +663,26 @@ export default function CreateOfferModal({
 
               {/* Party pickers */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                <PartyPicker
-                  transactionId={transaction.id}
-                  role="buyer"
-                  selectedPartyId={buyerPartyId}
-                  onSelect={setBuyerPartyId}
-                />
-                <PartyPicker
-                  transactionId={transaction.id}
-                  role="seller"
-                  selectedPartyId={sellerPartyId}
-                  onSelect={setSellerPartyId}
-                />
+                <div>
+                  <PartyPicker
+                    transactionId={transaction.id}
+                    role="buyer"
+                    selectedPartyId={buyerPartyId}
+                    onSelect={setBuyerPartyId}
+                    error={showErrors && !!errors.buyerParty}
+                  />
+                  {fieldError('buyerParty')}
+                </div>
+                <div>
+                  <PartyPicker
+                    transactionId={transaction.id}
+                    role="seller"
+                    selectedPartyId={sellerPartyId}
+                    onSelect={setSellerPartyId}
+                    error={showErrors && !!errors.sellerParty}
+                  />
+                  {fieldError('sellerParty')}
+                </div>
               </div>
 
               {/* Montant offert */}
@@ -1055,7 +1072,7 @@ export default function CreateOfferModal({
                 <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="12" y1="19" x2="12" y2="5" /><polyline points="5 12 12 5 19 12" />
                 </svg>
-                {createMutation.isPending ? '...' : t('addOffer.submit')}
+                {createMutation.isPending ? '...' : isCounter ? t('addOffer.submitCounter') : t('addOffer.submit')}
               </button>
             </div>
           </div>

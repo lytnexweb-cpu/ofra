@@ -9,6 +9,7 @@ interface PartyPickerProps {
   role: 'buyer' | 'seller'
   selectedPartyId: number | null
   onSelect: (id: number | null) => void
+  error?: boolean
 }
 
 export default function PartyPicker({
@@ -16,6 +17,7 @@ export default function PartyPicker({
   role,
   selectedPartyId,
   onSelect,
+  error,
 }: PartyPickerProps) {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
@@ -37,6 +39,8 @@ export default function PartyPicker({
 
   const selectedParty = parties.find((p) => p.id === selectedPartyId) ?? null
 
+  const [createError, setCreateError] = useState<string | null>(null)
+
   const createMutation = useMutation({
     mutationFn: (data: { fullName: string; email?: string; phone?: string }) =>
       partiesApi.create(transactionId, {
@@ -46,6 +50,11 @@ export default function PartyPicker({
         phone: data.phone || null,
       }),
     onSuccess: (result) => {
+      if (!(result as any)?.success) {
+        setCreateError((result as any)?.error?.message || t('addOffer.partyCreateError'))
+        return
+      }
+      setCreateError(null)
       queryClient.invalidateQueries({ queryKey: ['parties', transactionId] })
       const newParty = (result as any)?.data?.party
       if (newParty?.id) {
@@ -56,6 +65,9 @@ export default function PartyPicker({
       setEmail('')
       setPhone('')
       setIsOpen(false)
+    },
+    onError: () => {
+      setCreateError(t('addOffer.partyCreateError'))
     },
   })
 
@@ -80,7 +92,7 @@ export default function PartyPicker({
       <button
         type="button"
         onClick={() => { setIsOpen(!isOpen); setShowInlineForm(false) }}
-        className="w-full flex items-center justify-between px-3 py-2 text-[13px] rounded-lg border border-stone-200 focus:border-[#1e3a5f] focus:outline-none focus:ring-[3px] focus:ring-[rgba(30,58,95,.1)] bg-white"
+        className={`w-full flex items-center justify-between px-3 py-2 text-[13px] rounded-lg border focus:outline-none focus:ring-[3px] ${error && !isOpen ? 'border-[#dc2626] bg-[#fef2f2] focus:ring-[rgba(220,38,38,.1)]' : 'border-stone-200 bg-white focus:border-[#1e3a5f] focus:ring-[rgba(30,58,95,.1)]'}`}
       >
         <span className={selectedParty ? 'text-stone-900' : 'text-stone-400'}>
           {selectedParty ? selectedParty.fullName : t('addOffer.selectParty')}
@@ -155,6 +167,9 @@ export default function PartyPicker({
                 placeholder={t('addOffer.partyPhonePlaceholder')}
                 className="w-full px-2.5 py-1.5 text-xs rounded-md border border-stone-200 focus:border-[#1e3a5f] focus:outline-none"
               />
+              {createError && (
+                <p className="text-[10px] text-[#dc2626]">{createError}</p>
+              )}
               <div className="flex gap-1.5">
                 <button
                   type="button"
@@ -171,7 +186,7 @@ export default function PartyPicker({
                 </button>
                 <button
                   type="button"
-                  onClick={() => { setShowInlineForm(false); setFullName(''); setEmail(''); setPhone('') }}
+                  onClick={() => { setShowInlineForm(false); setFullName(''); setEmail(''); setPhone(''); setCreateError(null) }}
                   className="px-2.5 py-1.5 text-xs text-stone-500 hover:bg-stone-50 rounded-md"
                 >
                   {t('addOffer.cancel')}

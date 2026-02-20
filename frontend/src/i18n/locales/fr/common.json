@@ -637,6 +637,7 @@
       "desc": "Corrigez les erreurs ci-dessous avant de pouvoir enregistrer.",
       "clientRoleRequired": "Rôle du client requis"
     },
+    "clientRoleMismatch": "Rôle différent du type de transaction — vérifiez que c'est voulu.",
     "sidebar": {
       "title": "Résumé des changements",
       "noChanges": "Aucune modification",
@@ -1866,6 +1867,7 @@
   },
   "addOffer": {
     "title": "Ajouter une offre",
+    "titleCounter": "Contre-offre",
     "transactionLabel": "Transaction : {{client}} • {{address}}",
     "typeLabel": "Type",
     "typeOffer": "Offre",
@@ -1881,7 +1883,7 @@
     "exp24h": "24h",
     "exp48h": "48h",
     "exp7d": "7 jours",
-    "expCustom": "Custom",
+    "expCustom": "Personnalisé",
     "financingLabel": "Financement",
     "financingPlaceholder": "Montant pré-approbation",
     "inspectionLabel": "Inspection",
@@ -1899,6 +1901,8 @@
     "emailNotify": "Notifier par email",
     "cancel": "Annuler",
     "submit": "Soumettre l'offre",
+    "submitCounter": "Envoyer la contre-offre",
+    "revisionBadge": "Révision #{{number}}",
     "accordionHistory": "Historique",
     "historyTitle": "Historique",
     "historyEmpty": "Première offre pour cette transaction",
@@ -1948,7 +1952,8 @@
     "partyNamePlaceholder": "Nom complet",
     "partyEmailPlaceholder": "Courriel (optionnel)",
     "partyPhonePlaceholder": "Téléphone (optionnel)",
-    "partyCreated": "Partie ajoutée"
+    "partyCreated": "Partie ajoutée",
+    "partyCreateError": "Échec de la création. Réessayez."
   },
   "permissionsPage": {
     "title": "Accès & Permissions",
