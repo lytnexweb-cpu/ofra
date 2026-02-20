@@ -132,6 +132,13 @@ router.group(() => {
   router.put('/clients/:id', '#controllers/clients_controller.update')
   router.delete('/clients/:id', '#controllers/clients_controller.destroy')
 
+  // Professional Contacts (Carnet de pros)
+  router.get('/pros', '#controllers/professional_contacts_controller.index')
+  router.post('/pros', '#controllers/professional_contacts_controller.store')
+  router.get('/pros/:id', '#controllers/professional_contacts_controller.show')
+  router.put('/pros/:id', '#controllers/professional_contacts_controller.update')
+  router.delete('/pros/:id', '#controllers/professional_contacts_controller.destroy')
+
   // Workflow Templates
   router.get('/workflow-templates', '#controllers/workflow_templates_controller.index')
   router.post('/workflow-templates', '#controllers/workflow_templates_controller.store')

@@ -140,7 +140,7 @@ test.group('Export Controller - PDF', (group) => {
         transactionId: transaction.id,
         userId: user.id,
         activityType: 'pdf_exported' as any,
-        metadata: JSON.stringify({ language: 'fr' }),
+        metadata: { language: 'fr' },
       })
     }
 
@@ -195,7 +195,7 @@ test.group('Export Controller - PDF', (group) => {
         transactionId: transaction.id,
         userId: user.id,
         activityType: 'pdf_exported' as any,
-        metadata: JSON.stringify({ language: 'fr' }),
+        metadata: { language: 'fr' },
       })
     }
 
@@ -215,15 +215,13 @@ test.group('Export Controller - PDF', (group) => {
 })
 
 test.group('Export Controller - Email', (group) => {
-  let fakeMailer: ReturnType<typeof mail.fake>
-
   group.each.setup(async () => {
-    fakeMailer = mail.fake()
+    mail.fake()
     await truncateAll()
   })
   group.each.teardown(() => { mail.restore() })
 
-  test('POST /api/transactions/:id/export/email sends recap and returns success', async ({ client, assert }) => {
+  test('POST /api/transactions/:id/export/email sends recap and returns success', async ({ client }) => {
     const { user, transaction } = await setupTransaction()
 
     const response = await withAuth(

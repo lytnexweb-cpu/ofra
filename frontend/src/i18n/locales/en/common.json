@@ -7,6 +7,7 @@
     "dashboard": "Dashboard",
     "transactions": "Transactions",
     "clients": "Clients",
+    "pros": "Pro Contacts",
     "settings": "Settings",
     "logout": "Logout",
     "admin": "Admin"
@@ -1326,6 +1327,35 @@
       "loaded": "Pack loaded",
       "conditionsCount": "condition(s)",
       "noTemplates": "No templates available for this pack."
+    }
+  },
+  "pros": {
+    "title": "Pro Contacts",
+    "subtitle": "{{count}} professional contact(s)",
+    "addPro": "Add a pro",
+    "editPro": "Edit contact",
+    "empty": "No professional contacts",
+    "emptyDescription": "Add your inspectors, notaries, lawyers and other professionals to find them easily.",
+    "searchPlaceholder": "Search by name, firm or email...",
+    "allRoles": "All roles",
+    "noResults": "No results",
+    "name": "Full name",
+    "role": "Role",
+    "phone": "Phone",
+    "email": "Email",
+    "company": "Firm / Company",
+    "notes": "Notes",
+    "deleteTitle": "Delete contact",
+    "deleteConfirm": "Are you sure you want to delete {{name}} from your pro contacts?",
+    "errorCreate": "Failed to create contact",
+    "errorUpdate": "Failed to update contact",
+    "roles": {
+      "inspector": "Inspector",
+      "notary": "Notary",
+      "lawyer": "Lawyer",
+      "mortgage_broker": "Mortgage Broker",
+      "appraiser": "Appraiser",
+      "other": "Other"
     }
   },
   "clients": {

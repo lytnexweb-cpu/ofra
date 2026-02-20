@@ -220,7 +220,7 @@ test.group('FINTRAC Controller - POST /api/fintrac/:id/resolve', (group) => {
   })
 
   test('resolves FINTRAC condition when complete + evidence present', async ({ client, assert }) => {
-    const { user, record, transaction, party } = await setupFintracScenario()
+    const { user, record, transaction, party: _party } = await setupFintracScenario()
 
     // Complete the record
     await FintracService.complete(record.id, {

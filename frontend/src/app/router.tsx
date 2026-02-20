@@ -25,6 +25,7 @@ const EditTransactionPage = lazy(() => import('../pages/EditTransactionPage'))
 const ExportSharePage = lazy(() => import('../pages/ExportSharePage'))
 const OfferIntakePage = lazy(() => import('../pages/OfferIntakePage'))
 const PermissionsPage = lazy(() => import('../pages/PermissionsPage'))
+const ProsPage = lazy(() => import('../pages/ProsPage'))
 const SettingsPage = lazy(() => import('../pages/SettingsPage'))
 const AccountPage = lazy(() => import('../pages/AccountPage'))
 const NotFoundPage = lazy(() => import('../pages/NotFoundPage'))
@@ -198,6 +199,10 @@ export const router = createBrowserRouter([
       {
         path: 'transactions/:id/access',
         element: <LazyPage><PermissionsPage /></LazyPage>,
+      },
+      {
+        path: 'pros',
+        element: <LazyPage><ProsPage /></LazyPage>,
       },
       {
         path: 'settings',

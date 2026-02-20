@@ -16,7 +16,7 @@ import {
   CloseIcon,
 } from './ui/Icons'
 import NotificationBell from './NotificationBell'
-import { ShieldCheck } from 'lucide-react'
+import { ShieldCheck, Briefcase } from 'lucide-react'
 import SoftLimitBanner from './SoftLimitBanner'
 import TrialBanner from './TrialBanner'
 
@@ -69,10 +69,13 @@ export default function Layout() {
     },
   })
 
+  const ProsIcon = ({ className }: { className?: string }) => <Briefcase className={className} />
+
   const navLinks = [
     { to: '/', label: t('nav.dashboard'), icon: DashboardIcon },
     { to: '/transactions', label: t('nav.transactions'), icon: TransactionsIcon },
     { to: '/clients', label: t('nav.clients'), icon: ClientsIcon },
+    { to: '/pros', label: t('nav.pros'), icon: ProsIcon },
     { to: '/settings', label: t('nav.settings'), icon: SettingsIcon },
   ]
 

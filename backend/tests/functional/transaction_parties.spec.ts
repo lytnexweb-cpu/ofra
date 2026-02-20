@@ -40,10 +40,8 @@ async function setupTransaction() {
 }
 
 test.group('Transaction Parties - CRUD', (group) => {
-  let fakeMailer: ReturnType<typeof mail.fake>
-
   group.each.setup(async () => {
-    fakeMailer = mail.fake()
+    mail.fake()
     await truncateAll()
   })
   group.each.teardown(() => { mail.restore() })

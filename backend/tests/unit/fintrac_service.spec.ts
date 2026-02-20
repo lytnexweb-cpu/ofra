@@ -12,7 +12,6 @@ import { FintracService } from '#services/fintrac_service'
 import Transaction from '#models/transaction'
 import Condition from '#models/condition'
 import FintracRecord from '#models/fintrac_record'
-import TransactionStep from '#models/transaction_step'
 import ConditionEvidence from '#models/condition_evidence'
 
 /**
@@ -40,9 +39,9 @@ async function setupAtFirmPending(overrides: { type?: 'purchase' | 'sale'; autoC
   })
 
   // Create transaction steps
-  const step1 = await createTransactionStep(transaction.id, wfStep1.id, { stepOrder: 1, status: 'completed' })
+  await createTransactionStep(transaction.id, wfStep1.id, { stepOrder: 1, status: 'completed' })
   const firmStep = await createTransactionStep(transaction.id, wfStep5.id, { stepOrder: 5, status: 'active' })
-  const step6 = await createTransactionStep(transaction.id, wfStep6.id, { stepOrder: 6, status: 'pending' })
+  await createTransactionStep(transaction.id, wfStep6.id, { stepOrder: 6, status: 'pending' })
 
   // Set current step to firm-pending
   transaction.currentStepId = firmStep.id

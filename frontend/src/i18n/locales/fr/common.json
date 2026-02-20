@@ -7,6 +7,7 @@
     "dashboard": "Tableau de bord",
     "transactions": "Transactions",
     "clients": "Clients",
+    "pros": "Carnet de pros",
     "settings": "Paramètres",
     "logout": "Déconnexion",
     "admin": "Admin"
@@ -1326,6 +1327,35 @@
       "loaded": "Pack chargé",
       "conditionsCount": "condition(s)",
       "noTemplates": "Aucun modèle disponible pour ce pack."
+    }
+  },
+  "pros": {
+    "title": "Carnet de pros",
+    "subtitle": "{{count}} contact(s) professionnel(s)",
+    "addPro": "Ajouter un pro",
+    "editPro": "Modifier le contact",
+    "empty": "Aucun contact professionnel",
+    "emptyDescription": "Ajoutez vos inspecteurs, notaires, avocats et autres professionnels pour les retrouver facilement.",
+    "searchPlaceholder": "Rechercher par nom, firme ou courriel...",
+    "allRoles": "Tous les rôles",
+    "noResults": "Aucun résultat",
+    "name": "Nom complet",
+    "role": "Rôle",
+    "phone": "Téléphone",
+    "email": "Courriel",
+    "company": "Firme / Entreprise",
+    "notes": "Notes",
+    "deleteTitle": "Supprimer le contact",
+    "deleteConfirm": "Voulez-vous vraiment supprimer {{name}} de votre carnet de pros ?",
+    "errorCreate": "Échec de la création du contact",
+    "errorUpdate": "Échec de la mise à jour du contact",
+    "roles": {
+      "inspector": "Inspecteur",
+      "notary": "Notaire",
+      "lawyer": "Avocat",
+      "mortgage_broker": "Courtier hypothécaire",
+      "appraiser": "Évaluateur",
+      "other": "Autre"
     }
   },
   "clients": {

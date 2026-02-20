@@ -162,6 +162,8 @@ describe('i18n key parity', () => {
       'addOffer.draftDirection',
       // Offer intake (Phase B — cognate)
       'offerIntake.inclusionsLabel',
+      // Pro contacts (cognates)
+      'pros.notes',
     ])
 
     const suspicious: string[] = []
