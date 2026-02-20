@@ -311,7 +311,9 @@ export default function CreateOfferModal({
 
   if (!isOpen) return null
 
-  const clientName = transaction.client?.fullName || transaction.client?.email || '—'
+  const clientName = transaction.client
+    ? `${transaction.client.firstName ?? ''} ${transaction.client.lastName ?? ''}`.trim() || transaction.client.email || '—'
+    : '—'
   const address = transaction.property?.address
     ? `${transaction.property.address}, ${transaction.property.city || ''}`
     : '—'

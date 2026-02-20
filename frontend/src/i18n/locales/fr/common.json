@@ -1953,7 +1953,9 @@
     "partyEmailPlaceholder": "Courriel (optionnel)",
     "partyPhonePlaceholder": "Téléphone (optionnel)",
     "partyCreated": "Partie ajoutée",
-    "partyCreateError": "Échec de la création. Réessayez."
+    "partyCreateError": "Échec de la création. Réessayez.",
+    "clientLookupHint": "Chercher un client existant...",
+    "noClientMatch": "Aucun client trouvé"
   },
   "permissionsPage": {
     "title": "Accès & Permissions",

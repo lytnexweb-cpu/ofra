@@ -1953,7 +1953,9 @@
     "partyEmailPlaceholder": "Email (optional)",
     "partyPhonePlaceholder": "Phone (optional)",
     "partyCreated": "Party added",
-    "partyCreateError": "Creation failed. Please try again."
+    "partyCreateError": "Creation failed. Please try again.",
+    "clientLookupHint": "Search for an existing client...",
+    "noClientMatch": "No matching client found"
   },
   "permissionsPage": {
     "title": "Access & Permissions",

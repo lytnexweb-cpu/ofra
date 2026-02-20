@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { ChevronDown, Plus, Check, Loader2 } from 'lucide-react'
+import { ChevronDown, Plus, Check, Loader2, Search } from 'lucide-react'
 import { partiesApi, type PartyRole, type TransactionParty } from '../../api/parties.api'
+import { clientsApi, type Client } from '../../api/clients.api'
 
 interface PartyPickerProps {
   transactionId: number
@@ -10,6 +11,11 @@ interface PartyPickerProps {
   selectedPartyId: number | null
   onSelect: (id: number | null) => void
   error?: boolean
+}
+
+/** Normalize string for accent-safe matching */
+function normalize(str: string): string {
+  return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
 }
 
 export default function PartyPicker({
@@ -28,9 +34,20 @@ export default function PartyPicker({
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
 
+  // Client lookup state
+  const [lookupQuery, setLookupQuery] = useState('')
+  const lookupInputRef = useRef<HTMLInputElement>(null)
+
   const { data: partiesData } = useQuery({
     queryKey: ['parties', transactionId],
     queryFn: () => partiesApi.list(transactionId),
+  })
+
+  // Fetch clients list for lookup (cached 5min)
+  const { data: clientsData } = useQuery({
+    queryKey: ['clients'],
+    queryFn: () => clientsApi.list(),
+    staleTime: 5 * 60 * 1000,
   })
 
   const parties: TransactionParty[] = (partiesData?.data?.parties ?? []).filter(
@@ -38,6 +55,18 @@ export default function PartyPicker({
   )
 
   const selectedParty = parties.find((p) => p.id === selectedPartyId) ?? null
+
+  // Filtered clients for lookup
+  const filteredClients = useMemo(() => {
+    const clients: Client[] = clientsData?.data?.clients ?? []
+    if (!lookupQuery.trim()) return clients.slice(0, 5)
+    const q = normalize(lookupQuery.trim())
+    return clients.filter((c) => {
+      const name = normalize(`${c.firstName} ${c.lastName}`)
+      const emailStr = normalize(c.email ?? '')
+      return name.includes(q) || emailStr.includes(q)
+    }).slice(0, 8)
+  }, [clientsData, lookupQuery])
 
   const [createError, setCreateError] = useState<string | null>(null)
 
@@ -64,6 +93,7 @@ export default function PartyPicker({
       setFullName('')
       setEmail('')
       setPhone('')
+      setLookupQuery('')
       setIsOpen(false)
     },
     onError: () => {
@@ -80,6 +110,22 @@ export default function PartyPicker({
     })
   }
 
+  const handleSelectClient = (client: Client) => {
+    const name = `${client.firstName} ${client.lastName}`.trim()
+    setFullName(name)
+    setEmail(client.email ?? '')
+    setPhone(client.cellPhone ?? client.phone ?? '')
+    setLookupQuery('')
+    setShowInlineForm(true)
+  }
+
+  // Focus lookup input when inline form opens
+  useEffect(() => {
+    if (showInlineForm && lookupInputRef.current) {
+      lookupInputRef.current.focus()
+    }
+  }, [showInlineForm])
+
   const label = role === 'buyer' ? t('addOffer.buyerParty') : t('addOffer.sellerParty')
 
   return (
@@ -91,7 +137,7 @@ export default function PartyPicker({
       {/* Trigger */}
       <button
         type="button"
-        onClick={() => { setIsOpen(!isOpen); setShowInlineForm(false) }}
+        onClick={() => { setIsOpen(!isOpen); setShowInlineForm(false); setLookupQuery('') }}
         className={`w-full flex items-center justify-between px-3 py-2 text-[13px] rounded-lg border focus:outline-none focus:ring-[3px] ${error && !isOpen ? 'border-[#dc2626] bg-[#fef2f2] focus:ring-[rgba(220,38,38,.1)]' : 'border-stone-200 bg-white focus:border-[#1e3a5f] focus:ring-[rgba(30,58,95,.1)]'}`}
       >
         <span className={selectedParty ? 'text-stone-900' : 'text-stone-400'}>
@@ -102,7 +148,7 @@ export default function PartyPicker({
 
       {/* Dropdown */}
       {isOpen && (
-        <div className="absolute z-20 mt-1 w-full bg-white rounded-lg border border-stone-200 shadow-lg max-h-[240px] overflow-y-auto">
+        <div className="absolute z-20 mt-1 w-full bg-white rounded-lg border border-stone-200 shadow-lg max-h-[320px] overflow-y-auto">
           {/* Existing parties */}
           {parties.length > 0 && (
             <div className="py-1">
@@ -145,13 +191,55 @@ export default function PartyPicker({
             </button>
           ) : (
             <div className="p-3 space-y-2">
+              {/* Client lookup autocomplete */}
+              <div className="relative">
+                <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-stone-400" />
+                <input
+                  ref={lookupInputRef}
+                  type="text"
+                  value={lookupQuery}
+                  onChange={(e) => setLookupQuery(e.target.value)}
+                  placeholder={t('addOffer.clientLookupHint')}
+                  className="w-full pl-7 pr-2.5 py-1.5 text-xs rounded-md border border-stone-200 focus:border-[#1e3a5f] focus:outline-none bg-stone-50"
+                />
+              </div>
+
+              {/* Client suggestions */}
+              {lookupQuery.trim() && filteredClients.length > 0 && (
+                <div className="rounded-md border border-stone-100 bg-stone-50 max-h-[120px] overflow-y-auto">
+                  {filteredClients.map((client) => (
+                    <button
+                      key={client.id}
+                      type="button"
+                      onClick={() => handleSelectClient(client)}
+                      className="w-full flex items-center gap-2 px-2.5 py-1.5 text-left hover:bg-white text-xs"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-stone-900 truncate">
+                          {client.firstName} {client.lastName}
+                        </p>
+                        {client.email && (
+                          <p className="text-[10px] text-stone-400 truncate">{client.email}</p>
+                        )}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {lookupQuery.trim() && filteredClients.length === 0 && (
+                <p className="text-[10px] text-stone-400 text-center py-1">
+                  {t('addOffer.noClientMatch')}
+                </p>
+              )}
+
+              {/* Manual form fields */}
               <input
                 type="text"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder={t('addOffer.partyNamePlaceholder')}
                 className="w-full px-2.5 py-1.5 text-xs rounded-md border border-stone-200 focus:border-[#1e3a5f] focus:outline-none"
-                autoFocus
               />
               <input
                 type="email"
@@ -186,7 +274,7 @@ export default function PartyPicker({
                 </button>
                 <button
                   type="button"
-                  onClick={() => { setShowInlineForm(false); setFullName(''); setEmail(''); setPhone(''); setCreateError(null) }}
+                  onClick={() => { setShowInlineForm(false); setFullName(''); setEmail(''); setPhone(''); setLookupQuery(''); setCreateError(null) }}
                   className="px-2.5 py-1.5 text-xs text-stone-500 hover:bg-stone-50 rounded-md"
                 >
                   {t('addOffer.cancel')}

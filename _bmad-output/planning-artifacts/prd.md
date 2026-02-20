@@ -26,6 +26,12 @@ supersedes:
 > Dernière mise à jour : 2026-02-19 (v2.20)
 > Auteur : Sam + Équipe BMAD (Party Mode)
 >
+> **Changements v2.24 (2026-02-20) — C4 DONE + C7/C8 specs :**
+> - **§9.2 C4** : `🔄 PARTIEL` → `✅ DONE` — Fix `fullName` bug dans CreateOfferModal (Client a `firstName`/`lastName`, pas `fullName`). PartyPicker : autocomplete client lookup (accent-safe, `clientsApi.list()`, staleTime 5min). Auto-fill nom/email/téléphone sur sélection. 2 clés i18n FR+EN.
+> - **§9.2 C7 spec** : Spec technique complète du comparateur vendeur enrichi — 6 gaps documentés (closingDate highlight, expiry highlight, fix row conditions/inclusions, depositDeadline, inspectionDelay unité, worst rouge). 5 clés i18n prévues, 1 changement backend (preload conditions).
+> - **§9.2 C8 spec** : Spec technique complète du formulaire client 2 sections — migration 7 colonnes (buyer: pré-approbation/financement, seller: motivation/plancher/date cible), sections conditionnelles CreateClientModal + ClientDetailsPage, ~12 clés i18n. Liens futurs C7/C4 documentés.
+> - Sprint 1 score : C1 ✅ C2 ✅ C3 ✅ C4 ✅ — **4/4 DONE**
+>
 > **Changements v2.23 (2026-02-20) — C3 DONE + auto clientRole + UX polish :**
 > - **§9.2 C3** : `❌ TODO` → `✅ DONE` — Était déjà codé dans `WorkflowEngineService` (C3c) + auto-détection `clientRole` depuis `client.clientType` (C3b). Ajout : auto-déduction depuis `transaction.type` (purchase→buyer, sale→seller) + warning mismatch.
 > - **UX polish** (5 écarts maquette corrigés) : titre modal "Contre-offre" en mode counter, badge "Révision #N", bouton "Envoyer la contre-offre", bordure rouge PartyPicker trigger en erreur, highlighting multi-lignes comparateur (deposit + financing)
@@ -491,6 +497,7 @@ HARD WALL (J33+)
 | **D60** | **Liste d'attente email (page coming soon)** | **📋 À coder** | Table `waitlist_emails` : email, source ('coming_soon_page'), created_at. Formulaire sur la page Coming Soon : "Soyez les premiers informés". Lead capture + compteur fondateurs restants. Exportable CSV depuis admin. |
 | **D61** | **Admin isolé — pas d'accès au monde client** | **✅ Fait** | Suppression du bouton "Retour à l'app" (`AdminLayout.tsx`). L'admin est un espace fermé, aucun pont vers le dashboard courtier. Si besoin support client → drawer read-only dans vue Gens (Phase 2). Deux contextes, deux comptes si nécessaire. |
 | **D62** | **Retrait complet du dark mode** | **✅ Fait** | Le dark mode n'a jamais été audité visuellement, double la complexité CSS (`dark:*` dans ~50 fichiers), et n'est pas demandé par le marché cible (courtiers NB 35-60 ans). Suppression de : toutes classes `dark:*`, `ThemeContext`, toggle Settings, config Tailwind `darkMode`. Un seul thème light à maintenir et tester. |
+| **D63** | **Pricing : redirect externe → page in-app (2 phases)** | **✅ Phase 1 fait / 📋 Phase 2 avec Stripe** | **Phase 1 (pré-Stripe)** : La route `/pricing` dans l'app redirige vers `ofra.ca/pricing` (site marketing). Les CTAs TrialBanner, SoftLimitBanner et AccountPage ouvrent `ofra.ca/pricing` en nouvel onglet. Le hard wall redirige vers `/account` (tab Abonnement). **Phase 2 (post-Stripe)** : Remplacer la redirect par une vraie page `/pricing` in-app avec les 4 cartes plans (Starter 29$/Solo 49$/Pro 79$/Agence 149$), toggle mensuel/annuel, bouton S'abonner → Stripe Checkout. Tous les CTAs pointent alors vers `/pricing` interne. |
 
 ### 4.2 Principes UX
 
@@ -2134,7 +2141,7 @@ Actions à réaliser le jour du lancement public :
 | C1 | Migration `from_party_id` / `to_party_id` sur Offer | FK vers `transaction_parties`, direction résolue par les parties et non plus par un enum | ✅ DONE — FK Bloc 8 + inférence direction depuis rôle party (`inferDirection()` dans `OfferService`). `direction` optionnel dans validators, auto-inféré si `fromPartyId`/`buyerPartyId` fourni. `addRevision` auto-inverse direction depuis dernière revision. |
 | C2 | Auto-création Party depuis Offer | À la soumission d'une offre, si `fromPartyId` n'existe pas comme Party → créer automatiquement | ✅ DONE — Two-step : `PartyPicker` crée la party inline ("+", nom/email/téléphone → `partiesApi.create()`) AVANT soumission. Flux intake public (`OfferIntakeController`) crée en atomique. Validation front : `buyerPartyId`/`sellerPartyId` requis au submit. Contre-offre : conversion buyer/seller → from/to selon direction. Error handling inline dans PartyPicker. |
 | C3 | Auto-création Party depuis Client | À la création d'une transaction, le client assigné devient automatiquement une Party (buyer ou seller selon direction) | ✅ DONE — `WorkflowEngineService.createTransaction()` crée `TransactionParty` depuis `Client` avec `role=clientRole`, `isPrimary=true`. Frontend auto-détecte `clientRole` depuis `client.clientType` (C3b) puis depuis `transaction.type` (purchase→buyer, sale→seller). Warning mismatch si override. |
-| C4 | Pré-remplissage formulaire offre | Si l'agent a déjà un client avec nom/téléphone/email → auto-populate les champs de l'offre | 🔄 PARTIEL — `PartyPicker` pré-sélectionne parties existantes (`isPrimary`). Reste : lookup table `clients` pour pré-remplir nom/email/téléphone dans le formulaire. |
+| C4 | Pré-remplissage formulaire offre | Si l'agent a déjà un client avec nom/téléphone/email → auto-populate les champs de l'offre | ✅ DONE — `PartyPicker` pré-sélectionne parties existantes (`isPrimary`). Client lookup autocomplete dans PartyPicker (accent-safe, `clientsApi.list()`, staleTime 5min). Auto-fill nom/email/téléphone sur sélection. Fix `fullName` bug dans CreateOfferModal (`firstName`+`lastName`). |
 
 **Sprint 2 — UI Buyer/Seller Contextuelle (~2-3 jours)**
 
@@ -2142,8 +2149,59 @@ Actions à réaliser le jour du lancement public :
 |---|---------|--------|--------|
 | C5 | CTA adaptatif selon direction | Acheteur : "Soumettre une offre" (proactif) / Vendeur : "Ajouter manuellement" (réactif, outline) | ✅ DONE — Intégré dans C6 |
 | C6 | Sections différentes buyer vs seller | Titre adaptatif, CTA role-aware, gating actions (accept/counter/reject vs withdraw selon tour), bannière contextuelle, intake link masqué pour buyer, auto-open comparateur seller, direction role-aware dans CreateOfferModal | ✅ DONE — `OffersPanel.tsx`, `CreateOfferModal.tsx`, i18n FR+EN, 327 tests verts |
-| C7 | Comparateur vendeur enrichi | Table side-by-side avec highlight meilleur prix, deadline, conditions — le vendeur compare facilement | Partiellement codé (OfferComparison existant) |
-| C8 | Formulaire client 2 sections | Section acheteur (financement, pré-approbation) vs section vendeur (motivation vente, prix plancher) | ❌ TODO |
+| C7 | Comparateur vendeur enrichi | Table side-by-side avec highlight meilleur prix, deadline, conditions — le vendeur compare facilement | ❌ TODO (spec v2.24) |
+| C8 | Formulaire client 2 sections | Section acheteur (financement, pré-approbation) vs section vendeur (motivation vente, prix plancher) | ❌ TODO (spec v2.24) |
+
+**Spec C7 — Comparateur vendeur enrichi**
+
+> Composant existant : `OfferComparison.tsx`. Enrichissement sur 6 axes.
+
+| # | Gap actuel | Fix | Logique highlight |
+|---|-----------|-----|-------------------|
+| 1 | `closingDate` pas de highlight | Highlight vert sur earliest, rouge sur latest | Earliest = best (vendeur veut clôturer vite) |
+| 2 | `expiryAt` pas de highlight | Highlight vert sur latest, rouge sur earliest | Latest = best (plus de temps pour négocier) |
+| 3 | Row "conditions" affiche `inclusions` (bug) | Renommer la row actuelle en "Inclusions" ; ajouter une nouvelle row "Conditions" avec le count réel de conditions par offre | Backend : `revisions.conditions` preload OU `withCount('conditions')` dans endpoint offers |
+| 4 | `depositDeadline` non affiché | Nouvelle row "Date limite dépôt" après row "Dépôt" | Highlight : earliest = best (vendeur veut le dépôt vite) |
+| 5 | `inspectionDelay` affiché sans unité | Suffixer avec "jours" (FR) / "days" (EN) via i18n key | Highlight : shortest delay = best |
+| 6 | Aucune indication worst (rouge) | Les highlights "worst" existants sont maintenant rouge (`text-red-600 bg-red-50/30`) au lieu de neutre | Déjà codé pour price/deposit/financing ; étendre à toutes les rows |
+
+**Fichiers impactés :**
+- `frontend/src/components/transaction/OfferComparison.tsx` — 6 changements
+- `frontend/src/i18n/locales/{fr,en}/common.json` — 5 clés : `offers.comparison.depositDeadline`, `offers.comparison.inspectionDays`, `offers.comparison.conditionCount`, `offers.comparison.noConditions`, `offers.comparison.inclusions`
+- `backend/app/controllers/offers_controller.ts` — preload `revisions.conditions` (ou `withCount`) dans la query list
+
+**Spec C8 — Formulaire client 2 sections**
+
+> Objectif : enrichir le profil client avec des champs contextuels acheteur/vendeur pour alimenter le comparateur (C7) et le pré-remplissage offre (C4).
+
+**Migration — 7 colonnes sur `clients` :**
+
+| Colonne | Type | Contexte | Null | Default |
+|---------|------|----------|------|---------|
+| `pre_approval_amount` | `decimal(12,2)` | buyer | yes | null |
+| `pre_approval_lender` | `string(255)` | buyer | yes | null |
+| `financing_budget` | `decimal(12,2)` | buyer | yes | null |
+| `is_pre_approved` | `boolean` | buyer | yes | false |
+| `motivation_level` | `enum('low','medium','high','urgent')` | seller | yes | null |
+| `floor_price` | `decimal(12,2)` | seller | yes | null |
+| `target_close_date` | `date` | seller | yes | null |
+
+**Backend :**
+- Model `client.ts` : 7 `@column()` declarations
+- Validator `client_validator.ts` : 7 champs optionnels dans schemas create + update
+- Pas de validation conditionnelle backend (frontend gère l'affichage selon `clientType`)
+
+**Frontend :**
+- `CreateClientModal.tsx` : section conditionnelle dans l'onglet Basic après le select `clientType`
+  - buyer/both → section "Profil acheteur" : `isPreApproved` (toggle), `preApprovalAmount`, `preApprovalLender`, `financingBudget`
+  - seller/both → section "Profil vendeur" : `motivationLevel` (select), `floorPrice`, `targetCloseDate`
+- `ClientDetailsPage.tsx` : ajouter `clientType` au formulaire edit (manquant) + sections conditionnelles identiques
+- i18n : ~12 clés FR/EN (`clientForm.buyerSection`, `clientForm.sellerSection`, labels de chaque champ)
+
+**Liens futurs :**
+- `preApprovalAmount` → row dans OfferComparison (C7)
+- `floorPrice` → warning si offre < plancher dans CreateOfferModal
+- `financingBudget` → pré-remplir financing dans CreateOfferModal
 
 **Sprint 3 — Carnet de Pros (~2 jours)**
 
