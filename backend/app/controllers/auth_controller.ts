@@ -344,7 +344,7 @@ export default class AuthController {
     }
   }
 
-  async verifyEmail({ request, response }: HttpContext) {
+  async verifyEmail({ request, response, auth }: HttpContext) {
     const token = request.input('token')
     if (!token) {
       return response.badRequest({
@@ -372,6 +372,9 @@ export default class AuthController {
     user.emailVerificationExpires = null
     await user.save()
 
+    // Auto-login the user after verification
+    await auth.use('web').login(user)
+
     // Send welcome email now that they're verified
     const frontendUrl = env.get('FRONTEND_URL', 'https://ofra.ca')
     mail
@@ -387,7 +390,7 @@ export default class AuthController {
 
     return response.ok({
       success: true,
-      data: { message: 'Email verified successfully' },
+      data: { message: 'Email verified successfully', autoLoggedIn: true },
     })
   }
 

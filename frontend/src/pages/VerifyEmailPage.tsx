@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
-import { useSearchParams, useLocation, Link } from 'react-router-dom'
+import { useSearchParams, useLocation, Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { CheckCircle, XCircle, Loader2, Mail, RefreshCw } from 'lucide-react'
 import { OfraLogoFull } from '../components/OfraLogo'
@@ -14,6 +14,7 @@ export default function VerifyEmailPage() {
   const location = useLocation()
   const [status, setStatus] = useState<Status>('loading')
   const [resendStatus, setResendStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
+  const navigate = useNavigate()
   const token = searchParams.get('token')
   const emailFromState = (location.state as { email?: string })?.email ?? ''
 
@@ -25,12 +26,20 @@ export default function VerifyEmailPage() {
 
     http.get(`/api/verify-email?token=${token}`)
       .then((res) => {
-        setStatus(res.success ? 'success' : 'error')
+        if (res.success) {
+          setStatus('success')
+          // Auto-logged in by backend — redirect to app after a brief success message
+          setTimeout(() => {
+            navigate('/', { replace: true })
+          }, 2000)
+        } else {
+          setStatus('error')
+        }
       })
       .catch(() => {
         setStatus('error')
       })
-  }, [token])
+  }, [token, navigate])
 
   const handleResend = useCallback(async () => {
     if (!emailFromState || resendStatus === 'sending') return
@@ -66,14 +75,9 @@ export default function VerifyEmailPage() {
               {t('verify.successTitle', 'Courriel confirmé!')}
             </h2>
             <p className="text-stone-600">
-              {t('verify.successDesc', 'Votre adresse courriel a été vérifiée avec succès. Vous pouvez maintenant vous connecter.')}
+              {t('verify.successRedirect', 'Votre adresse courriel a été vérifiée. Redirection en cours...')}
             </p>
-            <Link
-              to="/login"
-              className="inline-block mt-4 px-6 py-2.5 rounded-md text-white text-sm font-medium bg-primary hover:bg-primary/90 transition-colors"
-            >
-              {t('auth.login')}
-            </Link>
+            <Loader2 className="h-5 w-5 text-primary animate-spin mx-auto" />
           </div>
         )}
 

@@ -16,7 +16,7 @@ const sessionConfig = defineConfig({
    * Define how long to keep the session data alive without
    * any activity.
    */
-  age: '2h',
+  age: '7d',
 
   /**
    * Configuration for session cookie and the
@@ -26,7 +26,7 @@ const sessionConfig = defineConfig({
     path: '/',
     httpOnly: true,
     secure: app.inProduction,
-    sameSite: app.inProduction ? 'none' : 'lax',
+    sameSite: 'lax',
   },
 
   /**

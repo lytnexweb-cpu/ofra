@@ -74,11 +74,6 @@ function ProtectedRoute({ children, skipOnboardingCheck = false }: { children: R
   }
 
   if (!data?.success) {
-    // Redirect unauthenticated visitors at root / to marketing site
-    if (location.pathname === '/') {
-      window.location.href = MARKETING_URL
-      return null
-    }
     return <Navigate to="/login" replace />
   }
 
@@ -211,6 +206,10 @@ export const router = createBrowserRouter([
       {
         path: 'account',
         element: <LazyPage><AccountPage /></LazyPage>,
+      },
+      {
+        path: 'pricing',
+        element: <Navigate to="/account" replace />,
       },
     ],
   },
