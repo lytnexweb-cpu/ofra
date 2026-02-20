@@ -12,6 +12,8 @@ import CreateConditionModal from '../CreateConditionModal'
 import EditConditionModal from './EditConditionModal'
 import ConditionValidationModal from './ConditionValidationModal'
 import FintracComplianceModal from './FintracComplianceModal'
+import ConditionHistory from './ConditionHistory'
+import { useSubscription } from '../../hooks/useSubscription'
 
 interface ConditionsTabProps {
   transaction: Transaction
@@ -37,6 +39,10 @@ export default function ConditionsTab({ transaction, filterStepId }: ConditionsT
   const [editingCondition, setEditingCondition] = useState<Condition | null>(null)
   // D41: Validation modal for blocking/required conditions
   const [validatingCondition, setValidatingCondition] = useState<Condition | null>(null)
+  // Audit history sheet state
+  const [historyCondition, setHistoryCondition] = useState<Condition | null>(null)
+  const { meetsMinimum } = useSubscription()
+  const canViewHistory = meetsMinimum('pro')
   // FINTRAC compliance modal state
   const [fintracCondition, setFintracCondition] = useState<Condition | null>(null)
   const [fintracRecordId, setFintracRecordId] = useState<number | null>(null)
@@ -360,6 +366,14 @@ export default function ConditionsTab({ transaction, filterStepId }: ConditionsT
           partyName={fintracCondition.title.replace('FINTRAC — ', '')}
         />
       )}
+
+      {/* Audit history sheet (Pro+) */}
+      <ConditionHistory
+        conditionId={historyCondition?.id ?? null}
+        conditionTitle={historyCondition?.title ?? ''}
+        open={!!historyCondition}
+        onOpenChange={(open) => { if (!open) setHistoryCondition(null) }}
+      />
     </div>
   )
 }
@@ -398,6 +412,7 @@ function StepSection({
             onToggle={onToggle}
             onEdit={onEdit}
             onFintracClick={onFintracClick}
+            onHistory={canViewHistory ? setHistoryCondition : undefined}
           />
         ))}
       </div>

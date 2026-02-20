@@ -1930,6 +1930,7 @@
     "amountLabel": "Montant offert",
     "amountPlaceholder": "425 000 $",
     "askingPriceHint": "Prix demandé : {{price}}",
+    "lastOfferHint": "Dernière offre : {{price}}",
     "depositLabel": "Dépôt",
     "depositPlaceholder": "10 000 $",
     "depositDeadlineLabel": "Date limite dépôt",
@@ -2341,5 +2342,23 @@
     "accountChoosePlan": "Choisir un forfait",
     "accountTrialInfo": "Vous êtes en période d'essai. Abonnez-vous pour continuer à utiliser Ofra après votre essai.",
     "viewPlans": "Voir les forfaits"
+  },
+  "conditionHistory": {
+    "title": "Historique d'audit",
+    "empty": "Aucun événement enregistré.",
+    "error": "Impossible de charger l'historique.",
+    "system": "Système",
+    "agent": "Agent",
+    "created": "Condition créée",
+    "started": "Condition démarrée",
+    "resolved": "Condition résolue",
+    "archived": "Condition archivée",
+    "evidenceAdded": "Preuve ajoutée",
+    "evidenceRemoved": "Preuve retirée",
+    "noteAdded": "Note ajoutée",
+    "levelChanged": "Niveau modifié (admin)",
+    "unarchived": "Condition restaurée (admin)",
+    "updated": "Condition modifiée",
+    "unknown": "Événement"
   }
 }

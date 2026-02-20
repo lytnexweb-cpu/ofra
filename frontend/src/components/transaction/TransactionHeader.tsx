@@ -262,7 +262,7 @@ export default function TransactionHeader({ transaction, onOpenEdit, onOpenMembe
       <div className="mb-5" data-testid="transaction-header">
         <Link
           to="/transactions"
-          className="inline-flex items-center gap-1.5 text-sm text-stone-500 hover:text-primary mb-3"
+          className="inline-flex items-center gap-1.5 text-sm text-stone-500 hover:text-primary mb-3 -ml-2 px-2 py-1.5 rounded-lg"
           data-testid="back-link"
         >
           <ArrowLeft className="w-4 h-4" />

@@ -253,7 +253,7 @@ export default function ClientsPage() {
       {/* FAB for mobile */}
       <button
         onClick={() => setIsModalOpen(true)}
-        className="fixed bottom-20 right-4 z-20 w-14 h-14 rounded-full shadow-lg hover:shadow-xl active:scale-95 transition-all flex items-center justify-center sm:hidden bg-primary"
+        className="fixed bottom-20 right-4 z-fab w-14 h-14 rounded-full shadow-lg hover:shadow-xl active:scale-95 transition-all flex items-center justify-center sm:hidden bg-primary"
         data-testid="fab-create"
         aria-label={t('client.new')}
       >

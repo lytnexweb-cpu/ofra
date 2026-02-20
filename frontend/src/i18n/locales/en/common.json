@@ -1930,6 +1930,7 @@
     "amountLabel": "Offer amount",
     "amountPlaceholder": "425,000 $",
     "askingPriceHint": "Asking price: {{price}}",
+    "lastOfferHint": "Last offer: {{price}}",
     "depositLabel": "Deposit",
     "depositPlaceholder": "10,000 $",
     "depositDeadlineLabel": "Deposit deadline",
@@ -2341,5 +2342,23 @@
     "accountChoosePlan": "Choose a plan",
     "accountTrialInfo": "You're on a free trial. Subscribe to keep using Ofra after your trial ends.",
     "viewPlans": "View plans"
+  },
+  "conditionHistory": {
+    "title": "Audit history",
+    "empty": "No events recorded.",
+    "error": "Unable to load history.",
+    "system": "System",
+    "agent": "Agent",
+    "created": "Condition created",
+    "started": "Condition started",
+    "resolved": "Condition resolved",
+    "archived": "Condition archived",
+    "evidenceAdded": "Evidence added",
+    "evidenceRemoved": "Evidence removed",
+    "noteAdded": "Note added",
+    "levelChanged": "Level changed (admin)",
+    "unarchived": "Condition restored (admin)",
+    "updated": "Condition updated",
+    "unknown": "Event"
   }
 }

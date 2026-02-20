@@ -19,6 +19,7 @@ export interface CreateOfferRequest {
   toPartyId?: number
   buyerPartyId?: number
   sellerPartyId?: number
+  emailNotify?: boolean
 }
 
 export interface AddRevisionRequest {
@@ -37,6 +38,7 @@ export interface AddRevisionRequest {
   conditionIds?: number[]
   fromPartyId?: number
   toPartyId?: number
+  emailNotify?: boolean
 }
 
 export const offersApi = {
@@ -52,8 +54,8 @@ export const offersApi = {
   addRevision: (offerId: number, data: AddRevisionRequest) =>
     http.post<{ revision: OfferRevision }>(`/api/offers/${offerId}/revisions`, data),
 
-  accept: async (offerId: number) => {
-    const result = await http.patch<{ offer: Offer }>(`/api/offers/${offerId}/accept`, {})
+  accept: async (offerId: number, data?: { note?: string; emailNotify?: boolean }) => {
+    const result = await http.patch<{ offer: Offer }>(`/api/offers/${offerId}/accept`, data ?? {})
     if (!result.success) throw new Error(result.error?.message || 'Failed to accept offer')
     return result
   },

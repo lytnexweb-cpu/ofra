@@ -9,8 +9,8 @@ inputDocuments:
   - docs/roadmap.md (SUPPRIMÉ — remplacé par ce PRD)
   - _bmad-output/session-2026-02-02-ux-refonte.md
 workflowType: 'prd'
-version: '2.20'
-date: '2026-02-19'
+version: '2.27'
+date: '2026-02-20'
 author: 'Sam + Équipe BMAD (Party Mode)'
 status: 'SOURCE DE VÉRITÉ'
 supersedes:
@@ -23,8 +23,14 @@ supersedes:
 
 > **⚠️ CE DOCUMENT EST LA SOURCE DE VÉRITÉ UNIQUE**
 > Tout conflit avec un autre document se résout en faveur de ce PRD.
-> Dernière mise à jour : 2026-02-19 (v2.20)
+> Dernière mise à jour : 2026-02-20 (v2.27)
 > Auteur : Sam + Équipe BMAD (Party Mode)
+>
+> **Changements v2.27 (2026-02-20) — Stripe config fix + infra optimisation :**
+> - **§7.4 Stripe** : Statut `❌ TODO` → `🟡 EN COURS` — Backend complet (StripeService, StripeController, webhooks 4 events, 5 routes auth). Frontend complet (SubscribeModal avec Stripe Elements, AccountPage gestion abonnement). Clés test mode (`sk_test_`, `pk_test_`) configurées local + Fly.io secrets.
+> - **Fix Stripe prod** : `VITE_STRIPE_PUBLISHABLE_KEY` n'était pas injectée dans le Docker build (`.dockerignore` excluait `.env`). Fix : `ARG` dans Dockerfile + `[build.args]` dans `fly.toml`. Redéployé.
+> - **§7.5 Infra** : Machines Fly réduites de 4 → 2 (1 backend + 1 frontend). Machines stopped supprimées pour réduire les coûts. Redondance retirée (inutile pré-lancement).
+> - **Stripe restant** : Produits Stripe Dashboard à créer (4 plans avec `stripeProductId`), webhook endpoint à enregistrer dans Stripe Dashboard, test E2E du flow subscribe complet.
 >
 > **Changements v2.26 (2026-02-20) — C8 DONE + Sprint 3 DONE — Phase 2 complete :**
 > - **§9.2 C8** : `❌ TODO` → `✅ DONE` — Migration 7 colonnes buyer/seller, model+validator, CreateClientModal sections conditionnelles, ClientDetailsPage edit+read-only, i18n FR+EN.
@@ -1960,12 +1966,14 @@ Le système distingue 3 rôles : `user`, `admin`, `superadmin`. Le champ `role` 
 | **Stockage fichiers (documents, pièces jointes)** | À déterminer (DO Spaces Toronto ou AWS S3 `ca-central-1`) | Canada | Compatible S3, résidence données au Canada |
 | **Emails transactionnels** | Brevo SMTP | `smtp-relay.brevo.com:587` | Déjà configuré et fonctionnel |
 
-**Déploiement actif (2026-02-19) :**
-- **Frontend** : `https://ofra-crm-frontend.fly.dev` — nginx Alpine, proxy `/api/` vers backend via réseau privé Fly
-- **Backend** : `https://ofra-crm-backend.fly.dev` — AdonisJS, `HOST=::` (IPv6), `min_machines_running=1`
+**Déploiement actif (2026-02-20) :**
+- **Frontend** : `https://ofra-crm-frontend.fly.dev` — nginx Alpine, proxy `/api/` vers backend via réseau privé Fly. 1 machine `shared-cpu-1x:256MB`.
+- **Backend** : `https://ofra-crm-backend.fly.dev` — AdonisJS, `HOST=::` (IPv6), `min_machines_running=0`, auto-start. 1 machine `shared-cpu-1x:1024MB`.
 - **DB** : Fly Postgres `ofra-crm-db` — attaché au backend via `DATABASE_URL`
 - **Proxy interne** : nginx `resolver [fdaa::3]:53` → `ofra-crm-backend.internal:3333` (same-origin, pas de CORS cross-domain)
 - **Queue/Redis** : désactivé (`QUEUE_ENABLED=false`) — pas de Redis en prod pour l'instant
+- **Build args frontend** : `VITE_STRIPE_PUBLISHABLE_KEY` + `VITE_API_URL` injectés via `fly.toml [build.args]` (le `.env` est exclu du Docker build par `.dockerignore`)
+- **Machines** : 2 total (1 frontend + 1 backend). Machines redondantes supprimées (2026-02-20) pour réduire les coûts pré-lancement.
 
 **Pourquoi Fly.io (remplace DigitalOcean App Platform — décision 2026-02-17) :**
 - Région `yyz` (Toronto) = résidence de données Canada confirmée
@@ -2028,7 +2036,7 @@ Le système distingue 3 rôles : `user`, `admin`, `superadmin`. Le champ `role` 
 | **4. Pricing Page** | 4 plans, toggle mensuel/annuel, bannière fondateur "prix garanti à vie", Agence grisé. CTA → `/signup` (pas encore Stripe). | Aucune (parallélisable) | ✅ DONE (657 lignes, comparaison complète) |
 | **5. Legal** | Conditions d'utilisation, Politique de confidentialité (LPRPDE/PIPEDA + NB). Routes `/legal/terms`, `/legal/privacy`. | Aucune (parallélisable) | ❌ TODO |
 | **6. Emails essentiels** | WelcomeMail enrichi (mention trial 30j), `TrialReminderMail` paramétrique (J7/J21/J27), BullMQ scheduling à l'inscription, handler dans queue.ts. Reset password déjà existant. | Bloc 1 (trial dates) | ✅ DONE |
-| **7. Stripe** | Stripe Elements (custom, inline). Webhooks sync. Page Abonnement custom (K2). Détails ci-dessous §7.4. | Blocs 1-6 terminés | ❌ TODO (dernier) |
+| **7. Stripe** | Stripe Elements (custom, inline). Webhooks sync. Page Abonnement custom (K2). Détails ci-dessous §7.4. | Blocs 1-6 terminés | 🟡 EN COURS (backend+frontend codés, env configuré, reste: Stripe Dashboard products + webhook registration + test E2E) |
 
 | **8. Offres intelligentes** | Sprint A : Migration `buyer_party_id`/`seller_party_id`/`initial_direction` sur Offer, model+service+validator+controller, PartyPicker inline (dropdown + création inline), intégration CreateOfferModal avec pre-populate en mode contre-offre. Sprint B : `NegotiationThread` (fil vertical toutes révisions, deltas prix, direction arrows), `OfferComparison` (table side-by-side 2-4 offres, highlight meilleur/pire prix, CTA accepter), `AcceptOfferModal` affiche parties buyer/seller. Auto-populate parties à l'acceptation → FINTRAC ready. 15 fichiers, 283 tests verts. | Aucune (parallélisable) | ✅ DONE |
 | **9. Admin Dashboard Refonte** | D57/D58/D59/D60. **Sprint A** : Backend — `SiteModeMiddleware` (3 états), table `site_settings`, endpoints pulse/site-settings/activity-feed, `POST plans/:id/apply-to-existing` (exclut fondateurs, type-to-confirm), `GET plan-changes` paginé, fix engagement filter SQL, VineJS validators notes/tasks, fix `subscriptionEndsAt`. **Sprint B** : Backend — table `promo_codes` + CRUD + validation inscription + miroir Stripe coupon, table `waitlist_emails` + endpoint public. **Sprint C** : Frontend — 3 vues (Pulse/Gens/Config) remplacent 5 pages, sidebar 3 items, smart segments SQL, drawer Radix Dialog avec focus trap, page construction + maintenance, modal promo + modal apply-to-existing, i18n complet FR/EN, responsive mobile lecture seule. **Sprint D** : Fix audit (~65 issues) — labels a11y, `aria-pressed`, heading hierarchy, form state sync, mutation error handlers, stale selectedUser, export auth. | Aucune (parallélisable avec 5/7) | ✅ DONE (Sprints A+B+C, Sprint D audit restant) |
@@ -2039,7 +2047,8 @@ Le système distingue 3 rôles : `user`, `admin`, `superadmin`. Le champ `role` 
 ✅ Fait:     [Bloc 1: D53 Backend] + [Bloc 2: D53 Frontend] + [Bloc 3: Landing]
 ✅ Fait:     [Bloc 4: Pricing] + [Bloc 6: Emails] + [Bloc 8: Offres intelligentes]
 ✅ Fait:     [Bloc 9: Admin Dashboard Refonte + SiteMode + Promos] (Sprint D audit restant)
-→ Reste:    [Bloc 5: Legal] + [Bloc 7: Stripe] + Tests + Polish
+→ En cours: [Bloc 7: Stripe] (code done, Stripe Dashboard setup restant)
+→ Reste:    [Bloc 5: Legal] + Tests + Polish
             → Beta fondateurs (accès fermé avec code)
 🗓️ DEADLINE: 20 mars 2026 — Lancement public
 ```
@@ -2378,7 +2387,7 @@ Référence croisée : voir section 4.1 de ce document.
 
 **Bloqueurs restants pour lancement :**
 1. ~~D53 Trial 30j~~ → ✅ DONE (backend + frontend + middleware + trial banner + reminders)
-2. Stripe billing (0%)
+2. Stripe billing (~70% — code done, Stripe Dashboard setup restant)
 3. Legal pages (0%)
 4. ~~Emails essentiels trial~~ → ✅ DONE (welcome, verification, trial reminders J7/J21/J27)
 
@@ -2397,7 +2406,7 @@ Référence croisée : voir section 4.1 de ce document.
 | ~~🔴 P0~~ | ~~**Bloc 9 : SiteMode** (D58 — construction/maintenance/live + code accès fondateurs)~~ | 3h | ✅ DONE (2026-02-18) |
 | ~~🔴 P0~~ | ~~**Bloc 9 : Codes promo** (D59 — CRUD + validation inscription + miroir Stripe)~~ | 4h | ✅ DONE (2026-02-18) |
 | ~~🔴 P0~~ | ~~**Bloc 9 : Apply-to-existing** (modal type-to-confirm, exclut fondateurs)~~ | 2h | ✅ DONE (2026-02-18) |
-| 🔴 P0 | Stripe billing | 5-7 jours | 🟡 EN COURS (backend+frontend done, needs env config + Stripe dashboard setup) |
+| 🔴 P0 | Stripe billing | 1-2 jours | 🟡 EN COURS (code done, env done, reste: créer 4 produits Stripe Dashboard, enregistrer webhook URL, seed `stripeProductId` dans plans DB, test E2E flow) |
 | ~~🟠 P1~~ | ~~Error Boundary + code splitting frontend~~ | 1h | ✅ DONE (2026-02-18) |
 | ~~🟠 P1~~ | ~~Page 404 / catch-all route~~ | 15 min | ✅ DONE (2026-02-18) |
 | ~~🟠 P1~~ | ~~`FRONTEND_URL` unifié dans `env.ts` (3 fallbacks différents)~~ | 30 min | ✅ DONE (2026-02-18) |

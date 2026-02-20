@@ -104,7 +104,7 @@ describe('Layout', () => {
     // The desktop sidebar (aside) has the z-index, not the nav element itself
     const sidebar = container.querySelector('aside')
     expect(sidebar).toBeInTheDocument()
-    expect(sidebar?.className).toMatch(/z-4\d/)
+    expect(sidebar?.className).toMatch(/z-dialog/)
   })
 
   it('has no WCAG 2.1 AA accessibility violations', async () => {

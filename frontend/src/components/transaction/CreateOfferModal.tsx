@@ -242,6 +242,7 @@ export default function CreateOfferModal({
         notes: null,
         buyerPartyId: buyerPartyId ?? undefined,
         sellerPartyId: sellerPartyId ?? undefined,
+        emailNotify,
       }
 
       let result
@@ -699,11 +700,15 @@ export default function CreateOfferModal({
                   placeholder={t('addOffer.amountPlaceholder')}
                   className={inputClass('price')}
                 />
-                {listPrice > 0 && (
+                {isCounter && lastRevision ? (
+                  <p className="text-[10px] text-stone-400 mt-1">
+                    {t('addOffer.lastOfferHint', { price: `${formatCAD(lastRevision.price)} $` })}
+                  </p>
+                ) : listPrice > 0 ? (
                   <p className="text-[10px] text-stone-400 mt-1">
                     {t('addOffer.askingPriceHint', { price: `${formatCAD(listPrice)} $` })}
                   </p>
-                )}
+                ) : null}
                 {fieldError('price')}
               </div>
 

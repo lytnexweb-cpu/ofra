@@ -110,7 +110,7 @@ export default function Layout() {
 
       {/* Desktop Sidebar */}
       <aside
-        className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 lg:z-40 border-r border-stone-200 bg-primary"
+        className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 lg:z-dialog border-r border-stone-200 bg-primary"
       >
         {/* Logo */}
         <div className="flex items-center gap-3 px-6 py-5 border-b border-white/10">
@@ -191,7 +191,7 @@ export default function Layout() {
       </aside>
 
       {/* Mobile Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-white border-b border-stone-200">
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-sheet bg-white border-b border-stone-200">
         <div className="flex items-center justify-between px-4 h-16">
           <Link to="/" className="flex items-center gap-2">
             <OfraLogo size={32} />
@@ -259,7 +259,7 @@ export default function Layout() {
         </footer>
 
         {/* Mobile Bottom Nav */}
-        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-stone-200 safe-area-bottom" aria-label={t('common.mobileNavigation', 'Mobile navigation')}>
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-banner bg-white border-t border-stone-200 safe-area-bottom" aria-label={t('common.mobileNavigation', 'Mobile navigation')}>
           <div className="flex justify-around items-center h-14">
             {navLinks.map((link) => {
               const Icon = link.icon

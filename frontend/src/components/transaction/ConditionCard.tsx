@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { Pencil, CheckCircle2, Ban, SkipForward, FileWarning, ShieldCheck, UserCheck } from 'lucide-react'
+import { Pencil, CheckCircle2, Ban, SkipForward, FileWarning, ShieldCheck, UserCheck, Clock } from 'lucide-react'
 import EvidenceBadge from './EvidenceBadge'
 import type { Condition, ConditionLevel, ResolutionType } from '../../api/conditions.api'
 import { differenceInDays } from '../../lib/date'
@@ -11,6 +11,7 @@ interface ConditionCardProps {
   onToggle?: (condition: Condition) => void
   onEdit?: (condition: Condition) => void
   onFintracClick?: (condition: Condition) => void
+  onHistory?: (condition: Condition) => void
   showResolution?: boolean
 }
 
@@ -79,6 +80,7 @@ export default function ConditionCard({
   onToggle,
   onEdit,
   onFintracClick,
+  onHistory,
   showResolution = false,
 }: ConditionCardProps) {
   const { t, i18n } = useTranslation()
@@ -254,16 +256,31 @@ export default function ConditionCard({
           <ShieldCheck className="w-3.5 h-3.5" />
           {t('fintrac.completeFintrac')}
         </button>
-      ) : canEdit && (
-        <button
-          type="button"
-          onClick={() => onEdit(condition)}
-          className="shrink-0 p-1 rounded-md text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors"
-          aria-label={t('common.edit')}
-          data-testid={`edit-condition-${condition.id}`}
-        >
-          <Pencil className="w-3.5 h-3.5" />
-        </button>
+      ) : (
+        <div className="flex items-center gap-0.5 shrink-0">
+          {onHistory && (
+            <button
+              type="button"
+              onClick={() => onHistory(condition)}
+              className="p-1 rounded-md text-stone-300 hover:text-primary hover:bg-primary/10 transition-colors"
+              aria-label={t('conditionHistory.title')}
+              data-testid={`history-condition-${condition.id}`}
+            >
+              <Clock className="w-3.5 h-3.5" />
+            </button>
+          )}
+          {canEdit && (
+            <button
+              type="button"
+              onClick={() => onEdit(condition)}
+              className="p-1 rounded-md text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors"
+              aria-label={t('common.edit')}
+              data-testid={`edit-condition-${condition.id}`}
+            >
+              <Pencil className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
       )}
     </div>
   )

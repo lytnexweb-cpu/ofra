@@ -656,7 +656,7 @@ export default function EditTransactionPage() {
 
       {/* Mobile change bar (edit mode) */}
       {!isCreateMode && changes.length > 0 && (
-        <div className="fixed bottom-14 sm:bottom-0 left-0 right-0 z-50 lg:hidden pointer-events-none safe-area-bottom">
+        <div className="fixed bottom-14 sm:bottom-0 left-0 right-0 z-sheet lg:hidden pointer-events-none safe-area-bottom">
           <div className="bg-white border-t border-stone-200 shadow-[0_-4px_12px_rgba(0,0,0,0.08)] p-3 pointer-events-auto">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">

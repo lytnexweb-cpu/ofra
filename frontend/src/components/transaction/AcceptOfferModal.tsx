@@ -101,7 +101,10 @@ export default function AcceptOfferModal({
   }
 
   const acceptMutation = useMutation({
-    mutationFn: () => offersApi.accept(offer.id),
+    mutationFn: () => offersApi.accept(offer.id, {
+      note: note.trim() || undefined,
+      emailNotify,
+    }),
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['transaction', transaction.id] }),

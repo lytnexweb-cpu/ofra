@@ -17,7 +17,6 @@ export { default as DocumentsTab } from './DocumentsTab'
 export { default as TimelineTab } from './TimelineTab'
 export { default as WorkflowTimeline } from './WorkflowTimeline'
 export { default as VerticalTimeline } from './VerticalTimeline'
-export { default as TransactionBottomNav } from './TransactionBottomNav'
 
 // D41: Condition validation components
 export { default as ConditionValidationModal } from './ConditionValidationModal'

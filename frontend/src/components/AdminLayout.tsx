@@ -68,7 +68,7 @@ export default function AdminLayout() {
     <div className="flex min-h-screen" style={{ background: '#F8FAFC' }}>
       {/* Sidebar — navy #1E3A5F, 240px */}
       <aside
-        className="hidden md:flex w-60 fixed inset-y-0 left-0 z-50 flex-col"
+        className="hidden md:flex w-60 fixed inset-y-0 left-0 z-sheet flex-col"
         style={{ background: '#1E3A5F', color: '#F8FAFC', padding: '24px 16px', gap: '4px' }}
       >
         {/* Logo */}
@@ -219,7 +219,7 @@ export default function AdminLayout() {
 
       {/* Mobile bottom nav */}
       <div
-        className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-[#E2E8F0] py-1.5 safe-area-bottom"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-banner bg-white border-t border-[#E2E8F0] py-1.5 safe-area-bottom"
       >
         <div className="flex justify-around items-center">
           <Link
