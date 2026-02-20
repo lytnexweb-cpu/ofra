@@ -3,39 +3,98 @@ import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { plansApi, type PublicPlan } from '../api/plans.api'
 import { subscriptionApi } from '../api/subscription.api'
-import { authApi } from '../api/auth.api'
 import SubscribeModal from '../components/SubscribeModal'
 import { Button } from '../components/ui/Button'
-import { Check, Zap, Loader2 } from 'lucide-react'
+import { Check, Minus, Zap, Loader2, Star } from 'lucide-react'
 
 type BillingCycle = 'monthly' | 'annual'
 
-const PLAN_COLORS: Record<string, string> = {
-  starter: 'border-blue-200',
-  solo: 'border-primary ring-2 ring-primary/20',
-  pro: 'border-violet-200',
-  agence: 'border-amber-200',
+// Feature definition: key matches i18n, minPlan = minimum plan slug required
+interface PlanFeature {
+  key: string
+  /** Dynamic value per plan (e.g. "5", "1.00 Go") — if null, use i18n key as-is */
+  getValue?: (plan: PublicPlan) => string | null
+  /** Minimum plan slug required for this feature to be included */
+  minPlan: 'starter' | 'solo' | 'pro' | 'agence'
 }
 
-function getPlanFeatures(plan: PublicPlan, t: (key: string, opts?: Record<string, unknown>) => string) {
-  const features: string[] = []
+const PLAN_ORDER = ['starter', 'solo', 'pro', 'agence'] as const
+const PLAN_RANK: Record<string, number> = { starter: 0, solo: 1, pro: 2, agence: 3 }
 
-  if (plan.maxTransactions === null) {
-    features.push(t('pricing.features.transactionsUnlimited'))
-  } else {
-    features.push(t('pricing.features.transactions', { count: plan.maxTransactions }))
+const PLAN_SUBTITLES: Record<string, { fr: string; en: string }> = {
+  starter: { fr: 'Je fais ça à côté', en: "I do this on the side" },
+  solo: { fr: 'Je lance ma pratique', en: 'Starting my practice' },
+  pro: { fr: 'Pipeline chargé', en: 'Busy pipeline' },
+  agence: { fr: 'Mon équipe grandit', en: 'My team is growing' },
+}
+
+const PLAN_COLORS: Record<string, { border: string; bg: string }> = {
+  starter: { border: 'border-stone-200', bg: '' },
+  solo: { border: 'border-stone-200', bg: '' },
+  pro: { border: 'border-primary', bg: 'bg-primary/[0.02]' },
+  agence: { border: 'border-dashed border-stone-300', bg: 'bg-stone-50/50' },
+}
+
+/** All features shown on the pricing page, in display order */
+const FEATURES: PlanFeature[] = [
+  {
+    key: 'activeTransactions',
+    getValue: (p) => p.maxTransactions === null ? null : String(p.maxTransactions),
+    minPlan: 'starter',
+  },
+  {
+    key: 'storage',
+    getValue: (p) => `${p.maxStorageGb.toFixed(2).replace(/\.?0+$/, '')} Go`,
+    minPlan: 'starter',
+  },
+  { key: 'guidedWorkflow', minPlan: 'starter' },
+  { key: 'conditionsEngine', minPlan: 'starter' },
+  {
+    key: 'exportsSharing',
+    getValue: (p) => {
+      const rank = PLAN_RANK[p.slug] ?? 0
+      return rank >= 1 ? null : undefined // Solo+ gets unlimited (null=use default), Starter returns undefined (excluded handled by minPlan)
+    },
+    minPlan: 'starter', // Starter gets limited version, Solo+ gets unlimited
+  },
+  { key: 'autoConditions', minPlan: 'solo' },
+  { key: 'fintracIdentity', minPlan: 'solo' },
+  { key: 'evidenceResolution', minPlan: 'pro' },
+  { key: 'auditHistory', minPlan: 'pro' },
+]
+
+function isPlanIncluded(planSlug: string, minPlan: string): boolean {
+  return (PLAN_RANK[planSlug] ?? 0) >= (PLAN_RANK[minPlan] ?? 0)
+}
+
+function getFeatureLabel(
+  feature: PlanFeature,
+  plan: PublicPlan,
+  t: (key: string, opts?: Record<string, unknown>) => string
+): string {
+  // Special case: exports/sharing — Starter gets limited, Solo+ unlimited
+  if (feature.key === 'exportsSharing') {
+    const rank = PLAN_RANK[plan.slug] ?? 0
+    if (rank === 0) {
+      return t('pricing.feat.exportsLimited')
+    }
+    return t('pricing.feat.exportsUnlimited')
   }
 
-  features.push(t('pricing.features.storage', { count: plan.maxStorageGb }))
-  features.push(t('pricing.features.users', { count: plan.maxUsers }))
-
-  if (plan.historyMonths === null) {
-    features.push(t('pricing.features.historyUnlimited'))
-  } else {
-    features.push(t('pricing.features.history', { count: plan.historyMonths }))
+  // Special: TX actives with dynamic count
+  if (feature.key === 'activeTransactions') {
+    if (plan.maxTransactions === null) {
+      return t('pricing.feat.transactionsUnlimited')
+    }
+    return t('pricing.feat.activeTransactions', { count: plan.maxTransactions })
   }
 
-  return features
+  // Special: storage with dynamic value
+  if (feature.key === 'storage') {
+    return t('pricing.feat.storage', { value: plan.maxStorageGb })
+  }
+
+  return t(`pricing.feat.${feature.key}`)
 }
 
 function calculatePrice(
@@ -52,7 +111,8 @@ function calculatePrice(
 }
 
 export default function PricingPage() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const lang = i18n.language as 'fr' | 'en'
   const [cycle, setCycle] = useState<BillingCycle>('monthly')
   const [modal, setModal] = useState<{
     open: boolean
@@ -74,11 +134,6 @@ export default function PricingPage() {
     staleTime: 2 * 60 * 1000,
   })
 
-  const { data: userData } = useQuery({
-    queryKey: ['auth', 'me'],
-    queryFn: authApi.me,
-  })
-
   const plans = plansData?.data?.plans ?? []
   const discounts = plansData?.data?.discounts ?? { annual: 20, founder: 20, founderAnnual: 30 }
   const sub = subData?.data
@@ -88,6 +143,7 @@ export default function PricingPage() {
   const isActive = sub?.billing?.subscriptionStatus === 'active'
 
   const handleSelectPlan = (plan: PublicPlan) => {
+    if (plan.slug === 'agence') return // Agence = coming soon
     const price = calculatePrice(plan, cycle, isFounder, discounts)
     const isCurrentPlan = plan.slug === currentPlanSlug
     if (isCurrentPlan && isActive) return
@@ -110,7 +166,17 @@ export default function PricingPage() {
   }
 
   return (
-    <div data-testid="pricing-page">
+    <div data-testid="pricing-page" className="max-w-6xl mx-auto">
+      {/* Founder banner */}
+      {isFounder && (
+        <div className="mb-8 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800">
+          <Zap className="w-5 h-5 text-amber-600 shrink-0" />
+          <span className="text-sm font-medium">
+            {t('pricing.founderBanner', { percent: cycle === 'monthly' ? discounts.founder : discounts.founderAnnual })}
+          </span>
+        </div>
+      )}
+
       {/* Header */}
       <div className="text-center mb-8">
         <h1
@@ -120,13 +186,6 @@ export default function PricingPage() {
           {t('pricing.title')}
         </h1>
         <p className="mt-2 text-stone-500">{t('pricing.subtitle')}</p>
-
-        {isFounder && (
-          <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-100 text-amber-800 text-sm font-medium">
-            <Zap className="w-4 h-4" />
-            {t('pricing.founderDiscount', { percent: cycle === 'monthly' ? discounts.founder : discounts.founderAnnual })}
-          </div>
-        )}
       </div>
 
       {/* Billing toggle */}
@@ -157,25 +216,28 @@ export default function PricingPage() {
       </div>
 
       {/* Plan cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 max-w-5xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
         {plans
           .sort((a, b) => a.displayOrder - b.displayOrder)
           .map((plan) => {
             const price = calculatePrice(plan, cycle, isFounder, discounts)
             const isCurrentPlan = plan.slug === currentPlanSlug
-            const isPopular = plan.slug === 'solo'
-            const borderColor = PLAN_COLORS[plan.slug] || 'border-stone-200'
+            const isPopular = plan.slug === 'pro'
+            const isAgence = plan.slug === 'agence'
+            const colors = PLAN_COLORS[plan.slug] || { border: 'border-stone-200', bg: '' }
+            const subtitle = PLAN_SUBTITLES[plan.slug]
 
             return (
               <div
                 key={plan.id}
-                className={`relative bg-white rounded-xl border-2 ${borderColor} p-6 flex flex-col transition-shadow hover:shadow-lg ${
-                  isCurrentPlan ? 'ring-2 ring-emerald-400' : ''
-                }`}
+                className={`relative bg-white rounded-xl border-2 ${colors.border} ${colors.bg} p-6 flex flex-col transition-shadow hover:shadow-lg ${
+                  isPopular ? 'ring-2 ring-primary/20' : ''
+                } ${isCurrentPlan ? 'ring-2 ring-emerald-400' : ''}`}
               >
                 {/* Badges */}
                 {isPopular && !isCurrentPlan && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 bg-primary text-white text-xs font-semibold rounded-full">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 bg-primary text-white text-xs font-semibold rounded-full flex items-center gap-1">
+                    <Star className="w-3 h-3 fill-current" />
                     {t('pricing.popular')}
                   </div>
                 )}
@@ -185,8 +247,13 @@ export default function PricingPage() {
                   </div>
                 )}
 
-                {/* Plan name */}
-                <h3 className="text-lg font-bold text-stone-900 mb-2">{plan.name}</h3>
+                {/* Plan name + subtitle */}
+                <h3 className="text-lg font-bold text-stone-900">{plan.name}</h3>
+                {subtitle && (
+                  <p className="text-xs text-stone-400 mt-0.5 mb-3">
+                    {lang === 'fr' ? subtitle.fr : subtitle.en}
+                  </p>
+                )}
 
                 {/* Price */}
                 <div className="mb-1">
@@ -195,44 +262,91 @@ export default function PricingPage() {
                     {cycle === 'monthly' ? t('pricing.perMonth') : t('pricing.perYear')}
                   </span>
                 </div>
-                {cycle === 'annual' && (
-                  <p className="text-xs text-stone-400 mb-4">{t('pricing.billedAnnually')}</p>
+                {isFounder && (
+                  <p className="text-xs text-amber-600 mb-1">
+                    {t('pricing.founderPrice')}
+                  </p>
                 )}
-                {cycle === 'monthly' && <div className="mb-4" />}
+                {cycle === 'annual' ? (
+                  <p className="text-xs text-stone-400 mb-4">{t('pricing.billedAnnually')}</p>
+                ) : (
+                  <div className="mb-4" />
+                )}
 
-                {/* Features */}
-                <ul className="space-y-2.5 mb-6 flex-1">
-                  {getPlanFeatures(plan, t).map((feature, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm text-stone-600">
-                      <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                      {feature}
-                    </li>
-                  ))}
+                {/* Features list */}
+                <ul className="space-y-2 mb-6 flex-1">
+                  {FEATURES.map((feature) => {
+                    const included = isPlanIncluded(plan.slug, feature.minPlan)
+                    const label = getFeatureLabel(feature, plan, t)
+
+                    // Agence extra: show "3 utilisateurs" after TX
+                    if (feature.key === 'activeTransactions' && plan.slug === 'agence') {
+                      return (
+                        <li key={feature.key}>
+                          <div className="flex items-start gap-2 text-sm">
+                            <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                            <span className="text-stone-700">{t('pricing.feat.transactionsUnlimited')}</span>
+                          </div>
+                          <div className="flex items-start gap-2 text-sm mt-2">
+                            <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                            <span className="text-stone-700">{t('pricing.feat.users', { count: plan.maxUsers })}</span>
+                          </div>
+                        </li>
+                      )
+                    }
+
+                    return (
+                      <li key={feature.key} className="flex items-start gap-2 text-sm">
+                        {included ? (
+                          <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                        ) : (
+                          <Minus className="w-4 h-4 text-stone-300 shrink-0 mt-0.5" />
+                        )}
+                        <span className={included ? 'text-stone-700' : 'text-stone-400'}>
+                          {label}
+                        </span>
+                      </li>
+                    )
+                  })}
                 </ul>
 
                 {/* CTA */}
-                <Button
-                  onClick={() => handleSelectPlan(plan)}
-                  disabled={isCurrentPlan && isActive}
-                  className={`w-full ${
-                    isCurrentPlan && isActive
-                      ? 'bg-stone-200 text-stone-500 cursor-not-allowed'
-                      : isPopular
-                        ? 'bg-primary hover:bg-primary/90 text-white'
-                        : 'bg-stone-900 hover:bg-stone-800 text-white'
-                  }`}
-                >
-                  {isCurrentPlan && isActive
-                    ? t('pricing.currentPlan')
-                    : isTrial || !isActive
-                      ? t('pricing.subscribe')
-                      : t('pricing.changePlan')
-                  }
-                </Button>
+                {isAgence ? (
+                  <Button
+                    disabled
+                    className="w-full bg-stone-200 text-stone-500 cursor-not-allowed"
+                  >
+                    {t('pricing.comingSoon')}
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={() => handleSelectPlan(plan)}
+                    disabled={isCurrentPlan && isActive}
+                    className={`w-full ${
+                      isCurrentPlan && isActive
+                        ? 'bg-stone-200 text-stone-500 cursor-not-allowed'
+                        : isPopular
+                          ? 'bg-primary hover:bg-primary/90 text-white'
+                          : 'bg-stone-900 hover:bg-stone-800 text-white'
+                    }`}
+                  >
+                    {isCurrentPlan && isActive
+                      ? t('pricing.currentPlan')
+                      : isTrial || !isActive
+                        ? t('pricing.subscribe')
+                        : t('pricing.changePlan')
+                    }
+                  </Button>
+                )}
               </div>
             )
           })}
       </div>
+
+      {/* Footer */}
+      <p className="text-center text-sm text-stone-400 mt-8">
+        {t('pricing.footer')}
+      </p>
 
       {/* Subscribe Modal */}
       <SubscribeModal
