@@ -137,7 +137,7 @@ export default function NotificationBell() {
         </button>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent align="end" className="w-80 max-h-96 overflow-y-auto p-0">
+      <DropdownMenuContent align="end" className="w-[calc(100vw-2rem)] sm:w-80 max-h-96 overflow-y-auto p-0">
         {/* Header */}
         <div className="flex items-center justify-between px-3 py-2">
           <DropdownMenuLabel className="p-0 text-sm font-semibold">
@@ -213,7 +213,7 @@ export default function NotificationBell() {
                     )}
                     <button
                       onClick={(e) => handleDelete(e, n.id)}
-                      className="p-0.5 rounded text-stone-300 opacity-0 group-hover:opacity-100 hover:text-red-500 transition-all"
+                      className="p-1.5 rounded text-stone-300 sm:opacity-0 sm:group-hover:opacity-100 hover:text-red-500 transition-all"
                       aria-label={t('notificationBell.delete')}
                     >
                       <X className="w-3.5 h-3.5" />

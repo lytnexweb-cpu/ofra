@@ -264,7 +264,7 @@ export default function AcceptOfferModal({
                   {t(`offers.status.${offer.status}`)}
                 </span>
               </div>
-              <div className="grid grid-cols-3 gap-3 text-sm">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
                 <div>
                   <span className="text-xs text-stone-400">
                     {t('transaction.acceptOffer.price')}

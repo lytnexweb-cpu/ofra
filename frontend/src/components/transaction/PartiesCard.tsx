@@ -71,16 +71,16 @@ export default function PartiesCard({ transactionId, onManage }: PartiesCardProp
             {parties.map((party) => (
               <div
                 key={party.id}
-                className="flex items-center justify-between py-1 px-2 rounded-lg hover:bg-stone-50 cursor-pointer"
+                className="flex items-center justify-between py-2 px-2.5 rounded-lg hover:bg-stone-50 cursor-pointer"
                 onClick={onManage}
               >
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold shrink-0 ${getRoleBadgeClasses(party.role)}`}>
+                  <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[11px] font-semibold shrink-0 ${getRoleBadgeClasses(party.role)}`}>
                     {t(`parties.role.${party.role}`, party.role)}
                   </span>
                   <span className="text-xs text-stone-700 truncate">{party.fullName}</span>
                   {party.isPrimary && (
-                    <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-primary/10 text-primary shrink-0">
+                    <span className="px-1.5 py-0.5 rounded-full text-[11px] bg-primary/10 text-primary shrink-0">
                       {t('parties.primary', 'Principal')}
                     </span>
                   )}
@@ -96,11 +96,11 @@ export default function PartiesCard({ transactionId, onManage }: PartiesCardProp
 
             {/* Footer stats */}
             <div className="flex items-center gap-3 pt-1.5 border-t border-stone-100 mt-1">
-              <span className="text-[10px] text-stone-400">
+              <span className="text-[11px] text-stone-400">
                 {notifiableCount} {t('parties.notifiable', 'notifiables')}
               </span>
               {missingEmailCount > 0 && (
-                <span className="text-[10px] text-amber-500 flex items-center gap-0.5">
+                <span className="text-[11px] text-amber-500 flex items-center gap-0.5">
                   <AlertCircle className="w-3 h-3" />
                   {missingEmailCount} {t('parties.missing', 'sans courriel')}
                 </span>

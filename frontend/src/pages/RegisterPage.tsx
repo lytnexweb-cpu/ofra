@@ -100,7 +100,7 @@ export default function RegisterPage() {
     password.trim().length >= 8 &&
     password === confirmPassword
 
-  const inputClass = "w-full px-3.5 py-2.5 rounded-md border border-stone-300 bg-white text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors text-sm"
+  const inputClass = "w-full px-3.5 py-2.5 rounded-md border border-stone-300 bg-white text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors text-base sm:text-sm"
 
   return (
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2">
@@ -230,7 +230,7 @@ export default function RegisterPage() {
                 placeholder="123 rue Principale"
               />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label htmlFor="reg-city" className="block text-sm font-medium text-stone-700 mb-1">
                   {t('auth.city', 'Ville')}
@@ -262,7 +262,7 @@ export default function RegisterPage() {
                 </select>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label htmlFor="reg-agency" className="block text-sm font-medium text-stone-700 mb-1">
                   {t('auth.agency', 'Agence')}

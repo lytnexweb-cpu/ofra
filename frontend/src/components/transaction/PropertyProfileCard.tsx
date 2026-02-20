@@ -145,7 +145,7 @@ export default function PropertyProfileCard({ transactionId, currentStepOrder, o
           </div>
         ) : showForm ? (
           <div className="space-y-2.5">
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               <div>
                 <label className="text-[10px] text-stone-400 uppercase tracking-wide mb-0.5 block">
                   {t('transaction.detail.profileForm.type')}

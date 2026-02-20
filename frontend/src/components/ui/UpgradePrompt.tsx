@@ -37,10 +37,10 @@ export default function UpgradePrompt({ feature, targetPlan, className = '' }: U
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-xs font-medium text-amber-800">{featureMessage}</p>
-          <p className="text-[10px] text-amber-600 mt-0.5">{planLabel}</p>
+          <p className="text-xs text-amber-600 mt-0.5">{planLabel}</p>
           <button
             onClick={() => navigate('/pricing')}
-            className="mt-2 px-3 py-1.5 text-[10px] font-semibold text-white bg-[#e07a2f] hover:bg-[#c96a25] rounded-md transition-colors"
+            className="mt-2 px-3 py-2 text-xs font-semibold text-white bg-[#e07a2f] hover:bg-[#c96a25] rounded-md transition-colors"
           >
             {t('plans.viewPlans')}
           </button>

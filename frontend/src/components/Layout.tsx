@@ -250,7 +250,7 @@ export default function Layout() {
         </main>
 
         {/* Footer - fixed on mobile, normal flow on desktop */}
-        <footer className="fixed bottom-0 left-0 right-0 lg:relative lg:bottom-auto lg:left-auto lg:right-auto shrink-0 border-t border-stone-200 bg-white z-10">
+        <footer className="fixed bottom-0 left-0 right-0 lg:relative lg:bottom-auto lg:left-auto lg:right-auto shrink-0 border-t border-stone-200 bg-white z-10 safe-area-bottom">
           <div className="max-w-6xl mx-auto py-3 lg:py-4 px-4 sm:px-6 lg:px-8">
             <p className="text-center text-xs text-stone-400">
               {BRAND.copyright}

@@ -101,11 +101,11 @@ export default function NotesSection({ transactionId }: NotesSectionProps) {
                   {isOwner(note) && (
                     <button
                       onClick={() => setDeleteTargetId(note.id)}
-                      className="p-1 rounded text-stone-300 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity ml-2 shrink-0"
+                      className="p-2 rounded text-stone-300 hover:text-red-500 hover:bg-red-50 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity ml-2 shrink-0"
                       aria-label={t('common.remove')}
                       data-testid={`delete-note-${note.id}`}
                     >
-                      <Trash2 className="w-3 h-3" />
+                      <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   )}
                 </div>

@@ -32,7 +32,7 @@ export default function ConfirmDialog({
   }
 
   return (
-    <div className="fixed inset-0 z-40">
+    <div className="fixed inset-0 z-dialog">
       {/* Overlay */}
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
 

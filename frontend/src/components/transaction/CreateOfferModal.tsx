@@ -564,7 +564,7 @@ export default function CreateOfferModal({
     ) : null
 
   const inputClass = (key: string) =>
-    `w-full px-3 py-2 text-[13px] rounded-lg border ${
+    `w-full px-3 py-2 text-base sm:text-[13px] rounded-lg border ${
       showErrors && errors[key]
         ? 'border-[#dc2626] bg-[#fef2f2]'
         : 'border-stone-200 focus:border-[#1e3a5f]'

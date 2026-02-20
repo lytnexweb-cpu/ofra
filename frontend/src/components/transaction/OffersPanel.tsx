@@ -389,7 +389,7 @@ export default function OffersPanel({ transaction }: OffersPanelProps) {
                           <TooltipTrigger asChild>
                             <button
                               onClick={() => setAcceptOfferTarget(offer)}
-                              className="px-2.5 py-1 text-xs font-medium rounded-lg bg-emerald-500 text-white hover:bg-emerald-600"
+                              className="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-emerald-500 text-white hover:bg-emerald-600"
                             >
                               {t('offers.accept')}
                             </button>
@@ -401,13 +401,13 @@ export default function OffersPanel({ transaction }: OffersPanelProps) {
                       </TooltipProvider>
                       <button
                         onClick={() => setCounterOffer({ offer, lastRevision: lastRev })}
-                        className="px-2.5 py-1 text-xs font-medium rounded-lg bg-blue-500 text-white hover:bg-blue-600"
+                        className="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-blue-500 text-white hover:bg-blue-600"
                       >
                         {t('offers.counter')}
                       </button>
                       <button
                         onClick={() => setRejectConfirm({ isOpen: true, offerId: offer.id })}
-                        className="px-2.5 py-1 text-xs font-medium rounded-lg bg-red-500 text-white hover:bg-red-600"
+                        className="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-red-500 text-white hover:bg-red-600"
                       >
                         {t('offers.reject')}
                       </button>
@@ -416,7 +416,7 @@ export default function OffersPanel({ transaction }: OffersPanelProps) {
                   {showWithdraw && (
                     <button
                       onClick={() => setWithdrawConfirm({ isOpen: true, offerId: offer.id })}
-                      className={`px-2.5 py-1 text-xs font-medium rounded-lg text-stone-500 hover:bg-stone-100 ${showAcceptCounterReject ? 'ml-auto' : ''}`}
+                      className={`px-2.5 py-1.5 text-xs font-medium rounded-lg text-stone-500 hover:bg-stone-100 ${showAcceptCounterReject ? 'ml-auto' : ''}`}
                     >
                       {t('offers.withdraw')}
                     </button>

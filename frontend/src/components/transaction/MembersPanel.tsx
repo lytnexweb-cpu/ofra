@@ -205,7 +205,7 @@ export default function MembersPanel({ isOpen, onClose, transactionId, ownerUser
                             onChange={(e) =>
                               updateRoleMutation.mutate({ memberId: member.id, role: e.target.value as MemberRole })
                             }
-                            className="text-xs border rounded px-1.5 py-1 bg-background"
+                            className="text-xs border rounded px-2 py-1.5 bg-background"
                           >
                             {ROLES.map((role) => (
                               <option key={role} value={role}>
@@ -215,7 +215,7 @@ export default function MembersPanel({ isOpen, onClose, transactionId, ownerUser
                           </select>
                           <button
                             onClick={() => revokeMutation.mutate(member.id)}
-                            className="p-1.5 rounded-md hover:bg-red-50 text-muted-foreground hover:text-red-500"
+                            className="p-2 rounded-md hover:bg-red-50 text-muted-foreground hover:text-red-500"
                             title={t('members.revoke')}
                           >
                             <X className="w-3.5 h-3.5" />

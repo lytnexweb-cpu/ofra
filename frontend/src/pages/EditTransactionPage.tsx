@@ -656,7 +656,7 @@ export default function EditTransactionPage() {
 
       {/* Mobile change bar (edit mode) */}
       {!isCreateMode && changes.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 lg:hidden pointer-events-none">
+        <div className="fixed bottom-14 sm:bottom-0 left-0 right-0 z-50 lg:hidden pointer-events-none safe-area-bottom">
           <div className="bg-white border-t border-stone-200 shadow-[0_-4px_12px_rgba(0,0,0,0.08)] p-3 pointer-events-auto">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -1152,7 +1152,7 @@ function PropertyTab({ form, original, updateField, validationErrors, t, isLocke
 
       {/* Property Type — icon cards */}
       <FieldLabel label={t('editTransaction.fields.propertyType', 'Type de bien')} required modified={form.propertyType !== original.propertyType} />
-      <div className="grid grid-cols-3 gap-2 mb-4">
+      <div className="grid grid-cols-3 gap-1.5 mb-4">
         <ProfileCard
           icon={Home}
           label={t('editTransaction.propertyType.house', 'Maison')}
@@ -1182,7 +1182,7 @@ function PropertyTab({ form, original, updateField, validationErrors, t, isLocke
 
       {/* Property Context — icon cards */}
       <FieldLabel label={t('editTransaction.fields.propertyContext', 'Contexte')} required modified={form.propertyContext !== original.propertyContext} />
-      <div className="grid grid-cols-3 gap-2 mb-4">
+      <div className="grid grid-cols-3 gap-1.5 mb-4">
         <ProfileCard
           icon={Building}
           label={t('editTransaction.propertyContext.urban', 'Urbain')}

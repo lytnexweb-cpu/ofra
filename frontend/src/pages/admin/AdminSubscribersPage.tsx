@@ -313,7 +313,7 @@ function UserDetailPanel({
   }
 
   return (
-    <div className="fixed inset-y-0 right-0 w-96 bg-background border-l shadow-lg z-50 flex flex-col">
+    <div className="fixed inset-y-0 right-0 w-full sm:w-96 bg-background border-l shadow-lg z-50 flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b">
         <div>

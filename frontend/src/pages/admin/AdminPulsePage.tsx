@@ -66,7 +66,7 @@ export default function AdminPulsePage() {
       <div className="space-y-6" data-testid="admin-pulse">
         <div className="animate-pulse">
           <div className="h-8 w-48 bg-[#E2E8F0] rounded mb-8" />
-          <div className="grid grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
             {[1, 2, 3, 4].map((i) => (
               <div key={i} className="bg-white border border-[#E2E8F0] rounded-xl p-5">
                 <div className="h-3 w-16 bg-[#E2E8F0] rounded mb-3" />
@@ -150,7 +150,7 @@ export default function AdminPulsePage() {
       </div>
 
       {/* KPI Cards — 4 columns */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <KPICard
           icon={<Users size={16} style={{ color: '#64748B' }} />}
           label={t('admin.pulse.totalUsers', 'Users')}
@@ -194,7 +194,7 @@ export default function AdminPulsePage() {
       )}
 
       {/* Two columns: Conversion stats + Fondateurs table */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {/* Conversion stats */}
         <div style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', overflow: 'hidden' }}>
           <div style={{ padding: '16px 20px', borderBottom: '1px solid #E2E8F0' }}>

@@ -212,40 +212,23 @@ export default function AdminLayout() {
 
       {/* Main content — 240px offset, max-width 1200px */}
       <main
-        className="flex-1 md:ml-60"
-        style={{ padding: '32px 40px', maxWidth: '1200px' }}
+        className="flex-1 md:ml-60 px-4 py-6 md:px-10 md:py-8 max-w-[1200px]"
       >
         <Outlet />
       </main>
 
       {/* Mobile bottom nav */}
       <div
-        className="md:hidden fixed bottom-0 left-0 right-0 z-50"
-        style={{
-          background: '#fff',
-          borderTop: '1px solid #E2E8F0',
-          padding: '6px 0',
-        }}
+        className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-[#E2E8F0] py-1.5 safe-area-bottom"
       >
-        <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center' }}>
+        <div className="flex justify-around items-center">
           {NAV_ITEMS.map((item) => {
             const active = isActive(item.to, item.exact)
             return (
               <Link
                 key={item.to}
                 to={item.to}
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: '2px',
-                  padding: '6px 16px',
-                  fontSize: '10px',
-                  fontWeight: 600,
-                  color: active ? '#1E3A5F' : '#64748B',
-                  textDecoration: 'none',
-                  borderRadius: '8px',
-                }}
+                className={`flex flex-col items-center gap-0.5 py-2 px-3 text-xs font-semibold no-underline rounded-lg ${active ? 'text-[#1E3A5F]' : 'text-[#64748B]'}`}
               >
                 <item.Icon size={20} />
                 {t(item.labelKey, item.fallback)}

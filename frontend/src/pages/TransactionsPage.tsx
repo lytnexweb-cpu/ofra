@@ -132,7 +132,7 @@ export default function TransactionsPage() {
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 rounded-sm text-muted-foreground hover:text-foreground"
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-sm text-muted-foreground hover:text-foreground"
                 aria-label={t('common.close')}
               >
                 <X className="w-3.5 h-3.5" />

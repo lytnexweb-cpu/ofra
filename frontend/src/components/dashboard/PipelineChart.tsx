@@ -75,7 +75,7 @@ export default function PipelineChart({ data }: PipelineChartProps) {
                   axisLine={false}
                   tickLine={false}
                   tick={{ fontSize: 12, fill: axisTickColor }}
-                  width={120}
+                  width={typeof window !== 'undefined' && window.innerWidth < 640 ? 80 : 120}
                 />
                 <Tooltip
                   contentStyle={{

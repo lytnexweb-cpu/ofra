@@ -220,7 +220,7 @@ export default function CreateClientModal({ isOpen, onClose, onCreated }: Create
                 {/* Basic Info Tab */}
                 {activeTab === 'basic' && (
                   <>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label
                           htmlFor="firstName"
@@ -332,7 +332,7 @@ export default function CreateClientModal({ isOpen, onClose, onCreated }: Create
                             {t('clients.isPreApproved')}
                           </label>
                         </div>
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <div>
                             <label htmlFor="preApprovalAmount" className="block text-xs font-medium text-stone-600">
                               {t('clients.preApprovalAmount')}
@@ -398,7 +398,7 @@ export default function CreateClientModal({ isOpen, onClose, onCreated }: Create
                             <option value="urgent">{t('clients.motivationUrgent')}</option>
                           </select>
                         </div>
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <div>
                             <label htmlFor="floorPrice" className="block text-xs font-medium text-stone-600">
                               {t('clients.floorPrice')}
@@ -488,7 +488,7 @@ export default function CreateClientModal({ isOpen, onClose, onCreated }: Create
                         className="mt-1 block w-full border border-stone-300 rounded-md shadow-sm py-2 px-3 bg-white text-stone-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label
                           htmlFor="city"

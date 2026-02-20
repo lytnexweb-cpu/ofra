@@ -679,7 +679,7 @@ export default function ClientDetailsPage() {
               {(client.clientType === 'buyer' || client.clientType === 'both') && (client.isPreApproved || client.preApprovalAmount || client.financingBudget) && (
                 <div className="sm:col-span-2 rounded-lg border border-blue-100 bg-blue-50/50 p-4">
                   <dt className="text-sm font-semibold text-blue-800 mb-2">{t('clients.buyerSection')}</dt>
-                  <dd className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                  <dd className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
                     {client.isPreApproved && (
                       <div>
                         <span className="text-stone-500">{t('clients.isPreApproved')}:</span>{' '}
@@ -711,7 +711,7 @@ export default function ClientDetailsPage() {
               {(client.clientType === 'seller' || client.clientType === 'both') && (client.motivationLevel || client.floorPrice || client.targetCloseDate) && (
                 <div className="sm:col-span-2 rounded-lg border border-amber-100 bg-amber-50/50 p-4">
                   <dt className="text-sm font-semibold text-amber-800 mb-2">{t('clients.sellerSection')}</dt>
-                  <dd className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                  <dd className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
                     {client.motivationLevel && (
                       <div>
                         <span className="text-stone-500">{t('clients.motivationLevel')}:</span>{' '}

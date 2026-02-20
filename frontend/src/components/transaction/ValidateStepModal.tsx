@@ -373,7 +373,7 @@ export default function ValidateStepModal({ isOpen, onClose, transaction }: Vali
                 </div>
                 <button
                   onClick={() => handleResolveAction(c)}
-                  className={`shrink-0 px-2 py-1 rounded-md text-xs font-semibold transition-colors flex items-center gap-1 ${
+                  className={`shrink-0 px-3 py-2 rounded-md text-xs font-semibold transition-colors flex items-center gap-1 ${
                     isFintrac
                       ? 'text-red-700 bg-red-100 hover:bg-red-200'
                       : 'text-primary bg-primary/10 hover:bg-primary/20'

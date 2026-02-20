@@ -442,7 +442,7 @@ export default function PartiesModal({ isOpen, onClose, transactionId }: Parties
                     )}
                   </div>
                   {/* Actions */}
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                  <div className="flex items-center gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity shrink-0">
                     <button
                       onClick={() => openEdit(party)}
                       className="p-1.5 rounded-lg hover:bg-stone-100 text-stone-400 hover:text-stone-600"

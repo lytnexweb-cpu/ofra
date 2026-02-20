@@ -208,7 +208,7 @@ function CounterCard({
   return (
     <div className={`rounded-lg border p-3 text-center ${c.bg}`}>
       <p className={`text-lg font-bold ${c.value}`}>{value}</p>
-      <p className={`text-[10px] uppercase tracking-wide ${bold ? 'font-semibold' : ''} ${c.label}`}>{label}</p>
+      <p className={`text-[11px] uppercase tracking-wide ${bold ? 'font-semibold' : ''} ${c.label}`}>{label}</p>
     </div>
   )
 }
@@ -428,7 +428,7 @@ function DocumentCard({
         {doc.conditionId && onViewProof && (
           <button
             onClick={() => onViewProof(doc)}
-            className="p-1.5 rounded-lg hover:bg-stone-100 text-stone-400"
+            className="p-2.5 rounded-lg hover:bg-stone-100 text-stone-400"
             title={t('documents.viewProof', 'Voir la preuve')}
           >
             <Eye className="w-4 h-4" />
@@ -439,7 +439,7 @@ function DocumentCard({
             href={doc.fileUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="p-1.5 rounded-lg hover:bg-stone-100 text-stone-400"
+            className="p-2.5 rounded-lg hover:bg-stone-100 text-stone-400"
             title={t('documents.download', 'Télécharger')}
           >
             <Download className="w-4 h-4" />
