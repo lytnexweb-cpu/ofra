@@ -37,7 +37,7 @@ export default function MobileMenu({
           animate={{ opacity: 1, height: 'auto' }}
           exit={{ opacity: 0, height: 0 }}
           transition={{ duration: 0.2 }}
-          className="sm:hidden overflow-hidden"
+          className="lg:hidden overflow-hidden overflow-y-auto max-h-[calc(100vh-4rem)]"
         >
           <div className="bg-card border-t border-border">
             <div className="px-2 py-3 space-y-1">

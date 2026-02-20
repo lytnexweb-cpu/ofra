@@ -118,7 +118,7 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
 function ScrollToTop() {
   const { pathname } = useLocation()
   useEffect(() => {
-    window.scrollTo(0, 0)
+    document.getElementById('main')?.scrollTo(0, 0)
   }, [pathname])
 
   return <Outlet />

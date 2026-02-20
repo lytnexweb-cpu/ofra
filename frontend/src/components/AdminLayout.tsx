@@ -1,7 +1,7 @@
 import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Zap, Users, Settings, LogOut } from 'lucide-react'
+import { Zap, Users, Settings, LogOut, ArrowLeft } from 'lucide-react'
 import { authApi } from '../api/auth.api'
 import { adminApi } from '../api/admin.api'
 
@@ -222,6 +222,13 @@ export default function AdminLayout() {
         className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-[#E2E8F0] py-1.5 safe-area-bottom"
       >
         <div className="flex justify-around items-center">
+          <Link
+            to="/"
+            className="flex flex-col items-center gap-0.5 py-2 px-2 text-xs font-semibold no-underline rounded-lg text-[#64748B]"
+          >
+            <ArrowLeft size={20} />
+            {t('nav.backToApp', 'App')}
+          </Link>
           {NAV_ITEMS.map((item) => {
             const active = isActive(item.to, item.exact)
             return (

@@ -61,10 +61,10 @@ describe('Layout', () => {
   it('renders desktop nav links', () => {
     renderWithProviders(<Layout />)
 
-    expect(screen.getByText('Dashboard')).toBeInTheDocument()
-    expect(screen.getByText('Clients')).toBeInTheDocument()
-    expect(screen.getByText('Transactions')).toBeInTheDocument()
-    expect(screen.getByText('Settings')).toBeInTheDocument()
+    expect(screen.getAllByText('Dashboard').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('Clients').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('Transactions').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('Settings').length).toBeGreaterThanOrEqual(1)
   })
 
   it('sets aria-current="page" on the active nav link', () => {

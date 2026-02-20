@@ -125,7 +125,7 @@ export default function NotificationBell() {
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <button
-          className="relative p-2 rounded-lg text-stone-500 hover:bg-stone-100 transition-colors"
+          className="relative p-2.5 rounded-lg text-stone-500 hover:bg-stone-100 transition-colors"
           aria-label={t('common.notifications')}
         >
           <BellIcon className="w-5 h-5" />

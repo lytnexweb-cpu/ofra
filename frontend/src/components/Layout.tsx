@@ -207,7 +207,7 @@ export default function Layout() {
             <NotificationBell />
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-lg text-stone-500 hover:bg-stone-100 transition-colors"
+              className="p-2.5 rounded-lg text-stone-500 hover:bg-stone-100 transition-colors"
               aria-expanded={mobileMenuOpen}
             >
               <span className="sr-only">{t('common.openMenu')}</span>
@@ -249,14 +249,39 @@ export default function Layout() {
           </div>
         </main>
 
-        {/* Footer - fixed on mobile, normal flow on desktop */}
-        <footer className="fixed bottom-0 left-0 right-0 lg:relative lg:bottom-auto lg:left-auto lg:right-auto shrink-0 border-t border-stone-200 bg-white z-10 safe-area-bottom">
-          <div className="max-w-6xl mx-auto py-3 lg:py-4 px-4 sm:px-6 lg:px-8">
+        {/* Footer - desktop only (mobile uses bottom nav instead) */}
+        <footer className="hidden lg:block shrink-0 border-t border-stone-200 bg-white">
+          <div className="max-w-6xl mx-auto py-4 px-8">
             <p className="text-center text-xs text-stone-400">
               {BRAND.copyright}
             </p>
           </div>
         </footer>
+
+        {/* Mobile Bottom Nav */}
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-stone-200 safe-area-bottom" aria-label={t('common.mobileNavigation', 'Mobile navigation')}>
+          <div className="flex justify-around items-center h-14">
+            {navLinks.map((link) => {
+              const Icon = link.icon
+              const active = isActive(link.to)
+              return (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  aria-current={active ? 'page' : undefined}
+                  className={`flex flex-col items-center justify-center flex-1 h-full gap-0.5 transition-colors ${
+                    active ? 'text-primary' : 'text-stone-400'
+                  }`}
+                >
+                  <Icon className="w-5 h-5" />
+                  <span className={`text-xs ${active ? 'font-semibold' : 'font-medium'}`}>
+                    {link.label}
+                  </span>
+                </Link>
+              )
+            })}
+          </div>
+        </nav>
       </div>
     </div>
   )
