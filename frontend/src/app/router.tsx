@@ -28,6 +28,7 @@ const PermissionsPage = lazy(() => import('../pages/PermissionsPage'))
 const ProsPage = lazy(() => import('../pages/ProsPage'))
 const SettingsPage = lazy(() => import('../pages/SettingsPage'))
 const AccountPage = lazy(() => import('../pages/AccountPage'))
+const PricingPage = lazy(() => import('../pages/PricingPage'))
 const NotFoundPage = lazy(() => import('../pages/NotFoundPage'))
 
 // Admin pages
@@ -214,7 +215,7 @@ export const router = createBrowserRouter([
       },
       {
         path: 'pricing',
-        element: <Navigate to="/account" replace />,
+        element: <LazyPage><PricingPage /></LazyPage>,
       },
     ],
   },

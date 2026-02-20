@@ -55,6 +55,16 @@ export interface Condition {
   escapedWithoutProof?: boolean
   escapeReason?: string | null
   escapeConfirmedAt?: string | null
+  // C12: Assigned professional contact
+  assignedProId?: number | null
+  assignedPro?: {
+    id: number
+    name: string
+    role: string
+    phone: string | null
+    email: string | null
+    company: string | null
+  } | null
   // Preloaded template (for pack badge)
   template?: {
     id: number
@@ -109,6 +119,7 @@ export interface UpdateConditionRequest {
   isBlocking?: boolean
   documentUrl?: string
   documentLabel?: string
+  assignedProId?: number | null
 }
 
 export interface ResolveConditionRequest {

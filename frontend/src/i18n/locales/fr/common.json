@@ -261,7 +261,15 @@
     "archivedError": "Cette condition est archivée et ne peut plus être modifiée",
     "lockedTooltip": "Verrouillé après validation",
     "done": "Fait",
-    "generated": "Générée"
+    "generated": "Générée",
+    "assignPro": {
+      "label": "Professionnel assigné",
+      "none": "Aucun professionnel assigné",
+      "suggested": "Suggestions",
+      "others": "Autres",
+      "remove": "Retirer le professionnel",
+      "empty": "Aucun professionnel dans votre carnet. Ajoutez-en dans Carnet de pros."
+    }
   },
   "resolution": {
     "modalTitle": "Résolution requise",
@@ -2304,5 +2312,34 @@
     "errorCardConfirm": "La vérification de la carte a échoué.",
     "errorAttach": "Impossible d'enregistrer la carte.",
     "errorSubscribe": "L'abonnement a échoué."
+  },
+  "pricing": {
+    "title": "Choisissez votre forfait",
+    "subtitle": "Tous les forfaits incluent un essai gratuit de 30 jours. Annulez à tout moment.",
+    "monthly": "Mensuel",
+    "annual": "Annuel",
+    "annualSave": "Économisez {{percent}}%",
+    "currentPlan": "Forfait actuel",
+    "subscribe": "S'abonner",
+    "changePlan": "Changer",
+    "perMonth": "/mois",
+    "perYear": "/an",
+    "billedAnnually": "Facturé annuellement",
+    "popular": "Populaire",
+    "unlimited": "Illimité",
+    "features": {
+      "transactions": "{{count}} transactions actives",
+      "transactionsUnlimited": "Transactions illimitées",
+      "storage": "{{count}} Go de stockage",
+      "users": "{{count}} utilisateurs",
+      "history": "{{count}} mois d'historique",
+      "historyUnlimited": "Historique illimité"
+    },
+    "founderDiscount": "Remise fondateur : {{percent}}%",
+    "trialCta": "Commencer l'essai gratuit",
+    "accountSubscribe": "S'abonner maintenant",
+    "accountChoosePlan": "Choisir un forfait",
+    "accountTrialInfo": "Vous êtes en période d'essai. Abonnez-vous pour continuer à utiliser Ofra après votre essai.",
+    "viewPlans": "Voir les forfaits"
   }
 }

@@ -175,9 +175,9 @@ export default class TransactionsController {
         .preload('property')
         .preload('currentStep', (sq) => sq.preload('workflowStep'))
         .preload('transactionSteps', (sq) => {
-          sq.orderBy('step_order', 'asc').preload('workflowStep').preload('conditions')
+          sq.orderBy('step_order', 'asc').preload('workflowStep').preload('conditions', (cq) => cq.preload('assignedPro'))
         })
-        .preload('conditions')
+        .preload('conditions', (cq) => cq.preload('assignedPro'))
         .preload('offers', (offerQuery) => {
           offerQuery
             .preload('revisions', (revQuery) =>

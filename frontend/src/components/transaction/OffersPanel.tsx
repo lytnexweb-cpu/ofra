@@ -506,10 +506,10 @@ export default function OffersPanel({ transaction }: OffersPanelProps) {
 
             {/* Actions: Voir détails + Addenda */}
             <div className={`flex flex-wrap items-center gap-1.5 pt-2 border-t ${config.expandBorder}`}>
-              <button className="px-2.5 py-1 text-xs font-medium rounded-lg border border-stone-200 text-stone-600 hover:bg-stone-50">
+              <button className="px-2.5 py-1.5 text-xs font-medium rounded-lg border border-stone-200 text-stone-600 hover:bg-stone-50">
                 {t('transaction.detail.viewDetails')}
               </button>
-              <button className="px-2.5 py-1 text-xs font-medium rounded-lg border border-primary/30 text-primary hover:bg-primary/5">
+              <button className="px-2.5 py-1.5 text-xs font-medium rounded-lg border border-primary/30 text-primary hover:bg-primary/5">
                 {t('transaction.detail.addenda')}
               </button>
             </div>
@@ -618,7 +618,7 @@ export default function OffersPanel({ transaction }: OffersPanelProps) {
               <span className="text-xs font-medium text-stone-700">{t('offerLink.activeLink')}</span>
               <button
                 onClick={copyOfferLink}
-                className="ml-auto inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
+                className="ml-auto inline-flex items-center gap-1 px-2 py-1.5 text-xs font-medium rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
               >
                 {copied ? (
                   <>
@@ -635,7 +635,7 @@ export default function OffersPanel({ transaction }: OffersPanelProps) {
               <button
                 onClick={() => disableOfferLinkMutation.mutate(activeOfferLink.id)}
                 disabled={disableOfferLinkMutation.isPending}
-                className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md text-stone-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                className="inline-flex items-center gap-1 px-2 py-1.5 text-xs font-medium rounded-md text-stone-400 hover:text-red-600 hover:bg-red-50 transition-colors"
               >
                 <XCircle className="w-3 h-3" />
                 {t('offerLink.disableLink')}
@@ -663,13 +663,13 @@ export default function OffersPanel({ transaction }: OffersPanelProps) {
                 <button
                   onClick={() => createOfferLinkMutation.mutate()}
                   disabled={createOfferLinkMutation.isPending}
-                  className="ml-auto px-3 py-1 text-xs font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                  className="ml-auto px-3 py-1.5 text-xs font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
                 >
                   {createOfferLinkMutation.isPending ? t('offerLink.creating') : t('offerLink.createButton')}
                 </button>
                 <button
                   onClick={() => setShowOfferLinkForm(false)}
-                  className="px-2 py-1 text-xs text-stone-400 hover:text-stone-600"
+                  className="px-2 py-1.5 text-xs text-stone-400 hover:text-stone-600"
                 >
                   {t('common.cancel')}
                 </button>

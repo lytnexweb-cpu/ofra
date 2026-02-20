@@ -6,6 +6,8 @@ import { authApi } from '../api/auth.api'
 import { profileApi, type UpdateProfileInfoRequest } from '../api/profile.api'
 import { subscriptionApi } from '../api/subscription.api'
 import { stripeApi } from '../api/stripe.api'
+import { plansApi } from '../api/plans.api'
+import SubscribeModal from '../components/SubscribeModal'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
 import ChangeEmailForm from '../components/ChangeEmailForm'
@@ -28,6 +30,8 @@ import {
   Infinity,
   Loader2,
   XCircle,
+  ArrowRight,
+  Zap,
 } from 'lucide-react'
 import { toast } from '../hooks/use-toast'
 
@@ -173,6 +177,33 @@ export default function AccountPage() {
     staleTime: 2 * 60 * 1000,
   })
   const sub = subData?.data
+
+  // Plans data for subscribe flow
+  const { data: plansData } = useQuery({
+    queryKey: ['plans'],
+    queryFn: plansApi.list,
+    staleTime: 10 * 60 * 1000,
+  })
+  const plans = plansData?.data?.plans ?? []
+  const discounts = plansData?.data?.discounts ?? { annual: 20, founder: 20, founderAnnual: 30 }
+
+  // Subscribe modal state
+  const [subscribeModal, setSubscribeModal] = useState<{
+    open: boolean
+    planSlug: string
+    planName: string
+    price: number
+  }>({ open: false, planSlug: '', planName: '', price: 0 })
+
+  const isTrial = sub?.trial?.active ?? false
+  const isFounder = sub?.billing?.isFounder ?? false
+  const notSubscribed = !sub?.billing?.subscriptionStatus || sub?.billing?.subscriptionStatus === 'trialing'
+
+  const handleSubscribe = (plan: { slug: string; name: string; monthlyPrice: number }) => {
+    const founderDiscount = isFounder ? discounts.founder : 0
+    const price = Math.round(plan.monthlyPrice * (1 - founderDiscount / 100) * 100) / 100
+    setSubscribeModal({ open: true, planSlug: plan.slug, planName: plan.name, price })
+  }
 
   // Cancel subscription mutation
   const cancelMutation = useMutation({
@@ -540,12 +571,61 @@ export default function AccountPage() {
                     {t(`account.subscription.status.${sub.billing.subscriptionStatus}`)}
                   </p>
 
-                  <a href={`${import.meta.env.VITE_MARKETING_URL || 'https://ofra.ca'}/pricing`} target="_blank" rel="noopener noreferrer">
+                  <Link to="/pricing">
                     <Button variant="outline" size="sm">
                       {t('account.subscription.changePlan')}
                     </Button>
-                  </a>
+                  </Link>
                 </div>
+
+                {/* Subscribe CTA for trial users */}
+                {notSubscribed && plans.length > 0 && (
+                  <div className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl border border-primary/20 p-6">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Zap className="w-5 h-5 text-primary" />
+                      <h2 className="text-lg font-semibold text-stone-900">
+                        {t('pricing.accountChoosePlan')}
+                      </h2>
+                    </div>
+                    <p className="text-sm text-stone-500 mb-4">
+                      {t('pricing.accountTrialInfo')}
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                      {plans
+                        .sort((a, b) => a.displayOrder - b.displayOrder)
+                        .map((plan) => {
+                          const founderDiscount = isFounder ? discounts.founder : 0
+                          const price = Math.round(plan.monthlyPrice * (1 - founderDiscount / 100) * 100) / 100
+                          return (
+                            <button
+                              key={plan.id}
+                              onClick={() => handleSubscribe(plan)}
+                              className={`text-left p-3 rounded-lg border transition-colors hover:border-primary hover:bg-white ${
+                                plan.slug === 'solo' ? 'border-primary bg-white' : 'border-stone-200 bg-white/50'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="font-medium text-stone-900 text-sm">{plan.name}</span>
+                                {plan.slug === 'solo' && (
+                                  <span className="text-[10px] bg-primary text-white px-1.5 py-0.5 rounded-full font-medium">
+                                    {t('pricing.popular')}
+                                  </span>
+                                )}
+                              </div>
+                              <span className="text-lg font-bold text-primary">{price}$</span>
+                              <span className="text-xs text-stone-400">{t('pricing.perMonth')}</span>
+                            </button>
+                          )
+                        })}
+                    </div>
+                    <Link to="/pricing">
+                      <Button variant="outline" size="sm" className="gap-1.5">
+                        {t('pricing.viewPlans')}
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </Button>
+                    </Link>
+                  </div>
+                )}
 
                 {/* Usage */}
                 <div className="bg-white rounded-xl shadow-sm p-6">
@@ -666,6 +746,18 @@ export default function AccountPage() {
           </div>
         )}
       </div>
+
+      {/* Subscribe Modal */}
+      <SubscribeModal
+        open={subscribeModal.open}
+        onOpenChange={(open) => setSubscribeModal((m) => ({ ...m, open }))}
+        planSlug={subscribeModal.planSlug}
+        planName={subscribeModal.planName}
+        billingCycle="monthly"
+        price={subscribeModal.price}
+        isFounder={isFounder}
+        mode="new"
+      />
     </div>
   )
 }

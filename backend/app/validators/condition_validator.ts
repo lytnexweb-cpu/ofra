@@ -65,5 +65,6 @@ export const updateConditionValidator = vine.compile(
     offerId: vine.number().positive().optional(),
     documentUrl: vine.string().trim().maxLength(2048).optional(),
     documentLabel: vine.string().trim().maxLength(255).optional(),
+    assignedProId: vine.number().positive().nullable().optional(),
   })
 )

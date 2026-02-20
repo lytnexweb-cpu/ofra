@@ -7,6 +7,7 @@ import TransactionStep from './transaction_step.js'
 import ConditionTemplate from './condition_template.js'
 import ConditionEvidence from './condition_evidence.js'
 import ConditionEvent from './condition_event.js'
+import ProfessionalContact from './professional_contact.js'
 
 // Legacy types (kept for backwards compatibility)
 export type ConditionStatus = 'pending' | 'in_progress' | 'completed'
@@ -143,6 +144,10 @@ export default class Condition extends BaseModel {
   @column.dateTime()
   declare escapeConfirmedAt: DateTime | null
 
+  // C12: Assigned professional contact
+  @column()
+  declare assignedProId: number | null
+
   // Dates
   @column.date()
   declare dueDate: DateTime | null
@@ -168,6 +173,9 @@ export default class Condition extends BaseModel {
 
   @belongsTo(() => ConditionTemplate, { foreignKey: 'templateId' })
   declare template: BelongsTo<typeof ConditionTemplate>
+
+  @belongsTo(() => ProfessionalContact, { foreignKey: 'assignedProId' })
+  declare assignedPro: BelongsTo<typeof ProfessionalContact>
 
   @hasMany(() => ConditionEvidence, { foreignKey: 'conditionId' })
   declare evidence: HasMany<typeof ConditionEvidence>

@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Pencil, X, Calendar, Check } from 'lucide-react'
-import { conditionsApi, type Condition, type ConditionLevel } from '../../api/conditions.api'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Pencil, X, Check, UserPlus, UserCheck, XCircle } from 'lucide-react'
+import { conditionsApi, type Condition, type ConditionLevel, type ConditionType } from '../../api/conditions.api'
+import { prosApi, type ProfessionalContact, type ProfessionalRole } from '../../api/pros.api'
 import { toast } from '../../hooks/use-toast'
 
 interface EditConditionModalProps {
@@ -18,6 +19,18 @@ const LEVEL_BADGE: Record<ConditionLevel, { classes: string }> = {
   recommended: { classes: 'bg-stone-200 text-stone-600' },
 }
 
+// C11: Condition type → suggested professional role mapping
+const TYPE_TO_ROLE: Partial<Record<ConditionType, ProfessionalRole[]>> = {
+  inspection: ['inspector'],
+  water_test: ['inspector'],
+  legal: ['lawyer', 'notary'],
+  rpds_review: ['lawyer'],
+  financing: ['mortgage_broker'],
+  deposit: ['mortgage_broker'],
+  appraisal: ['appraiser'],
+  documents: ['notary'],
+}
+
 export default function EditConditionModal({
   condition,
   transactionId,
@@ -29,6 +42,16 @@ export default function EditConditionModal({
 
   const [dueDate, setDueDate] = useState('')
   const [description, setDescription] = useState('')
+  const [assignedProId, setAssignedProId] = useState<number | null>(null)
+
+  // C12: Load agent's professional contacts
+  const { data: prosData } = useQuery({
+    queryKey: ['pros'],
+    queryFn: prosApi.list,
+    staleTime: 5 * 60 * 1000,
+    enabled: isOpen,
+  })
+  const allPros = prosData?.data?.pros ?? []
 
   useEffect(() => {
     if (condition) {
@@ -37,8 +60,26 @@ export default function EditConditionModal({
         : ''
       setDueDate(dateValue)
       setDescription(condition.description ?? '')
+      setAssignedProId(condition.assignedProId ?? null)
     }
   }, [condition])
+
+  // C11: Split pros into suggested (matching condition type) and others
+  const { suggestedPros, otherPros } = useMemo(() => {
+    if (!condition) return { suggestedPros: [], otherPros: allPros }
+    const matchingRoles = TYPE_TO_ROLE[condition.type] ?? []
+    if (matchingRoles.length === 0) return { suggestedPros: [], otherPros: allPros }
+    const suggested: ProfessionalContact[] = []
+    const others: ProfessionalContact[] = []
+    for (const pro of allPros) {
+      if (matchingRoles.includes(pro.role)) {
+        suggested.push(pro)
+      } else {
+        others.push(pro)
+      }
+    }
+    return { suggestedPros: suggested, otherPros: others }
+  }, [condition, allPros])
 
   const updateMutation = useMutation({
     mutationFn: () => {
@@ -46,6 +87,7 @@ export default function EditConditionModal({
       return conditionsApi.update(condition.id, {
         dueDate: dueDate || undefined,
         description: description || undefined,
+        assignedProId: assignedProId,
       })
     },
     onSuccess: (response) => {
@@ -89,6 +131,8 @@ export default function EditConditionModal({
     i18n.language.startsWith('fr') && condition.labelFr
       ? condition.labelFr
       : condition.labelEn ?? condition.title
+
+  const selectedPro = allPros.find((p) => p.id === assignedProId)
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
@@ -172,6 +216,91 @@ export default function EditConditionModal({
               {description.length}/1000
             </p>
           </div>
+
+          {/* C12: Assign professional contact */}
+          <div>
+            <label className="block text-xs font-semibold text-stone-600 mb-1.5 uppercase tracking-wide">
+              {t('conditions.assignPro.label')}
+            </label>
+
+            {/* Currently assigned */}
+            {selectedPro ? (
+              <div className="flex items-center justify-between p-2.5 rounded-lg bg-violet-50 border border-violet-200">
+                <div className="flex items-center gap-2 min-w-0">
+                  <UserCheck className="w-4 h-4 text-violet-600 shrink-0" />
+                  <div className="min-w-0">
+                    <span className="text-sm font-medium text-violet-900 block truncate">{selectedPro.name}</span>
+                    <span className="text-xs text-violet-600">{t(`pros.roles.${selectedPro.role}`)}</span>
+                    {selectedPro.company && <span className="text-xs text-violet-500 ml-1">— {selectedPro.company}</span>}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setAssignedProId(null)}
+                  className="p-1 rounded-md text-violet-400 hover:text-violet-700 hover:bg-violet-100 transition-colors"
+                  aria-label={t('conditions.assignPro.remove')}
+                  disabled={isLoading}
+                >
+                  <XCircle className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <div className="text-xs text-stone-400 mb-2">
+                {t('conditions.assignPro.none')}
+              </div>
+            )}
+
+            {/* Pro picker */}
+            {allPros.length > 0 ? (
+              <div className="mt-2 space-y-1.5">
+                {/* C11: Suggested pros (matching condition type) */}
+                {suggestedPros.length > 0 && (
+                  <>
+                    <p className="text-[10px] font-semibold text-emerald-600 uppercase tracking-wide">
+                      {t('conditions.assignPro.suggested')}
+                    </p>
+                    {suggestedPros.map((pro) => (
+                      <ProOption
+                        key={pro.id}
+                        pro={pro}
+                        isSelected={assignedProId === pro.id}
+                        onSelect={() => setAssignedProId(pro.id)}
+                        isSuggested
+                        disabled={isLoading}
+                        t={t}
+                      />
+                    ))}
+                  </>
+                )}
+
+                {/* Other pros */}
+                {otherPros.length > 0 && (
+                  <>
+                    {suggestedPros.length > 0 && (
+                      <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mt-2">
+                        {t('conditions.assignPro.others')}
+                      </p>
+                    )}
+                    {otherPros.map((pro) => (
+                      <ProOption
+                        key={pro.id}
+                        pro={pro}
+                        isSelected={assignedProId === pro.id}
+                        onSelect={() => setAssignedProId(pro.id)}
+                        isSuggested={false}
+                        disabled={isLoading}
+                        t={t}
+                      />
+                    ))}
+                  </>
+                )}
+              </div>
+            ) : (
+              <p className="text-xs text-stone-400 italic mt-1">
+                {t('conditions.assignPro.empty')}
+              </p>
+            )}
+          </div>
         </div>
 
         {/* Footer */}
@@ -210,5 +339,50 @@ export default function EditConditionModal({
         </div>
       </div>
     </div>
+  )
+}
+
+// Small component for pro option row
+function ProOption({
+  pro,
+  isSelected,
+  onSelect,
+  isSuggested,
+  disabled,
+  t,
+}: {
+  pro: ProfessionalContact
+  isSelected: boolean
+  onSelect: () => void
+  isSuggested: boolean
+  disabled: boolean
+  t: (key: string) => string
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      disabled={disabled || isSelected}
+      className={[
+        'w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-left text-sm transition-colors',
+        isSelected
+          ? 'bg-violet-100 border border-violet-300 text-violet-900'
+          : isSuggested
+            ? 'bg-emerald-50 border border-emerald-100 hover:bg-emerald-100 text-stone-800'
+            : 'bg-white border border-stone-200 hover:bg-stone-50 text-stone-800',
+        disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
+      ].join(' ')}
+    >
+      {isSelected ? (
+        <UserCheck className="w-3.5 h-3.5 text-violet-600 shrink-0" />
+      ) : (
+        <UserPlus className="w-3.5 h-3.5 text-stone-400 shrink-0" />
+      )}
+      <div className="flex-1 min-w-0">
+        <span className="font-medium truncate block">{pro.name}</span>
+        <span className="text-xs text-stone-500">{t(`pros.roles.${pro.role}`)}</span>
+        {pro.company && <span className="text-xs text-stone-400 ml-1">— {pro.company}</span>}
+      </div>
+    </button>
   )
 }

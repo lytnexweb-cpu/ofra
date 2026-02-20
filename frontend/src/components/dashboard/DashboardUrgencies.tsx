@@ -72,7 +72,7 @@ function UrgencyCard({ item }: { item: UrgencyItem }) {
         </div>
         <div className="flex flex-col items-end gap-1 shrink-0">
           <DeadlineText item={item} />
-          <span className="text-xs text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+          <span className="text-xs text-primary sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
             {t('dashboard.urgencies.card.open')} &rarr;
           </span>
         </div>

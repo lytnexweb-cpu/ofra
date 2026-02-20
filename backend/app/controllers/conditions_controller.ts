@@ -175,6 +175,7 @@ export default class ConditionsController {
       const before = {
         dueDate: condition.dueDate?.toISO() ?? null,
         description: condition.description ?? null,
+        assignedProId: condition.assignedProId ?? null,
       }
 
       const payload = await request.validateUsing(updateConditionValidator)
@@ -189,18 +190,22 @@ export default class ConditionsController {
 
       await condition.save()
 
-      // D38: Log audit event if dueDate or description changed
+      // D38: Log audit event if dueDate, description, or assignedProId changed
       const after = {
         dueDate: condition.dueDate?.toISO() ?? null,
         description: condition.description ?? null,
+        assignedProId: condition.assignedProId ?? null,
       }
 
-      const changes: Record<string, { from: string | null; to: string | null }> = {}
+      const changes: Record<string, { from: string | number | null; to: string | number | null }> = {}
       if (before.dueDate !== after.dueDate) {
         changes.dueDate = { from: before.dueDate, to: after.dueDate }
       }
       if (before.description !== after.description) {
         changes.description = { from: before.description, to: after.description }
+      }
+      if (before.assignedProId !== after.assignedProId) {
+        changes.assignedProId = { from: before.assignedProId, to: after.assignedProId }
       }
 
       if (Object.keys(changes).length > 0) {

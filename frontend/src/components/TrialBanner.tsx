@@ -4,7 +4,7 @@ import { subscriptionApi } from '../api/subscription.api'
 import { Clock, AlertTriangle, XCircle, ArrowRight } from 'lucide-react'
 import { Button } from './ui/Button'
 
-const PRICING_URL = `${import.meta.env.VITE_MARKETING_URL || 'https://ofra.ca'}/pricing`
+const PRICING_URL = '/pricing'
 
 /**
  * D53: Trial banner — displayed globally during trial period.
@@ -34,7 +34,7 @@ export default function TrialBanner() {
             {t('trial.banner.softWall')}
           </p>
         </div>
-        <a href={PRICING_URL} target="_blank" rel="noopener noreferrer">
+        <a href={PRICING_URL}>
           <Button size="sm" className="gap-1.5 bg-primary hover:bg-primary/90 text-white">
             {t('trial.banner.choosePlan')}
             <ArrowRight className="w-3.5 h-3.5" />
@@ -72,7 +72,7 @@ export default function TrialBanner() {
             {t('trial.banner.active', { days: trial.daysRemaining })}
           </p>
         </div>
-        <a href={PRICING_URL} target="_blank" rel="noopener noreferrer">
+        <a href={PRICING_URL}>
           <Button size="sm" variant="outline" className="gap-1.5 text-xs">
             {t('trial.banner.seePlans')}
             <ArrowRight className="w-3 h-3" />

@@ -164,6 +164,8 @@ describe('i18n key parity', () => {
       'offerIntake.inclusionsLabel',
       // Pro contacts (cognates)
       'pros.notes',
+      // Conditions assign pro
+      'conditions.assignPro.suggested',
     ])
 
     const suspicious: string[] = []

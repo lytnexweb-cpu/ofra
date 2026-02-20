@@ -261,7 +261,15 @@
     "archivedError": "This condition is archived and cannot be modified",
     "lockedTooltip": "Locked after validation",
     "done": "Done",
-    "generated": "Generated"
+    "generated": "Generated",
+    "assignPro": {
+      "label": "Assigned professional",
+      "none": "No professional assigned",
+      "suggested": "Suggestions",
+      "others": "Others",
+      "remove": "Remove professional",
+      "empty": "No professionals in your book. Add some in Pro Contacts."
+    }
   },
   "resolution": {
     "modalTitle": "Resolution Required",
@@ -2304,5 +2312,34 @@
     "errorCardConfirm": "Card verification failed.",
     "errorAttach": "Unable to save card.",
     "errorSubscribe": "Subscription failed."
+  },
+  "pricing": {
+    "title": "Choose your plan",
+    "subtitle": "All plans include a 30-day free trial. Cancel anytime.",
+    "monthly": "Monthly",
+    "annual": "Annual",
+    "annualSave": "Save {{percent}}%",
+    "currentPlan": "Current plan",
+    "subscribe": "Subscribe",
+    "changePlan": "Change",
+    "perMonth": "/mo",
+    "perYear": "/yr",
+    "billedAnnually": "Billed annually",
+    "popular": "Popular",
+    "unlimited": "Unlimited",
+    "features": {
+      "transactions": "{{count}} active transactions",
+      "transactionsUnlimited": "Unlimited transactions",
+      "storage": "{{count}} GB storage",
+      "users": "{{count}} users",
+      "history": "{{count}} months history",
+      "historyUnlimited": "Unlimited history"
+    },
+    "founderDiscount": "Founder discount: {{percent}}%",
+    "trialCta": "Start free trial",
+    "accountSubscribe": "Subscribe now",
+    "accountChoosePlan": "Choose a plan",
+    "accountTrialInfo": "You're on a free trial. Subscribe to keep using Ofra after your trial ends.",
+    "viewPlans": "View plans"
   }
 }

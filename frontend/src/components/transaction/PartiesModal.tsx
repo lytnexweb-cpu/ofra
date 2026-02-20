@@ -477,7 +477,7 @@ export default function PartiesModal({ isOpen, onClose, transactionId }: Parties
             <div className="rounded-lg border border-primary/20 bg-primary/[0.02] p-4 space-y-3">
               <div className="flex items-center justify-between mb-1">
                 <h3 className="text-xs font-semibold text-stone-700 uppercase tracking-wide">{t('parties.addParty')}</h3>
-                <button onClick={() => setView('list')} className="p-1 rounded hover:bg-stone-100 text-stone-400">
+                <button onClick={() => setView('list')} className="p-1.5 rounded hover:bg-stone-100 text-stone-400">
                   <X className="w-4 h-4" />
                 </button>
               </div>

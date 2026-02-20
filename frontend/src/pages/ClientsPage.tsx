@@ -143,7 +143,7 @@ export default function ClientsPage() {
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 rounded-sm text-stone-400 hover:text-stone-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-sm text-stone-400 hover:text-stone-600"
                 aria-label={t('common.close')}
               >
                 <X className="w-3.5 h-3.5" />

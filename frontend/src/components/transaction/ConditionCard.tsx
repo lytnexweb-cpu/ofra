@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { Pencil, CheckCircle2, Ban, SkipForward, FileWarning, ShieldCheck } from 'lucide-react'
+import { Pencil, CheckCircle2, Ban, SkipForward, FileWarning, ShieldCheck, UserCheck } from 'lucide-react'
 import EvidenceBadge from './EvidenceBadge'
 import type { Condition, ConditionLevel, ResolutionType } from '../../api/conditions.api'
 import { differenceInDays } from '../../lib/date'
@@ -185,6 +185,14 @@ export default function ConditionCard({
           {condition.templateId && (
             <span className="px-1 py-0.5 rounded text-[10px] font-medium bg-stone-100 text-stone-400">
               {t('conditions.generated', 'Générée')}
+            </span>
+          )}
+
+          {/* C12: Assigned pro badge (violet) */}
+          {condition.assignedPro && (
+            <span className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded text-[10px] font-medium bg-violet-100 text-violet-700">
+              <UserCheck className="w-2.5 h-2.5" />
+              {condition.assignedPro.name}
             </span>
           )}
         </div>

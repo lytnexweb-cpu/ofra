@@ -422,7 +422,7 @@ function UserDetailPanel({
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0"
+                        className="sm:opacity-0 sm:group-hover:opacity-100 h-6 w-6 p-1"
                         onClick={() => deleteNoteMutation.mutate(note.id)}
                       >
                         <Trash2 className="w-3 h-3 text-destructive" />
@@ -512,7 +512,7 @@ function UserDetailPanel({
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0"
+                      className="sm:opacity-0 sm:group-hover:opacity-100 h-6 w-6 p-1"
                       onClick={() => deleteTaskMutation.mutate(task.id)}
                     >
                       <Trash2 className="w-3 h-3 text-destructive" />

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { prosApi, type ProfessionalContact, type ProfessionalRole, type CreateProRequest } from '../api/pros.api'
@@ -75,16 +75,19 @@ function ProModal({ isOpen, onClose, editingPro }: ProModalProps) {
   const [error, setError] = useState('')
 
   // Reset form when modal opens/closes or editingPro changes
-  useState(() => {
-    setForm({
-      name: editingPro?.name ?? '',
-      role: editingPro?.role ?? 'inspector',
-      phone: editingPro?.phone ?? '',
-      email: editingPro?.email ?? '',
-      company: editingPro?.company ?? '',
-      notes: editingPro?.notes ?? '',
-    })
-  })
+  useEffect(() => {
+    if (isOpen) {
+      setForm({
+        name: editingPro?.name ?? '',
+        role: editingPro?.role ?? 'inspector',
+        phone: editingPro?.phone ?? '',
+        email: editingPro?.email ?? '',
+        company: editingPro?.company ?? '',
+        notes: editingPro?.notes ?? '',
+      })
+      setError('')
+    }
+  }, [isOpen, editingPro])
 
   const createMutation = useMutation({
     mutationFn: (data: CreateProRequest) => prosApi.create(data),
