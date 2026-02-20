@@ -232,7 +232,7 @@ export default function Layout() {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 w-full min-w-0 lg:pl-64 flex flex-col h-screen lg:h-auto lg:min-h-screen">
+      <div className="flex-1 w-full min-w-0 lg:pl-64 flex flex-col h-screen lg:h-auto lg:min-h-screen pt-16 lg:pt-0">
         {/* Desktop top bar */}
         <header className="hidden lg:flex items-center justify-end h-16 px-8 bg-white border-b border-stone-200 shrink-0">
           <NotificationBell />
@@ -243,7 +243,7 @@ export default function Layout() {
         <SoftLimitBanner />
 
         {/* Page Content - scrollable on mobile, normal flow on desktop */}
-        <main id="main" className="flex-1 overflow-y-auto lg:overflow-visible p-4 sm:p-6 lg:p-8 pt-20 lg:pt-6 pb-20 lg:pb-8 overflow-x-hidden">
+        <main id="main" className="flex-1 overflow-y-auto lg:overflow-visible p-4 sm:p-6 lg:p-8 pt-4 lg:pt-6 pb-20 lg:pb-8 overflow-x-hidden">
           <div className="max-w-6xl mx-auto">
             {isSubLoading ? null : <Outlet />}
           </div>

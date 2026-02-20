@@ -26,6 +26,17 @@ supersedes:
 > Dernière mise à jour : 2026-02-19 (v2.20)
 > Auteur : Sam + Équipe BMAD (Party Mode)
 >
+> **Changements v2.26 (2026-02-20) — C8 DONE + Sprint 3 DONE — Phase 2 complete :**
+> - **§9.2 C8** : `❌ TODO` → `✅ DONE` — Migration 7 colonnes buyer/seller, model+validator, CreateClientModal sections conditionnelles, ClientDetailsPage edit+read-only, i18n FR+EN.
+> - **§9.2 C9** : `❌ TODO` → `✅ DONE` — Migration `professional_contacts`, model 6 rôles, validator, controller CRUD scoped agentId, 5 routes auth.
+> - **§9.2 C10** : `❌ TODO` → `✅ DONE` — `ProsPage.tsx` avec cards, search, filtre rôle, modal add/edit, delete confirm. Route lazy-load, nav Briefcase, 21 clés i18n.
+> - **§9.2 C11** : `❌ TODO` → `✅ DONE` — Mapping TYPE_TO_ROLE (8 types→rôles) dans EditConditionModal, section "Suggestions" verte.
+> - **§9.2 C12** : `❌ TODO` → `✅ DONE` — Migration `assigned_pro_id` FK, model+validator+audit, preload, badge violet ConditionCard, picker EditConditionModal, 6 clés i18n.
+> - Sprint 1 : C1 ✅ C2 ✅ C3 ✅ C4 ✅ — **4/4 DONE**
+> - Sprint 2 : C5 ✅ C6 ✅ C7 ✅ C8 ✅ — **4/4 DONE**
+> - Sprint 3 : C9 ✅ C10 ✅ C11 ✅ C12 ✅ — **4/4 DONE**
+> - **Phase 2 "Les Connexions" : 12/12 features DONE**
+>
 > **Changements v2.24 (2026-02-20) — C4 DONE + C7 DONE + C8 spec :**
 > - **§9.2 C4** : `🔄 PARTIEL` → `✅ DONE` — Fix `fullName` bug dans CreateOfferModal (Client a `firstName`/`lastName`, pas `fullName`). PartyPicker : autocomplete client lookup (accent-safe, `clientsApi.list()`, staleTime 5min). Auto-fill nom/email/téléphone sur sélection. 2 clés i18n FR+EN.
 > - **§9.2 C7** : `❌ TODO` → `✅ DONE` — 6 enrichissements OfferComparison : closingDate highlight (earliest=best), expiry highlight (latest=best), depositDeadline row, inspectionDelay + unité "jours"/"days", fix row conditions (count réel via preload) + row inclusions séparée, worst rouge sur toutes les rows. 5 clés i18n FR+EN. Type `conditions` ajouté sur `OfferRevision` frontend.
@@ -2151,7 +2162,7 @@ Actions à réaliser le jour du lancement public :
 | C5 | CTA adaptatif selon direction | Acheteur : "Soumettre une offre" (proactif) / Vendeur : "Ajouter manuellement" (réactif, outline) | ✅ DONE — Intégré dans C6 |
 | C6 | Sections différentes buyer vs seller | Titre adaptatif, CTA role-aware, gating actions (accept/counter/reject vs withdraw selon tour), bannière contextuelle, intake link masqué pour buyer, auto-open comparateur seller, direction role-aware dans CreateOfferModal | ✅ DONE — `OffersPanel.tsx`, `CreateOfferModal.tsx`, i18n FR+EN, 327 tests verts |
 | C7 | Comparateur vendeur enrichi | Table side-by-side avec highlight meilleur prix, deadline, conditions — le vendeur compare facilement | ✅ DONE — 6 enrichissements : closingDate highlight (earliest=best), expiry highlight (latest=best), depositDeadline row, inspectionDelay + "jours"/"days", fix conditions/inclusions row (count réel via preload), worst rouge sur toutes les rows. 5 clés i18n FR+EN. Type `conditions` ajouté sur `OfferRevision`. |
-| C8 | Formulaire client 2 sections | Section acheteur (financement, pré-approbation) vs section vendeur (motivation vente, prix plancher) | ❌ TODO (spec v2.24) |
+| C8 | Formulaire client 2 sections | Section acheteur (financement, pré-approbation) vs section vendeur (motivation vente, prix plancher) | ✅ DONE — Migration 7 colonnes (`1785000000001`), model+validator, CreateClientModal sections conditionnelles (buyer bleu/seller ambre), ClientDetailsPage edit+read-only, i18n FR+EN, API types. |
 
 **Spec C7 — Comparateur vendeur enrichi**
 
@@ -2208,10 +2219,10 @@ Actions à réaliser le jour du lancement public :
 
 | # | Feature | Détail | Statut |
 |---|---------|--------|--------|
-| C9 | Table `professional_contacts` | nom, rôle (inspecteur/notaire/avocat/courtier hypothécaire), téléphone, email, notes, `agent_id` FK | ❌ TODO |
-| C10 | CRUD Carnet de pros | Page `/pros` — liste, ajout, modification. Recherche par nom/rôle | ❌ TODO |
-| C11 | Suggestion sur conditions | Quand une condition type "inspection" est créée → suggérer les inspecteurs du carnet de l'agent | ❌ TODO |
-| C12 | Assignation pro sur condition | L'agent peut assigner un pro de son carnet à une condition (avocat sur "révision titre", etc.) | ❌ TODO |
+| C9 | Table `professional_contacts` | nom, rôle (inspecteur/notaire/avocat/courtier hypothécaire), téléphone, email, notes, `agent_id` FK | ✅ DONE — Migration `1786000000001`, model, validator (6 rôles), controller CRUD scoped agentId, 5 routes auth. |
+| C10 | CRUD Carnet de pros | Page `/pros` — liste, ajout, modification. Recherche par nom/rôle | ✅ DONE — `ProsPage.tsx` avec liste cards, search accent-safe, filtre par rôle, modal add/edit, delete confirm, empty state. Route lazy-load, nav Briefcase, 21 clés i18n FR+EN. |
+| C11 | Suggestion sur conditions | Quand une condition type "inspection" est créée → suggérer les inspecteurs du carnet de l'agent | ✅ DONE — Mapping `TYPE_TO_ROLE` (8 types → rôles) dans `EditConditionModal`. Pros matchés en section "Suggestions" (vert), autres en dessous. |
+| C12 | Assignation pro sur condition | L'agent peut assigner un pro de son carnet à une condition (avocat sur "révision titre", etc.) | ✅ DONE — Migration `1786000000002` (`assigned_pro_id` FK), model+validator+audit trail, preload `assignedPro`, badge violet sur ConditionCard, picker dans EditConditionModal, 6 clés i18n FR+EN. |
 
 **Éléments reportés de Phase 2 originale :**
 
