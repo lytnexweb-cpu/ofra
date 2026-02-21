@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
 import { authApi } from '../api/auth.api'
 import { useTranslation } from 'react-i18next'
@@ -17,6 +17,16 @@ const NB_PROVINCES = [
 
 export default function RegisterPage() {
   const { t, i18n } = useTranslation()
+  const [searchParams] = useSearchParams()
+
+  // Store pending plan from ?plan= query param (survives through email verification)
+  useEffect(() => {
+    const plan = searchParams.get('plan')
+    if (plan) {
+      localStorage.setItem('pendingPlan', plan)
+    }
+  }, [searchParams])
+
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')

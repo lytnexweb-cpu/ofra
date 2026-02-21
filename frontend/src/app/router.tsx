@@ -213,11 +213,12 @@ export const router = createBrowserRouter([
         path: 'account',
         element: <LazyPage><AccountPage /></LazyPage>,
       },
-      {
-        path: 'pricing',
-        element: <LazyPage><PricingPage /></LazyPage>,
-      },
     ],
+  },
+  // Public pricing page (accessible without auth)
+  {
+    path: '/pricing',
+    element: <LazyPage><PricingPage /></LazyPage>,
   },
   // D35: Public offer intake page (no auth required)
   {

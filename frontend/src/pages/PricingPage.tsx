@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
+import { useNavigate } from 'react-router-dom'
 import { plansApi, type PublicPlan } from '../api/plans.api'
 import { subscriptionApi } from '../api/subscription.api'
+import { authApi } from '../api/auth.api'
 import SubscribeModal from '../components/SubscribeModal'
 import { Button } from '../components/ui/Button'
 import { Check, Minus, Zap, Loader2, Star } from 'lucide-react'
@@ -112,6 +114,7 @@ function calculatePrice(
 
 export default function PricingPage() {
   const { t, i18n } = useTranslation()
+  const navigate = useNavigate()
   const lang = i18n.language as 'fr' | 'en'
   const [cycle, setCycle] = useState<BillingCycle>('monthly')
   const [modal, setModal] = useState<{
@@ -121,6 +124,15 @@ export default function PricingPage() {
     price: number
     mode: 'new' | 'change'
   }>({ open: false, planSlug: '', planName: '', price: 0, mode: 'new' })
+
+  // Check if user is authenticated
+  const { data: authData, isLoading: authLoading } = useQuery({
+    queryKey: ['auth', 'me'],
+    queryFn: authApi.me,
+    retry: false,
+    staleTime: 5 * 60 * 1000,
+  })
+  const isAuthenticated = authData?.success === true
 
   const { data: plansData, isLoading: plansLoading } = useQuery({
     queryKey: ['plans'],
@@ -132,6 +144,7 @@ export default function PricingPage() {
     queryKey: ['subscription'],
     queryFn: subscriptionApi.get,
     staleTime: 2 * 60 * 1000,
+    enabled: isAuthenticated,
   })
 
   const plans = plansData?.data?.plans ?? []
@@ -144,6 +157,13 @@ export default function PricingPage() {
 
   const handleSelectPlan = (plan: PublicPlan) => {
     if (plan.slug === 'agence') return // Agence = coming soon
+
+    // Not authenticated → redirect to register with plan param
+    if (!isAuthenticated) {
+      navigate(`/register?plan=${plan.slug}`)
+      return
+    }
+
     const price = calculatePrice(plan, cycle, isFounder, discounts)
     const isCurrentPlan = plan.slug === currentPlanSlug
     if (isCurrentPlan && isActive) return
@@ -157,7 +177,7 @@ export default function PricingPage() {
     })
   }
 
-  if (plansLoading) {
+  if (plansLoading || authLoading) {
     return (
       <div className="flex items-center justify-center py-20">
         <Loader2 className="w-6 h-6 animate-spin text-primary" />
@@ -321,20 +341,22 @@ export default function PricingPage() {
                 ) : (
                   <Button
                     onClick={() => handleSelectPlan(plan)}
-                    disabled={isCurrentPlan && isActive}
+                    disabled={isAuthenticated && isCurrentPlan && isActive}
                     className={`w-full ${
-                      isCurrentPlan && isActive
+                      isAuthenticated && isCurrentPlan && isActive
                         ? 'bg-stone-200 text-stone-500 cursor-not-allowed'
                         : isPopular
                           ? 'bg-primary hover:bg-primary/90 text-white'
                           : 'bg-stone-900 hover:bg-stone-800 text-white'
                     }`}
                   >
-                    {isCurrentPlan && isActive
-                      ? t('pricing.currentPlan')
-                      : isTrial || !isActive
-                        ? t('pricing.subscribe')
-                        : t('pricing.changePlan')
+                    {!isAuthenticated
+                      ? t('pricing.startTrial')
+                      : isCurrentPlan && isActive
+                        ? t('pricing.currentPlan')
+                        : isTrial || !isActive
+                          ? t('pricing.subscribe')
+                          : t('pricing.changePlan')
                     }
                   </Button>
                 )}

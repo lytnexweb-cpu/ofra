@@ -4,7 +4,9 @@ import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { authApi } from '../api/auth.api'
 import { subscriptionApi } from '../api/subscription.api'
+import { plansApi } from '../api/plans.api'
 import MobileMenu from './common/MobileMenu'
+import SubscribeModal from './SubscribeModal'
 import { BRAND } from '../config/brand'
 import { OfraLogo } from './OfraLogo'
 import {
@@ -35,6 +37,12 @@ export default function Layout() {
   const location = useLocation()
   const queryClient = useQueryClient()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [pendingPlanModal, setPendingPlanModal] = useState<{
+    open: boolean
+    planSlug: string
+    planName: string
+    price: number
+  }>({ open: false, planSlug: '', planName: '', price: 0 })
 
   const { data: userData } = useQuery({
     queryKey: ['auth', 'me'],
@@ -48,6 +56,34 @@ export default function Layout() {
     staleTime: 2 * 60 * 1000,
   })
   const trialHardWall = subData?.data?.trial?.hardWall === true
+
+  // Fetch plans for pending plan modal
+  const { data: plansData } = useQuery({
+    queryKey: ['plans'],
+    queryFn: plansApi.list,
+    staleTime: 10 * 60 * 1000,
+    enabled: !!localStorage.getItem('pendingPlan'),
+  })
+
+  // Check for pending plan from pricing page → register flow
+  useEffect(() => {
+    const pendingPlan = localStorage.getItem('pendingPlan')
+    if (!pendingPlan || !plansData?.data?.plans || isSubLoading) return
+
+    const plan = plansData.data.plans.find((p) => p.slug === pendingPlan)
+    if (plan) {
+      localStorage.removeItem('pendingPlan')
+      setPendingPlanModal({
+        open: true,
+        planSlug: plan.slug,
+        planName: plan.name,
+        price: plan.monthlyPrice,
+      })
+    } else {
+      // Invalid plan slug, clean up
+      localStorage.removeItem('pendingPlan')
+    }
+  }, [plansData, isSubLoading])
 
   // Sync language from backend on login (prevents desync across devices)
   useEffect(() => {
@@ -283,6 +319,18 @@ export default function Layout() {
           </div>
         </nav>
       </div>
+
+      {/* Pending plan modal — auto-opens after register → verify → login */}
+      <SubscribeModal
+        open={pendingPlanModal.open}
+        onOpenChange={(open) => setPendingPlanModal((m) => ({ ...m, open }))}
+        planSlug={pendingPlanModal.planSlug}
+        planName={pendingPlanModal.planName}
+        billingCycle="monthly"
+        price={pendingPlanModal.price}
+        isFounder={subData?.data?.billing?.isFounder ?? false}
+        mode="new"
+      />
     </div>
   )
 }
