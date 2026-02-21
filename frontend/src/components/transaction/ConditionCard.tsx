@@ -55,24 +55,6 @@ const RESOLUTION_CONFIG: Record<ResolutionType, { icon: React.ElementType; color
   skipped_with_risk: { icon: FileWarning, colorClass: 'text-red-600', labelKey: 'resolution.skippedWithRisk' },
 }
 
-// Source type display mapping
-const SOURCE_LABELS: Record<string, string> = {
-  legal: 'Legal',
-  government: 'Government',
-  industry: 'Industry',
-  best_practice: 'Best practice',
-}
-
-// Pack name display mapping (indigo badges)
-const PACK_LABELS: Record<string, string> = {
-  universal: 'Universal',
-  rural_nb: 'Rural NB',
-  condo_nb: 'Condo NB',
-  finance_nb: 'Finance NB',
-  inspection_nb: 'Inspection NB',
-  cash_nb: 'Cash NB',
-}
-
 export default function ConditionCard({
   condition,
   interactive = false,
@@ -172,14 +154,14 @@ export default function ConditionCard({
           {/* Pack name badge (indigo) — e.g. "Universal", "Finance NB" */}
           {condition.template?.pack && (
             <span className="px-1 py-0.5 rounded text-[10px] font-medium bg-indigo-100 text-indigo-700">
-              {PACK_LABELS[condition.template.pack] ?? condition.template.pack}
+              {t(`conditions.pack.${condition.template.pack}`, condition.template.pack)}
             </span>
           )}
 
           {/* Source type badge (sky) */}
           {condition.sourceType && (
             <span className="px-1 py-0.5 rounded text-[10px] font-medium bg-sky-100 text-sky-700">
-              {SOURCE_LABELS[condition.sourceType] ?? condition.sourceType}
+              {t(`conditions.sourceType.${condition.sourceType}`, condition.sourceType)}
             </span>
           )}
 

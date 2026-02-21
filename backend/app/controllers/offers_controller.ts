@@ -13,8 +13,12 @@ import {
 } from '#validators/offer_validator'
 import OfferSubmittedMail from '#mails/offer_submitted_mail'
 import OfferCounteredMail from '#mails/offer_countered_mail'
+import OfferCounterBuyerMail from '#mails/offer_counter_buyer_mail'
+import OfferAcceptedMail from '#mails/offer_accepted_mail'
 import OfferRejectedMail from '#mails/offer_rejected_mail'
 import OfferWithdrawnMail from '#mails/offer_withdrawn_mail'
+import TransactionShareLink from '#models/transaction_share_link'
+import TransactionParty from '#models/transaction_party'
 import logger from '@adonisjs/core/services/logger'
 
 export default class OffersController {
@@ -232,6 +236,32 @@ export default class OffersController {
         logger.error({ mailError, offerId: offer.id }, 'Failed to send offer countered email — non-blocking')
       }
 
+      // N1: Email the buyer party via intake link
+      try {
+        const buyerParty = offer.buyerPartyId
+          ? await TransactionParty.find(offer.buyerPartyId)
+          : null
+        if (buyerParty?.email) {
+          const intakeLink = await TransactionShareLink.query()
+            .where('transaction_id', offer.transactionId)
+            .where('link_type', 'offer_intake')
+            .where('is_active', true)
+            .first()
+          const appUrl = process.env.APP_URL || 'https://app.ofra.ca'
+          const intakeUrl = intakeLink
+            ? `${appUrl}/offer/${intakeLink.token}?offerId=${offer.id}`
+            : `${appUrl}/offer`
+          await mail.send(new OfferCounterBuyerMail({
+            to: buyerParty.email,
+            price: payload.price,
+            revisionNumber: revision.revisionNumber,
+            intakeUrl,
+          }))
+        }
+      } catch (buyerMailError) {
+        logger.error({ buyerMailError, offerId: offer.id }, 'Failed to send counter-offer email to buyer — non-blocking')
+      }
+
       // Notification twin for the broker
       const lang = auth.user!.language?.substring(0, 2) || 'fr'
       const formattedPrice = new Intl.NumberFormat(lang === 'fr' ? 'fr-CA' : 'en-CA', {
@@ -313,7 +343,27 @@ export default class OffersController {
         metadata: { offerId: acceptedOffer.id },
       })
 
-      // Notification twin for the broker (OfferAcceptedMail to client sent via automation)
+      // N2: Email buyer + seller parties about acceptance
+      try {
+        await transaction.load('property')
+        const propertyAddress = transaction.property?.address ?? null
+        const partyIds = [acceptedOffer.buyerPartyId, acceptedOffer.sellerPartyId].filter(Boolean)
+        if (partyIds.length > 0) {
+          const parties = await TransactionParty.query().whereIn('id', partyIds as number[])
+          for (const party of parties) {
+            if (!party.email) continue
+            await mail.send(new OfferAcceptedMail({
+              to: party.email,
+              clientName: party.fullName,
+              propertyAddress,
+              language: null,
+            }))
+          }
+        }
+      } catch (acceptMailError) {
+        logger.error({ acceptMailError, offerId: acceptedOffer.id }, 'Failed to send offer accepted email to parties — non-blocking')
+      }
+
       const acceptLang = auth.user!.language?.substring(0, 2) || 'fr'
       try {
         await NotificationService.notify({

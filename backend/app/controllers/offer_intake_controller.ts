@@ -8,6 +8,9 @@ import { OfferService } from '#services/offer_service'
 import { ActivityFeedService } from '#services/activity_feed_service'
 import { NotificationService } from '#services/notification_service'
 import { offerIntakeValidator, offerIntakeRespondValidator } from '#validators/offer_intake_validator'
+import OfferReceivedConfirmationMail from '#mails/offer_received_confirmation_mail'
+import mail from '@adonisjs/mail/services/main'
+import env from '#start/env'
 import logger from '@adonisjs/core/services/logger'
 
 export default class OfferIntakeController {
@@ -129,7 +132,20 @@ export default class OfferIntakeController {
         logger.error({ notifError }, 'Failed to notify broker of intake offer — non-blocking')
       }
 
-      // 10. Return success with offerId for Phase C negotiation tracking
+      // 10. N3: Confirmation email to the buyer
+      try {
+        const appUrl = env.get('APP_URL', 'https://app.ofra.ca')
+        const trackingUrl = `${appUrl}/offer/${params.token}?offerId=${offer.id}`
+        await mail.send(new OfferReceivedConfirmationMail({
+          to: payload.email,
+          price: payload.price,
+          trackingUrl,
+        }))
+      } catch (confirmMailError) {
+        logger.error({ confirmMailError, offerId: offer.id }, 'Failed to send offer confirmation email to buyer — non-blocking')
+      }
+
+      // 11. Return success with offerId for Phase C negotiation tracking
       return response.created({
         success: true,
         data: { message: 'Offer submitted successfully', offerId: offer.id },

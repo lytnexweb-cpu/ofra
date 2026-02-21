@@ -13,6 +13,7 @@ import { AutomationExecutorService } from '#services/automation_executor_service
 import { ConditionsEngineService } from '#services/conditions_engine_service'
 import { FintracService } from '#services/fintrac_service'
 import type { ResolutionType } from '#models/condition'
+import db from '@adonisjs/lucid/services/db'
 import logger from '@adonisjs/core/services/logger'
 import { DateTime } from 'luxon'
 
@@ -76,79 +77,97 @@ export class WorkflowEngineService {
       })
       .firstOrFail()
 
-    // Create the transaction
+    // Wrap core creation in a DB transaction for data integrity
     const autoConditionsEnabled = params.autoConditionsEnabled ?? true
-    const transaction = await Transaction.create({
-      ownerUserId: params.ownerUserId,
-      clientId: params.clientId,
-      propertyId: params.propertyId ?? null,
-      type: params.type,
-      workflowTemplateId: template.id,
-      organizationId: params.organizationId ?? null,
-      salePrice: params.salePrice ?? null,
-      listPrice: params.listPrice ?? null,
-      commission: params.commission ?? null,
-      notesText: params.notesText ?? null,
-      folderUrl: params.folderUrl ?? null,
-      autoConditionsEnabled,
-      clientRole: params.clientRole ?? null,
-    })
+    const trx = await db.transaction()
 
-    // C3c: Auto-create a TransactionParty from the primary client
-    if (params.clientRole) {
-      const client = await Client.find(params.clientId)
-      if (client) {
-        await TransactionParty.create({
-          transactionId: transaction.id,
-          role: params.clientRole,
-          fullName: `${client.firstName} ${client.lastName}`.trim(),
-          email: client.email ?? null,
-          phone: client.cellPhone ?? client.phone ?? null,
-          isPrimary: true,
-        })
+    let transaction: Transaction
+    let transactionSteps: TransactionStep[] = []
+
+    try {
+      // Create the transaction
+      transaction = await Transaction.create({
+        ownerUserId: params.ownerUserId,
+        clientId: params.clientId,
+        propertyId: params.propertyId ?? null,
+        type: params.type,
+        workflowTemplateId: template.id,
+        organizationId: params.organizationId ?? null,
+        salePrice: params.salePrice ?? null,
+        listPrice: params.listPrice ?? null,
+        commission: params.commission ?? null,
+        notesText: params.notesText ?? null,
+        folderUrl: params.folderUrl ?? null,
+        autoConditionsEnabled,
+        clientRole: params.clientRole ?? null,
+      }, { client: trx })
+
+      // C3c: Auto-create a TransactionParty from the primary client
+      if (params.clientRole) {
+        const client = await Client.find(params.clientId)
+        if (client) {
+          await TransactionParty.create({
+            transactionId: transaction.id,
+            role: params.clientRole,
+            fullName: `${client.firstName} ${client.lastName}`.trim(),
+            email: client.email ?? null,
+            phone: client.cellPhone ?? client.phone ?? null,
+            isPrimary: true,
+          }, { client: trx })
+        }
       }
+
+      // Instantiate all steps
+      for (const wfStep of template.steps) {
+        const txStep = await TransactionStep.create({
+          transactionId: transaction.id,
+          workflowStepId: wfStep.id,
+          stepOrder: wfStep.stepOrder,
+          status: 'pending',
+          enteredAt: null,
+          completedAt: null,
+        }, { client: trx })
+        transactionSteps.push(txStep)
+      }
+
+      // Activate the first step
+      if (transactionSteps.length > 0) {
+        const firstStep = transactionSteps[0]
+        firstStep.useTransaction(trx)
+        firstStep.status = 'active'
+        firstStep.enteredAt = DateTime.now()
+        await firstStep.save()
+
+        transaction.useTransaction(trx)
+        transaction.currentStepId = firstStep.id
+        await transaction.save()
+
+        // D1/D27: Create transaction profile if provided
+        if (params.profile) {
+          await TransactionProfile.create({
+            transactionId: transaction.id,
+            propertyType: params.profile.propertyType,
+            propertyContext: params.profile.propertyContext,
+            isFinanced: params.profile.isFinanced,
+            hasWell: params.profile.hasWell,
+            hasSeptic: params.profile.hasSeptic,
+            accessType: params.profile.accessType,
+            condoDocsRequired: params.profile.condoDocsRequired ?? true,
+            appraisalRequired: params.profile.appraisalRequired,
+          }, { client: trx })
+        }
+      }
+
+      await trx.commit()
+    } catch (error) {
+      await trx.rollback()
+      throw error
     }
 
-    // Instantiate all steps
-    const transactionSteps: TransactionStep[] = []
-    for (const wfStep of template.steps) {
-      const txStep = await TransactionStep.create({
-        transactionId: transaction.id,
-        workflowStepId: wfStep.id,
-        stepOrder: wfStep.stepOrder,
-        status: 'pending',
-        enteredAt: null,
-        completedAt: null,
-      })
-      transactionSteps.push(txStep)
-    }
-
-    // Activate the first step
+    // Post-commit: conditions, automations, activity logs (non-critical, can fail independently)
     if (transactionSteps.length > 0) {
       const firstStep = transactionSteps[0]
-      firstStep.status = 'active'
-      firstStep.enteredAt = DateTime.now()
-      await firstStep.save()
-
-      transaction.currentStepId = firstStep.id
-      await transaction.save()
-
       const firstWfStep = template.steps[0]
-
-      // D1/D27: Create transaction profile if provided
-      if (params.profile) {
-        await TransactionProfile.create({
-          transactionId: transaction.id,
-          propertyType: params.profile.propertyType,
-          propertyContext: params.profile.propertyContext,
-          isFinanced: params.profile.isFinanced,
-          hasWell: params.profile.hasWell,
-          hasSeptic: params.profile.hasSeptic,
-          accessType: params.profile.accessType,
-          condoDocsRequired: params.profile.condoDocsRequired ?? true,
-          appraisalRequired: params.profile.appraisalRequired,
-        })
-      }
 
       // Create conditions only if autoConditionsEnabled
       if (autoConditionsEnabled) {

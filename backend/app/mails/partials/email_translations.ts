@@ -680,6 +680,56 @@ export const emailTranslations = {
   },
 
   // ============================================
+  // OFFER COUNTER NOTIFY BUYER EMAIL (N1 — buyer gets notified of counter)
+  // ============================================
+  offerCounterBuyer: {
+    fr: {
+      subject: 'Vous avez reçu une contre-offre',
+      title: 'Contre-offre reçue',
+      intro: 'Le vendeur a répondu à votre offre avec une contre-proposition.',
+      priceLabel: 'Nouveau montant proposé',
+      revisionLabel: 'Révision #',
+      respondPrompt: 'Cliquez ci-dessous pour consulter les détails et répondre.',
+      cta: 'Voir et répondre',
+      expiryNotice: 'Répondez rapidement — les offres peuvent avoir une date d\'expiration.',
+    },
+    en: {
+      subject: 'You received a counter-offer',
+      title: 'Counter-Offer Received',
+      intro: 'The seller has responded to your offer with a counter-proposal.',
+      priceLabel: 'New proposed amount',
+      revisionLabel: 'Revision #',
+      respondPrompt: 'Click below to view the details and respond.',
+      cta: 'View & Respond',
+      expiryNotice: 'Respond quickly — offers may have an expiration date.',
+    },
+  },
+
+  // ============================================
+  // OFFER RECEIVED CONFIRMATION EMAIL (N3 — buyer gets confirmation)
+  // ============================================
+  offerReceivedConfirmation: {
+    fr: {
+      subject: 'Votre offre a bien été reçue',
+      title: 'Offre reçue',
+      intro: 'Votre offre a été soumise avec succès. Le courtier l\'examinera et vous reviendra sous peu.',
+      priceLabel: 'Montant de votre offre',
+      trackPrompt: 'Vous pouvez suivre le statut de votre offre en revisitant le lien ci-dessous.',
+      cta: 'Suivre mon offre',
+      patience: 'Vous recevrez un courriel dès qu\'une réponse sera disponible.',
+    },
+    en: {
+      subject: 'Your offer has been received',
+      title: 'Offer Received',
+      intro: 'Your offer has been submitted successfully. The broker will review it and get back to you shortly.',
+      priceLabel: 'Your offer amount',
+      trackPrompt: 'You can track the status of your offer by revisiting the link below.',
+      cta: 'Track My Offer',
+      patience: 'You will receive an email as soon as a response is available.',
+    },
+  },
+
+  // ============================================
   // OFFER REJECTED EMAIL (confirmation to broker)
   // ============================================
   offerRejected: {

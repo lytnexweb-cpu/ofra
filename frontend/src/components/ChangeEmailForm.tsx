@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { profileApi } from '../api/profile.api'
 
@@ -8,6 +9,7 @@ interface ChangeEmailFormProps {
 }
 
 export default function ChangeEmailForm({ currentEmail, onSuccess }: ChangeEmailFormProps) {
+  const { t } = useTranslation()
   const [email, setEmail] = useState(currentEmail)
   const [currentPassword, setCurrentPassword] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
@@ -25,12 +27,12 @@ export default function ChangeEmailForm({ currentEmail, onSuccess }: ChangeEmail
         queryClient.invalidateQueries({ queryKey: ['auth', 'me'] })
         onSuccess?.()
       } else {
-        setErrorMessage(response.error?.message || 'Failed to update email')
+        setErrorMessage(response.error?.message || t('account.security.emailUpdateFailed'))
         setSuccessMessage('')
       }
     },
     onError: () => {
-      setErrorMessage('Network error. Please check your connection and try again.')
+      setErrorMessage(t('account.security.emailNetworkError'))
       setSuccessMessage('')
     },
   })
@@ -42,12 +44,12 @@ export default function ChangeEmailForm({ currentEmail, onSuccess }: ChangeEmail
 
     // Client-side validation
     if (email === currentEmail) {
-      setErrorMessage('New email is the same as current email')
+      setErrorMessage(t('account.security.emailSameAsCurrent'))
       return
     }
 
     if (!email.includes('@')) {
-      setErrorMessage('Please enter a valid email address')
+      setErrorMessage(t('account.security.emailInvalid'))
       return
     }
 
@@ -59,7 +61,7 @@ export default function ChangeEmailForm({ currentEmail, onSuccess }: ChangeEmail
 
   return (
     <div className="bg-white shadow rounded-lg p-6">
-      <h2 className="text-xl font-semibold text-stone-900 mb-4">Change Email</h2>
+      <h2 className="text-xl font-semibold text-stone-900 mb-4">{t('account.security.changeEmail')}</h2>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Success Message */}
@@ -78,7 +80,7 @@ export default function ChangeEmailForm({ currentEmail, onSuccess }: ChangeEmail
 
         {/* Current Email (read-only) */}
         <div>
-          <label className="block text-sm font-medium text-stone-700 mb-1">Current Email</label>
+          <label className="block text-sm font-medium text-stone-700 mb-1">{t('account.security.currentEmail')}</label>
           <input
             type="email"
             value={currentEmail}
@@ -90,7 +92,7 @@ export default function ChangeEmailForm({ currentEmail, onSuccess }: ChangeEmail
         {/* New Email */}
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-stone-700 mb-1">
-            New Email
+            {t('account.security.newEmail')}
           </label>
           <input
             type="email"
@@ -106,7 +108,7 @@ export default function ChangeEmailForm({ currentEmail, onSuccess }: ChangeEmail
         {/* Current Password (for security) */}
         <div>
           <label htmlFor="currentPassword" className="block text-sm font-medium text-stone-700 mb-1">
-            Current Password
+            {t('account.security.currentPassword')}
           </label>
           <input
             type="password"
@@ -117,7 +119,7 @@ export default function ChangeEmailForm({ currentEmail, onSuccess }: ChangeEmail
             className="w-full px-3 py-2 border border-stone-300 rounded-md bg-white text-stone-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             disabled={updateProfileMutation.isPending}
           />
-          <p className="mt-1 text-sm text-stone-500">Required to confirm your identity</p>
+          <p className="mt-1 text-sm text-stone-500">{t('account.security.passwordRequired')}</p>
         </div>
 
         {/* Submit Button */}
@@ -127,7 +129,7 @@ export default function ChangeEmailForm({ currentEmail, onSuccess }: ChangeEmail
             disabled={updateProfileMutation.isPending}
             className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {updateProfileMutation.isPending ? 'Updating Email...' : 'Update Email'}
+            {updateProfileMutation.isPending ? t('account.security.updatingEmail') : t('account.security.updateEmail')}
           </button>
         </div>
       </form>

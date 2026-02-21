@@ -16,6 +16,7 @@ export default class PlansSeeder extends BaseSeeder {
         historyMonths: 6,
         isActive: true,
         displayOrder: 1,
+        stripeProductId: 'prod_U0nzgOHTpKkTuI',
       },
       {
         name: 'Solo',
@@ -28,6 +29,7 @@ export default class PlansSeeder extends BaseSeeder {
         historyMonths: 12,
         isActive: true,
         displayOrder: 2,
+        stripeProductId: 'prod_U0o1XglrKTiuuM',
       },
       {
         name: 'Pro',
@@ -40,6 +42,7 @@ export default class PlansSeeder extends BaseSeeder {
         historyMonths: null, // Unlimited
         isActive: true,
         displayOrder: 3,
+        stripeProductId: 'prod_U0o3F50F1f7EVt',
       },
       {
         name: 'Agence',
@@ -52,6 +55,7 @@ export default class PlansSeeder extends BaseSeeder {
         historyMonths: null, // Unlimited
         isActive: true,
         displayOrder: 4,
+        stripeProductId: 'prod_U0o4ROblNydtKY',
       },
     ])
   }
