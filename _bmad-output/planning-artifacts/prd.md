@@ -26,11 +26,12 @@ supersedes:
 > Dernière mise à jour : 2026-02-21 (v2.33)
 > Auteur : Sam + Équipe BMAD (Party Mode)
 >
-> **Version actuelle — v2.33 (2026-02-21) :**
+> **Version actuelle — v2.34 (2026-02-21) :**
+> - §9.2.4 ENRICHI : Cockpit adaptatif acheteur — 6 vues par workflowStep, CTA unique par écran, redirection post-onboarding vers TX
 > - §L.5 Refonte onboarding agent (3 étapes action → profil + import FollowUpBoss + 1ère TX) — validé
 > - §9.2.2 Scénario acheteur (7 étapes dans Ofra) — validé
 > - §9.2.3 Scénario vendeur (9 étapes, invitations, BidRound, acceptation cascade) — validé
-> - §9.2.4 Refonte page transaction (page adaptative par workflowStep, S0 avant S1) — validé
+> - §9.2.4 Refonte page transaction (page adaptative par workflowStep, S0 avant S1) — validé + cockpit acheteur détaillé
 > - §9.2.5 Conditions enrichies + outils post-offre (P0→P3) — validé
 > - §9.2.6 Architecture technique commune (PDF, eSign, sécurité, modèles DB)
 > - §9.2.7 Sprint plan unifié S0→S8 (~18-22 jours)
@@ -1361,6 +1362,139 @@ Au lieu d'onglets fixes, la page montre **ce qui est pertinent maintenant** selo
 - Responsive mobile (le courtier est souvent sur son cell)
 
 **Ce qui n'est PAS dans S0 :** Aucune nouvelle feature — juste la structure qui les accueillera.
+
+##### 9.2.4.1 Cockpit Acheteur — Vues détaillées par workflowStep (validé 2026-02-21, Party Mode)
+
+> **Principe UX :** Chaque écran a UN call-to-action principal. Le courtier ne doit JAMAIS se demander "qu'est-ce que je clique ?". La réponse est toujours évidente. Un courtier de 55 ans au NB doit comprendre en 2 secondes.
+>
+> **Décision validée :** Après l'onboarding, le courtier est redirigé vers `/transactions/:id` (la TX fraîchement créée), PAS vers le Dashboard. Il atterrit directement sur le cockpit `consultation`.
+
+**Architecture composant :**
+
+```tsx
+// Le type de la TX détermine quel cockpit
+function TxCockpit({ transaction }) {
+  if (transaction.type === 'purchase') return <BuyerCockpit transaction={transaction} />
+  return <SellerCockpit transaction={transaction} />
+}
+
+// Switch par workflowStep pour l'acheteur
+function BuyerCockpit({ transaction }) {
+  switch (transaction.currentStep?.slug) {
+    case 'consultation':       return <ConsultationView />
+    case 'offer-submitted':    return <OfferSubmittedView />
+    case 'offer-accepted':     return <OfferAcceptedView />
+    case 'conditional-period': return <ConditionalPeriodView />
+    case 'firm-pending':
+    case 'pre-closing':
+    case 'closing-day':        return <ClosingView />
+    case 'post-closing':       return <PostClosingView />
+  }
+}
+```
+
+**Vue 1 — `consultation` : "Préparez votre offre"**
+
+Première chose vue après l'onboarding. Doit être limpide.
+
+| Zone | Contenu |
+|------|---------|
+| Message principal | "Votre dossier est prêt. Quand vous serez prêt à soumettre une offre pour [Client], cliquez ci-dessous. Ofra pré-remplira le formulaire NBREA." |
+| CTA principal | **"Préparer une offre"** (gros bouton proéminent) |
+| Profil propriété | Carte résumé : type, contexte, financement, tags (existant PropertyProfileCard, modifiable) |
+| Conditions recommandées | Pack suggestions : "Ofra suggère 4 conditions pour ce type : Inspection, Financement, Titre clair, Assurance" + lien "Voir le pack" |
+
+**Vue 2 — `offer-submitted` : "En attente de réponse"**
+
+| Zone | Contenu |
+|------|---------|
+| Statut | Barre/carte : offre envoyée à [Destinataire], prix offert vs demandé (écart %), timer expiration avec barre de progression |
+| CTA | "Voir le PDF" + "Retirer l'offre" (secondaire) |
+| Message | "Pas encore de réponse. Ofra vous notifiera dès que [Destinataire] répond." |
+| Si contre-offre reçue | Bascule en mode négociation : NegotiationThread visible (R1, R2...), écart actuel en $, 3 boutons : "Accepter [montant]" / "Contre-offre" / "Refuser" |
+
+**Vue 3 — `offer-accepted` : "Offre acceptée !"**
+
+| Zone | Contenu |
+|------|---------|
+| Célébration | Animation checkmark 3 sec, prix final + date clôture |
+| Résumé auto | "Ofra a automatiquement : activé vos conditions, calculé les deadlines, préparé votre checklist" |
+| CTA principal | **"Voir mes conditions"** → transition vers conditional-period |
+
+**Vue 4 — `conditional-period` : "Vos conditions" (coeur d'Ofra)**
+
+| Zone | Contenu |
+|------|---------|
+| Header | "Période conditionnelle — X/Y conditions actives. Prochaine deadline : [condition] dans N jours" |
+| Cartes conditions | Chaque condition = mini-dossier : barre countdown colorée (rouge < 48h, jaune < 7j, vert > 7j), partie tierce assignée, boutons "Relancer" / "Uploader document" / "Lever la condition" |
+| Conditions levées | Affichées en vert avec checkmark, parties tierces et date de résolution |
+
+**Vue 5 — `firm-pending` → `closing-day` : "Checklist closing"**
+
+| Zone | Contenu |
+|------|---------|
+| Countdown | Compte à rebours vers la date de clôture |
+| Checklist | Items restants (notaire assigné, documents finaux, rendez-vous confirmé) |
+| CTA | Action sur l'item le plus urgent |
+
+**Vue 6 — `post-closing` : "Dossier complété"**
+
+| Zone | Contenu |
+|------|---------|
+| Résumé final | Prix, dates, parties impliquées |
+| Commission | Suivi si applicable |
+| CTA | "Archiver" / "Voir l'historique complet" |
+
+**Parcours émotionnel du courtier acheteur (guide UX) :**
+
+| Moment | Émotion | Réponse Ofra |
+|--------|---------|-------------|
+| Sort de l'onboarding | "Et maintenant ?" | Redirige vers la TX, montre la prochaine action |
+| Prépare l'offre | "Je veux pas me tromper" | Guide pas-à-pas, preview PDF, confiance |
+| Attend la réponse | Anxiété | Timer visible, notification instantanée |
+| Négocie | "Est-ce raisonnable ?" | Historique clair, écart en % |
+| Offre acceptée | Excitation | Célébrer + lister les conditions auto |
+| Période conditions | "L'inspecteur a-t-il rappelé ?" | Countdown par condition, bouton relancer |
+| Closing | "Est-ce que tout est prêt ?" | Checklist, zéro surprise |
+
+**Scope S0 pour le cockpit acheteur :**
+- `ConsultationView` codé complètement (c'est le premier écran post-onboarding)
+- Autres vues = placeholders "Cette section arrive bientôt" jusqu'aux sprints S1-S8
+- Composants existants réutilisés à l'intérieur (OffersPanel, ConditionCard, NegotiationThread)
+- TransactionHeader décomposé : modales extraites, header compact ~150 lignes
+
+##### 9.2.4.2 Inventaire Maquettes Acheteur — 11 écrans (validé 2026-02-21, Party Mode)
+
+> **Workflow maquettes :** Chaque maquette est produite une à la fois, dans l'ordre ci-dessous. Sam valide chaque écran avant de passer au suivant. Si débat → on ajuste → re-validation → prochaine maquette. Aucune maquette n'est skippée.
+>
+> **Format :** Maquettes HTML statiques dans `maquettes/` — une page par écran.
+
+**Inventaire complet :**
+
+| # | Code | Écran | workflowStep | Sous-état | Sprint | Priorité |
+|---|------|-------|-------------|-----------|--------|----------|
+| 1 | A1 | Consultation — dossier prêt | `consultation` | Premier écran post-onboarding | S0 | P0 |
+| 2 | A2 | Offre envoyée — en attente | `offer-submitted` | Aucune réponse, timer expiration | S1 | P1 |
+| 3 | A3 | Contre-offre reçue — négo | `offer-submitted` | Contre-offre R2, 3 boutons réponse | S1 | P1 |
+| 4 | A4 | Négociation avancée | `offer-submitted` | R3+ plusieurs allers-retours | S4 | P2 |
+| 5 | A5 | Offre acceptée — célébration | `offer-accepted` | Animation succès transitoire 3 sec | S1 | P1 |
+| 6 | A6 | Conditions — début période | `conditional-period` | Toutes actives, rien levé, countdowns pleins | S7 | P1 |
+| 7 | A7 | Conditions — en cours | `conditional-period` | Mix levées/actives/urgentes (rouge < 48h) | S7 | P1 |
+| 8 | A8 | Conditions — tout levé | `conditional-period` | Toutes levées, transition vers firm | S7 | P2 |
+| 9 | A9 | Pré-closing / checklist | `firm-pending` | Checklist items + countdown clôture | S8 | P2 |
+| 10 | A10 | Closing day | `closing-day` | Checklist jour J, confirmation RDV | S8 | P2 |
+| 11 | A11 | Post-closing — complété | `post-closing` | Résumé final, commission, archiver | S8 | P2 |
+
+**Ordre de production des maquettes :**
+
+```
+A1 → valide → A2 → valide → A3 → valide → A5 → valide → A6 → valide → A7 → valide
+→ A4 → valide → A8 → valide → A9 → valide → A10 → valide → A11 → valide → DONE
+```
+
+*(A4, A8-A11 sont P2 — faits après le coeur du flow)*
+
+**Note :** Le SellerCockpit (maquettes V1-V??) sera inventorié séparément après validation du buyer.
 
 ---
 
