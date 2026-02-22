@@ -1,10 +1,5 @@
 import { http } from './http'
 
-// D40: Onboarding profile types
-export type PracticeType = 'solo' | 'small_team' | 'agency'
-export type PropertyContext = 'urban_suburban' | 'rural' | 'condo' | 'land'
-export type AnnualVolume = 'beginner' | 'established' | 'high'
-
 // User roles
 export type UserRole = 'user' | 'admin' | 'superadmin'
 
@@ -21,23 +16,17 @@ export interface User {
   dateFormat: string
   timezone: string
   role?: UserRole
-  // D40: Onboarding profile
   onboardingCompleted?: boolean
   onboardingSkipped?: boolean
-  practiceType?: PracticeType | null
-  propertyContexts?: PropertyContext[]
-  annualVolume?: AnnualVolume | null
-  preferAutoConditions?: boolean
 }
 
-// D40: Onboarding request
+// Onboarding request (3-step action onboarding)
 export interface OnboardingRequest {
   language: 'fr' | 'en'
-  practiceType: PracticeType
-  propertyContexts: PropertyContext[]
-  annualVolume: AnnualVolume
-  preferAutoConditions: boolean
-  skipped?: boolean
+  fullName?: string
+  phone?: string
+  agency: string
+  licenseNumber: string
 }
 
 export interface LoginRequest {
@@ -50,11 +39,6 @@ export interface RegisterRequest {
   email: string
   password: string
   phone?: string
-  address?: string
-  city?: string
-  provinceCode?: string
-  agency?: string
-  licenseNumber?: string
   preferredLanguage?: 'fr' | 'en'
 }
 

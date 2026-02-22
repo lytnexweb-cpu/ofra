@@ -18,6 +18,8 @@ interface SubscribeModalProps {
   isFounder: boolean
   /** 'new' = first subscription, 'change' = upgrade/downgrade */
   mode: 'new' | 'change'
+  /** Optional callback after successful subscription (e.g. redirect) */
+  onSuccess?: () => void
 }
 
 function PaymentForm({
@@ -193,7 +195,7 @@ function PaymentForm({
 
 export default function SubscribeModal(props: SubscribeModalProps) {
   const { t } = useTranslation()
-  const { open, onOpenChange, ...formProps } = props
+  const { open, onOpenChange, onSuccess, ...formProps } = props
 
   if (!stripePromise) {
     return (
@@ -220,7 +222,7 @@ export default function SubscribeModal(props: SubscribeModalProps) {
           </DialogDescription>
         </DialogHeader>
         <Elements stripe={stripePromise}>
-          <PaymentForm {...formProps} onSuccess={() => onOpenChange(false)} />
+          <PaymentForm {...formProps} onSuccess={onSuccess ?? (() => onOpenChange(false))} />
         </Elements>
       </DialogContent>
     </Dialog>

@@ -41,28 +41,14 @@ export const updateProfileInfoValidator = vine.compile(
 )
 
 /**
- * D40: Validator for onboarding profile
+ * Validator for onboarding profile (3-step action onboarding)
  */
 export const onboardingValidator = vine.compile(
   vine.object({
-    // Language preference (persists to account)
     language: vine.enum(['fr', 'en']),
-
-    // Q1: Practice type
-    practiceType: vine.enum(['solo', 'small_team', 'agency']),
-
-    // Q2: Property contexts (multi-select)
-    propertyContexts: vine
-      .array(vine.enum(['urban_suburban', 'rural', 'condo', 'land']))
-      .minLength(1),
-
-    // Q3: Annual volume
-    annualVolume: vine.enum(['beginner', 'established', 'high']),
-
-    // Q4: Preference for auto conditions (D39)
-    preferAutoConditions: vine.boolean(),
-
-    // Optional: track if user skipped (partial completion)
-    skipped: vine.boolean().optional(),
+    fullName: vine.string().trim().optional(),
+    phone: vine.string().trim().optional(),
+    agency: vine.string().trim().minLength(1),
+    licenseNumber: vine.string().trim().minLength(1),
   })
 )

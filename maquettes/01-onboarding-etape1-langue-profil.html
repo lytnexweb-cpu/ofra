@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>M01 — Onboarding Étape 1/3 : Langue + Profil courtier</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  /* ═══ OFRA DESIGN TOKENS ═══ */
+  :root {
+    --background: #F8FAFC;
+    --foreground: #0F172A;
+    --card: #FFFFFF;
+    --card-foreground: #0F172A;
+    --primary: #1E3A5F;
+    --primary-foreground: #F8FAFC;
+    --primary-hover: #162d4a;
+    --secondary: #F1F5F9;
+    --muted: #F1F5F9;
+    --muted-foreground: #64748B;
+    --accent: #F59E0B;
+    --accent-gold: #D97706;
+    --border: #E2E8F0;
+    --input: #E2E8F0;
+    --ring: #1E3A5F;
+    --success: #10B981;
+    --destructive: #EF4444;
+    --radius: 12px;
+    --radius-md: 8px;
+    --radius-xl: 16px;
+    --shadow-sm: 0 1px 2px 0 rgba(0,0,0,.05);
+    --shadow-card: 0 1px 3px 0 rgba(0,0,0,.1), 0 1px 2px -1px rgba(0,0,0,.1);
+  }
+
+  body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background: var(--background); color: var(--foreground); -webkit-font-smoothing: antialiased; }
+
+  /* ═══ VIEWPORT SWITCHER ═══ */
+  .viewport-tabs { display: flex; gap: 0; background: var(--foreground); padding: 0 24px; position: sticky; top: 0; z-index: 100; }
+  .viewport-tab { padding: 12px 24px; font-size: 13px; font-weight: 600; color: var(--muted-foreground); cursor: pointer; border-bottom: 2px solid transparent; transition: all .15s; }
+  .viewport-tab:hover { color: #fff; }
+  .viewport-tab.active { color: #fff; border-bottom-color: var(--accent); }
+  .viewport-tab .size { font-weight: 400; font-size: 11px; opacity: .6; margin-left: 6px; }
+
+  .frame-container { display: flex; justify-content: center; padding: 32px 24px; min-height: calc(100vh - 44px); background: #E2E8F0; }
+  .device-frame { background: var(--card); border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,.12), 0 0 0 1px rgba(0,0,0,.06); overflow: hidden; }
+  .device-frame.desktop { width: 1080px; }
+  .device-frame.tablet { width: 768px; }
+  .device-frame.mobile { width: 375px; }
+  .viewport { display: none; }
+  .viewport.active { display: block; }
+
+  /* ═══ ONBOARDING SHELL ═══ */
+  .ob-shell { min-height: 700px; display: flex; flex-direction: column; background: var(--background); }
+
+  /* ── Topbar ── */
+  .ob-topbar { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; background: var(--card); border-bottom: 1px solid var(--border); }
+  .ob-logo { display: flex; align-items: center; gap: 10px; }
+  .ob-logo svg { width: 36px; height: 36px; }
+  .ob-logo-text { font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 22px; letter-spacing: -0.02em; color: var(--primary); }
+  .ob-skip { font-size: 13px; color: var(--muted-foreground); cursor: pointer; font-weight: 500; transition: color .15s; }
+  .ob-skip:hover { color: var(--foreground); }
+
+  /* ── Progress ── */
+  .ob-progress { padding: 0 24px 16px; background: var(--card); }
+  .ob-progress-track { height: 6px; background: var(--muted); border-radius: 100px; overflow: hidden; }
+  .ob-progress-fill { height: 100%; background: var(--primary); border-radius: 100px; width: 33.3%; transition: width .3s ease; }
+  .ob-progress-meta { display: flex; justify-content: space-between; margin-top: 8px; font-size: 11px; color: var(--muted-foreground); font-weight: 500; }
+  .ob-progress-meta .step { color: var(--primary); font-weight: 600; }
+
+  /* ── Content ── */
+  .ob-content { flex: 1; display: flex; justify-content: center; padding: 40px 24px; }
+  .ob-card { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow-sm); width: 100%; padding: 32px; }
+  .ob-card.w-desktop { max-width: 780px; }
+  .ob-card.w-tablet { max-width: 620px; }
+  .ob-card.w-mobile { max-width: 100%; padding: 24px 20px; }
+
+  /* ── Header ── */
+  .ob-header { margin-bottom: 28px; }
+  .ob-badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 12px; border-radius: 100px; background: rgba(30,58,95,.08); color: var(--primary); font-size: 12px; font-weight: 600; margin-bottom: 14px; }
+  .ob-badge svg { width: 14px; height: 14px; }
+  .ob-title { font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 24px; color: var(--foreground); margin-bottom: 6px; line-height: 1.2; }
+  .ob-subtitle { font-size: 14px; color: var(--muted-foreground); line-height: 1.6; }
+  .w-mobile .ob-title { font-size: 20px; }
+  .w-mobile .ob-subtitle { font-size: 13px; }
+
+  /* ── Language cards ── */
+  .lang-section { margin-bottom: 28px; }
+  .section-label { font-size: 12px; font-weight: 600; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 10px; }
+  .lang-row { display: flex; gap: 12px; }
+  .lang-card { flex: 1; display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: var(--radius-xl); border: 2px solid var(--border); cursor: pointer; transition: all .15s; }
+  .lang-card:hover { border-color: rgba(30,58,95,.4); }
+  .lang-card.on { border-color: var(--primary); background: rgba(30,58,95,.04); }
+  .lang-flag { font-size: 26px; line-height: 1; }
+  .lang-info .name { font-size: 14px; font-weight: 600; color: var(--foreground); }
+  .lang-info .sub { font-size: 11px; color: var(--muted-foreground); }
+  .lang-radio { margin-left: auto; width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; transition: all .15s; flex-shrink: 0; }
+  .lang-card.on .lang-radio { background: var(--primary); border-color: var(--primary); }
+  .lang-card.on .lang-radio svg { display: block; }
+  .lang-radio svg { display: none; width: 13px; height: 13px; color: #fff; }
+
+  /* ── Divider ── */
+  .ob-divider { height: 1px; background: var(--border); margin: 4px 0 24px; }
+
+  /* ── Form ── */
+  .form-title { font-size: 12px; font-weight: 600; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 16px; }
+  .form-grid { display: grid; gap: 18px; }
+  .form-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+  .form-grid.cols-1 { grid-template-columns: 1fr; }
+  .form-group label { display: block; font-size: 13px; font-weight: 500; color: #334155; margin-bottom: 6px; }
+  .form-group label .req { color: var(--destructive); margin-left: 2px; }
+  .form-group input { display: block; width: 100%; height: 40px; padding: 0 14px; border-radius: var(--radius-md); border: 1px solid var(--input); font-size: 14px; font-family: inherit; color: var(--foreground); background: var(--card); outline: none; transition: all .15s; }
+  .form-group input::placeholder { color: #94A3B8; }
+  .form-group input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(30,58,95,.1); }
+  .form-group input.prefilled { background: var(--secondary); color: #475569; }
+  .form-hint { font-size: 11px; color: var(--muted-foreground); margin-top: 4px; line-height: 1.4; }
+  .form-hint.ok { color: var(--success); display: flex; align-items: center; gap: 4px; }
+  .form-hint.ok svg { width: 13px; height: 13px; flex-shrink: 0; }
+  .w-mobile .form-group input { height: 44px; font-size: 16px; }
+
+  /* ── Info banner ── */
+  .info-box { display: flex; align-items: flex-start; gap: 10px; padding: 12px 16px; background: rgba(30,58,95,.05); border: 1px solid rgba(30,58,95,.12); border-radius: var(--radius-md); margin-bottom: 20px; }
+  .info-box svg { width: 16px; height: 16px; color: var(--primary); flex-shrink: 0; margin-top: 1px; }
+  .info-box p { font-size: 12px; color: #475569; line-height: 1.5; }
+
+  /* ── Footer ── */
+  .ob-footer { display: flex; justify-content: flex-end; padding: 20px 24px; background: var(--card); border-top: 1px solid var(--border); }
+  .ob-footer.stick { position: sticky; bottom: 0; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 24px; border-radius: var(--radius-md); font-size: 14px; font-weight: 600; cursor: pointer; border: none; font-family: inherit; transition: all .15s; }
+  .btn:active { transform: scale(.97); }
+  .btn-primary { background: var(--primary); color: var(--primary-foreground); }
+  .btn-primary:hover { background: var(--primary-hover); }
+  .btn-primary svg { width: 16px; height: 16px; }
+  .btn.full { width: 100%; }
+
+  @media (min-width: 640px) {
+    .btn { height: 40px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══ Viewport switcher ═══ -->
+<div class="viewport-tabs">
+  <div class="viewport-tab active" onclick="switchVP('desktop')">Desktop <span class="size">1080px</span></div>
+  <div class="viewport-tab" onclick="switchVP('tablet')">Tablette <span class="size">768px</span></div>
+  <div class="viewport-tab" onclick="switchVP('mobile')">Mobile <span class="size">375px</span></div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     DESKTOP — 1080px
+     ═══════════════════════════════════════ -->
+<div class="viewport active" id="vp-desktop">
+<div class="frame-container">
+<div class="device-frame desktop">
+<div class="ob-shell">
+
+  <!-- Topbar -->
+  <div class="ob-topbar">
+    <div class="ob-logo">
+      <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M24 8L8 22V40H40V22L24 8Z" fill="#1E3A5F"/>
+        <path d="M24 4L2 22L8 22L24 8L40 22L46 22L24 4Z" fill="#D97706"/>
+        <circle cx="24" cy="28" r="6" fill="#FAFAF9"/>
+      </svg>
+      <span class="ob-logo-text">Ofra</span>
+    </div>
+    <span class="ob-skip">Passer pour le moment &rarr;</span>
+  </div>
+
+  <!-- Progress -->
+  <div class="ob-progress">
+    <div class="ob-progress-track"><div class="ob-progress-fill"></div></div>
+    <div class="ob-progress-meta">
+      <span class="step">&Eacute;tape 1 sur 3 &mdash; Votre profil</span>
+      <span>33%</span>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="ob-content">
+    <div class="ob-card w-desktop">
+
+      <div class="ob-header">
+        <div class="ob-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          &Eacute;tape 1
+        </div>
+        <h1 class="ob-title">Bienvenue! Configurons votre profil.</h1>
+        <p class="ob-subtitle">Ces informations appara&icirc;tront sur vos offres, documents PDF et courriels professionnels.</p>
+      </div>
+
+      <!-- Language -->
+      <div class="lang-section">
+        <div class="section-label">Langue de l'application</div>
+        <div class="lang-row">
+          <div class="lang-card on" onclick="pickLang(this)">
+            <span class="lang-flag">&#127467;&#127479;</span>
+            <div class="lang-info"><span class="name">Fran&ccedil;ais</span><span class="sub">French</span></div>
+            <div class="lang-radio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          </div>
+          <div class="lang-card" onclick="pickLang(this)">
+            <span class="lang-flag">&#127468;&#127463;</span>
+            <div class="lang-info"><span class="name">English</span><span class="sub">Anglais</span></div>
+            <div class="lang-radio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ob-divider"></div>
+
+      <!-- Profile form -->
+      <div class="form-title">Informations professionnelles</div>
+
+      <div class="info-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <p>Votre nom et t&eacute;l&eacute;phone ont &eacute;t&eacute; r&eacute;cup&eacute;r&eacute;s de votre inscription. Vous pouvez les modifier ici.</p>
+      </div>
+
+      <div class="form-grid cols-2">
+        <div class="form-group">
+          <label>Nom complet <span class="req">*</span></label>
+          <input class="prefilled" type="text" value="Marc Leblanc" />
+          <span class="form-hint ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> R&eacute;cup&eacute;r&eacute; de l'inscription</span>
+        </div>
+        <div class="form-group">
+          <label>T&eacute;l&eacute;phone <span class="req">*</span></label>
+          <input class="prefilled" type="tel" value="506-555-1234" />
+          <span class="form-hint ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> R&eacute;cup&eacute;r&eacute; de l'inscription</span>
+        </div>
+        <div class="form-group">
+          <label>Nom de l'agence <span class="req">*</span></label>
+          <input type="text" placeholder="Ex: RE/MAX Moncton" />
+          <span class="form-hint">Appara&icirc;tra sur vos offres et courriels</span>
+        </div>
+        <div class="form-group">
+          <label>Num&eacute;ro de permis <span class="req">*</span></label>
+          <input type="text" placeholder="Ex: NB-2024-1234" />
+          <span class="form-hint">Permis NBREC &mdash; requis sur les PDF NBREA</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="ob-footer">
+    <button class="btn btn-primary">
+      Suivant &mdash; Importer mes clients
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+  </div>
+
+</div>
+</div>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     TABLET — 768px
+     ═══════════════════════════════════════ -->
+<div class="viewport" id="vp-tablet">
+<div class="frame-container">
+<div class="device-frame tablet">
+<div class="ob-shell">
+
+  <div class="ob-topbar">
+    <div class="ob-logo">
+      <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:32px;height:32px;">
+        <path d="M24 8L8 22V40H40V22L24 8Z" fill="#1E3A5F"/>
+        <path d="M24 4L2 22L8 22L24 8L40 22L46 22L24 4Z" fill="#D97706"/>
+        <circle cx="24" cy="28" r="6" fill="#FAFAF9"/>
+      </svg>
+      <span class="ob-logo-text">Ofra</span>
+    </div>
+    <span class="ob-skip">Passer &rarr;</span>
+  </div>
+
+  <div class="ob-progress">
+    <div class="ob-progress-track"><div class="ob-progress-fill"></div></div>
+    <div class="ob-progress-meta">
+      <span class="step">&Eacute;tape 1/3 &mdash; Votre profil</span>
+      <span>33%</span>
+    </div>
+  </div>
+
+  <div class="ob-content" style="padding:28px 20px;">
+    <div class="ob-card w-tablet">
+
+      <div class="ob-header">
+        <div class="ob-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          &Eacute;tape 1
+        </div>
+        <h1 class="ob-title">Bienvenue! Configurons votre profil.</h1>
+        <p class="ob-subtitle">Ces informations appara&icirc;tront sur vos offres, PDF et courriels.</p>
+      </div>
+
+      <div class="lang-section">
+        <div class="section-label">Langue</div>
+        <div class="lang-row">
+          <div class="lang-card on" onclick="pickLang(this)">
+            <span class="lang-flag">&#127467;&#127479;</span>
+            <div class="lang-info"><span class="name">Fran&ccedil;ais</span><span class="sub">French</span></div>
+            <div class="lang-radio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          </div>
+          <div class="lang-card" onclick="pickLang(this)">
+            <span class="lang-flag">&#127468;&#127463;</span>
+            <div class="lang-info"><span class="name">English</span><span class="sub">Anglais</span></div>
+            <div class="lang-radio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ob-divider"></div>
+
+      <div class="form-title">Informations professionnelles</div>
+
+      <div class="info-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <p>Nom et t&eacute;l&eacute;phone r&eacute;cup&eacute;r&eacute;s de votre inscription.</p>
+      </div>
+
+      <div class="form-grid cols-2">
+        <div class="form-group">
+          <label>Nom complet <span class="req">*</span></label>
+          <input class="prefilled" type="text" value="Marc Leblanc" />
+          <span class="form-hint ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Inscription</span>
+        </div>
+        <div class="form-group">
+          <label>T&eacute;l&eacute;phone <span class="req">*</span></label>
+          <input class="prefilled" type="tel" value="506-555-1234" />
+          <span class="form-hint ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Inscription</span>
+        </div>
+        <div class="form-group">
+          <label>Agence <span class="req">*</span></label>
+          <input type="text" placeholder="Ex: RE/MAX Moncton" />
+          <span class="form-hint">Sur vos offres et courriels</span>
+        </div>
+        <div class="form-group">
+          <label>No. permis <span class="req">*</span></label>
+          <input type="text" placeholder="Ex: NB-2024-1234" />
+          <span class="form-hint">Requis sur les PDF NBREA</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="ob-footer">
+    <button class="btn btn-primary">
+      Suivant &mdash; Importer mes clients
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+  </div>
+
+</div>
+</div>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     MOBILE — 375px
+     ═══════════════════════════════════════ -->
+<div class="viewport" id="vp-mobile">
+<div class="frame-container">
+<div class="device-frame mobile">
+<div class="ob-shell">
+
+  <div class="ob-topbar" style="padding:12px 16px;">
+    <div class="ob-logo">
+      <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:28px;height:28px;">
+        <path d="M24 8L8 22V40H40V22L24 8Z" fill="#1E3A5F"/>
+        <path d="M24 4L2 22L8 22L24 8L40 22L46 22L24 4Z" fill="#D97706"/>
+        <circle cx="24" cy="28" r="6" fill="#FAFAF9"/>
+      </svg>
+      <span class="ob-logo-text" style="font-size:18px;">Ofra</span>
+    </div>
+    <span class="ob-skip" style="font-size:12px;">Passer &rarr;</span>
+  </div>
+
+  <div class="ob-progress" style="padding:0 16px 12px;">
+    <div class="ob-progress-track"><div class="ob-progress-fill"></div></div>
+    <div class="ob-progress-meta">
+      <span class="step">1/3 &mdash; Profil</span>
+      <span>33%</span>
+    </div>
+  </div>
+
+  <div class="ob-content" style="padding:16px;">
+    <div class="ob-card w-mobile">
+
+      <div class="ob-header" style="margin-bottom:20px;">
+        <div class="ob-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          &Eacute;tape 1
+        </div>
+        <h1 class="ob-title">Configurons votre profil</h1>
+        <p class="ob-subtitle">Infos pour vos offres et documents PDF.</p>
+      </div>
+
+      <div class="lang-section" style="margin-bottom:20px;">
+        <div class="section-label">Langue</div>
+        <div class="lang-row" style="gap:8px;">
+          <div class="lang-card on" onclick="pickLang(this)" style="padding:12px;">
+            <span class="lang-flag" style="font-size:22px;">&#127467;&#127479;</span>
+            <div class="lang-info"><span class="name" style="font-size:13px;">Fran&ccedil;ais</span></div>
+            <div class="lang-radio" style="width:20px;height:20px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          </div>
+          <div class="lang-card" onclick="pickLang(this)" style="padding:12px;">
+            <span class="lang-flag" style="font-size:22px;">&#127468;&#127463;</span>
+            <div class="lang-info"><span class="name" style="font-size:13px;">English</span></div>
+            <div class="lang-radio" style="width:20px;height:20px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ob-divider"></div>
+
+      <div class="form-title" style="font-size:11px;">Profil courtier</div>
+
+      <div class="form-grid cols-1" style="gap:14px;">
+        <div class="form-group">
+          <label style="font-size:12px;">Nom complet <span class="req">*</span></label>
+          <input class="prefilled" type="text" value="Marc Leblanc" />
+          <span class="form-hint ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Inscription</span>
+        </div>
+        <div class="form-group">
+          <label style="font-size:12px;">T&eacute;l&eacute;phone <span class="req">*</span></label>
+          <input class="prefilled" type="tel" value="506-555-1234" />
+          <span class="form-hint ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Inscription</span>
+        </div>
+        <div class="form-group">
+          <label style="font-size:12px;">Agence <span class="req">*</span></label>
+          <input type="text" placeholder="Ex: RE/MAX Moncton" />
+          <span class="form-hint">Sur vos offres et courriels</span>
+        </div>
+        <div class="form-group">
+          <label style="font-size:12px;">No. permis NBREC <span class="req">*</span></label>
+          <input type="text" placeholder="Ex: NB-2024-1234" />
+          <span class="form-hint">Requis sur les PDF NBREA</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="ob-footer stick">
+    <button class="btn btn-primary full">
+      Suivant &mdash; Importer mes clients
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+  </div>
+
+</div>
+</div>
+</div>
+</div>
+
+<script>
+function switchVP(t){
+  document.querySelectorAll('.viewport').forEach(function(v){v.classList.remove('active')});
+  document.querySelectorAll('.viewport-tab').forEach(function(v){v.classList.remove('active')});
+  document.getElementById('vp-'+t).classList.add('active');
+  event.target.closest('.viewport-tab').classList.add('active');
+}
+function pickLang(el){
+  var p=el.closest('.lang-row');
+  p.querySelectorAll('.lang-card').forEach(function(c){c.classList.remove('on')});
+  el.classList.add('on');
+}
+</script>
+
+</body>
+</html>

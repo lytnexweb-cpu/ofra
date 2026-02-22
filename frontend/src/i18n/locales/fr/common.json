@@ -1163,72 +1163,78 @@
     "saving": "Enregistrement..."
   },
   "onboarding": {
-    "welcome": "Bienvenue sur Ofra !",
-    "subtitle": "Quelques questions pour personnaliser votre expérience",
     "skip": "Passer",
     "back": "Retour",
     "continue": "Continuer",
-    "finish": "Terminer",
     "stepOf": "Étape {{current}} sur {{total}}",
-    "steps": {
-      "language": {
-        "title": "Choisissez votre langue",
-        "subtitle": "Sélectionnez la langue de votre interface"
-      },
-      "practice": {
-        "title": "Comment travaillez-vous ?",
-        "subtitle": "Cela nous aide à adapter votre expérience",
-        "solo": "Je travaille seul(e)",
-        "soloDesc": "Courtier indépendant",
-        "smallTeam": "Petite équipe",
-        "smallTeamDesc": "2 à 5 personnes",
-        "agency": "Agence",
-        "agencyDesc": "Plus de 5 personnes"
-      },
-      "contexts": {
-        "title": "Vos types de transactions",
-        "subtitle": "Sélectionnez tous ceux qui s'appliquent",
-        "hint": "Cela détermine quelles conditions seront suggérées",
-        "urbanSuburban": "Résidentiel",
-        "urbanSuburbanDesc": "Urbain / Banlieue",
-        "rural": "Rural",
-        "ruralDesc": "Puits, fosse septique",
-        "condo": "Condos",
-        "condoDesc": "Copropriétés",
-        "land": "Terrains",
-        "landDesc": "Lots vacants"
-      },
-      "volume": {
-        "title": "Votre volume annuel",
-        "subtitle": "Combien de transactions par année ?",
-        "beginner": "Débutant",
-        "beginnerDesc": "Moins de 10 transactions / an",
-        "established": "Établi",
-        "establishedDesc": "10 à 30 transactions / an",
-        "high": "Volume élevé",
-        "highDesc": "Plus de 30 transactions / an"
-      },
-      "preference": {
-        "title": "Votre style de travail",
-        "subtitle": "Comment préférez-vous gérer vos conditions ?",
-        "guided": "Guidez-moi",
-        "guidedDesc": "Ofra charge automatiquement les conditions pertinentes selon votre profil. Vous pouvez toujours les modifier.",
-        "guidedTag": "Recommandé",
-        "manual": "Je préfère tout contrôler",
-        "manualDesc": "Vous ajoutez manuellement chaque condition. Des suggestions restent disponibles à chaque étape."
-      }
+    "step1": {
+      "title": "Langue et profil professionnel",
+      "subtitle": "Configurez votre environnement de travail",
+      "languageLabel": "Langue de l'interface",
+      "fullName": "Nom complet",
+      "phone": "Téléphone",
+      "agency": "Agence immobilière",
+      "agencyPlaceholder": "RE/MAX, Royal LePage...",
+      "licenseNumber": "Numéro de permis",
+      "licenseNumberPlaceholder": "NB-12345",
+      "whyInfo": "Pourquoi ces infos ?",
+      "whyInfoText": "Votre agence et numéro de permis apparaîtront sur vos documents officiels et offres."
     },
-    "success": {
-      "title": "Vous êtes prêt !",
-      "subtitle": "Votre expérience Ofra est maintenant personnalisée.",
-      "profileTitle": "Votre profil :",
-      "language": "Langue",
-      "practice": "Pratique",
-      "contexts": "Contextes",
-      "volume": "Volume",
-      "style": "Style",
-      "editHint": "Vous pouvez modifier ces préférences à tout moment dans les paramètres.",
-      "cta": "Accéder à mon tableau de bord"
+    "step2": {
+      "title": "Importez vos clients",
+      "subtitle": "Retrouvez vos contacts existants en un clic",
+      "methodFub": "FollowUpBoss",
+      "methodFubDesc": "Connectez votre CRM",
+      "methodFubRecommended": "Recommandé",
+      "methodCsv": "Fichier CSV",
+      "methodCsvDesc": "Importez depuis un tableur",
+      "methodZero": "Pas maintenant",
+      "methodZeroDesc": "Je les ajouterai plus tard",
+      "fubApiKey": "Clé API FollowUpBoss",
+      "fubApiKeyPlaceholder": "Collez votre clé API ici",
+      "fubConnect": "Connecter",
+      "fubConnecting": "Connexion...",
+      "fubConnected": "Connecté",
+      "fubInvalidKey": "Clé API invalide. Vérifiez dans Admin > API de votre compte FUB.",
+      "fubError": "Erreur de connexion. Réessayez.",
+      "csvDrop": "Glissez votre fichier CSV ici",
+      "csvDropHint": "ou cliquez pour sélectionner",
+      "previewTitle": "Aperçu des contacts",
+      "previewContacts": "{{count}} contacts trouvés",
+      "importButton": "Importer {{count}} contacts",
+      "importing": "Importation en cours...",
+      "importSuccess": "{{count}} contacts importés avec succès !",
+      "importSkipped": "{{count}} ignorés (doublons)",
+      "skipStep": "Passer cette étape"
+    },
+    "step3": {
+      "title": "Créez votre première transaction",
+      "subtitle": "Lancez-vous avec une vraie transaction",
+      "typePurchase": "Achat",
+      "typeSale": "Vente",
+      "client": "Client",
+      "clientPlaceholder": "Rechercher un client...",
+      "clientEmpty": "Aucun client trouvé",
+      "clientBadgeImported": "Importé",
+      "propertyAddress": "Adresse de la propriété",
+      "propertyAddressPlaceholder": "123 rue Principale, Moncton",
+      "propertyType": "Type de propriété",
+      "propertyTypeHouse": "Maison",
+      "propertyTypeCondo": "Condo",
+      "propertyTypeLand": "Terrain",
+      "price": "Prix (optionnel)",
+      "pricePlaceholder": "350 000",
+      "createButton": "Créer la transaction",
+      "creating": "Création...",
+      "successTitle": "Transaction créée !",
+      "successSubtitle": "Votre première transaction est prête.",
+      "successNext": "Prochaines étapes :",
+      "successNextItems": [
+        "Ajoutez les parties à la transaction",
+        "Complétez le profil de la propriété",
+        "Gérez les conditions et documents"
+      ],
+      "goToDashboard": "Accéder à mon tableau de bord"
     }
   },
   "offers": {
@@ -2376,7 +2382,25 @@
     "accountSubscribe": "S'abonner maintenant",
     "accountChoosePlan": "Choisir un forfait",
     "accountTrialInfo": "Vous êtes en période d'essai. Abonnez-vous pour continuer à utiliser Ofra après votre essai.",
-    "viewPlans": "Voir les forfaits"
+    "viewPlans": "Voir les forfaits",
+    "backToApp": "Retour à l'application"
+  },
+  "changePlan": {
+    "upgradeTitle": "Passer à un forfait supérieur",
+    "downgradeTitle": "Changer de forfait",
+    "upgradeDesc": "Votre nouveau forfait prend effet immédiatement avec prorata.",
+    "downgradeDesc": "Vérifiez les limites du nouveau forfait avant de confirmer.",
+    "current": "Actuel",
+    "new": "Nouveau",
+    "prorateNote": "Le prorata sera calculé automatiquement par Stripe.",
+    "downgradeWarning": "En passant à un forfait inférieur, vos limites (transactions actives, stockage) seront réduites. Assurez-vous de ne pas dépasser les nouvelles limites.",
+    "blocked": "Changement impossible",
+    "blockedDetail": "Vous avez {{active}} transactions actives, mais le forfait choisi en permet {{max}}. Archivez {{archive}} transaction(s) avant de changer.",
+    "goToTransactions": "Voir mes transactions",
+    "confirm": "Confirmer le changement",
+    "processing": "Changement en cours…",
+    "success": "Forfait changé avec succès !",
+    "redirecting": "Redirection…"
   },
   "conditionHistory": {
     "title": "Historique d'audit",

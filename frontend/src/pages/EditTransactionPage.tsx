@@ -191,7 +191,7 @@ export default function EditTransactionPage() {
   const userDefaults = useMemo(() => {
     const cached = queryClient.getQueryData<ApiResponse<{ user: User }>>(['auth', 'me'])
     const user = cached?.data?.user
-    return { autoConditions: user?.preferAutoConditions ?? true }
+    return { autoConditions: true }
   }, [queryClient])
 
   const [activeTab, setActiveTab] = useState<TabKey>('property')

@@ -9,8 +9,8 @@ inputDocuments:
   - docs/roadmap.md (SUPPRIMÉ — remplacé par ce PRD)
   - _bmad-output/session-2026-02-02-ux-refonte.md
 workflowType: 'prd'
-version: '2.27'
-date: '2026-02-20'
+version: '2.32'
+date: '2026-02-21'
 author: 'Sam + Équipe BMAD (Party Mode)'
 status: 'SOURCE DE VÉRITÉ'
 supersedes:
@@ -21,221 +21,28 @@ supersedes:
 
 # PRD v2 — Ofra : Copilote de l'Agent Immobilier NB
 
-> **⚠️ CE DOCUMENT EST LA SOURCE DE VÉRITÉ UNIQUE**
+> **CE DOCUMENT EST LA SOURCE DE VÉRITÉ UNIQUE**
 > Tout conflit avec un autre document se résout en faveur de ce PRD.
-> Dernière mise à jour : 2026-02-20 (v2.27)
+> Dernière mise à jour : 2026-02-21 (v2.33)
 > Auteur : Sam + Équipe BMAD (Party Mode)
 >
-> **Changements v2.27 (2026-02-20) — Stripe config fix + infra optimisation :**
-> - **§7.4 Stripe** : Statut `❌ TODO` → `🟡 EN COURS` — Backend complet (StripeService, StripeController, webhooks 4 events, 5 routes auth). Frontend complet (SubscribeModal avec Stripe Elements, AccountPage gestion abonnement). Clés test mode (`sk_test_`, `pk_test_`) configurées local + Fly.io secrets.
-> - **Fix Stripe prod** : `VITE_STRIPE_PUBLISHABLE_KEY` n'était pas injectée dans le Docker build (`.dockerignore` excluait `.env`). Fix : `ARG` dans Dockerfile + `[build.args]` dans `fly.toml`. Redéployé.
-> - **§7.5 Infra** : Machines Fly réduites de 4 → 2 (1 backend + 1 frontend). Machines stopped supprimées pour réduire les coûts. Redondance retirée (inutile pré-lancement).
-> - **Stripe restant** : Produits Stripe Dashboard à créer (4 plans avec `stripeProductId`), webhook endpoint à enregistrer dans Stripe Dashboard, test E2E du flow subscribe complet.
+> **Version actuelle — v2.33 (2026-02-21) :**
+> - §L.5 Refonte onboarding agent (3 étapes action → profil + import FollowUpBoss + 1ère TX) — validé
+> - §9.2.2 Scénario acheteur (7 étapes dans Ofra) — validé
+> - §9.2.3 Scénario vendeur (9 étapes, invitations, BidRound, acceptation cascade) — validé
+> - §9.2.4 Refonte page transaction (page adaptative par workflowStep, S0 avant S1) — validé
+> - §9.2.5 Conditions enrichies + outils post-offre (P0→P3) — validé
+> - §9.2.6 Architecture technique commune (PDF, eSign, sécurité, modèles DB)
+> - §9.2.7 Sprint plan unifié S0→S8 (~18-22 jours)
+> - Phase 2 "Les Connexions" : 12/12 features DONE (C1-C12)
+> - Phase 1 : 8/8 blocs pré-lancement DONE, déployé sur Fly.io
 >
-> **Changements v2.26 (2026-02-20) — C8 DONE + Sprint 3 DONE — Phase 2 complete :**
-> - **§9.2 C8** : `❌ TODO` → `✅ DONE` — Migration 7 colonnes buyer/seller, model+validator, CreateClientModal sections conditionnelles, ClientDetailsPage edit+read-only, i18n FR+EN.
-> - **§9.2 C9** : `❌ TODO` → `✅ DONE` — Migration `professional_contacts`, model 6 rôles, validator, controller CRUD scoped agentId, 5 routes auth.
-> - **§9.2 C10** : `❌ TODO` → `✅ DONE` — `ProsPage.tsx` avec cards, search, filtre rôle, modal add/edit, delete confirm. Route lazy-load, nav Briefcase, 21 clés i18n.
-> - **§9.2 C11** : `❌ TODO` → `✅ DONE` — Mapping TYPE_TO_ROLE (8 types→rôles) dans EditConditionModal, section "Suggestions" verte.
-> - **§9.2 C12** : `❌ TODO` → `✅ DONE` — Migration `assigned_pro_id` FK, model+validator+audit, preload, badge violet ConditionCard, picker EditConditionModal, 6 clés i18n.
-> - Sprint 1 : C1 ✅ C2 ✅ C3 ✅ C4 ✅ — **4/4 DONE**
-> - Sprint 2 : C5 ✅ C6 ✅ C7 ✅ C8 ✅ — **4/4 DONE**
-> - Sprint 3 : C9 ✅ C10 ✅ C11 ✅ C12 ✅ — **4/4 DONE**
-> - **Phase 2 "Les Connexions" : 12/12 features DONE**
->
-> **Changements v2.24 (2026-02-20) — C4 DONE + C7 DONE + C8 spec :**
-> - **§9.2 C4** : `🔄 PARTIEL` → `✅ DONE` — Fix `fullName` bug dans CreateOfferModal (Client a `firstName`/`lastName`, pas `fullName`). PartyPicker : autocomplete client lookup (accent-safe, `clientsApi.list()`, staleTime 5min). Auto-fill nom/email/téléphone sur sélection. 2 clés i18n FR+EN.
-> - **§9.2 C7** : `❌ TODO` → `✅ DONE` — 6 enrichissements OfferComparison : closingDate highlight (earliest=best), expiry highlight (latest=best), depositDeadline row, inspectionDelay + unité "jours"/"days", fix row conditions (count réel via preload) + row inclusions séparée, worst rouge sur toutes les rows. 5 clés i18n FR+EN. Type `conditions` ajouté sur `OfferRevision` frontend.
-> - **§9.2 C8 spec** : Spec technique complète du formulaire client 2 sections — migration 7 colonnes (buyer: pré-approbation/financement, seller: motivation/plancher/date cible), sections conditionnelles CreateClientModal + ClientDetailsPage, ~12 clés i18n. Liens futurs C7/C4 documentés.
-> - Sprint 1 : C1 ✅ C2 ✅ C3 ✅ C4 ✅ — **4/4 DONE**
-> - Sprint 2 : C5 ✅ C6 ✅ C7 ✅ C8 📋 — **3/4 DONE**
->
-> **Changements v2.23 (2026-02-20) — C3 DONE + auto clientRole + UX polish :**
-> - **§9.2 C3** : `❌ TODO` → `✅ DONE` — Était déjà codé dans `WorkflowEngineService` (C3c) + auto-détection `clientRole` depuis `client.clientType` (C3b). Ajout : auto-déduction depuis `transaction.type` (purchase→buyer, sale→seller) + warning mismatch.
-> - **UX polish** (5 écarts maquette corrigés) : titre modal "Contre-offre" en mode counter, badge "Révision #N", bouton "Envoyer la contre-offre", bordure rouge PartyPicker trigger en erreur, highlighting multi-lignes comparateur (deposit + financing)
-> - **i18n** : "Custom" → "Personnalisé" (FR), 4 nouvelles clés (titleCounter, submitCounter, revisionBadge, clientRoleMismatch)
-> - Sprint 1 score : C1 ✅ C2 ✅ C3 ✅ C4 🔄 — 3/4 DONE
-> - 327 tests frontend verts, 0 régressions
->
-> **Changements v2.22 (2026-02-20) — C2 DONE + audit fixes :**
-> - **§9.2 C2** : `🔄 PARTIEL` → `✅ DONE` — PartyPicker "+" inline crée party avant submit (two-step). Validation front buyerPartyId/sellerPartyId requis (KO #3). Contre-offre convertit buyer/seller en from/to selon direction (KO #5). Error handling inline dans PartyPicker (KO #8). 3 i18n keys ajoutées FR+EN.
-> - Maquette `maquettes/15-offre-parties-flow.html` — 6 scènes (buyer panel, seller panel, create modal, PartyPicker "+", counter-offer, comparator)
-> - 327 tests frontend verts, 0 régressions
->
-> **Changements v2.21 (2026-02-19) — Sprint 1-2 Les Connexions avancées :**
-> - **§9.2 C1** : `❌ TODO` → `✅ DONE` — `inferDirection()` dans `OfferService`, `direction` optionnel dans validators + API types, controller ne masque plus l'inférence, mails utilisent direction résolue
-> - **§9.2 C2** : `❌ TODO` → `🔄 PARTIEL` — Flux intake auto-crée party, flux agent principal non. Gap documenté.
-> - **§9.2 C4** : `❌ TODO` → `🔄 PARTIEL` — PartyPicker pré-sélectionne, lookup client reste à faire
-> - **§9.2 C5** : `❌ TODO` → `✅ DONE` — CTA adaptatif buyer/seller, intégré dans C6
-> - **§9.2 C6** : `❌ TODO` → `✅ DONE` — Titre adaptatif, action gating par tour, bannière contextuelle, intake masqué buyer, auto-open comparateur seller, direction role-aware CreateOfferModal, i18n FR+EN
-> - 327 tests frontend verts, 0 régressions
->
-> **Changements v2.20 (2026-02-19) — Vision Produit Élargie + Roadmap 3 Tiers :**
-> - **§1.1 Vision enrichie** : Ajout du principe directeur post-lancement — "L'agent gère un dossier, pas des modules"
-> - **§1.4 Moat** : 3 nouveaux différenciateurs (FINTRAC intégré, portail client, formulaires NBREA)
-> - **§9.2 Phase 2 — "Les Connexions"** (~8j) : Offre↔Parties liées, UI buyer/seller contextuelle, Carnet de pros, Sprint 2-4 conditions
-> - **§9.3 Phase 3 — "Le Copilote"** (~5j) : Rappels proactifs parties tierces, Portail client lecture seule, Dashboard commission
-> - **§9.4 Phase 4 — "L'Arme Secrète"** (~5j) : Génération PDF formulaires NBREA, Collaboration agent-agent, Export fiscal
-> - **§9.5 Phase 5 — Intelligence Augmentée** (12-24 mois) : IA documents, détection risques, agenda intégré
-> - Roadmap issue de la discussion collective Party Mode (Sam + ChatGPT vision convergée)
->
-> **Changements v2.19 (2026-02-19) — Tier 0+1 Polish : Auth Flows + A11y :**
-> - **Tier 0 — Flows cassés réparés :**
->   - ResetPasswordPage créée (3 états: no-token, form, success) + route `/reset-password` + SiteMode exempt
->   - `resetPassword` API ajoutée à `auth.api.ts`
->   - Bouton "Renvoyer le courriel de vérification" sur LoginPage quand `E_EMAIL_NOT_VERIFIED`
->   - 21 clés i18n FR/EN ajoutées (auth.reset*, verify.resend*)
-> - **Tier 1 — A11y formulaires (4 pages auth) :**
->   - `htmlFor`/`id` sur tous les labels/inputs (LoginPage, RegisterPage, ForgotPasswordPage, AdminLoginPage)
->   - `autoComplete` sur tous les inputs (email, current-password, new-password, name, tel, street-address, address-level1/2, organization)
->   - `aria-label` sur 4 boutons toggle mot de passe
->   - `autoFocus` sur le premier champ de chaque page
-> - Whitelist i18n parity test : 9 cognates admin/comingSoon ajoutés
-> - Tests frontend : **327/327 PASS** (0 fail — première fois 100%)
-> - Tests backend : 277/277 PASS
->
-> **Changements v2.18 (2026-02-19) — Retrait Dark Mode (D62) :**
-> - Décision D62 : Retrait complet du dark mode — complexité CSS inutile, jamais audité visuellement, non demandé par le marché NB
-> - Suppression de toutes les classes `dark:*`, ThemeContext, toggle Settings, config Tailwind
->
-> **Changements v2.17 (2026-02-19) — Fixes Onboarding 8/8 :**
-> - OB-1→OB-8 tous implémentés : langue signup, client inline+autocomplete, re-prompt onboarding, empty state enrichi, agence/licence signup, checklist profil, type client
-> - Migration `1782000000001_add_client_type_to_clients`
->
-> **Changements v2.16 (2026-02-19) — Audit Onboarding Agent + Client :**
-> - §11.L ajouté : Audit complet onboarding — 8 issues (2 P0, 4 P1, 2 P2)
-> - **P0-1** : Emails signup toujours en anglais (`preferredLanguage` jamais envoyé)
-> - **P0-2** : Pas de création client inline depuis le formulaire de transaction
-> - P1 : Select client basique (pas d'autocomplete), skip onboarding définitif, empty state dashboard faible, agence/licence absents du signup
-> - P2 : Checklist profil post-onboarding, type client acheteur/vendeur
->
-> **Changements v2.15 (2026-02-18) — Sprint A Reminders/Notifications Overhaul + Test Fix :**
-> - Sprint A Audit Reminders & Notifications : 6/6 items complétés (commit `c368e79`)
->   - A1 : Filtres `status: 'active'` dans reminder_service (scheduleUpcomingWarnings, dailyDigest, buildUserDigest)
->   - A2 : Graceful shutdown queue system via `app.terminating()`
->   - A3 : Validation input page/limit dans notifications_controller (clamp + floor)
->   - A4 : Unification `user.language` vs `user.preferredLanguage` dans trial reminders
->   - A5 : `NotificationType` union synchronisée (supprimé 4 unused, ajouté 9 types réels)
->   - A6 : Icon fallback `|| '🔔'` dans notification_service
-> - §11.H.4 : **TS-01 corrigé** — `NotificationType` union maintenant complète (18 types)
-> - Fix test helper : reset `site_mode` à `'live'` + `SiteModeMiddleware.invalidateCache()` dans `truncateAll`
-> - Fix test flaky : `stepWhenCreated` manquant dans conditions.spec.ts (commit `7ce314e`)
-> - §11.H.1 : Tests backend 277 PASS (était 120), tests E2E 3 specs + tenant isolation
-> - **Score launch-readiness : 82%** (remonté de 80% grâce à reminders hardening + 277 tests green)
-> - DB nettoyée : migration:fresh + seed (superadmin, demo, plans, workflows, 52 templates)
->
-> **Changements v2.14 (2026-02-18) — Bloc 9 Sprint C implémenté + Audit P0 fixé :**
-> - §11.K.4 : 6/6 corrections P0 terminées (SiteModeGuard, prolongation trial, subscription dropdown, fondateurs, rôles, plans superadmin)
-> - §9.1 : Admin Pulse ✅, Admin Gens (CRM) ✅, Admin Config ✅, SiteMode ✅ — toutes les vues Bloc 9 implémentées
-> - AdminLayout refonte : 3 liens (Pulse/Gens/Config), icônes Lucide, badge site_mode
-> - AdminGensPage : segments smart, drawer Radix, prolongation trial (+7j/+14j/+30j), toggle fondateur, subscription dropdown
-> - AdminPulsePage : KPIs, alertes actionnables, fil d'activité, stats conversion
-> - AdminConfigPage : mode du site, plans, codes promo CRUD, système
-> - ComingSoonPage : réécriture pixel-perfect (glow, typewriter, countdown, parallax, responsive)
-> - SiteModeGuard : frontend fetch `/api/public/site-info` + redirect `/coming-soon` ou `/maintenance`
-> - Backend : `PATCH /subscribers/:id/extend`, `PATCH /subscribers/:id/founder`, `PUT /plans/:id` → superadmin only
-> - Icônes : tous les emojis admin remplacés par Lucide React icons
->
-> **Changements v2.13 (2026-02-18) — Audit cohérence admin + SiteMode fix :**
-> - §6.8 mis à jour : Retrait superadmin du dropdown rôle UI, ajout prolongation trial, toggle fondateur
-> - §11.K ajouté : Audit cohérence admin — 19 incohérences (5 critiques, 9 hautes, 5 moyennes)
-> - **C5 CRITIQUE** : SiteMode ne bloque PAS les visiteurs non-authentifiés — Coming Soon/Maintenance inopérant
-> - **C1-C4** : Segment fondateurs fake, subscription dropdown perdu, code mort role/subscribers
-> - P0 révisé : SiteModeGuard frontend + prolongation trial + débloquer subscription + nettoyage rôles
->
-> **Changements v2.12 (2026-02-18) — Rôles Superadmin + Audit conformité maquettes :**
-> - §6.8 ajouté : Matrice complète des permissions Admin vs Superadmin (Bloc 9)
-> - §11.J ajouté : Audit conformité maquettes — 55 écarts identifiés (MQ-01 à MQ-55)
-> - Score conformité maquettes : **~40%** — backend OK, frontend diverge des maquettes validées
-> - Guide superadmin créé : `_bmad-output/guide-superadmin.md`
-> - Plan de correction en 3 phases : P0 sécurité → conformité maquettes → P1 fonctionnels
->
-> **Changements v2.15 (2026-02-19) — D56 Déploiement Fly.io ✅ :**
-> - §4.1 D56 : `📋 À configurer` → **`✅ Déployé`** — backend + frontend + Postgres live sur Fly.io (`yyz`)
-> - §7.5 Infrastructure : détails réels du déploiement (URLs, proxy nginx, secrets)
-> - §7.5 Emails transactionnels : **Brevo SMTP** confirmé (`smtp-relay.brevo.com:587`)
-> - §11.H.4 : DEPLOY-01 ✅ corrigé (`db:seed` retiré du `release_command`)
-> - Fixes déploiement : `HOST=::` (IPv6 Fly.io), `QUEUE_ENABLED=false` (pas de Redis), `--ignore-ts-errors` build, `npx vite build` (skip tsc)
-> - URLs live : `https://ofra-crm-frontend.fly.dev` (frontend) / `https://ofra-crm-backend.fly.dev` (backend)
->
-> **Changements v2.11 (2026-02-18) — Sprint Tests complet :**
-> - §11.F : Tests FINTRAC + TenantScope + Admin + Documents + Members + Parties → ✅ DONE (commit `a2f364e`)
-> - §11.H.5 : Mise à jour couverture — 120 tests backend (68 unit + 52 functional), 327 tests frontend (40 fichiers)
-> - Score launch-readiness : **80%** (remonté de 75% grâce à couverture tests critiques)
-> - Bug fix : `ConditionEvidence` table name mismatch corrigé
->
-> **Changements v2.10 (2026-02-18) — Date de lancement + Programme Fondateur fermé :**
-> - §2.4 : Programme Fondateur = **beta fermée avec code d'invitation** (accès uniquement via code, pas de signup public)
-> - §9.0 : **Date de lancement officiel : 20 mars 2026** (30 jours). Countdown réel sur page Coming Soon
-> - §9.1 : Ajout "Launch Day Checklist" — étapes pour basculer en `live` le jour J
-> - §7.3 : `site_settings.launch_date` default = `'2026-03-20'` (au lieu de `null`)
-> - D58 mis à jour : beta fermée explicite, `/signup` inaccessible sans code en mode `coming_soon`
->
-> **Changements v2.9 (2026-02-18) — Refonte Admin Dashboard + SiteMode + Codes Promo :**
-> - §4.1 : D57 (Admin 3 vues Pulse/Gens/Config), D58 (SiteMode 3 états), D59 (Codes promotionnels), D60 (Liste d'attente construction)
-> - §5.16-5.20 ajoutés : 5 maquettes admin (M-ADM-01 Pulse, M-ADM-02 Gens, M-ADM-03 Config, M-ADM-04 Coming Soon, M-ADM-05 Maintenance)
-> - §7.2 : 10 nouveaux endpoints (site-settings, promo-codes, admin pulse, waitlist, plan-changes paginé, apply-to-existing)
-> - §7.3 : 3 nouvelles migrations (site_settings, promo_codes, waitlist_emails)
-> - §9.0 : Bloc 9 ajouté (Admin Dashboard Refonte + SiteMode + Promos) — intercalé avant Stripe
-> - §11.F : Priorités P0/P1 mises à jour avec admin dashboard refonte
-> - §11.I : Audit admin dashboard 2026-02-18 — ~65 issues (7 critiques, 15 hautes, 14 moyennes)
-> - Discounts fondateur `-20%/-30%` supprimés du code admin (stale vs PRD v2.5 "prix garanti à vie")
->
-> **Changements v2.8 (2026-02-18) — Audit Approfondi Complet (Backend + Frontend + Infra) :**
-> - §11.H ajouté : Audit approfondi 2026-02-18 — ~95 issues (7 critiques, 15 hautes, 30 moyennes, 43 basses)
-> - §11.F Priorités Post-Audit mis à jour avec les nouveaux P0 sécurité/légal
-> - CRITIQUE : Path traversal `/api/uploads/:filename` (SEC-03), FINTRAC bypass autoConditions (SEC-04), trial FINTRAC bloqué (SEC-05)
-> - HAUTE : Fichiers sans ownership check (SEC-06), `fly.toml` region `ewr` vs `yyz` (INFRA-01)
-> - Frontend : Pas d'Error Boundary, pas de code splitting, pas de 404, i18n cassé (EN→FR dans apiError)
-> - Tests : FINTRAC/admin/export/TenantScope zéro couverture, E2E pas en CI
-> - Score launch-readiness : **75%** (remonté de 68% après fixes P0/P1 du 2026-02-18)
->
-> **Changements v2.7 (2026-02-17) — Audit M14 Formulaire Offre Unifié :**
-> - §11.G ajouté : Audit complet M14 — cohérence maquette / backend / frontend / réalité NB
-> - Recherche terrain NB : vocabulaire (irrévocabilité vs expiration), flow NBREA, offres multiples FCNB
-> - 9 actions classées P0→P3 : fix checkbox confirmation, depositDeadline type, label irrévocabilité, etc.
-> - Pistes backlog identifiées : détenteur dépôt, date de possession, séparation inclusions/exclusions
-> - §9.2 Phase 2 : ajout M14 polish items
->
-> **Changements v2.6 (2026-02-17) — D56 Infrastructure Fly.io :**
-> - §7.5 Infrastructure : DigitalOcean App Platform → **Fly.io (`yyz` Toronto)** + Fly Postgres (`yyz`)
-> - §7.5 Stockage fichiers : DO Spaces → **À déterminer** (DO Spaces Toronto ou AWS S3 `ca-central-1`)
-> - §4.1 D56 mis à jour : Fly.io remplace DigitalOcean, conformité Canada maintenue
->
-> **Changements v2.5 (2026-02-17) — Bloc 8 Offres intelligentes ✅ :**
-> - §9.0 Bloc 8 : `❌ TODO` → `✅ DONE` — Sprint A (backend migration `buyerPartyId`/`sellerPartyId` sur Offer, PartyPicker inline, validation cohérence parties) + Sprint B (NegotiationThread, OfferComparison side-by-side, AcceptOfferModal parties display)
-> - §9.0 Description Bloc 8 mise à jour : suppression mention `parentOfferId` (pattern écarté), description réelle de l'implémentation
-> - §9.1 Phase 1 : ajout ligne « Offres intelligentes » ✅ Codé
-> - §9.0 Gantt : Bloc 8 marqué DONE, Semaine 3 ne contient plus que Stripe + Legal + Polish
-> - Score pré-lancement : **6/8 blocs DONE** — reste Legal (contenu) + Stripe (paiement)
-> - 283 tests frontend verts, 0 erreurs TypeScript backend+frontend
->
-> **Changements v2.4 (2026-02-16) — Audit général + correctifs sécurité :**
-> - §9.0 Roadmap : Bloc 3 Landing ✅, ROUTE-1 routing ✅ — mis à jour
-> - §11.D : BUG-01 ✅ corrigé (query key profile), BUG-ADM ✅ (deadline→due_date), BUG-MAIL ✅ (fullName??email)
-> - §11.E : Audit sécurité 2026-02-16 — SEC-1 FINTRAC auth ✅, SEC-2 TenantScope conditions/notes ✅, ReminderService tenant scoping ✅ (faux positif — déjà scopé)
-> - §11.F : Audit général — score launch-readiness 82%, 463 tests verts, 0 tech debt markers
-> - §11.D : BUG-03 à BUG-06 déjà corrigés, BUG-TS 11 erreurs TypeScript ✅ toutes corrigées (`tsc --noEmit` = 0)
->
-> **Changements v2.3 (2026-02-13) :**
-> - §1.4 Moat enrichi : "100% hébergé au Canada (serveurs Toronto)"
-> - §7.5 Infrastructure 100% Canadienne (D56) : DigitalOcean App Platform + Managed DB + Spaces, tout Toronto
-> - §9.0 Bloc 8 Offres intelligentes (ajouté en v2.2)
-> - §9.2 Phase 2 : Superadmin suppression compte + UI Audit Trail conditions (backlog)
-> - §11.D Bugs connus BUG-01, BUG-02
->
-> **Changements v2.2 (2026-02-13) :**
-> - Maquettes H1, H3, G2, K2 mises à jour pour D53 (prix garanti à vie, suppression -20%/-30%)
-> - §9 Roadmap réécrite : feuille de route lancement validée (Stripe en dernier)
-> - Ajout §9.0 Feuille de Route Pré-Lancement (6 blocs ordonnés)
->
-> **Changements v2.1 (2026-02-13) :**
-> - Statuts décisions D42-D49 mis à jour (codés)
-> - `docs/roadmap.md` et `docs/pricing-strategy.md` SUPPRIMÉS du repo
-> - Features ajoutées depuis v2.0 : Email system (23 mails), Notifications in-app, Auth redesign, FINTRAC, Export/Partage (M10), Permissions (M11), Offres (M12), Offer Intake (D35), Plans backend, Admin panel
-> - **D52** : FINTRAC identity gate Solo+ ajouté (`fintrac_controller.ts:complete()` + `resolve()`)
-> - Audit feature gates complet : 11/11 gates implémentées (voir §2.6)
-> - **D53** : Trial 30j gratuit (1 TX, Pro complet, pas de CC) + Programme Fondateur simplifié (prix garanti à vie, plus de −20%/−30%)
+> **Historique versions :**
+> - v2.26-v2.28 : Phase 2 complétée (12 features), audit offre, notification loop
+> - v2.19-v2.25 : Auth flows, a11y, onboarding, dark mode retiré, Stripe en cours
+> - v2.9-v2.18 : Bloc 9 admin, SiteMode, audits (sécurité, conformité, cohérence), tests 277+327
+> - v2.1-v2.8 : Pricing, infra Fly.io, offres intelligentes, audits, déploiement
+> - Historique détaillé : consulter git log ou `memory/session-*`
 
 ---
 
@@ -444,7 +251,7 @@ interface UserPlanFields {
 ```
 INSCRIPTION (J0)
 ├── Email + mot de passe (pas de CC)
-├── Onboarding 5 étapes (déjà codé)
+├── Onboarding 3 étapes action (§L.5 — refonte v2.33)
 └── Accès Pro complet, 1 TX max
 
 TRIAL (J1-J30)
@@ -492,7 +299,7 @@ HARD WALL (J33+)
 | D37 | Deadlines relatives dans templates | ✅ Codé | Session 2026-02-02 |
 | D38 | Conditions éditables (deadline + note) | ✅ Codé | Session 2026-02-02 |
 | D39 | Pack conditions optionnel (opt-in) | ✅ Codé | Session 2026-02-02 |
-| D40 | Onboarding personnalisé 5 étapes | ✅ Codé | Session 2026-02-03 |
+| D40 | ~~Onboarding 5 étapes~~ → **Refonte 3 étapes action** (§L.5 v2.33) | ✅ Codé | Implémenté 2026-02-21 : OnboardingPage 3 étapes, FollowUpBoss service, inscription légère, i18n FR/EN |
 | D41 | Garde-fous validation 3 niveaux + preuves | ✅ Codé | Session 2026-02-03 |
 | **D42** | **Dashboard urgences (🔴🟡🟢) comme home** | **✅ Codé** | `DashboardPage.tsx` + `DashboardUrgencies.tsx` + `dashboard_controller.urgencies` |
 | **D43** | **Bloc "Valeur protégée" (commissions sauvées)** | **📋 Phase 2** | Brainstorm 2026-02-06 |
@@ -537,1224 +344,84 @@ HARD WALL (J33+)
 
 ---
 
-## 5. Maquettes Validées (15 écrans)
-
-### 5.1 A1 — Dashboard Urgences (avec urgences)
-
-**Endpoint :** `GET /api/dashboard/urgencies`
-**Query :** Conditions pending avec due_date, triées par urgence, groupées par criticité
-
-**Desktop (>1024px) :**
-
-```
-┌──────────────────────────────────────────────────────────────────────────┐
-│ Ofra ▸ Home  Transactions  Clients          (FR/EN)  Sam ▾  🔔  ☾      │
-├──────────────────────────────────────────────────────────────────────────┤
-│ Bonjour Sam 👋  |  3 urgences aujourd'hui              [+ Nouvelle TX]  │
-│                                                                          │
-│ ┌───────────────────────────────┐  ┌────────────────────────────────────┐│
-│ │ 🛡️ VALEUR PROTÉGÉE (ce mois)  │  │ 📊 CE MOIS-CI                     ││
-│ │ • 2 deadlines rattrapées      │  │ 12 actives · 3 nouvelles          ││
-│ │ • 1 oubli détecté             │  │ 1 closing prévu · Taux: 48%      ││
-│ │ ≈ 12 000$ commissions         │  │                                   ││
-│ └───────────────────────────────┘  └────────────────────────────────────┘│
-│                                                                          │
-│ ⚡ CE QUI BRÛLE                                                          │
-│ ────────────────────────────────────────────────────────────────────     │
-│ 🔴 EN RETARD                                                             │
-│ ┌──────────────────────────────────────────────────────────────────┐     │
-│ │ Financement hypothécaire (🔴 Blocking)  2j en retard            │     │
-│ │ TX: Tremblay · 123 rue Principale · Étape 4     [Ouvrir →]     │     │
-│ └──────────────────────────────────────────────────────────────────┘     │
-│                                                                          │
-│ 🔴 URGENT (48h)                                                          │
-│ ┌──────────────────────────────────────────────────────────────────┐     │
-│ │ Inspection résidentielle (🟡 Required)  Demain                  │     │
-│ │ TX: Dupont · 456 av. Érables · Étape 4           [Ouvrir →]    │     │
-│ └──────────────────────────────────────────────────────────────────┘     │
-│ ┌──────────────────────────────────────────────────────────────────┐     │
-│ │ Dépôt initial (🔴 Blocking)              2 jours                │     │
-│ │ TX: Cormier · 789 boul. Central · Étape 3        [Ouvrir →]    │     │
-│ └──────────────────────────────────────────────────────────────────┘     │
-│                                                                          │
-│ 🟡 CETTE SEMAINE                                                         │
-│ ┌──────────────────────────────────────────────────────────────────┐     │
-│ │ Test qualité de l'eau (🟡 Required)     5 jours                 │     │
-│ │ TX: Leblanc · 12 ch. Roy · Étape 4               [Ouvrir →]    │     │
-│ └──────────────────────────────────────────────────────────────────┘     │
-│                                                                          │
-│ 🟢 TOUT ROULE (8 transactions)  Prochaine deadline dans 12 jours        │
-│                                                                          │
-└──────────────────────────────────────────────────────────────────────────┘
-```
-
-**Mobile (<640px) :**
-
-```
-┌─────────────────────────────────────┐
-│ Ofra  Home                  🔔  ☾  │
-├─────────────────────────────────────┤
-│ Bonjour Sam 👋                      │
-│ 3 urgences aujourd'hui              │
-│ ┌─────────────────────────────────┐ │
-│ │ 🛡️ ~12 000$ protégés · ce mois  │ │
-│ │ 2 deadlines · 1 oubli           │ │
-│ └─────────────────────────────────┘ │
-│ ⚡ CE QUI BRÛLE                     │
-│ ────────────────────────────────── │
-│ 🔴 Financement (Blocking)          │
-│ 2j en retard · Tremblay · Étape 4  │
-│ [Ouvrir →]                          │
-│ ────────────────────────────────── │
-│ 🔴 Inspection (Required)           │
-│ Demain · Dupont · Étape 4           │
-│ [Ouvrir →]                          │
-│ ────────────────────────────────── │
-│ 🔴 Dépôt initial (Blocking)        │
-│ 2 jours · Cormier · Étape 3        │
-│ [Ouvrir →]                          │
-│ ────────────────────────────────── │
-│ 🟡 Test eau (Required)             │
-│ 5 jours · Leblanc · Étape 4        │
-│ [Ouvrir →]                          │
-│                                     │
-│ 🟢 8 TX OK · Prochaine: 12 jours   │
-│ [+ Nouvelle TX]                     │
-├─────────────────────────────────────┤
-│ 🏠 Home  📋 TX  👥 Clients  ⚙️     │
-└─────────────────────────────────────┘
-```
-
-**Critères d'acceptance (Murat) :**
-- [ ] L'agent identifie l'urgence #1 en < 3 secondes
-- [ ] Tri : 🔴 en retard → 🔴 48h → 🟡 semaine → 🟢 OK
-- [ ] Chaque card urgence montre : condition, niveau, deadline, client, adresse, étape
-- [ ] Clic "Ouvrir →" navigue directement à la transaction
-- [ ] Si 0 urgences → affiche A2 (tout va bien)
-- [ ] Si 0 transactions → affiche A3 (vide)
-- [ ] Si > 10 urgences → affiche top 10 + lien "Voir les X autres"
-- [ ] Mobile : tout visible en 1 scroll
-- [ ] Bloc "Valeur protégée" : données réelles (count alertes envoyées + conditions complétées après alerte)
-- [ ] WCAG 2.1 AA (contraste, aria-labels)
-
-### 5.2 A2 — Dashboard Tout Va Bien
-
-**Desktop :**
-
-```
-┌──────────────────────────────────────────────────────────────────────────┐
-│ Ofra ▸ Home                                              [+ Nouvelle TX]│
-├──────────────────────────────────────────────────────────────────────────┤
-│ Bonjour Sam 👋  |  🟢 Tout roule. Prochaine deadline dans 12 jours.    │
-│                                                                          │
-│ ┌───────────────────────────────┐  ┌────────────────────────────────────┐│
-│ │ 🛡️ VALEUR PROTÉGÉE (ce mois)  │  │ 📌 PROCHAINS ÉVÉNEMENTS           ││
-│ │ • 0 deadline rattrapée        │  │ • Closing: 15 mars — Tremblay     ││
-│ │ • 0 oubli détecté             │  │ • Inspection: 18 mars — Leblanc   ││
-│ │ ≈ 0$                          │  │                                   ││
-│ └───────────────────────────────┘  └────────────────────────────────────┘│
-│                                                                          │
-│ 🟢 Aucune urgence. [Voir toutes les transactions]                        │
-└──────────────────────────────────────────────────────────────────────────┘
-```
-
-**Mobile :**
-
-```
-┌─────────────────────────────────────┐
-│ Ofra  Home                  🔔  ☾  │
-├─────────────────────────────────────┤
-│ Bonjour Sam 👋                      │
-│ 🟢 Tout roule                       │
-│ Prochaine deadline: 12 jours        │
-│ [Voir mes transactions →]           │
-│ [+ Nouvelle TX]                     │
-├─────────────────────────────────────┤
-│ 🏠 Home  📋 TX  👥 Clients  ⚙️     │
-└─────────────────────────────────────┘
-```
-
-**Critères d'acceptance :**
-- [ ] Message positif visible immédiatement
-- [ ] Prochains événements (max 5, triés par date)
-- [ ] CTA vers liste de transactions
-
-### 5.3 A3 — Dashboard Vide (Nouvel Utilisateur)
-
-**Desktop :**
-
-```
-┌──────────────────────────────────────────────────────────────────────────┐
-│ Ofra ▸ Home                                                              │
-├──────────────────────────────────────────────────────────────────────────┤
-│ 👋 Bienvenue !                                                           │
-│ ┌──────────────────────────────────────────────────────────────────┐     │
-│ │ Votre tableau "Urgences" apparaîtra ici dès votre 1ère          │     │
-│ │ transaction.                                                     │     │
-│ │                                                                  │     │
-│ │ 1) Créez une transaction (2 min)                                 │     │
-│ │ 2) Ajoutez/validez vos conditions                                │     │
-│ │ 3) Ofra vous alerte avant les deadlines                          │     │
-│ │                                                                  │     │
-│ │ [+ Créer ma première transaction]                                │     │
-│ └──────────────────────────────────────────────────────────────────┘     │
-│ ✅ Astuce: import CSV clients disponible (optionnel)                     │
-└──────────────────────────────────────────────────────────────────────────┘
-```
-
-**Mobile :**
-
-```
-┌─────────────────────────────────────┐
-│ Ofra  Home                          │
-├─────────────────────────────────────┤
-│ 👋 Bienvenue !                      │
-│ Votre tableau "Urgences" apparaîtra │
-│ après votre 1ère transaction.       │
-│ [Créer ma première transaction]     │
-│ Astuce: import clients plus tard    │
-├─────────────────────────────────────┤
-│ 🏠 Home  📋 TX  👥 Clients  ⚙️     │
-└─────────────────────────────────────┘
-```
-
-**Critères d'acceptance :**
-- [ ] CTA "Créer ma première transaction" bien visible et proéminent
-- [ ] Time-to-value communiqué ("2 min")
-- [ ] Pas de surcharge d'information
-
-### 5.4 B1 — Transaction Timeline (Étape Courante, Conditions Pending)
-
-**Desktop :**
-
-```
-┌──────────────────────────────────────────────────────────────────────────┐
-│ ← Retour   Tremblay · 123 rue Principale           [🕘 Hist.] [📝] [⋯]│
-├──────────────────────────────────────────────────────────────────────────┤
-│ Achat · 285 000$ · Closing 15 mars · Acceptée 1 fév                    │
-├──────────────────────────────────────────────────────────────────────────┤
-│                                                                          │
-│  ✅ 1. Consultation           28 jan                                     │
-│  ✅ 2. Offre soumise          30 jan                                     │
-│  ✅ 3. Offre acceptée         1 fév                                      │
-│                                                                          │
-│  ●━━ 4. PÉRIODE CONDITIONNELLE ━━━━━━━━━━━━━━━━━━━━ depuis 5 jours ━━   │
-│  │                                                                       │
-│  │  🔴 BLOQUANTES                                                        │
-│  │  ┌──────────────────────────────────────────────────────────────┐     │
-│  │  │ ○ Financement hypothécaire              🔴 2j en retard     │     │
-│  │  │   "Attente confirm. RBC"                    [✏️] [Valider ✓]│     │
-│  │  └──────────────────────────────────────────────────────────────┘     │
-│  │  ┌──────────────────────────────────────────────────────────────┐     │
-│  │  │ ✅ Dépôt initial                    3 fév · 📎 1 preuve      │     │
-│  │  └──────────────────────────────────────────────────────────────┘     │
-│  │                                                                       │
-│  │  🟡 REQUISES                                                          │
-│  │  ┌──────────────────────────────────────────────────────────────┐     │
-│  │  │ ○ Inspection résidentielle              🔴 Demain           │     │
-│  │  │                                             [✏️] [Valider ✓]│     │
-│  │  └──────────────────────────────────────────────────────────────┘     │
-│  │  ┌──────────────────────────────────────────────────────────────┐     │
-│  │  │ ○ Révision RPDS                         5 jours             │     │
-│  │  │                                             [✏️] [Valider ✓]│     │
-│  │  └──────────────────────────────────────────────────────────────┘     │
-│  │                                                                       │
-│  │  🟢 RECOMMANDÉES                                                      │
-│  │  ┌──────────────────────────────────────────────────────────────┐     │
-│  │  │ ○ Vérification zonage                   12 jours            │     │
-│  │  └──────────────────────────────────────────────────────────────┘     │
-│  │                                                                       │
-│  │  📎 DOCUMENTS (1)                                                     │
-│  │  · recu-depot.pdf → lié à "Dépôt initial"                            │
-│  │                                                                       │
-│  │  📝 NOTES (1)                                                         │
-│  │  · "Client nerveux, rassurer financement" — 3 fév                    │
-│  │  [+ Ajouter une note]                                                 │
-│  │                                                                       │
-│  │  ┌──────────────────────────────────────────────────────────────┐     │
-│  │  │ ⚠️ 1 BLOQUANTE en attente · Impossible d'avancer            │     │
-│  │  │ [Avancer à l'étape suivante] (désactivé, grisé)             │     │
-│  │  └──────────────────────────────────────────────────────────────┘     │
-│  │                                                                       │
-│  ○  5. Ferme en attente                                                  │
-│  ○  6. Pré-clôture                                                       │
-│  ○  7. Jour de clôture                                                   │
-│  ○  8. Suivi post-clôture                                                │
-│                                                                          │
-└──────────────────────────────────────────────────────────────────────────┘
-```
-
-**Mobile :**
-
-```
-┌─────────────────────────────────────┐
-│ ← Tremblay · 123 rue Princ.   [⋯] │
-├─────────────────────────────────────┤
-│ Achat · 285 000$ · Closing 15 mars │
-│                                     │
-│ ✅ 1. Consultation                  │
-│ ✅ 2. Offre soumise                 │
-│ ✅ 3. Offre acceptée                │
-│                                     │
-│ ● 4. PÉRIODE COND.  (5 jours)      │
-│                                     │
-│ 🔴 BLOQUANTES                      │
-│ ┌─────────────────────────────────┐ │
-│ │ ○ Financement hyp.             │ │
-│ │   🔴 2j en retard               │ │
-│ │   "Attente RBC"                │ │
-│ │   [✏️] [Valider ✓]             │ │
-│ └─────────────────────────────────┘ │
-│ ┌─────────────────────────────────┐ │
-│ │ ✅ Dépôt initial  📎 preuve     │ │
-│ └─────────────────────────────────┘ │
-│                                     │
-│ 🟡 REQUISES                        │
-│ ┌─────────────────────────────────┐ │
-│ │ ○ Inspection rés. 🔴 Demain    │ │
-│ │   [✏️] [Valider ✓]             │ │
-│ └─────────────────────────────────┘ │
-│ ┌─────────────────────────────────┐ │
-│ │ ○ Révision RPDS    5 jours     │ │
-│ │   [✏️] [Valider ✓]             │ │
-│ └─────────────────────────────────┘ │
-│                                     │
-│ 🟢 ○ Vérif. zonage   12 jours     │
-│                                     │
-│ 📎 Docs (1) · 📝 Notes (1)        │
-│                                     │
-│ ⚠️ 1 bloquante · Avancer (grisé)  │
-│                                     │
-│ ○ 5-8. (à venir)                   │
-├─────────────────────────────────────┤
-│ 🏠 Home  📋 TX  👥 Clients  ⚙️    │
-└─────────────────────────────────────┘
-```
-
-**Critères d'acceptance :**
-- [ ] Étapes passées compressées (✅ + date sur 1 ligne)
-- [ ] Étape courante expanded (conditions + docs + notes)
-- [ ] Conditions groupées par niveau (🔴 → 🟡 → 🟢)
-- [ ] Chaque condition montre : titre, niveau, deadline/countdown, note, boutons action
-- [ ] Bouton "Avancer" désactivé si bloquante pending + message explicatif
-- [ ] Étapes futures grisées
-- [ ] Accès historique via 🕘 (drawer)
-- [ ] Accès notes globales via 📝
-- [ ] Mobile : tout visible en scroll vertical
-
-### 5.5 B2 — Transaction Timeline (Étape Passée Cliquée)
-
-**Desktop :**
-
-```
-┌──────────────────────────────────────────────────────────────────────────┐
-│ ← Retour   Tremblay · 123 rue Principale           [🕘 Hist.] [📝] [⋯]│
-├──────────────────────────────────────────────────────────────────────────┤
-│                                                                          │
-│  ✅ 1. Consultation           28 jan                                     │
-│  ✅ 2. Offre soumise          30 jan                                     │
-│                                                                          │
-│  ✅━━ 3. OFFRE ACCEPTÉE ━━━━━━━━━━━━━━━━━━━━━━━━━ complété 1 fév ━━     │
-│  │                                                                       │
-│  │  🔒 CONDITIONS (archivées — lecture seule)                            │
-│  │  ┌──────────────────────────────────────────────────────────────┐     │
-│  │  │ ✅ Signature acte d'achat       🔒  Complété 1 fév · 📎     │     │
-│  │  └──────────────────────────────────────────────────────────────┘     │
-│  │  ┌──────────────────────────────────────────────────────────────┐     │
-│  │  │ ✅ Dépôt initial confirmé       🔒  Complété 1 fév          │     │
-│  │  └──────────────────────────────────────────────────────────────┘     │
-│  │                                                                       │
-│  │  Pas de boutons [✏️] ni [Valider] — tout est verrouillé              │
-│  │                                                                       │
-│  ●━━ 4. PÉRIODE CONDITIONNELLE ━━━━━━━━━━━━━━━━━━ (étape courante)      │
-│  │  ...                                                                  │
-│  ○  5. Ferme en attente                                                  │
-│  ...                                                                     │
-└──────────────────────────────────────────────────────────────────────────┘
-```
-
-**Critères d'acceptance :**
-- [ ] Conditions archivées avec icône 🔒
-- [ ] Aucun bouton d'action (pas de ✏️, pas de Valider)
-- [ ] Pas de bouton "Avancer" sur les étapes passées
-- [ ] L'agent peut cliquer pour consulter, pas pour modifier
-
-### 5.6 B3 — Transaction Timeline (Tout OK, Avancer Actif)
-
-**Desktop :**
-
-```
-┌──────────────────────────────────────────────────────────────────────────┐
-│ ← Retour   Tremblay · 123 rue Principale           [🕘 Hist.] [📝] [⋯]│
-├──────────────────────────────────────────────────────────────────────────┤
-│                                                                          │
-│  ✅ 1-3. (compressés)                                                    │
-│                                                                          │
-│  ●━━ 4. PÉRIODE CONDITIONNELLE ━━━━━━━━━━━━━━━━━━ depuis 12 jours ━━    │
-│  │                                                                       │
-│  │  🔴 BLOQUANTES                                                        │
-│  │  ┌──────────────────────────────────────────────────────────────┐     │
-│  │  │ ✅ Financement hypothécaire     11 fév · 📎 preuve          │     │
-│  │  └──────────────────────────────────────────────────────────────┘     │
-│  │  ┌──────────────────────────────────────────────────────────────┐     │
-│  │  │ ✅ Dépôt initial               3 fév · 📎 preuve            │     │
-│  │  └──────────────────────────────────────────────────────────────┘     │
-│  │                                                                       │
-│  │  🟡 REQUISES                                                          │
-│  │  ┌──────────────────────────────────────────────────────────────┐     │
-│  │  │ ✅ Inspection résidentielle    8 fév · 📎 rapport           │     │
-│  │  └──────────────────────────────────────────────────────────────┘     │
-│  │  ┌──────────────────────────────────────────────────────────────┐     │
-│  │  │ ✅ Révision RPDS              10 fév                        │     │
-│  │  └──────────────────────────────────────────────────────────────┘     │
-│  │                                                                       │
-│  │  🟢 RECOMMANDÉES                                                      │
-│  │  ┌──────────────────────────────────────────────────────────────┐     │
-│  │  │ ○ Vérification zonage         (non complété — OK)           │     │
-│  │  └──────────────────────────────────────────────────────────────┘     │
-│  │                                                                       │
-│  │  ┌──────────────────────────────────────────────────────────────┐     │
-│  │  │ ✅ Tout est prêt ! Bloquantes et requises complétées.       │     │
-│  │  │                                                              │     │
-│  │  │ [▸ Avancer à l'étape 5 — Ferme en attente]  (ACTIF, bleu)   │     │
-│  │  └──────────────────────────────────────────────────────────────┘     │
-│  │                                                                       │
-│  ○  5. Ferme en attente                                                  │
-│  ...                                                                     │
-└──────────────────────────────────────────────────────────────────────────┘
-```
-
-**Critères d'acceptance :**
-- [ ] Bouton "Avancer" ACTIF (bleu, primary) quand toutes bloquantes complétées
-- [ ] Message positif "Tout est prêt !" au-dessus du bouton
-- [ ] Conditions recommandées non complétées = OK (pas de blocage)
-- [ ] Clic "Avancer" → confirmation → avancement réel
-
-### 5.7 C1 — Mode Assisté (Panneau Suggestions)
-
-**Desktop (slide-in à droite) :**
-
-```
-┌───────────────────────────────────────────────────────┬─────────────────┐
-│ TRANSACTION (timeline visible)                        │ 💡 SUGGESTIONS  │
-│                                                       │                 │
-│                                                       │ Basé sur:       │
-│                                                       │ Achat NB rural  │
-│                                                       │ financé         │
-│                                                       │                 │
-│                                                       │ ☑ Financement   │
-│                                                       │   🔴 Block +10j │
-│                                                       │ ☑ Inspection    │
-│                                                       │   🟡 Req. +7j   │
-│                                                       │ ☑ Test puits    │
-│                                                       │   🔴 Block +10j │
-│                                                       │ ☐ Vérif. zonage │
-│                                                       │   🟢 Reco +14j  │
-│                                                       │ ─────────────── │
-│                                                       │ 3 sélectionnées │
-│                                                       │ [Ajouter (3)]   │
-│                                                       │ [✕ Fermer]      │
-└───────────────────────────────────────────────────────┴─────────────────┘
-```
-
-**Mobile (bottom sheet) :**
-
-```
-┌─────────────────────────────────────┐
-│ (Transaction visible derrière)      │
-├─────────────────────────────────────┤
-│  ▔▔▔▔▔ (drag handle)               │
-│ 💡 Suggestions — Étape 4            │
-│ ☑ Financement hyp.  🔴 +10j        │
-│ ☑ Inspection rés.   🟡 +7j         │
-│ ☑ Test puits        🔴 +10j        │
-│ ☐ Vérif. zonage     🟢 +14j        │
-│ 3 sélectionnées                     │
-│ [Ajouter (3)]                       │
-└─────────────────────────────────────┘
-```
-
-**Critères d'acceptance :**
-- [ ] Suggestions basées sur le profil transaction (rural/urbain/condo + financé)
-- [ ] Chaque suggestion montre : nom, niveau, deadline relative
-- [ ] Toutes pré-cochées par défaut SAUF recommended
-- [ ] Agent peut décocher/cocher librement
-- [ ] Bouton "Ajouter (N)" avec compteur dynamique
-- [ ] Après ajout : conditions créées avec deadlines calculées (D37)
-- [ ] Panel ne bloque pas la vue transaction (slide-in, pas modal)
-
-### 5.8 E1 — Modal Création Transaction (Simplifié)
-
-**Desktop :**
-
-```
-┌───────────────────────────────────────────────────────────┐
-│ + Nouvelle transaction                                     │
-├───────────────────────────────────────────────────────────┤
-│ Client:  [Rechercher ou créer ▾]                           │
-│ Adresse: [___________________________________]             │
-│ Type:    [Achat ▾]    Prix: [________]                     │
-│ Date de closing prévue: [📅 ___________]                   │
-│                                                           │
-│ ☑ Me proposer des suggestions de conditions                │
-│   (je valide avant création)                               │
-│                                                           │
-│ [Annuler]                           [Créer transaction]    │
-└───────────────────────────────────────────────────────────┘
-```
-
-**Mobile :**
-
-```
-┌─────────────────────────────────────┐
-│ + Nouvelle transaction              │
-├─────────────────────────────────────┤
-│ Client: [Rechercher ▾]             │
-│ Adresse: [________________]        │
-│ Type: [Achat ▾]                    │
-│ Prix: [________]                   │
-│ Closing: [📅 _______]              │
-│                                    │
-│ ☑ Suggestions de conditions        │
-│                                    │
-│ [Créer]                            │
-└─────────────────────────────────────┘
-```
-
-**Critères d'acceptance :**
-- [ ] Formulaire simple : client, adresse, type, prix, closing
-- [ ] Toggle suggestions (activé par défaut si profil onboarding = "guidez-moi")
-- [ ] Pas de re-paramétrage profil pratique (déjà fait à l'onboarding)
-- [ ] Création < 2 minutes
-- [ ] Si suggestions activées → C1 s'ouvre après création
-
-### 5.9 G2 — Admin Dashboard (Gestion Plans/Pricing)
-
-**Desktop :**
-
-```
-┌──────────────────────────────────────────────────────────────────────────┐
-│ Admin Ofra ▸ Plans & Pricing                               Sam (Admin)  │
-├──────────────────────────────────────────────────────────────────────────┤
-│ Rabais annuel: [−17%]   Programme Fondateur: [Prix garanti à vie]       │
-├──────────────────────────────────────────────────────────────────────────┤
-│ ┌──────────────────────────────────────────────────────────────────┐     │
-│ │ STARTER  [Actif ✅]                Abonnés: 12 (2 fondateurs)   │     │
-│ │ Mensuel: [29.00]$  Annuel: [290.00]$                            │     │
-│ │ TX max: [5]  Stockage: [1] Go  Historique: [6] mois             │     │
-│ │ [Sauvegarder]                                                   │     │
-│ └──────────────────────────────────────────────────────────────────┘     │
-│ ┌──────────────────────────────────────────────────────────────────┐     │
-│ │ SOLO  [Actif ✅]                   Abonnés: 18 (5 fondateurs)   │     │
-│ │ Mensuel: [49.00]$  Annuel: [490.00]$                            │     │
-│ │ TX max: [12]  Stockage: [3] Go  Historique: [12] mois           │     │
-│ │ [Sauvegarder]                                                   │     │
-│ └──────────────────────────────────────────────────────────────────┘     │
-│ ┌──────────────────────────────────────────────────────────────────┐     │
-│ │ PRO  [Actif ✅]                    Abonnés: 10 (4 fondateurs)   │     │
-│ │ Mensuel: [79.00]$  Annuel: [790.00]$                            │     │
-│ │ TX max: [25]  Stockage: [10] Go  Historique: [∞]                │     │
-│ │ [Sauvegarder]                                                   │     │
-│ └──────────────────────────────────────────────────────────────────┘     │
-│ ┌──────────────────────────────────────────────────────────────────┐     │
-│ │ AGENCE  [Inactif ⏸️]  Phase 2     Emails collectés: 7          │     │
-│ │ Mensuel: [149.00]$  Annuel: [1490.00]$  Users: [3]             │     │
-│ │ TX max: [∞]  Stockage: [25] Go  Historique: [∞]                │     │
-│ │ [Activer]  [Sauvegarder]                                       │     │
-│ └──────────────────────────────────────────────────────────────────┘     │
-│                                                                          │
-│ 📜 HISTORIQUE DES CHANGEMENTS                                            │
-│ 6 fév 14:32 · Sam · Pro mensuel: 69→79$ · "Brainstorm pricing v2"      │
-│ 5 fév 09:15 · Sam · Starter créé: 29$ · "Ajout plan d'entrée"          │
-│                                                                          │
-│ ⚠️ Changements = nouveaux abonnés. [Appliquer aux existants...]         │
-└──────────────────────────────────────────────────────────────────────────┘
-```
-
-**Mobile (lecture seule) :**
-
-```
-┌─────────────────────────────────────┐
-│ Admin · Plans                       │
-├─────────────────────────────────────┤
-│ STARTER: 29$/mo · 5 TX · 1 Go      │
-│ SOLO:    49$/mo · 12 TX · 3 Go     │
-│ PRO:     79$/mo · 25 TX · 10 Go    │
-│ AGENCE:  Inactif (Phase 2)         │
-│ (Édition complète: Desktop)         │
-└─────────────────────────────────────┘
-```
-
-**Critères d'acceptance :**
-- [ ] Tous les champs éditables (prix, limites, stockage, historique)
-- [ ] Sauvegarder par plan (pas tout d'un coup)
-- [ ] Historique des changements avec date, admin, champ, ancien→nouveau, raison
-- [ ] Raison obligatoire avant sauvegarde
-- [ ] Avertissement : nouveaux abonnés seulement
-- [ ] Bouton "Appliquer aux existants" avec confirmation (2 étapes)
-- [ ] Mobile = lecture seule (édition desktop recommandée)
-- [ ] Middleware `adminOnly` (is_admin boolean sur user)
-
-### 5.10 H1 — Page Pricing Publique (Mensuel)
-
-**Desktop :**
-
-```
-┌──────────────────────────────────────────────────────────────────────────┐
-│ Ofra  Fonctionnalités  Pricing  Connexion                   [Commencer] │
-├──────────────────────────────────────────────────────────────────────────┤
-│ ┌──────────────────────────────────────────────────────────────────┐     │
-│ │ 🏗️ FONDATEUR — 19/25 places restantes                           │     │
-│ │ 30 jours gratuits + votre prix garanti à vie                   │     │
-│ │ [Devenir fondateur →]                                           │     │
-│ └──────────────────────────────────────────────────────────────────┘     │
-│                                                                          │
-│              [● Mensuel]    [Annuel — Économisez 17%]                    │
-│                                                                          │
-│ ┌──────────────┐ ┌──────────────┐ ┌───────────────┐ ┌ ─ ─ ─ ─ ─ ─ ─ ┐ │
-│ │ STARTER      │ │ SOLO         │ │ PRO ⭐         │ │ ÉQUIPE         │ │
-│ │ 29$/mois     │ │ 49$/mois     │ │ 79$/mois      │ │ 149$/mois      │ │
-│ │              │ │              │ │ Populaire     │ │                │ │
-│ │ "Je fais ça  │ │ "Je lance ma │ │ "Pipeline     │ │ Bientôt        │ │
-│ │  à côté"     │ │  pratique"   │ │  chargé"      │ │                │ │
-│ │              │ │              │ │               │ │ Illimité       │ │
-│ │ 5 TX actives │ │ 12 TX        │ │ 25 TX         │ │ 3 users        │ │
-│ │ 1 Go         │ │ 3 Go         │ │ 10 Go         │ │ 25 Go          │ │
-│ │ Hist. 6 mois │ │ Hist. 12 mois│ │ Hist. ∞       │ │                │ │
-│ │              │ │              │ │               │ │                │ │
-│ │ [Commencer]  │ │ [Commencer]  │ │ [Commencer ⭐] │ │ [Me notifier]  │ │
-│ └──────────────┘ └──────────────┘ └───────────────┘ └ ─ ─ ─ ─ ─ ─ ─ ┘ │
-│                                                                          │
-│ Essai 30j gratuit · 100% Canada 🍁 · FR/EN · Sans contrat · Sans CB     │
-└──────────────────────────────────────────────────────────────────────────┘
-```
-
-**Mobile :**
-
-```
-┌─────────────────────────────────────┐
-│ Pricing                             │
-├─────────────────────────────────────┤
-│ 🏗️ Fondateur 19/25                  │
-│ 30j gratuits + prix garanti à vie  │
-│ [Devenir fondateur →]               │
-│                                     │
-│ [● Mensuel] [Annuel −17%]          │
-│                                     │
-│ ┌─────────────────────────────────┐ │
-│ │ STARTER  29$/mo                 │ │
-│ │ 5 TX · 1 Go · Hist. 6 mois     │ │
-│ │ [Commencer]                     │ │
-│ └─────────────────────────────────┘ │
-│ ┌─────────────────────────────────┐ │
-│ │ SOLO  49$/mo                    │ │
-│ │ 12 TX · 3 Go · Hist. 12 mois   │ │
-│ │ + Packs auto + Suggestions      │ │
-│ │ [Commencer]                     │ │
-│ └─────────────────────────────────┘ │
-│ ┌─────────────────────────────────┐ │
-│ │ PRO ⭐  79$/mo  Populaire       │ │
-│ │ 25 TX · 10 Go · Hist. ∞        │ │
-│ │ + Deadlines auto + Support prio │ │
-│ │ [Commencer ⭐]                   │ │
-│ └─────────────────────────────────┘ │
-│ ┌ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┐ │
-│ │ ÉQUIPE 149$/mo (Bientôt)       │ │
-│ │ [Me notifier]                  │ │
-│ └ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘ │
-│                                     │
-│ 🍁 100% canadien · 30j gratuit     │
-└─────────────────────────────────────┘
-```
-
-**Critères d'acceptance :**
-- [ ] Toggle mensuel/annuel fonctionnel
-- [ ] Prix lus depuis la DB (endpoint public `GET /api/plans`)
-- [ ] Plan Pro marqué "Populaire" / ⭐
-- [ ] Agence en pointillés avec "Me notifier" (collecte email)
-- [ ] Bannière fondateur au-dessus avec compteur temps réel
-- [ ] Si 25/25 fondateurs → "Programme Fondateur — Complet. [Liste d'attente]"
-
-### 5.11 H2 — Page Pricing (Annuel Toggle)
-
-Même layout que H1 avec :
-- Toggle "Annuel" activé
-- Prix barrés : ~~348$/an~~ **290$/an** (≈24$/mo)
-- Chaque plan montre l'économie annuelle
-
-### 5.12 H3 — Bannière Fondateur
-
-**Desktop :**
-
-```
-┌──────────────────────────────────────────────────────────────────────────┐
-│ 🏗️ OFFRE FONDATEUR — 19/25 places restantes                             │
-│ 30 jours gratuits + votre prix garanti à vie · Les prix augmenteront   │
-│ "Vous construisez Ofra avec nous."   [Devenir fondateur →] [Détails]   │
-└──────────────────────────────────────────────────────────────────────────┘
-```
-
-**Mobile :**
-
-```
-┌─────────────────────────────────────┐
-│ 🏗️ Fondateur — 19/25                │
-│ 30j gratuits + prix garanti à vie  │
-│ [Devenir fondateur →]               │
-└─────────────────────────────────────┘
-```
-
-### 5.13 K2 — Paramètres Abonnement
-
-**Desktop :**
-
-```
-┌──────────────────────────────────────────────────────────────────────────┐
-│ Paramètres ▸ Abonnement                                                  │
-├──────────────────────────────────────────────────────────────────────────┤
-│ 🏗️ Membre Fondateur #14/25 — Prix garanti à vie                         │
-│                                                                          │
-│ Plan actuel: PRO (79$/mo — prix locké)  Statut: Actif ✅                 │
-│ Renouvellement: 12 mars 2026            Cycle: Mensuel                   │
-│                                                                          │
-│ Utilisation:                                                             │
-│ TX actives: 12/25  ████████████░░░░░  48%                                │
-│ Stockage:  3.2/10 Go  ███░░░░░░░░░░  32%                                │
-│                                                                          │
-│ Paiement: Visa **** 4242   [Mettre à jour]                               │
-│                                                                          │
-│ Changer de plan:                                                         │
-│ [Starter 29$/mo] [Solo 49$/mo] [● Pro 79$/mo] [Agence — Phase 2]       │
-│ (prix garanti à vie — votre prix ne changera jamais)                     │
-│                                                                          │
-│ [Passer en annuel (−17% → 790$/an)]                                      │
-│                                                                          │
-│ [Annuler l'abonnement]                                                   │
-│ ⚠️ L'annulation fait perdre votre statut Fondateur définitivement.       │
-└──────────────────────────────────────────────────────────────────────────┘
-```
-
-**Mobile :**
-
-```
-┌─────────────────────────────────────┐
-│ Abonnement                          │
-├─────────────────────────────────────┤
-│ 🏗️ Fondateur #14/25 · Prix locké   │
-│ Plan: PRO 79$/mo · Actif ✅         │
-│ TX: 12/25 · Stock: 3.2/10 Go       │
-│ [Passer en annuel −17%]            │
-│ [Changer de plan]                   │
-│ ⚠️ Annulation = perte fondateur    │
-└─────────────────────────────────────┘
-```
-
-**Critères d'acceptance :**
-- [ ] Badge fondateur visible si is_founder = true
-- [ ] Prix affichés = `plan_locked_price` (prix garanti à vie, pas le prix courant)
-- [ ] Barres de progression TX et stockage
-- [ ] Changement de plan : prix locké au moment du switch (garanti à vie)
-- [ ] Avertissement explicite sur perte fondateur en cas d'annulation
-- [ ] Downgrade → vérifie TX actives → modal "Presque !" si dépassement
-
-### 5.14 Écran 14 — Soft Limit (Bandeau)
-
-**Desktop :**
-
-```
-┌──────────────────────────────────────────────────────────────────────────┐
-│ ⚠️ Limite atteinte: 25/25 transactions actives (Plan Pro)                │
-│ 7 jours de grâce. Après: création bloquée.                              │
-│ [Upgrade maintenant]   [Voir mes transactions]                           │
-└──────────────────────────────────────────────────────────────────────────┘
-```
-
-**Mobile :**
-
-```
-┌─────────────────────────────────────┐
-│ ⚠️ Limite atteinte (Pro)            │
-│ 7 jours de grâce                    │
-│ [Upgrade]  [Voir TX]                │
-└─────────────────────────────────────┘
-```
-
-**Critères d'acceptance :**
-- [ ] Bandeau affiché en haut de toutes les pages quand `grace_period_start` != null
-- [ ] Countdown jours restants
-- [ ] Bouton upgrade → page pricing avec plan supérieur pré-sélectionné
-- [ ] Transactions existantes **jamais** supprimées
-
-### 5.15 Écran 15 — Downgrade Bloqué
-
-**Desktop :**
-
-```
-┌───────────────────────────────────────────────────────────────┐
-│ Presque ! Quelques transactions à archiver d'abord            │
-├───────────────────────────────────────────────────────────────┤
-│                                                               │
-│  Vous souhaitez passer au plan Solo (12 TX actives max).      │
-│                                                               │
-│  Actives actuellement :  18                                   │
-│  Limite Solo :           12                                   │
-│  ─────────────────────────                                    │
-│  À archiver/terminer :   6                                    │
-│                                                               │
-│  [Voir mes transactions actives →]              [Compris]     │
-│                                                               │
-└───────────────────────────────────────────────────────────────┘
-```
-
-**Mobile :**
-
-```
-┌─────────────────────────────────────┐
-│ Presque !                           │
-├─────────────────────────────────────┤
-│ Actives: 18 · Limite Solo: 12      │
-│ Archivez 6 transactions d'abord.   │
-│ [Voir actives →]   [Compris]       │
-└─────────────────────────────────────┘
-```
-
-**Critères d'acceptance :**
-- [ ] Titre bienveillant ("Presque !"), pas agressif
-- [ ] Calcul fait pour l'agent (18 − 12 = 6)
-- [ ] "Voir actives" filtre par ancienneté (les plus vieilles en premier)
-- [ ] Modal bloquante — impossible de downgrader tant que la condition n'est pas remplie
-
-### 5.16 M-ADM-01 — Admin Pulse (Home Admin — D57)
-
-**Fréquence : quotidienne. C'est la première chose que le superadmin voit.**
-
-**Endpoint principal :** `GET /api/admin/pulse`
-**Données :** KPIs agrégés, alertes actionnables (trials J25+, paiements échoués), fil d'activité global (20 dernières actions), compteur fondateurs.
-
-**Desktop (>1024px) :**
-
-```
-┌──────────────────────────────────────────────────────────────────────────────┐
-│ 📊 Ofra Admin                                                     Sam ▾  ☾ │
-├────────┬─────────────────────────────────────────────────────────────────────┤
-│        │                                                                     │
-│ 🏠     │  Bonjour Sam 👋              Mode: [🟢 Live]      18 fév 2026      │
-│ Pulse  │                                                                     │
-│        │  ┌────────────┐ ┌────────────┐ ┌────────────┐ ┌─────────────────┐  │
-│ 👥     │  │ 👥 USERS    │ │ 📋 TX      │ │ 🏗️ FONDATRS │ │ 💰 MRR          │  │
-│ Gens   │  │ 14 total   │ │ 23 actives │ │ 14/25      │ │ — (pré-Stripe) │  │
-│        │  │ +3 ce mois │ │ +5 ce mois │ │ 11 dispo   │ │ Prévu: ~686$   │  │
-│ ⚙️     │  └────────────┘ └────────────┘ └────────────┘ └─────────────────┘  │
-│ Config │                                                                     │
-│        │  🔴 ACTIONS REQUISES (3)                                            │
-│        │  ┌──────────────────────────────────────────────────────────────┐   │
-│        │  │ ⏰ Trial expire 48h — Marie Cormier (J28)                    │   │
-│        │  │ Solo · 3 TX · 12 conditions validées                        │   │
-│        │  │ [Voir profil →]  [Envoyer rappel]                           │   │
-│        │  ├──────────────────────────────────────────────────────────────┤   │
-│        │  │ ⏰ Trial expire 48h — Jean Landry (J29)                      │   │
-│        │  │ ⚠️ Inactif 5 jours  [Voir profil →]  [Envoyer rappel]       │   │
-│        │  ├──────────────────────────────────────────────────────────────┤   │
-│        │  │ 💳 Paiement échoué — Luc Arsenault (Pro 79$/mo)              │   │
-│        │  │ Visa *4242 expirée  [Voir profil →]  [Contacter]            │   │
-│        │  └──────────────────────────────────────────────────────────────┘   │
-│        │                                                                     │
-│        │  ┌───────────────────────────────┬──────────────────────────────┐   │
-│        │  │ 📊 CONVERSION TRIAL            │ 🏗️ FONDATEURS               │   │
-│        │  │ Inscrits ce mois:    8         │ #1  Marie C.    Pro  ✅ J12  │   │
-│        │  │ TX créée (<48h):     6 (75%)   │ #2  Luc A.      Solo ✅ J45  │   │
-│        │  │ Trial→Payant (30j):  4 (68%)   │ ...                          │   │
-│        │  │ Churn M1:            1 (12%)   │ #14 Jean L.     —   ⏳ J29  │   │
-│        │  │ Avg time-to-1st-TX:  14 min    │ [Voir tous →]              │   │
-│        │  └───────────────────────────────┘└──────────────────────────────┘  │
-│        │                                                                     │
-│        │  ⚡ FIL D'ACTIVITÉ                                                  │
-│        │  ────────────────────────────────────────────────────────────────   │
-│        │  3 min   Marie C. a validé "Financement hyp." (TX Tremblay)        │
-│        │  12 min  Anne D. a créé une nouvelle transaction                    │
-│        │  1h      Luc A. s'est connecté                                      │
-│        │  2h      Jean L. a soumis une offre (TX Dupont)                     │
-│        │  [Voir tout →]                                                      │
-│        │                                                                     │
-└────────┴─────────────────────────────────────────────────────────────────────┘
-```
-
-**Mobile (<640px) :**
-
-```
-┌─────────────────────────────────────┐
-│ 📊 Admin         [🟢 Live]    ☾  ≡ │
-├─────────────────────────────────────┤
-│ Bonjour Sam 👋                      │
-│ ┌────────┐ ┌────────┐              │
-│ │ 👥 14   │ │ 📋 23   │              │
-│ │ users  │ │ TX act.│              │
-│ └────────┘ └────────┘              │
-│ ┌────────┐ ┌────────┐              │
-│ │ 🏗️ 14/25│ │ 💰 —    │              │
-│ │ fondrs │ │ MRR    │              │
-│ └────────┘ └────────┘              │
-│                                     │
-│ 🔴 ACTIONS (3)                      │
-│ ┌─────────────────────────────────┐ │
-│ │ ⏰ Marie C. — trial J28         │ │
-│ │ 3 TX · Engagée · [Profil]      │ │
-│ ├─────────────────────────────────┤ │
-│ │ ⏰ Jean L. — trial J29          │ │
-│ │ ⚠️ Inactif 5j · [Profil]        │ │
-│ ├─────────────────────────────────┤ │
-│ │ 💳 Luc A. — paiement échoué    │ │
-│ │ Visa expirée · [Profil]        │ │
-│ └─────────────────────────────────┘ │
-│                                     │
-│ ⚡ ACTIVITÉ RÉCENTE                 │
-│ 3min  Marie → validé condition     │
-│ 12min Anne → nouvelle TX           │
-│ 1h    Luc → connexion              │
-│ [Voir tout →]                       │
-├─────────────────────────────────────┤
-│ 🏠 Pulse   👥 Gens   ⚙️ Config     │
-└─────────────────────────────────────┘
-```
-
-**Critères d'acceptance :**
-- [ ] KPIs : total users (+delta mois), TX actives (+delta), fondateurs X/25, MRR (ou "pré-Stripe")
-- [ ] Badge mode site visible en permanence (🟢 Live / 🟠 Coming Soon / 🔴 Maintenance)
-- [ ] Alertes actionnables : trials J25+, paiements échoués, users inactifs 7j+
-- [ ] Chaque alerte a des boutons d'action (Voir profil, Envoyer rappel, Contacter)
-- [ ] Bloc conversion trial : inscrits, activation <48h, conversion 30j, churn M1, time-to-1st-TX
-- [ ] Bloc fondateurs : mini-tableau avec nom, plan, statut, jour
-- [ ] Fil d'activité : 20 dernières actions plateforme, temps relatif, lien vers user/TX
-- [ ] Mobile : lecture seule, KPIs compacts, alertes simplifiées, bottom nav 3 onglets
-- [ ] Sidebar desktop : 3 items (Pulse, Gens, Config) — remplace les 5 pages actuelles
-
-### 5.17 M-ADM-02 — Admin Gens (Subscribers CRM — D57)
-
-**Fréquence : 2-3 fois par semaine.**
-
-**Endpoint :** `GET /api/admin/subscribers` (existant, enrichi avec smart segments SQL)
-
-**Desktop (>1024px) :**
-
-```
-┌──────────────────────────────────────────────────────────────────────────────┐
-│ 📊 Ofra Admin                                                     Sam ▾  ☾ │
-├────────┬─────────────────────────────────────────────────────────────────────┤
-│        │                                                                     │
-│ 🏠     │  👥 Abonnés (42)                              [📥 Exporter CSV]    │
-│ Pulse  │                                                                     │
-│        │  Segments:                                                          │
-│ 👥     │  [Tous (42)] [⏰ Trial J25+ (3)] [🔴 À risque (5)] [🏗️ Fondateurs  │
-│ Gens   │  (14)] [🆕 Cette semaine (6)] [💳 Impayés (1)]                     │
-│        │                                                                     │
-│ ⚙️     │  🔍 [Rechercher par nom ou email..._________]                      │
-│ Config │                                                                     │
-│        │  ┌──────────────────────────────────────────────────────────────┐   │
-│        │  │ Nom          │ Plan    │ Statut   │ Engag. │ TX │ Inscrit  │   │
-│        │  ├──────────────┼─────────┼──────────┼────────┼────┼──────────┤   │
-│        │  │ 🏗️ Marie C.   │ Pro 79$ │ ✅ Actif  │ 🟢 Actif│ 3  │ 15 jan   │   │
-│        │  │ 🏗️ Luc A.     │ Solo 49$│ ⚠️ Impayé │ 🟡 Tiède│ 1  │ 20 jan   │   │
-│        │  │    Sophie B.  │ —       │ ⏳ Trial  │ 🔴 Inact│ 0  │ 10 fév   │   │
-│        │  │    ...        │         │          │        │    │          │   │
-│        │  └──────────────────────────────────────────────────────────────┘   │
-│        │  Page 1/3  [← Préc] [1] [2] [3] [Suiv →]                          │
-│        │                                                                     │
-│        │  ┌─── DRAWER (clic sur un user) ───────────────────────────────┐   │
-│        │  │ ✕                                                           │   │
-│        │  │ 🏗️ Marie Cormier — Fondateur #1                             │   │
-│        │  │ marie@example.com · Inscrite 15 jan 2026                    │   │
-│        │  │                                                             │   │
-│        │  │ Plan: Pro 79$/mo (prix locké)  Statut: ✅ Actif              │   │
-│        │  │ Trial: — (converti J18)        Rôle: [user ▾]              │   │
-│        │  │                                                             │   │
-│        │  │ 📊 UTILISATION                                               │   │
-│        │  │ TX actives: 3/25  ████░░░░░  12%                            │   │
-│        │  │ Stockage: 0.8/10 Go  █░░░░░  8%                            │   │
-│        │  │ Conditions: 12 validées · 2 en cours                       │   │
-│        │  │ Dernière connexion: il y a 3 min                            │   │
-│        │  │                                                             │   │
-│        │  │ Abonnement: [✅ Actif ▾]  (superadmin seulement)            │   │
-│        │  │                                                             │   │
-│        │  │ ⚡ ACTIVITÉ RÉCENTE                                          │   │
-│        │  │ 3 min   Validé "Financement hyp." (TX Tremblay)            │   │
-│        │  │ 2h      Ajouté preuve reçu dépôt                           │   │
-│        │  │ Hier    Créé TX "Dupont · 456 av. Érables"                 │   │
-│        │  │ 15 jan  Inscription + trial démarré                         │   │
-│        │  │                                                             │   │
-│        │  │ [📝 Notes] [✅ Tâches]                                       │   │
-│        │  │ + Ajouter une note...                                       │   │
-│        │  └─────────────────────────────────────────────────────────────┘   │
-│        │                                                                     │
-└────────┴─────────────────────────────────────────────────────────────────────┘
-```
-
-**Mobile (<640px) :** Cards empilées (nom, plan, statut, engagement). Clic → drawer full-screen. Bottom nav 3 onglets.
-
-**Critères d'acceptance :**
-- [ ] Smart segments prédéfinis : Tous, Trial J25+, À risque (inactif 7j+), Fondateurs, Cette semaine, Impayés
-- [ ] Segments calculés en SQL (pas en JS post-pagination) — `meta.total` correct
-- [ ] Table triable par colonne (nom, plan, statut, engagement, TX, inscrit)
-- [ ] Badge 🏗️ fondateur visible dans la liste
-- [ ] Drawer détail : infos user, plan (prix locké si fondateur), barres utilisation TX/stockage
-- [ ] Drawer : timeline activité récente (depuis `activity_feeds`)
-- [ ] Drawer : onglets Notes/Tâches avec CRUD (VineJS validé, maxLength)
-- [ ] Dropdown changement statut abonnement : superadmin seulement
-- [ ] Export CSV fonctionnel (avec session auth, pas `window.open`)
-- [ ] Mobile : cards empilées, drawer full-screen, lecture seule pour actions critiques
-
-### 5.18 M-ADM-03 — Admin Config (Plans + SiteMode + Promos — D57/D58/D59)
-
-**Fréquence : mensuelle ou lors de changements.**
-
-**Desktop (>1024px) :**
-
-```
-┌──────────────────────────────────────────────────────────────────────────────┐
-│ 📊 Ofra Admin                                                     Sam ▾  ☾ │
-├────────┬─────────────────────────────────────────────────────────────────────┤
-│        │                                                                     │
-│ 🏠     │  ⚙️ Configuration                                                   │
-│ Pulse  │                                                                     │
-│        │  ┌── MODE DU SITE (D58) ───────────────────────────────────────┐   │
-│ 👥     │  │                                                             │   │
-│ Gens   │  │  État:  [● 🟢 Live]  [🚀 Coming Soon]  [🔧 Maintenance]     │   │
-│        │  │                                                             │   │
-│ ⚙️     │  │  Code d'accès fondateurs:                                   │   │
-│ Config │  │  [OFRA-FOUNDER-2026_____] [🔄 Régénérer]                    │   │
-│        │  │  14 accès validés avec ce code                              │   │
-│        │  │                                                             │   │
-│        │  │  Message personnalisé:                                      │   │
-│        │  │  [Nous préparons le lancement. Revenez bientôt !_________] │   │
-│        │  │                                                             │   │
-│        │  │  ⚠️ Changer le mode affecte tous les visiteurs.             │   │
-│        │  │  [Appliquer le changement]                                  │   │
-│        │  └─────────────────────────────────────────────────────────────┘   │
-│        │                                                                     │
-│        │  ┌── PLANS & PRICING ──────────────────────────────────────────┐   │
-│        │  │                                                             │   │
-│        │  │ ┌──────────────┐ ┌──────────────┐ ┌──────────────┐ ┌─ ─ ─ ┐│   │
-│        │  │ │ STARTER      │ │ SOLO         │ │ PRO          │ │AGENCE││   │
-│        │  │ │ [Actif ✅]    │ │ [Actif ✅]    │ │ [Actif ✅]    │ │[⏸️]   ││   │
-│        │  │ │ Abonnés: 4   │ │ Abonnés: 6   │ │ Abonnés: 4   │ │ —    ││   │
-│        │  │ │ (1 fondateur)│ │ (5 fondateurs)│ │ (8 fondateurs)│ │      ││   │
-│        │  │ │ Mens: [29]$  │ │ Mens: [49]$  │ │ Mens: [79]$  │ │[149]$││   │
-│        │  │ │ Ann: [290]$  │ │ Ann: [490]$  │ │ Ann: [790]$  │ │[1490]││   │
-│        │  │ │ TX: [5] max  │ │ TX: [12] max │ │ TX: [25] max │ │ [∞]  ││   │
-│        │  │ │ Stock: [1] Go│ │ Stock: [3] Go│ │ Stock:[10] Go│ │[25]Go││   │
-│        │  │ │ Hist: [6] mo │ │ Hist: [12] mo│ │ Hist: [∞]    │ │ [∞]  ││   │
-│        │  │ │ Users: [1]   │ │ Users: [1]   │ │ Users: [1]   │ │ [3]  ││   │
-│        │  │ │ Raison:      │ │ Raison:      │ │ Raison:      │ │      ││   │
-│        │  │ │ [__________] │ │ [__________] │ │ [__________] │ │[____]││   │
-│        │  │ │ [Sauvegarder]│ │ [Sauvegarder]│ │ [Sauvegarder]│ │[Save]││   │
-│        │  │ └──────────────┘ └──────────────┘ └──────────────┘ └─ ─ ─ ┘│   │
-│        │  │                                                             │   │
-│        │  │ ⚠️ Changements = nouveaux abonnés.                           │   │
-│        │  │ [Appliquer aux existants...]                                │   │
-│        │  │                                                             │   │
-│        │  │ 📜 HISTORIQUE  [Voir tout →]                                 │   │
-│        │  │ 18 fév · Sam · Pro mensuel: 69→79$ · "Alignement v2"      │   │
-│        │  │ 15 fév · Sam · Starter créé · "Plan d'entrée"             │   │
-│        │  └─────────────────────────────────────────────────────────────┘   │
-│        │                                                                     │
-│        │  ┌── CODES PROMOTIONNELS (D59) ────────────────────────────────┐   │
-│        │  │                                                             │   │
-│        │  │  [+ Nouveau code]                                           │   │
-│        │  │                                                             │   │
-│        │  │  │ Code       │ Type  │ Valeur │ Util. │ Expire │ Statut │  │   │
-│        │  │  ├────────────┼───────┼────────┼───────┼────────┼────────┤  │   │
-│        │  │  │ NBREA2026  │ %     │ 20%    │ 3/50  │ 1 avr  │ ✅ Actif│  │   │
-│        │  │  │ BROKER-RYL │ Mois  │ 1 mois │ 0/10  │ —      │ ✅ Actif│  │   │
-│        │  │  │ FRIEND-20  │ %     │ 20%    │ 12/∞  │ —      │ ✅ Actif│  │   │
-│        │  │  │ BETA-TEST  │ Fixe  │ 10$    │ 5/5   │ passé  │ 🔴 Exp. │  │   │
-│        │  │                                                             │   │
-│        │  │  ⚠️ Non cumulable avec le statut Fondateur.                  │   │
-│        │  └─────────────────────────────────────────────────────────────┘   │
-│        │                                                                     │
-│        │  ┌── SYSTÈME ──────────────────────────────────────────────────┐   │
-│        │  │ DB: ✅ 23ms  │  Redis: ✅ OK  │  Emails: ✅ OK  │ v1.0-beta │   │
-│        │  │ Stockage: 2.1/50 Go     │  Uptime: 14j                     │   │
-│        │  └─────────────────────────────────────────────────────────────┘   │
-│        │                                                                     │
-└────────┴─────────────────────────────────────────────────────────────────────┘
-```
-
-**Modals associées :**
-
-**Modal "Nouveau code promo" :**
-```
-┌───────────────────────────────────────────────────────────────┐
-│ + Nouveau code promo                                           │
-├───────────────────────────────────────────────────────────────┤
-│  Code:          [____________]  [🎲 Auto-générer]              │
-│  Type:          [● Pourcentage] [Montant fixe] [Mois gratuit] │
-│  Valeur:        [20] %                                         │
-│  Utilisations:  [50] max (vide = illimité)                     │
-│  Plans élig.:   [☑ Starter] [☑ Solo] [☑ Pro] [☐ Agence]      │
-│  Valide du:     [📅 2026-03-01]  au: [📅 2026-04-01]           │
-│                                                                │
-│  [Annuler]                              [Créer le code]        │
-└───────────────────────────────────────────────────────────────┘
-```
-
-**Modal "Appliquer aux existants" :**
-```
-┌───────────────────────────────────────────────────────────────┐
-│ ⚠️ Action irréversible                                         │
-├───────────────────────────────────────────────────────────────┤
-│  Vous allez mettre à jour le prix de tous les abonnés         │
-│  actuels du plan Pro.                                          │
-│                                                                │
-│  Abonnés affectés:  4 (dont 3 fondateurs)                     │
-│  Ancien prix:       69$/mo                                     │
-│  Nouveau prix:      79$/mo                                     │
-│                                                                │
-│  ⚠️ Les fondateurs conservent leur prix locké.                 │
-│  → 1 abonné non-fondateur sera affecté.                       │
-│                                                                │
-│  Tapez "APPLIQUER" pour confirmer:                             │
-│  [________________]                                            │
-│                                                                │
-│  Raison: [________________________________]                    │
-│                                                                │
-│  [Annuler]                   [Appliquer] (grisé tant que ≠)   │
-└───────────────────────────────────────────────────────────────┘
-```
-
-**Mobile (<640px) :** Lecture seule — affiche mode site, plans (résumé), codes promo (liste), système. Édition desktop uniquement.
-
-**Critères d'acceptance :**
-- [ ] SiteMode : toggle 3 états (live/construction/maintenance), code d'accès éditable, compteur accès, message custom
-- [ ] Plans : sauvegarde par plan, raison obligatoire (min 3 chars), historique avec date/admin/champ/ancien→nouveau
-- [ ] "Appliquer aux existants" : modal 2 étapes, type-to-confirm "APPLIQUER", exclut fondateurs (prix locké), raison obligatoire
-- [ ] Codes promo : CRUD complet, types (%, fixe, mois gratuit), max utilisations, dates validité, plans éligibles
-- [ ] Non cumulable fondateur + promo clairement indiqué
-- [ ] Système : health check DB/Redis/Emails, stockage, uptime, version
-- [ ] Mobile = lecture seule avec mention "Édition: desktop uniquement"
-
-### 5.19 M-ADM-04 — Page "Coming Soon" (publique — D58/D60) — ✅ Maquette validée (avec réserve)
-
-**Affichée quand `site_mode = 'coming_soon'` et visiteur sans code d'accès.**
-**Design : dark theme cinématique (navy gradient, white text, gold accents, storytelling narratif).**
-**But : créer du FOMO et capturer des leads. Approche storytelling émotionnel, pas liste de features.**
-**Fichier maquette : `maquettes/admin-construction.html`**
-
-> **⚠️ Note Sam (2026-02-18)** : Maquette validée — bonne direction, mais il manque quelque chose. À itérer.
-
-```
-SECTION 1 — HERO (100vh, fullscreen)
-┌──────────────────────────────────────────────────────────────────┐
-│  (fond dark navy gradient solide)                                │
-│                                                                  │
-│    ● LANCEMENT EXCLUSIF — NOUVEAU-BRUNSWICK                     │
-│                                                                  │
-│    "Combien de deadlines avez-vous failli                       │
-│     oublier cette année ?"  ▎ (typewriter effect)               │
-│                                                                  │
-│    La réponse ne devrait jamais être « une seule ».             │
-│                                                                  │
-│                      OFR[A]                                      │
-│          Votre copilote immobilier. Bientôt.                    │
-│                                                                  │
-│                        ˅ (scroll)                                │
-└──────────────────────────────────────────────────────────────────┘
-
-SECTION 2 — STORYTELLING (3 actes, scroll reveal)
-┌──────────────────────────────────────────────────────────────────┐
-│                                                                  │
-│  🔴 │ 22h47                                                     │
-│     │ DIMANCHE SOIR                                              │
-│     │ Votre téléphone sonne. La condition de financement        │
-│     │ expire demain matin. Vous aviez oublié.                   │
-│     │ Ce scénario, chaque courtier l'a vécu.                    │
-│                                                                  │
-│              🟡 Et si chaque deadline, chaque                    │
-│              condition, chaque obligation FINTRAC                │
-│              était suivie. Automatiquement.                      │
-│              Sans Excel. Sans post-it.                           │
-│                                                                  │
-│                      🟢 Ofra surveille vos transactions 24/7. │ │
-│                         Conditions intelligentes.              │ │
-│                         Alertes proactives.                    │ │
-│                         Conformité FINTRAC intégrée.           │ │
-│                         Zéro oubli. Zéro stress. 100% conforme.│
-│                                                                  │
-└──────────────────────────────────────────────────────────────────┘
-
-SECTION 3 — CTA (glass card)
-┌──────────────────────────────────────────────────────────────────┐
-│                                                                  │
-│    ┌─ glass card ──────────────────────────────────────────┐     │
-│    │                                                        │     │
-│    │  Lancement dans 29 jours, 14 heures et 22 minutes    │     │
-│    │  🔥 6 places restantes sur 25                          │     │
-│    │  25 agents fondateurs. Prix garanti à vie.            │     │
-│    │                                                        │     │
-│    │         [ J'AI MON CODE → ]  (gold, glowing)          │     │
-│    │         (click → reveal input code)                    │     │
-│    │                                                        │     │
-│    │         Pas encore de code ? →                         │     │
-│    │         (click → reveal input email)                   │     │
-│    └───────────────────────────────────────────────────────┘     │
-│                                                                  │
-│    Conçu au Nouveau-Brunswick. Pour le Nouveau-Brunswick.       │
-│    Par un courtier, pour les courtiers.                          │
-│    © 2026 Ofra · Moncton, NB · 100% hébergé au Canada 🇨🇦       │
-│                                                                  │
-└──────────────────────────────────────────────────────────────────┘
-```
-
-**Critères d'acceptance :**
-- [ ] Dark theme premium (navy gradient, glassmorphism cards, gold CTAs)
-- [ ] Logo Ofra officiel + tagline "copilote de l'agent immobilier"
-- [ ] Message personnalisé depuis admin (via `site_settings.custom_message`)
-- [ ] Countdown temps réel (JS ticking) basé sur `site_settings.launch_date` — caché si null
-- [ ] Compteur fondateurs "X/25 places restantes" (via `GET /api/public/founder-count`) — caché si `show_founder_count = false`
-- [ ] Pitch points dynamiques (depuis `site_settings.pitch_points` JSON array)
-- [ ] Code d'accès anticipé : validation contre `site_settings.access_code`
-- [ ] Code valide → cookie `access_code_validated` (session) → accès à l'app
-- [ ] Code invalide → message d'erreur inline
-- [ ] Liste d'attente email : validation, toast confirmation, stockage `waitlist_emails`
-- [ ] Responsive : même layout, adapté mobile (countdown reste lisible)
-- [ ] Routes exemptées : `/api/health`, `/api/webhooks/stripe`, `/api/public/founder-count`
-- [ ] Admins/superadmins bypass automatique (pas de code requis)
-
-### 5.20 M-ADM-05 — Page Maintenance (publique — D58)
-
-**Affichée quand `site_mode = 'maintenance'`. Retourne HTTP 503.**
-
-```
-┌──────────────────────────────────────────────────────────────────┐
-│                                                                  │
-│                          🔧 Ofra                                  │
-│                                                                  │
-│                    Maintenance en cours                           │
-│                                                                  │
-│            Nous effectuons une mise à jour pour                  │
-│            améliorer votre expérience.                            │
-│                                                                  │
-│            Nous serons de retour dans                             │
-│            quelques minutes.                                     │
-│                                                                  │
-│            ┌──────────────────────────────────────┐              │
-│            │ ✅ Vos données sont en sécurité.       │              │
-│            │ ✅ Aucune action requise de votre part.│              │
-│            └──────────────────────────────────────┘              │
-│                                                                  │
-│            Questions ? support@ofra.ca                           │
-│                                                                  │
-└──────────────────────────────────────────────────────────────────┘
-```
-
-**Critères d'acceptance :**
-- [ ] HTTP 503 Service Unavailable
-- [ ] Message personnalisé depuis admin affiché si défini
-- [ ] Admins/superadmins peuvent accéder normalement à l'app
-- [ ] Aucun champ de saisie (pas de code, pas d'email)
-- [ ] Design minimaliste, rassurant ("données en sécurité")
-- [ ] `Retry-After` header recommandé
+## 5. Maquettes (à refaire)
+
+> **Les 20 maquettes Phase 1 ont été supprimées (v2.32).** Elles couvraient : Dashboard (A1-A3), Transaction Timeline (B1-B3), Mode Assisté (C1), Modal Création TX (E1), Admin (G2, M-ADM-01 à M-ADM-05), Pricing (H1-H3), Paramètres (K2), Soft Limit (14), Downgrade (15).
+>
+> **Nouvelles maquettes à créer (session dédiée) :**
+> - Page transaction adaptative par workflowStep (§9.2.4)
+> - CreateOfferModal 3 étapes acheteur (§9.2.2)
+> - Panneau offres vendeur + gestionnaire invitations (§9.2.3)
+> - BidRound / "Best and final" (§9.2.3)
+> - Cartes conditions enrichies (§9.2.5)
+> - Page de réponse partie adverse refaite (§9.2.2)
+> - Comparateur d'offres enrichi (§9.2.3)
+>
+> **Phase 1 (déjà codée) :** Les écrans existants (Dashboard, Admin, Pricing, Auth) restent en production tels quels. Le code est la référence.
+
+**Inventaire des maquettes à créer — Flow offre (35 éléments, validé 2026-02-21) :**
+
+**Écrans Ofra — Transaction acheteuse (7) :**
+
+| # | Écran | Détail |
+|---|-------|--------|
+| A1 | Panneau Offres — état vide acheteur | "Aucune offre" + bouton "Préparer une offre" |
+| A2 | CreateOfferModal — Étape 1/3 Formulaire | Client auto-rempli, toggle destinataire, prix/dépôt/conditions |
+| A3 | CreateOfferModal — Étape 2/3 Preview + Signature | PDF NBREA, résumé, zone eSignature |
+| A4 | CreateOfferModal — Étape 3/3 Confirmation | "Offre envoyée" + résumé |
+| A5 | Panneau Offres — offre active | NegotiationThread (R1, R2...), statut temps réel |
+| A6 | Répondre à une contre-offre | Même flow 3 étapes, pré-rempli |
+| A7 | Enregistrer réponse vendeur (hors-système) | 3 boutons : contre-offre / accepté / refusé |
+
+**Écrans Ofra — Transaction vendeuse (8) :**
+
+| # | Écran | Détail |
+|---|-------|--------|
+| V1 | Panneau Offres — état vide vendeur | "Aucune offre reçue" + "Inviter" + "Enregistrer manuellement" |
+| V2 | Gestionnaire d'invitations | Tableau suivi, formulaire invitation, statuts envoyé/ouvert/soumis |
+| V3 | Enregistrer offre manuellement | Formulaire + upload PDF |
+| V4 | Panneau Offres — offres reçues | Liste avec colonnes prix/dépôt/clôture/conditions/statut |
+| V5 | Comparateur d'offres | Plein écran, côte à côte, "Meilleur" par critère |
+| V6 | Répondre à une offre | Accepter (+ eSign) / Contre-offre / Refuser |
+| V7 | Acceptation cascade | "X offres en attente — refuser et notifier ?" |
+| V8 | BidRound — Lancer une ronde | Message, deadline, courtiers sélectionnés |
+
+**Pages publiques — partagées (7) :**
+
+| # | Page | Détail |
+|---|------|--------|
+| P1 | Vérification email | "Entrez votre courriel pour accéder" |
+| P2 | Vue offre + 3 boutons | PDF + Accepter / Contre-offrir / Refuser |
+| P3 | Acceptation + eSignature | Zone signature, confirmation |
+| P4 | Formulaire contre-offre | Prix, clôture, message, signature |
+| P5 | Confirmation refus | Motif optionnel |
+| P6 | Soumission d'offre (intake) | Formulaire complet via lien invitation |
+| P7 | Révision d'offre (BidRound) | Modifier son offre avant la deadline |
+
+**Emails (10) :**
+
+| # | Email | Destinataire |
+|---|-------|-------------|
+| E1 | "Offre d'achat — {adresse}" + PDF | Courtier vendeur |
+| E2 | "Contre-offre reçue" | Courtier acheteur |
+| E3 | "Offre acceptée" | Courtier acheteur |
+| E4 | "Offre refusée" | Courtier acheteur |
+| E5 | "Invitation à soumettre une offre" | Courtier acheteur invité |
+| E6 | "Nouvelle offre reçue" | Courtier vendeur |
+| E7 | "Contre-offre — {adresse}" | Courtier acheteur |
+| E8 | "Offre acceptée — {adresse}" | Courtier acheteur |
+| E9 | "Offre non retenue" | Courtiers refusés (cascade) |
+| E10 | "Meilleure offre finale demandée" | Tous courtiers actifs (BidRound) |
+
+**PDFs (3) :**
+
+| # | PDF | Contexte |
+|---|-----|---------|
+| D1 | Agreement of Purchase & Sale (NBREA) | Offre initiale |
+| D2 | Contre-offre | Quand une partie contre-offre |
+| D3 | Acceptation | Quand une partie accepte + signe |
 
 ---
-
 ## 6. Spécifications Comportementales (sans maquette)
 
 ### 6.1 D1-D5 — Validation Conditions (déjà codé D41)
@@ -2135,7 +802,8 @@ Tout ce qui est nécessaire pour que les 25 premiers agents puissent :
 | Codes promotionnels | M-ADM-03 | D59 | ✅ Codé (Bloc 9 — CRUD backend+frontend) |
 | Liste d'attente email | M-ADM-04 | D60 | ✅ Codé (Bloc 9 — endpoint public + admin index) |
 | Legal (CGU, vie privée) | — | — | ❌ TODO |
-| Stripe integration | K2, #14, #15 | D47-D49 | ❌ TODO (dernier) |
+| Stripe integration | K2, #14, #15 | D47-D49 | 🟡 EN COURS (code done, reste Dashboard setup) |
+| Offer notification loop | §9.2.1 | N1-N3 | ❌ TODO (2-3h — emails buyer sur counter/accept/confirm) |
 
 #### Launch Day Checklist — 20 mars 2026
 
@@ -2233,16 +901,645 @@ Actions à réaliser le jour du lancement public :
 | C11 | Suggestion sur conditions | Quand une condition type "inspection" est créée → suggérer les inspecteurs du carnet de l'agent | ✅ DONE — Mapping `TYPE_TO_ROLE` (8 types → rôles) dans `EditConditionModal`. Pros matchés en section "Suggestions" (vert), autres en dessous. |
 | C12 | Assignation pro sur condition | L'agent peut assigner un pro de son carnet à une condition (avocat sur "révision titre", etc.) | ✅ DONE — Migration `1786000000002` (`assigned_pro_id` FK), model+validator+audit trail, preload `assignedPro`, badge violet sur ConditionCard, picker dans EditConditionModal, 6 clés i18n FR+EN. |
 
-**Éléments reportés de Phase 2 originale :**
+#### 9.2.1 Audit Système Offre — Boucle Notification (2026-02-20)
 
-| Feature | Décision | Statut |
-|---------|----------|--------|
-| Sprint 2-4 conditions (lock profile, admin override, audit log) | Planifié | ❌ TODO |
-| M14 Polish offres (irrévocabilité, custom expiration, NegotiationThread modal) | §11.G | ❌ TODO |
-| Compteur "Valeur protégée" (données réelles) | D43 | ❌ TODO |
-| Onboarding simplifié "1ère transaction en 2 min" | D40 | ❌ TODO |
-| Plan Agence activé | D46 | ❌ TODO |
-| UI Audit Trail conditions (composant frontend, backend `ConditionEvent` déjà actif) | Backlog | ❌ TODO |
+> **Constat :** Le moteur offre est solide (direction auto-inférée, contre-offre inversée, comparateur 6 axes, intake public Phase A/B/C, share links sécurisés). Mais la **boucle de communication vers les parties externes** est cassée : le buyer/seller externe ne reçoit aucun email après sa soumission.
+
+**Ce qui FONCTIONNE :**
+
+| Feature | Status | Détail |
+|---------|--------|--------|
+| Direction auto-inférée depuis rôle party | ✅ | `inferDirection()` dans `OfferService` |
+| Contre-offre : direction + parties auto-inversées | ✅ | `addRevision()` inverse from/to + direction |
+| Acceptation : auto-advance workflow + reject autres | ✅ | `acceptOffer()` dans controller |
+| Lien public buyer (intake Phase A/B/C) | ✅ | Token sécurisé, rate-limited, password-protected |
+| Buyer contre-offre via lien public | ✅ | Phase C avec poll 30s + formulaire counter |
+| Comparateur vendeur enrichi (6 axes highlight) | ✅ | `OfferComparison.tsx` — best vert, worst rouge |
+| Email broker sur offre/counter/reject/withdraw | ✅ | 4 mails existants dans `app/mails/` |
+| PartyPicker avec client lookup + création inline | ✅ | Accent-safe, auto-fill |
+| NegotiationThread chronologique | ✅ | Direction arrows, delta prix, statut |
+
+**GAPS identifiés (boucle notification) :**
+
+| # | Gap | Impact | Gravité | Fix estimé |
+|---|-----|--------|---------|------------|
+| N1 | **Buyer ne reçoit AUCUN email quand vendeur contre-offre** | Négo stagne, buyer doit revisiter le lien manuellement | 🔴 CRITIQUE | Créer `OfferCounterNotifyBuyerMail` — envoyer à `party.email` avec lien intake. ~1h |
+| N2 | **`OfferAcceptedMail` existe mais n'est JAMAIS envoyé** | Ni buyer ni seller ne savent que l'offre est acceptée | 🔴 CRITIQUE | Brancher `mail.send(new OfferAcceptedMail(...))` dans `acceptOffer()`. ~15min |
+| N3 | **Aucun email de confirmation à la soumission** | Buyer soumet offre, aucun accusé de réception | 🟠 HAUTE | Créer `OfferReceivedConfirmationMail` — envoyer au buyer après POST intake. ~30min |
+| N4 | **Offres expirées : `expireOffers()` jamais appelé** | Offres expirées restent "pending" en DB | 🟠 HAUTE | Cron job ou vérification lazy à la lecture. ~30min |
+| N5 | **Pas de lien intake pour vendeur** (hardcodé buyer→seller) | Vendeur ne peut pas initier via lien public | 🟡 MOYENNE | Param `direction` sur intake link creation. Post-lancement. |
+| N6 | **Buyer ne peut pas accepter via lien public** | Seulement le broker peut accepter | 🟡 MOYENNE | Endpoint public `accept` avec confirmation. Post-lancement. |
+
+**Flow actuel (honnête) :**
+
+```
+Agent crée transaction + share link offer_intake
+  └─ Envoie le lien au buyer MANUELLEMENT (SMS/email externe) ⚠️
+
+Buyer ouvre lien → soumet offre (Phase A/B)
+  └─ ✅ Broker notifié (in-app + email)
+  └─ ❌ Buyer: aucun email de confirmation
+
+Agent contre-offre depuis l'app
+  └─ ✅ Direction auto-inversée seller→buyer
+  └─ ❌ Buyer: aucun email ("vous avez une contre-offre, cliquez ici")
+  └─ Buyer doit revisiter le lien manuellement
+
+Buyer revoit le lien → contre-offre (Phase C)
+  └─ ✅ Broker notifié (in-app)
+  └─ ❌ Aucun email envoyé
+
+Agent accepte
+  └─ ✅ Workflow auto-advance, salePrice mis à jour
+  └─ ❌ OfferAcceptedMail jamais envoyé — personne ne sait
+```
+
+**Flow cible (après fix N1-N3) :**
+
+```
+Buyer soumet offre → ✅ Email confirmation au buyer ("Offre reçue, on vous revient")
+Agent contre-offre → ✅ Email au buyer ("Contre-offre reçue, cliquez pour répondre" + lien)
+Buyer contre-offre → ✅ Email au broker (déjà fait) + confirmation buyer
+Agent accepte → ✅ Email au buyer + seller ("Offre acceptée! 🎉")
+```
+
+**Effort total N1+N2+N3 : ~2-3 heures.** N4 (expiry) : ~30min. N5-N6 : post-lancement.
+
+#### 9.2.2 Flow Offre Acheteur — Scénario validé (2026-02-20)
+
+> **Principe directeur :** Ofra est un copilote de bout en bout. Le courtier ne quitte JAMAIS l'application. Formulaire → Preview → Signature → Envoi → Réponse → Avancement = tout dans Ofra.
+>
+> **Contexte :** Le formulaire d'offre actuel est générique (même UX buyer/seller). Ofra doit s'adapter au `clientRole` pour personnaliser tout le flow. Deux scénarios fondamentalement différents : acheteur (proactif, je soumets) vs vendeur (réactif, je reçois). Scénario acheteur en premier — le vendeur réutilise ~80% de l'infra.
+
+**Scénario concret : Mon client Jean Tremblay veut acheter le 47 rue Champlain, Moncton (285 000 $)**
+
+---
+
+**1. Le courtier ouvre sa transaction**
+
+Il est sur le Dashboard → clique sur la transaction "47 rue Champlain — Jean Tremblay". Il arrive sur la page transaction, onglet Offres.
+
+Le panneau affiche : *"Aucune offre pour le moment"* et un bouton **"Préparer une offre"**.
+
+---
+
+**2. Il clique "Préparer une offre" — Étape 1/3 : Formulaire**
+
+Le CreateOfferModal s'ouvre.
+
+**En haut — Mon client (De) :**
+> Jean Tremblay — jean.tremblay@gmail.com — 506-555-1234
+> *(carte lecture seule, auto-rempli depuis la transaction. Non modifiable.)*
+
+**Destinataire (À) — toggle :**
+- **Courtier vendeur** (cas le plus fréquent) → Nom, Agence, Courriel, Téléphone. Autocomplete carnet pro (rôle `broker`).
+- **Vendeur direct** (FSBO, sans courtier) → Nom, Courriel, Téléphone. Pas d'agence.
+
+Le courtier choisit "Courtier vendeur" et remplit :
+> Marie Dupuis — RE/MAX Moncton — marie.dupuis@remax.ca — 506-555-9876
+> *(Si déjà dans le carnet pro, l'autocomplete la suggère dès les premières lettres.)*
+
+**Reste du formulaire :**
+
+| Champ | Valeur dans l'exemple |
+|-------|----------------------|
+| Prix offert | 275 000 $ *(hint : "Prix demandé : 285 000 $")* |
+| Dépôt | 10 000 $ — dans les 5 jours ouvrables |
+| Date de clôture | 20 avril 2026 |
+| Expiration | Pill **48h** sélectionnée |
+| Financement | Toggle ON → 265 000 $ |
+| Inspection | Toggle ON → 10 jours |
+| Inclusions | "Réfrigérateur, cuisinière, laveuse, sécheuse" |
+| Message | "Bonjour Marie, ci-joint l'offre de mon client. N'hésitez pas pour toute question." |
+
+**Résumé temps réel (colonne droite) :**
+> Demandé : 285 000 $ | Offert : 275 000 $ | Écart : -3.5% | Expire : 22 fév 23h59
+
+**Éléments cachés en mode acheteur :**
+- Segmented Offre/Contre-offre : **CACHÉ** (c'est toujours une offre initiale)
+- Direction : **auto** `buyer_to_seller` (pas de choix)
+
+Il clique **"Suivant →"**
+
+---
+
+**3. Étape 2/3 — Preview PDF & Signature**
+
+**À gauche :** le PDF NBREA "Agreement of Purchase & Sale" rempli avec toutes les données. Le courtier voit exactement le document officiel que Marie va recevoir.
+
+**À droite :** résumé de vérification :
+> **À :** Marie Dupuis (RE/MAX Moncton)
+> **Prix :** 275 000 $ | **Dépôt :** 10 000 $ | **Clôture :** 20 avril 2026 | **Expire :** 22 fév 23h59
+> **[← Modifier]** pour revenir à l'étape 1
+
+**En bas — eSignature :**
+- Première fois → le courtier dessine sa signature sur le canvas, coche "Sauvegarder pour la prochaine fois"
+- Les fois suivantes → sa signature apparaît, il clique "Utiliser ma signature" (1 clic)
+
+☑ *Envoyer par courriel à marie.dupuis@remax.ca* — coché par défaut
+
+Il clique **"Envoyer l'offre →"**
+
+---
+
+**4. Étape 3/3 — Confirmation**
+
+> **Offre envoyée**
+> PDF signé envoyé à Marie Dupuis (RE/MAX Moncton) — marie.dupuis@remax.ca
+> Expiration : 22 février 2026 à 23h59
+> **[Voir la transaction]**
+
+**En coulisses, Ofra a :**
+1. Généré le PDF final signé (hash SHA-256 intégrité)
+2. Envoyé un courriel à Marie : PDF en PJ + lien de réponse tokenisé
+3. Créé l'offre en DB (status: `pending`, direction: `buyer_to_seller`)
+4. Sauvegardé Marie Dupuis dans le carnet pro (rôle `broker`) si pas déjà
+
+---
+
+**5. Marie reçoit le courriel**
+
+> **Objet : Offre d'achat — 47 rue Champlain, Moncton**
+>
+> Bonjour Marie,
+> Une offre d'achat a été soumise pour la propriété au 47 rue Champlain, Moncton.
+>
+> Acheteur : Jean Tremblay | Prix offert : 275 000 $ | Clôture : 20 avril 2026 | Expire : 22 fév 23h59
+>
+> PDF signé en pièce jointe
+> **[Consulter et répondre à l'offre →]**
+>
+> *Préparé avec Ofra*
+
+---
+
+**6. Marie clique le lien — Page de réponse (OfferIntakePage)**
+
+Pas besoin de compte Ofra. Token URL + vérification email.
+
+**D'abord :** "Entrez votre courriel pour accéder à cette offre" → marie.dupuis@remax.ca → correspond → accès.
+
+**Elle voit :** le PDF complet signé (téléchargeable) + résumé de l'offre + 3 boutons :
+
+**Scénario A — Acceptation :**
+Marie clique "Accepter" → zone eSignature → elle (ou son vendeur) signe → PDF acceptation signé généré → notification au courtier acheteur dans Ofra → transaction avance automatiquement (`offer-accepted` → `conditional-period`).
+
+**Scénario B — Contre-offre :**
+Marie clique "Contre-offre" → formulaire pré-rempli → elle modifie : prix 282 000 $, clôture 15 avril → message "Mon vendeur accepterait à 282 000 $" → signe → PDF contre-offre généré → courriel au courtier acheteur.
+
+Dans Ofra, le NegotiationThread affiche :
+> **R1** — Offre 275 000 $ (buyer → seller) — Contre-offre reçue
+> **R2** — Contre-offre 282 000 $ (seller → buyer) — **En attente de votre réponse**
+
+Le courtier discute avec Jean → Jean veut monter à 280 000 $ → le courtier clique "Répondre" → même flow 3 étapes → contre-contre-offre envoyée → **le cycle continue** jusqu'à entente ou rupture.
+
+**Scénario C — Refus :**
+Marie clique "Refuser" → motif optionnel → notification au courtier acheteur → offre passe en `rejected`.
+
+---
+
+**7. Cas hors-système**
+
+Marie ne répond pas via le lien mais appelle : "Mon vendeur accepte à 282 000 $."
+
+Le courtier va dans Ofra → panneau Offres → **"Enregistrer la réponse du vendeur"** :
+
+| Action | UX |
+|--------|-----|
+| Enregistrer une contre-offre | Formulaire pré-rempli avec dernières valeurs → direction auto-inversée `seller_to_buyer` |
+| Le vendeur a accepté | → AcceptOfferModal (existant) → workflow avance |
+| Le vendeur a refusé | → motif optionnel → statut `rejected` |
+
+Architecture technique, sécurité, métriques : voir §9.2.6.
+Scénario vendeur : voir §9.2.3.
+Sprint plan : voir §9.2.7.
+
+#### 9.2.3 Flow Offre Vendeur — Scénario validé (2026-02-21, Party Mode)
+
+> **Principe directeur :** Même vision copilote bout en bout que §9.2.2. Le courtier vendeur reçoit, compare, et répond aux offres sans quitter Ofra. Réutilise ~80% de l'infra acheteur (PDF, eSign, lien réponse) mais avec un flow inversé : réactif au lieu de proactif.
+>
+> **Posture fondamentale :** Le courtier vendeur ne PRÉPARE pas d'offre — il les REÇOIT et y RÉPOND. L'UX entière est orientée réception, comparaison, et décision.
+
+**Scénario concret : Ma cliente Sylvie Cormier vend le 47 rue Champlain, Moncton (285 000 $)**
+
+---
+
+**1. Le courtier ouvre sa transaction**
+
+Dashboard → transaction "47 rue Champlain — Sylvie Cormier" (clientRole = `seller`). Page transaction, onglet Offres.
+
+Le panneau affiche :
+> *"Aucune offre reçue"*
+>
+> **[Inviter un courtier à soumettre]** *(bouton principal)*
+> [Enregistrer une offre manuellement] *(lien secondaire, outline)*
+
+---
+
+**2. Gestionnaire d'invitations — liens intake uniques**
+
+Le courtier clique "Inviter un courtier à soumettre". La modale **Gestionnaire d'invitations** s'ouvre :
+
+> **Invitations**
+>
+> | Courtier | Agence | Envoyé le | Statut |
+> |----------|--------|-----------|--------|
+> | *(aucune invitation)* | | | |
+>
+> **Inviter un courtier :**
+> Nom : _______ Agence : _______ Courriel : _______
+> *(autocomplete carnet pro, rôle `broker`)*
+>
+> **[Envoyer l'invitation]**
+>
+> ---
+> **Inviter un acheteur direct (sans courtier) :**
+> Nom : _______ Courriel : _______
+> **[Envoyer l'invitation]**
+
+Chaque invitation génère un **lien intake unique tokenisé** par courtier/acheteur invité. Le courtier vendeur peut envoyer le lien par courriel directement depuis Ofra.
+
+**Tableau de suivi des invitations (intelligence commerciale) :**
+
+| Courtier | Agence | Envoyé le | Statut |
+|----------|--------|-----------|--------|
+| Marc Leblanc | Royal LePage | 20 fév | **Offre reçue** |
+| Julie Thériault | Century 21 | 20 fév | **Lien ouvert** |
+| Pierre Gallant | Keller Williams | 21 fév | Envoyé |
+
+Statuts possibles : `Envoyé` → `Lien ouvert` → `Offre reçue`
+
+Le courtier voit d'un coup d'oeil son pipeline : combien d'invitations, qui a ouvert, qui a soumis.
+
+**Confidentialité :** Chaque lien est unique. Deux courtiers acheteurs ne peuvent pas déduire qu'ils sont en compétition en comparant leurs URLs. Aucune information sur le nombre d'offres concurrentes n'est visible sur la page intake.
+
+---
+
+**3A. Une offre arrive via le lien intake (cas idéal)**
+
+Marc Leblanc ouvre son lien unique → OfferIntakePage → remplit : son client (Jean Tremblay), prix 275 000 $, dépôt 10 000 $, conditions, etc. → signe → soumet.
+
+Notification dans Ofra :
+> "Nouvelle offre reçue — 275 000 $ — Jean Tremblay (courtier : Marc Leblanc, Royal LePage)"
+
+L'offre apparaît dans le panneau avec toutes les infos + PDF signé. Le tableau d'invitations passe Marc en "Offre reçue".
+
+---
+
+**3B. Une offre arrive hors Ofra (courriel/téléphone)**
+
+Marc envoie son PDF par courriel classique. Le courtier → **"Enregistrer une offre manuellement"** :
+
+| Champ | Valeur |
+|-------|--------|
+| Courtier acheteur | Marc Leblanc — Royal LePage — marc@royallepage.ca *(autocomplete carnet pro)* |
+| Acheteur | Jean Tremblay |
+| Prix offert | 275 000 $ |
+| Dépôt | 10 000 $ |
+| Date de clôture | 20 avril 2026 |
+| Expiration | 22 fév 23h59 |
+| Conditions | Inspection 10 jours, Financement |
+| Inclusions | Réfrigérateur, cuisinière, laveuse, sécheuse |
+| PDF reçu | *(upload du PDF envoyé par Marc)* |
+
+**"Enregistrer"** → offre créée en DB, identique structurellement à une offre intake. Flag `source: 'intake' | 'manual'` pour tracer l'origine. Même objet `Offer` + `OfferRevision`.
+
+---
+
+**4. Panneau Offres — vue vendeur**
+
+Adapté au rôle `seller`. Quand des offres sont présentes :
+
+> **Offres reçues (2)**
+>
+> | Offre | Prix | Dépôt | Clôture | Conditions | Source | Statut |
+> |-------|------|-------|---------|------------|--------|--------|
+> | Jean Tremblay (Marc Leblanc) | 275 000 $ | 10 000 $ | 20 avr. | 2 | Lien | **En attente** |
+> | Paul Landry (Julie Thériault) | 280 000 $ | 15 000 $ | 15 avr. | 3 | Lien | **En attente** |
+>
+> **[Comparer les offres]** **[Demander la meilleure offre finale]**
+
+**Scalabilité :** À 5+ offres, filtres et tri disponibles (par prix, date, statut, nombre de conditions). Séparation visuelle **Actives** vs **Terminées** (acceptées, refusées, expirées, retirées).
+
+---
+
+**5. Comparateur d'offres (proéminent en mode vendeur)**
+
+Le courtier clique "Comparer" → OfferComparison plein écran :
+
+> | Critère | Offre 1 — Tremblay | Offre 2 — Landry | Meilleur |
+> |---------|-------------------|------------------|----------|
+> | Prix | 275 000 $ | **280 000 $** | Landry |
+> | Dépôt | 10 000 $ | **15 000 $** | Landry |
+> | Clôture | 20 avril | **15 avril** | Landry |
+> | Conditions | **2** | 3 | Tremblay |
+> | Financement | Oui | Oui | Égal |
+> | Expiration | 22 fév | 23 fév | Égal |
+
+Le courtier présente ce comparatif à Sylvie pour prendre une décision éclairée.
+
+---
+
+**6. Répondre à une offre**
+
+Le courtier clique "Répondre" sur une offre → 3 choix :
+
+**Accepter :** → eSignature (Sylvie ou courtier avec autorisation) → PDF acceptation signé → courriel au courtier acheteur → transaction avance (`offer-accepted` → `conditional-period`).
+
+**Contre-offre :** → Formulaire pré-rempli → modifications (prix, clôture, conditions) → signe → PDF contre-offre généré → envoyé au courtier acheteur par courriel + lien de réponse → cycle de négociation continue.
+
+**Refuser :** → Motif optionnel → notification au courtier acheteur → offre passe en `rejected`.
+
+---
+
+**7. Acceptation cascade — gestion des offres concurrentes**
+
+Quand le courtier accepte une offre et qu'il reste d'autres offres actives, Ofra affiche :
+
+> **Vous avez 2 autres offres en attente.**
+> Souhaitez-vous les refuser et notifier les courtiers ?
+>
+> ☑ Jean Tremblay (Marc Leblanc) — 275 000 $
+> ☑ *(autre offre)*
+>
+> Message : "L'offre sur le 47 rue Champlain n'a pas été retenue."
+> *(personnalisable)*
+>
+> **[Refuser et notifier]** [Ignorer pour le moment]
+
+Chaque courtier acheteur reçoit un courriel de notification. Aucun détail sur l'offre gagnante n'est communiqué (confidentialité).
+
+---
+
+**8. BidRound — "Best and final" (ronde d'enchères)**
+
+Quand le courtier vendeur a 2+ offres actives et veut lancer une ronde d'enchères :
+
+Bouton **"Demander la meilleure offre finale"** → modale :
+
+> **Ronde d'enchères**
+>
+> Message aux courtiers :
+> *"Mon client a reçu plusieurs offres pour le 47 rue Champlain. Vous êtes invité à soumettre votre meilleure offre finale avant la date limite."*
+> *(personnalisable)*
+>
+> Date limite : **[date picker]** **[heure picker]**
+>
+> Courtiers notifiés :
+> ☑ Marc Leblanc (offre actuelle : 275 000 $)
+> ☑ Julie Thériault (offre actuelle : 280 000 $)
+>
+> **[Lancer la ronde]**
+
+**En coulisses :**
+1. Création d'un `BidRound` en DB (status: `active`, deadline, message)
+2. Courriel **simultané** à tous les courtiers sélectionnés : message + lien pour **réviser leur offre** avant la deadline
+3. Chaque courtier reçoit un lien vers sa propre offre avec la possibilité de la modifier
+4. Hard cutoff côté serveur — aucune soumission acceptée après la deadline
+5. Aucune information sur le nombre de concurrents dans le courriel ni sur la page de révision
+
+**Après la deadline :**
+- Le `BidRound` passe en `closed`
+- Le panneau Offres met en évidence les offres révisées (badge "Mise à jour")
+- Le comparateur affiche les offres finales
+- Le courtier vendeur présente à Sylvie et choisit
+
+**Modèle BidRound :**
+
+```
+BidRound {
+  id
+  transactionId       → Transaction
+  deadline: DateTime
+  message: string
+  status: 'active' | 'closed'
+  notifiedOfferIds: []  → Offers notifiées
+  createdAt
+  closedAt
+}
+```
+
+---
+
+**9. Cas hors-système**
+
+Le courtier peut enregistrer manuellement toute réponse reçue par téléphone/texto/courriel direct, comme dans le scénario acheteur (§9.2.2 étape 7).
+
+---
+
+Architecture technique, sécurité : voir §9.2.6.
+Sprint plan : voir §9.2.7.
+
+---
+
+#### 9.2.4 Refonte page transaction — Page adaptative par workflowStep (validé 2026-02-21, Party Mode)
+
+> **Constat :** La page transaction actuelle est un dashboard statique avec onglets fixes (Infos | Offres | Conditions | Documents). Avec l'ajout du flow offre acheteur (§9.2.2), vendeur (§9.2.3), cartes conditions enrichies (§9.2.5), BidRound, gestionnaire d'invitations — cette structure ne tient plus. Coder les features S1-S6 sur la page actuelle obligerait à tout recasser ensuite. La refonte doit passer AVANT les features.
+>
+> **Décision validée :** Sprint S0 (refonte layout) AVANT S1 (features offre).
+
+**Concept UX : page qui évolue selon le `workflowStep`**
+
+Au lieu d'onglets fixes, la page montre **ce qui est pertinent maintenant** selon l'étape de la transaction. Les autres sections restent accessibles mais pas au premier plan. C'est un flow, pas un dashboard.
+
+| workflowStep | Section au premier plan | Sections secondaires |
+|-------------|------------------------|---------------------|
+| `consultation` | Infos propriété + client, packs conditions | Carnet pro, documents |
+| `offer-submitted` | Panneau offres (acheteur : mon offre + négo / vendeur : liste + comparateur + invitations) | Infos, conditions |
+| `offer-accepted` | Confirmation offre acceptée, transition vers conditions | Offres (historique), infos |
+| `conditional-period` | Cartes conditions enrichies (countdown, rappels, parties assignées, upload) | Offres (référence), infos |
+| `firm-pending` | Checklist pré-closing, assignation notaire | Conditions (levées), infos |
+| `pre-closing` | Coordination notaire/avocat, documents finaux | Checklist, infos |
+| `closing-day` | Checklist jour J, confirmation rendez-vous | Tout le reste |
+| `post-closing` | Commission, suivi client, archivage | Historique complet |
+
+**Scope S0 :**
+- Layout adaptatif par `workflowStep` — le contenu principal change selon l'étape
+- Zones de la page définies (header TX, section principale, sections secondaires)
+- Navigation entre sections (sidebar ou accordéon)
+- Système de composants conteneurs (slots) pour accueillir les features S1-S8
+- Responsive mobile (le courtier est souvent sur son cell)
+
+**Ce qui n'est PAS dans S0 :** Aucune nouvelle feature — juste la structure qui les accueillera.
+
+---
+
+#### 9.2.5 Outils post-offre — Conditions enrichies et pipeline closing (validé 2026-02-21, Party Mode)
+
+> **Principe :** Après l'acceptation de l'offre, le courtier entre dans la période conditionnelle puis le pipeline vers le closing. À chaque étape, Ofra doit lui donner des outils pour agir vite — pas juste cocher des cases. Les packs conditions existants sont conservés et adaptés à la réalité.
+
+**Cartes conditions enrichies (remplace les checkboxes actuelles) :**
+
+Chaque condition devient un mini-dossier :
+
+> **Inspection**
+> Délai : 10 jours (reste 6 jours) ⏳
+> Responsable : Jacques Hébert, inspecteur *(carnet pro)*
+> Statut : Planifiée — 25 fév 10h
+>
+> **[Envoyer un rappel]** [Uploader le rapport] [Lever la condition]
+>
+> Historique :
+> - 21 fév — Condition créée (offre acceptée)
+> - 22 fév — Courriel envoyé à Jacques Hébert
+> - 23 fév — Jacques a confirmé : 25 fév 10h
+
+**Composants de la carte condition :**
+
+| Composant | Détail |
+|-----------|--------|
+| Partie tierce assignée | Depuis le carnet pro (inspecteur, courtier hypothécaire, notaire, avocat). Autocomplete. |
+| Countdown délai | Jours restants, barre visuelle, alerte quand < 48h |
+| Statut enrichi | `Créée` → `Partie assignée` → `En cours` → `Résultat reçu` → `Levée` ou `Problème` |
+| Actions contextuelles | "Envoyer un rappel" (courriel à la partie), "Uploader document" (rapport, lettre), "Lever la condition" |
+| Historique | Timeline des événements (créée, courriel envoyé, confirmé, rapport reçu, levée) — utilise le `ConditionEvent` existant |
+
+**Cycle universel d'une condition :**
+```
+Condition créée → Partie assignée → En cours → Résultat reçu → Levée / Problème → Renégociation ou retrait
+```
+
+**Vue d'ensemble période conditionnelle :**
+> 3 conditions levées sur 5 | 12 jours restants | ⚠️ 1 condition en retard (financement)
+
+**Pipeline post-conditions (firm → closing) :**
+
+| Étape | Outils prévus | Priorité |
+|-------|---------------|----------|
+| `firm-pending` | Bouton "Assigner le notaire" → carnet pro → courriel auto avec résumé TX | P1 |
+| `pre-closing` | Checklist pré-closing (notaire confirmé, hypothèque finale, ajustements, clés) | P2 |
+| `closing-day` | Confirmation rendez-vous, checklist jour J, bouton "Transaction complétée" | P3 |
+| `post-closing` | Commission, courriel "Félicitations" au client, archivage | P3 (§9.3 P3) |
+
+**Priorisation validée (approche Murat, confirmée par Sam : "on livre bien ce qui est facile") :**
+
+| Priorité | Feature | Effort | Sprint |
+|----------|---------|--------|--------|
+| **P0** | Cartes conditions enrichies (partie assignée, countdown, rappels, upload, historique) | 2 jours | S7 |
+| **P0** | Rappels automatiques parties tierces (cron + email existant) | 1-2 jours | S8 |
+| **P1** | Courriel auto au notaire "voici le dossier" à firm-pending | Inclus S8 | S8 |
+| **P1** | Upload documents par condition | Inclus S7 | S7 |
+| **P2** | Checklist pré-closing | Phase suivante | -- |
+| **P2** | Dashboard commission | §9.3 P3 | -- |
+| **P3** | Bouton "Transaction complétée" + archivage | Phase suivante | -- |
+
+---
+
+#### 9.2.6 Architecture technique commune — Système d'offre bout en bout
+
+**Blocs acheteur (§9.2.2) :**
+
+| Bloc | Technologie | Détail |
+|------|-------------|--------|
+| **OfferPdfService** (nouveau) | `pdf-lib` (Node.js) | Template PDF NBREA, remplissage dynamique, hash SHA-256 intégrité, stockage filesystem. Léger, pas de headless browser. |
+| **ESignatureService** (nouveau) | HelloSign API ou DocuSign API | Création envelope, envoi signature, webhook callback (signé/refusé), stockage certificat. ~5$/mois bas volume. |
+| **OfferMailService** (enrichi) | AdonisJS Mail (existant) | PDF signé en PJ, lien réponse token, template courriel pro avec branding Ofra. |
+| **OfferIntakeController** (enrichi) | Existant | Vérification email, affichage PDF, accept + eSign vendeur, contre-offre, lien unique par invitation, tracking ouverture. |
+| **CreateOfferModal** (refonte) | React (existant) | 3 étapes (form → preview → sent), adapté `clientRole`, destinataire courtier/vendeur direct. |
+| **ProfessionalContact** (enrichi) | Migration | Ajout rôle `broker` dans l'enum. |
+| **Profil signature** | Migration | Champ `signature_image` sur table `users` (blob ou path), sauvegardé après première signature. |
+
+**Blocs vendeur (§9.2.3) :**
+
+| Bloc | Technologie | Détail |
+|------|-------------|--------|
+| **BidRound** (nouveau) | Modèle Lucid + migration | Ronde d'enchères formelle, deadline serveur, notification groupée. |
+| **OfferInvitation** (nouveau) | Modèle Lucid + migration | Lien unique par courtier invité, tracking statut (envoyé/ouvert/soumis). |
+| **InvitationManager** (nouveau) | React | Modale gestionnaire d'invitations, tableau de suivi, formulaire d'invitation. |
+| **OffersPanel** (enrichi) | React (existant) | Vue adaptée `seller` : liste offres reçues, comparateur proéminent, filtres/tri, acceptation cascade. |
+| **OfferComparison** (enrichi) | React (existant) | Mise en évidence "Meilleur" par critère, support BidRound (badge "Mise à jour"). |
+
+**Modèles DB nouveaux :**
+
+```
+BidRound {
+  id, transactionId, deadline: DateTime, message: string,
+  status: 'active' | 'closed', notifiedOfferIds: [],
+  createdAt, closedAt
+}
+
+OfferInvitation {
+  id, transactionId, email, name, agency, token (unique),
+  status: 'sent' | 'opened' | 'submitted', createdAt
+}
+
+Offer (enrichi) : + source: 'intake' | 'manual'
+User (enrichi) : + signature_image (blob ou path)
+ProfessionalContact : + rôle 'broker'
+```
+
+**Template PDF NBREA :**
+
+> **Dépendance critique** : Sam doit fournir ou valider le formulaire officiel "Agreement of Purchase & Sale" du NB (NBREA) avant implémentation.
+
+| Section du formulaire | Champs Ofra mappés |
+|----------------------|-------------------|
+| Parties (Buyer/Seller) | `transaction.client` + destinataire |
+| Property | `transaction.property` (adresse, ville, code postal) |
+| Purchase Price | `offerRevision.price` |
+| Deposit | `offerRevision.deposit` + `depositDeadline` |
+| Closing Date | `offerRevision.closingDate` |
+| Financing | `offerRevision.financingAmount` |
+| Inspection | `offerRevision.inspectionRequired` + `inspectionDelay` |
+| Inclusions | `offerRevision.inclusions` |
+| Conditions | `offerRevision.conditions[]` |
+| Expiry | `offerRevision.expiryAt` |
+| Signature | eSignature canvas + horodatage + IP |
+
+**Sécurité :**
+
+| Risque | Mitigation |
+|--------|-----------|
+| Lien de réponse expose données financières | Vérification email obligatoire + token avec expiration + rate limiting |
+| PDF modifié après signature | Hash SHA-256 intégré dans le PDF, vérification à l'ouverture |
+| Signature biométrique (données sensibles) | Chiffrement au repos |
+| Validité légale eSignature NB | *Electronic Transactions Act* NB, API tierce fournit certificat |
+| PDF doit être reconnu par les courtiers NB | Template basé sur formulaire NBREA officiel |
+| Courtiers acheteurs déduisent le nombre de concurrents | Liens uniques par invitation, aucun compteur visible |
+| BidRound deadline contournée | Hard cutoff serveur, pas de grace period |
+| Équité notification BidRound | Tous les courriels dans le même batch, logs d'envoi |
+
+**Métriques de succès :**
+
+| Métrique | Cible |
+|----------|-------|
+| Taux d'adoption formulaire acheteur (vs papier) | > 60% après 3 mois |
+| Taux de réponse via lien (vs hors-système) | > 40% |
+| Temps moyen préparation offre | < 5 min (vs 30-45 min papier) |
+| NPS courtiers sur le flow offre | > 8/10 |
+
+---
+
+#### 9.2.7 Sprint plan unifié S0→S8 (~18-22 jours)
+
+> **Effort total estimé : ~18-22 jours**
+
+| Sprint | Contenu | Effort | Dépendances |
+|--------|---------|--------|-------------|
+| **S0** | **Refonte layout page transaction** — page adaptative par workflowStep, zones, navigation, composants conteneurs, mobile | 2-3 jours | -- |
+| **S1** | Formulaire adapté acheteur (3 étapes) + destinataire courtier/vendeur direct + rôle `broker` carnet pro | 2-3 jours | S0 |
+| **S2** | OfferPdfService + template NBREA + preview HTML | 2-3 jours | S1, template PDF Sam |
+| **S3** | ESignatureService (intégration API tierce) + profil signature | 2 jours | S2 |
+| **S4** | Envoi courriel enrichi + page de réponse refonte + cycle contre-offre | 2 jours | S2, S3 |
+| **S5** | Gestionnaire invitations (OfferInvitation, liens uniques, tracking) + panneau Offres adapté vendeur | 2 jours | S0 |
+| **S6** | BidRound (modèle, notification groupée, révision offre, hard cutoff) + acceptation cascade + comparateur enrichi | 2-3 jours | S5 |
+| **S7** | Cartes conditions enrichies (partie assignée, countdown, rappels, upload, historique) | 2 jours | S0 |
+| **S8** | Rappels automatiques parties tierces + courriel notaire à firm-pending | 1-2 jours | S7 |
+
+**Éléments reportés (phases suivantes) :**
+
+| Feature | Priorité | Phase |
+|---------|----------|-------|
+| Checklist pré-closing | P2 | Phase 3+ |
+| Dashboard commission | P2 | §9.3 P3 |
+| Bouton "Transaction complétée" + archivage | P3 | Phase 3+ |
+| Portail client lecture seule | P2 | §9.3 P2 |
+| Sprint 2-4 conditions (lock profile, admin override, audit log) | P2 | Phase 3+ |
+| M14 Polish offres (irrévocabilité, custom expiration, NegotiationThread modal) | P2 | §11.G |
+| Compteur "Valeur protégée" (données réelles) | P3 | D43 |
+| ~~Onboarding simplifié "1ère TX en 2 min"~~ | **Absorbé dans §L.5** | D40 refonte |
+| Plan Agence activé | P3 | D46 |
+| UI Audit Trail conditions | P3 | Backlog |
 
 ### 9.3 Phase 3 — "Le Copilote" (mois 2-3, ~5 jours)
 
@@ -2263,7 +1560,8 @@ Actions à réaliser le jour du lancement public :
 
 | # | Feature | Détail | Statut |
 |---|---------|--------|--------|
-| S1 | **Génération PDF formulaires NBREA** | Pré-remplir les formulaires réglementaires NBREA (Agreement of Purchase & Sale, Counter-Offer, etc.) à partir des données Ofra. L'agent télécharge un PDF prêt à signer. Élimine 30-45 min de saisie manuelle par offre. | ❌ TODO |
+| S1 | ~~**Génération PDF formulaires NBREA**~~ | **AVANCÉ → §9.2.2** (Phase 2.5). Intégré dans le flow offre acheteur bout en bout avec eSignature + envoi automatique. Ne se limite plus à "télécharger un PDF" — le PDF est signé et envoyé directement depuis Ofra. | 📋 §9.2.2 |
+| S1b | **eSignature intégrée** | Intégration API tierce (HelloSign/DocuSign). Signature courtier à la soumission, signature vendeur à l'acceptation. Profil signature sauvegardé. Conforme *Electronic Transactions Act* NB. Lié à §9.2.2. | ❌ TODO (lié §9.2.2 S3) |
 | S2 | **Collaboration agent-agent** | 2 agents (acheteur + vendeur) sur le même dossier. Chacun voit sa perspective. Offres/contre-offres synchronisées en temps réel. Notifications croisées. Invitation par email. | ❌ TODO |
 | S3 | **Export fiscal annuel** | Rapport PDF/CSV de toutes les commissions de l'année : date closing, montant, split, TPS/TVH. Prêt pour le comptable. | ❌ TODO |
 | S4 | Intégration calendrier | Sync Google Calendar / Outlook avec les deadlines de conditions et dates de closing | ❌ TODO |
@@ -2390,6 +1688,7 @@ Référence croisée : voir section 4.1 de ce document.
 2. Stripe billing (~70% — code done, Stripe Dashboard setup restant)
 3. Legal pages (0%)
 4. ~~Emails essentiels trial~~ → ✅ DONE (welcome, verification, trial reminders J7/J21/J27)
+5. Offer notification loop (§9.2.1 N1-N3) — emails buyer sur counter-offre/acceptation/confirmation (~2-3h)
 
 ### F. Priorités Post-Audit (mis à jour 2026-02-18)
 
@@ -2407,6 +1706,8 @@ Référence croisée : voir section 4.1 de ce document.
 | ~~🔴 P0~~ | ~~**Bloc 9 : Codes promo** (D59 — CRUD + validation inscription + miroir Stripe)~~ | 4h | ✅ DONE (2026-02-18) |
 | ~~🔴 P0~~ | ~~**Bloc 9 : Apply-to-existing** (modal type-to-confirm, exclut fondateurs)~~ | 2h | ✅ DONE (2026-02-18) |
 | 🔴 P0 | Stripe billing | 1-2 jours | 🟡 EN COURS (code done, env done, reste: créer 4 produits Stripe Dashboard, enregistrer webhook URL, seed `stripeProductId` dans plans DB, test E2E flow) |
+| 🔴 P0 | Offer notification loop (§9.2.1 N1-N3) — emails buyer counter-offre + acceptation + confirmation soumission | 2-3h | ❌ TODO |
+| 🟠 P1 | Offer expiry automation (§9.2.1 N4) — cron ou lazy check `expireOffers()` | 30min | ❌ TODO |
 | ~~🟠 P1~~ | ~~Error Boundary + code splitting frontend~~ | 1h | ✅ DONE (2026-02-18) |
 | ~~🟠 P1~~ | ~~Page 404 / catch-all route~~ | 15 min | ✅ DONE (2026-02-18) |
 | ~~🟠 P1~~ | ~~`FRONTEND_URL` unifié dans `env.ts` (3 fallbacks différents)~~ | 30 min | ✅ DONE (2026-02-18) |
@@ -2900,9 +2201,92 @@ Plutôt que corriger les ~65 issues sur l'architecture 5 pages actuelle, la déc
 | 3 | **Autocomplete client** — Remplacer `<select>` par un Combobox searchable (Radix ou custom) | Rien | Composant `ClientCombobox` | P1 | ~~DONE~~ |
 | 4 | **Re-prompt onboarding skippé** — Banner dans Dashboard si `onboardingSkipped=true` : "Complétez votre profil pour débloquer les suggestions" | `GET /api/me` retourne déjà `onboardingSkipped` | Banner conditionnel dans DashboardPage | P1 | ~~DONE~~ |
 | 5 | **Empty state enrichi** — Refaire l'empty state dashboard avec illustration, 3 cards cliquables, CTA principal prominent | — | Refonte `EmptyState` dans DashboardUrgencies | P1 | ~~DONE~~ |
-| 6 | **Agence + licence dans signup** — Ajouter 2 champs optionnels dans RegisterPage (section "professionnel") | Rien (validator accepte déjà) | 2 inputs supplémentaires | P2 | ~~DONE~~ |
+| 6 | ~~Agence + licence dans signup~~ → **INVERSÉ v2.33 : retirés du signup, déplacés vers onboarding §L.5 étape 1.** Inscription légère = prénom, nom, email, téléphone + mot de passe. | Retirer du validator signup | Retirer de RegisterPage | P1 | ~~DONE~~ |
 | 7 | **Checklist profil post-onboarding** — Widget progression dans SettingsPage | — | Widget complétion profil (6 items, barre %) | P2 | ~~DONE~~ |
 | 8 | **Type client** (acheteur/vendeur/both) — Champ `client_type` sur le modèle Client | Migration + model + validator | Select dans CreateClientModal + badge liste | P2 | ~~DONE~~ |
+
+#### L.5 Refonte Onboarding Agent — 3 étapes action (validé 2026-02-21, Party Mode)
+
+> **Constat :** L'onboarding 5 étapes actuel est désaligné avec la vision copilote bout en bout. Audit en Party Mode :
+> - `practiceType` → **jamais utilisé** dans l'app (zéro `if` dans la codebase)
+> - `annualVolume` → **jamais utilisé** dans l'app
+> - `propertyContexts` → utilisé uniquement pour filtrer les suggestions manuelles de conditions (pas critique)
+> - `preferAutoConditions` → feature gate D39, utile mais déplaçable dans les paramètres
+> - **Manquant :** profil courtier complet (agence, licence → nécessaire pour PDF NBREA), import clients (FollowUpBoss), première transaction
+>
+> **Décision Sam :** Refonte complète. Chaque étape crée de la valeur immédiate. Zéro question "quiz".
+
+**Inscription légère (décision v2.33) :**
+```
+RegisterPage — 4 champs + mot de passe :
+  prénom*, nom*, email*, téléphone* + mot de passe*
+  → PAS d'agence, PAS de licence (déplacés vers onboarding étape 1)
+  → Inscription en 15 secondes max
+```
+
+**Ancien onboarding (5 étapes quiz) → OBSOLÈTE :**
+```
+1. Langue (FR/EN)           → GARDER (déplacé étape 1)
+2. Type de pratique          → SUPPRIMÉ (dead data)
+3. Contextes propriété       → DÉPLACÉ dans Paramètres (nice-to-have)
+4. Volume annuel             → SUPPRIMÉ (dead data)
+5. Style travail auto-cond.  → DÉPLACÉ dans Paramètres ou 1ère TX
+```
+
+**Nouvel onboarding (3 étapes action) :**
+
+| Étape | Contenu | Valeur immédiate | Données captées |
+|-------|---------|-----------------|-----------------|
+| **1** | **Langue + Profil pro** — Langue FR/EN, agence, numéro de licence. Nom et téléphone pré-remplis (inscription) mais modifiables. | Identité pro complète → prêt pour PDFs NBREA et courriels | `user.language`, `user.agency`, `user.licenseNumber` (nom/tél déjà captés à l'inscription) |
+| **2** | **Import clients** — Connexion FollowUpBoss (API) ou import CSV ou "Je commence à zéro" | "Mes clients sont dans l'app" → wow moment, portefeuille instantané | Clients créés en DB |
+| **3** | **Créer sa première transaction** — Formulaire création TX guidé, client pré-sélectionné | L'agent finit l'onboarding avec une vraie TX ouverte — pas un dashboard vide | 1ère transaction créée |
+
+**Maquettes onboarding :**
+
+| # | Maquette | Fichier | Statut |
+|---|----------|---------|--------|
+| M01 | Étape 1 — Langue + Profil pro (desktop/tablette/mobile) | `maquettes/01-onboarding-etape1-langue-profil.html` | ✅ FAIT |
+| M02 | Étape 2 — Import clients (FollowUpBoss/CSV, 2 scènes) | `maquettes/02-onboarding-etape2-import-clients.html` | ✅ FAIT |
+| M03 | Étape 3 — Première transaction (2 scènes) | `maquettes/03-onboarding-etape3-premiere-transaction.html` | ✅ FAIT |
+
+**Import FollowUpBoss :**
+- CRM #1 utilisé par les courtiers NB ciblés
+- Intégration API FollowUpBoss (REST) pour sync contacts
+- D'autres CRM seront ajoutés plus tard (extensible)
+- Fallback : import CSV (déjà codé) + "Je commence à zéro" (skip import)
+
+**Champs DB impactés :**
+- `practiceType` → **déprécié** (garder en DB, ne plus demander, nullable)
+- `annualVolume` → **déprécié** (garder en DB, ne plus demander, nullable)
+- `propertyContexts` → **déplacé** vers Paramètres
+- `preferAutoConditions` → **déplacé** vers Paramètres ou demandé à la 1ère TX
+
+**Changement RegisterPage :** ✅ IMPLÉMENTÉ (2026-02-21)
+- RegisterPage : 5 champs (fullName, email, phone, password, confirmPassword)
+- `agency` et `licenseNumber` retirés de RegisterPage et de `RegisterRequest` frontend
+
+**Skip :** Toujours possible — appelle `authApi.skipOnboarding()` existant → marque `onboardingCompleted = true`.
+
+**Résultat :** L'agent termine l'onboarding avec son profil complet, ses clients importés, et une transaction ouverte. Prêt à préparer sa première offre en < 2 min.
+
+**Implémentation (2026-02-21) :**
+| Fichier | Changement |
+|---------|-----------|
+| `backend/app/validators/profile_validator.ts` | `onboardingValidator` : language, fullName?, phone?, agency (requis), licenseNumber (requis) |
+| `backend/app/controllers/profile_controller.ts` | `saveOnboarding` : sauve language/agency/licenseNumber + onboardingCompleted |
+| `backend/app/services/followupboss_service.ts` | **NOUVEAU** — validateAndFetchContacts + importContacts |
+| `backend/app/controllers/integrations_controller.ts` | **NOUVEAU** — connectFollowUpBoss + importFollowUpBoss |
+| `backend/app/validators/integrations_validator.ts` | **NOUVEAU** — fubConnectValidator + fubImportValidator |
+| `backend/start/routes.ts` | 2 routes FUB dans groupe auth |
+| `frontend/src/api/auth.api.ts` | OnboardingRequest refactoré, RegisterRequest simplifié |
+| `frontend/src/api/integrations.api.ts` | **NOUVEAU** — connectFub + importFub |
+| `frontend/src/hooks/useCsvImport.ts` | **NOUVEAU** — hook réutilisable CSV parsing |
+| `frontend/src/pages/RegisterPage.tsx` | Simplifié (5 champs) |
+| `frontend/src/pages/OnboardingPage.tsx` | Shell 3 étapes (progress bar, routing, skip) |
+| `frontend/src/pages/onboarding/Step1Profile.tsx` | **NOUVEAU** — Langue + profil pro |
+| `frontend/src/pages/onboarding/Step2Import.tsx` | **NOUVEAU** — FUB / CSV / zéro |
+| `frontend/src/pages/onboarding/Step3Transaction.tsx` | **NOUVEAU** — Création TX + succès |
+| `frontend/src/i18n/locales/{fr,en}/common.json` | Clés onboarding.step1/step2/step3 |
 
 ---
 

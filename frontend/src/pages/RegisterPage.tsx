@@ -7,14 +7,6 @@ import { Eye, EyeOff } from 'lucide-react'
 import { OfraLogo, OfraLogoFull } from '../components/OfraLogo'
 import { LanguageToggle } from '../components/ui/LanguageToggle'
 
-const NB_PROVINCES = [
-  { code: 'NB', label: 'Nouveau-Brunswick' },
-  { code: 'NS', label: 'Nouvelle-Écosse' },
-  { code: 'PE', label: 'Île-du-Prince-Édouard' },
-  { code: 'QC', label: 'Québec' },
-  { code: 'ON', label: 'Ontario' },
-]
-
 export default function RegisterPage() {
   const { t, i18n } = useTranslation()
   const [searchParams] = useSearchParams()
@@ -30,11 +22,6 @@ export default function RegisterPage() {
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
-  const [address, setAddress] = useState('')
-  const [city, setCity] = useState('')
-  const [provinceCode, setProvinceCode] = useState('NB')
-  const [agency, setAgency] = useState('')
-  const [licenseNumber, setLicenseNumber] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -95,11 +82,6 @@ export default function RegisterPage() {
       email: email.trim(),
       password,
       phone: phone.trim() || undefined,
-      address: address.trim() || undefined,
-      city: city.trim() || undefined,
-      provinceCode,
-      agency: agency.trim() || undefined,
-      licenseNumber: licenseNumber.trim() || undefined,
       preferredLanguage: (i18n.language?.startsWith('fr') ? 'fr' : 'en') as 'fr' | 'en',
     })
   }
@@ -225,81 +207,6 @@ export default function RegisterPage() {
                 className={inputClass}
                 placeholder="(506) 555-1234"
               />
-            </div>
-            <div>
-              <label htmlFor="reg-address" className="block text-sm font-medium text-stone-700 mb-1">
-                {t('auth.address', 'Adresse')}
-              </label>
-              <input
-                id="reg-address"
-                type="text"
-                autoComplete="street-address"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                className={inputClass}
-                placeholder="123 rue Principale"
-              />
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label htmlFor="reg-city" className="block text-sm font-medium text-stone-700 mb-1">
-                  {t('auth.city', 'Ville')}
-                </label>
-                <input
-                  id="reg-city"
-                  type="text"
-                  autoComplete="address-level2"
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  className={inputClass}
-                  placeholder="Moncton"
-                />
-              </div>
-              <div>
-                <label htmlFor="reg-province" className="block text-sm font-medium text-stone-700 mb-1">
-                  {t('auth.province', 'Province')}
-                </label>
-                <select
-                  id="reg-province"
-                  autoComplete="address-level1"
-                  value={provinceCode}
-                  onChange={(e) => setProvinceCode(e.target.value)}
-                  className={inputClass}
-                >
-                  {NB_PROVINCES.map((p) => (
-                    <option key={p.code} value={p.code}>{p.label}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label htmlFor="reg-agency" className="block text-sm font-medium text-stone-700 mb-1">
-                  {t('auth.agency', 'Agence')}
-                </label>
-                <input
-                  id="reg-agency"
-                  type="text"
-                  autoComplete="organization"
-                  value={agency}
-                  onChange={(e) => setAgency(e.target.value)}
-                  className={inputClass}
-                  placeholder="RE/MAX, Royal LePage..."
-                />
-              </div>
-              <div>
-                <label htmlFor="reg-license" className="block text-sm font-medium text-stone-700 mb-1">
-                  {t('auth.licenseNumber', 'No. permis')}
-                </label>
-                <input
-                  id="reg-license"
-                  type="text"
-                  value={licenseNumber}
-                  onChange={(e) => setLicenseNumber(e.target.value)}
-                  className={inputClass}
-                  placeholder="NB-12345"
-                />
-              </div>
             </div>
 
             <div className="pt-1">

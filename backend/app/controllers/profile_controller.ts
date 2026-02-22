@@ -228,24 +228,22 @@ export default class ProfileController {
   }
 
   /**
-   * D40: Save onboarding profile
+   * Save onboarding profile (3-step action onboarding)
    * PUT /api/me/onboarding
    */
   async saveOnboarding({ request, response, auth }: HttpContext) {
     try {
       const user = auth.user!
 
-      // Validate request
       const payload = await request.validateUsing(onboardingValidator)
 
-      // Update user profile with onboarding data
       user.language = payload.language
-      user.practiceType = payload.practiceType
-      user.propertyContexts = payload.propertyContexts
-      user.annualVolume = payload.annualVolume
-      user.preferAutoConditions = payload.preferAutoConditions
+      user.agency = payload.agency
+      user.licenseNumber = payload.licenseNumber
+      if (payload.fullName !== undefined) user.fullName = payload.fullName
+      if (payload.phone !== undefined) user.phone = payload.phone
       user.onboardingCompleted = true
-      user.onboardingSkipped = payload.skipped ?? false
+      user.onboardingSkipped = false
       user.onboardingCompletedAt = DateTime.now()
 
       await user.save()
@@ -254,17 +252,13 @@ export default class ProfileController {
         success: true,
         data: {
           message: 'Onboarding completed successfully',
-          profile: {
-            practiceType: user.practiceType,
-            propertyContexts: user.propertyContexts,
-            annualVolume: user.annualVolume,
-            preferAutoConditions: user.preferAutoConditions,
-            onboardingCompleted: user.onboardingCompleted,
-          },
+          language: user.language,
+          agency: user.agency,
+          licenseNumber: user.licenseNumber,
+          onboardingCompleted: user.onboardingCompleted,
         },
       })
     } catch (error) {
-      // Validation error
       if (error.messages) {
         return response.unprocessableEntity({
           success: false,

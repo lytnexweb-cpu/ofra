@@ -210,15 +210,14 @@ export default class AuthController {
             id: user.id,
             email: user.email,
             fullName: user.fullName,
+            phone: user.phone,
+            agency: user.agency,
+            licenseNumber: user.licenseNumber,
             language: user.language,
             role: user.role,
-            // D40: Onboarding profile
+            // Onboarding
             onboardingCompleted: user.onboardingCompleted,
             onboardingSkipped: user.onboardingSkipped,
-            practiceType: user.practiceType,
-            propertyContexts: user.propertyContexts,
-            annualVolume: user.annualVolume,
-            preferAutoConditions: user.preferAutoConditions,
             // K2: Subscription info
             isFounder: user.isFounder,
             planSlug: user.plan?.slug ?? null,

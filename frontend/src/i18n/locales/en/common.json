@@ -1163,72 +1163,78 @@
     "saving": "Saving..."
   },
   "onboarding": {
-    "welcome": "Welcome to Ofra!",
-    "subtitle": "A few questions to personalize your experience",
     "skip": "Skip",
     "back": "Back",
     "continue": "Continue",
-    "finish": "Finish",
     "stepOf": "Step {{current}} of {{total}}",
-    "steps": {
-      "language": {
-        "title": "Choose your language",
-        "subtitle": "Select your interface language"
-      },
-      "practice": {
-        "title": "How do you work?",
-        "subtitle": "This helps us tailor your experience",
-        "solo": "I work alone",
-        "soloDesc": "Independent broker",
-        "smallTeam": "Small team",
-        "smallTeamDesc": "2 to 5 people",
-        "agency": "Agency",
-        "agencyDesc": "More than 5 people"
-      },
-      "contexts": {
-        "title": "Your transaction types",
-        "subtitle": "Select all that apply",
-        "hint": "This determines which conditions will be suggested",
-        "urbanSuburban": "Residential",
-        "urbanSuburbanDesc": "Urban / Suburban",
-        "rural": "Rural",
-        "ruralDesc": "Well, septic system",
-        "condo": "Condos",
-        "condoDesc": "Condominiums",
-        "land": "Land",
-        "landDesc": "Vacant lots"
-      },
-      "volume": {
-        "title": "Your annual volume",
-        "subtitle": "How many transactions per year?",
-        "beginner": "Beginner",
-        "beginnerDesc": "Less than 10 transactions / year",
-        "established": "Established",
-        "establishedDesc": "10 to 30 transactions / year",
-        "high": "High volume",
-        "highDesc": "More than 30 transactions / year"
-      },
-      "preference": {
-        "title": "Your work style",
-        "subtitle": "How do you prefer to manage your conditions?",
-        "guided": "Guide me",
-        "guidedDesc": "Ofra automatically loads relevant conditions based on your profile. You can always modify them.",
-        "guidedTag": "Recommended",
-        "manual": "I prefer full control",
-        "manualDesc": "You manually add each condition. Suggestions remain available at each step."
-      }
+    "step1": {
+      "title": "Language & professional profile",
+      "subtitle": "Set up your work environment",
+      "languageLabel": "Interface language",
+      "fullName": "Full name",
+      "phone": "Phone",
+      "agency": "Real estate agency",
+      "agencyPlaceholder": "RE/MAX, Royal LePage...",
+      "licenseNumber": "License number",
+      "licenseNumberPlaceholder": "NB-12345",
+      "whyInfo": "Why this info?",
+      "whyInfoText": "Your agency and license number will appear on your official documents and offers."
     },
-    "success": {
-      "title": "You're all set!",
-      "subtitle": "Your Ofra experience is now personalized.",
-      "profileTitle": "Your profile:",
-      "language": "Language",
-      "practice": "Practice",
-      "contexts": "Contexts",
-      "volume": "Volume",
-      "style": "Style",
-      "editHint": "You can change these preferences anytime in settings.",
-      "cta": "Go to my dashboard"
+    "step2": {
+      "title": "Import your clients",
+      "subtitle": "Find your existing contacts in one click",
+      "methodFub": "FollowUpBoss",
+      "methodFubDesc": "Connect your CRM",
+      "methodFubRecommended": "Recommended",
+      "methodCsv": "CSV file",
+      "methodCsvDesc": "Import from a spreadsheet",
+      "methodZero": "Not now",
+      "methodZeroDesc": "I'll add them later",
+      "fubApiKey": "FollowUpBoss API key",
+      "fubApiKeyPlaceholder": "Paste your API key here",
+      "fubConnect": "Connect",
+      "fubConnecting": "Connecting...",
+      "fubConnected": "Connected",
+      "fubInvalidKey": "Invalid API key. Check in Admin > API in your FUB account.",
+      "fubError": "Connection error. Please try again.",
+      "csvDrop": "Drop your CSV file here",
+      "csvDropHint": "or click to select",
+      "previewTitle": "Contact preview",
+      "previewContacts": "{{count}} contacts found",
+      "importButton": "Import {{count}} contacts",
+      "importing": "Importing...",
+      "importSuccess": "{{count}} contacts imported successfully!",
+      "importSkipped": "{{count}} skipped (duplicates)",
+      "skipStep": "Skip this step"
+    },
+    "step3": {
+      "title": "Create your first transaction",
+      "subtitle": "Get started with a real transaction",
+      "typePurchase": "Purchase",
+      "typeSale": "Sale",
+      "client": "Client",
+      "clientPlaceholder": "Search for a client...",
+      "clientEmpty": "No clients found",
+      "clientBadgeImported": "Imported",
+      "propertyAddress": "Property address",
+      "propertyAddressPlaceholder": "123 Main Street, Moncton",
+      "propertyType": "Property type",
+      "propertyTypeHouse": "House",
+      "propertyTypeCondo": "Condo",
+      "propertyTypeLand": "Land",
+      "price": "Price (optional)",
+      "pricePlaceholder": "350,000",
+      "createButton": "Create transaction",
+      "creating": "Creating...",
+      "successTitle": "Transaction created!",
+      "successSubtitle": "Your first transaction is ready.",
+      "successNext": "Next steps:",
+      "successNextItems": [
+        "Add parties to the transaction",
+        "Complete the property profile",
+        "Manage conditions and documents"
+      ],
+      "goToDashboard": "Go to my dashboard"
     }
   },
   "offers": {
@@ -2376,7 +2382,25 @@
     "accountSubscribe": "Subscribe now",
     "accountChoosePlan": "Choose a plan",
     "accountTrialInfo": "You're on a free trial. Subscribe to keep using Ofra after your trial ends.",
-    "viewPlans": "View plans"
+    "viewPlans": "View plans",
+    "backToApp": "Back to app"
+  },
+  "changePlan": {
+    "upgradeTitle": "Upgrade your plan",
+    "downgradeTitle": "Change your plan",
+    "upgradeDesc": "Your new plan takes effect immediately with prorating.",
+    "downgradeDesc": "Review the new plan limits before confirming.",
+    "current": "Current",
+    "new": "New",
+    "prorateNote": "Prorating is calculated automatically by Stripe.",
+    "downgradeWarning": "Switching to a lower plan will reduce your limits (active transactions, storage). Make sure you don't exceed the new limits.",
+    "blocked": "Change not possible",
+    "blockedDetail": "You have {{active}} active transactions, but the chosen plan allows {{max}}. Archive {{archive}} transaction(s) before switching.",
+    "goToTransactions": "View my transactions",
+    "confirm": "Confirm change",
+    "processing": "Changing plan…",
+    "success": "Plan changed successfully!",
+    "redirecting": "Redirecting…"
   },
   "conditionHistory": {
     "title": "Audit history",

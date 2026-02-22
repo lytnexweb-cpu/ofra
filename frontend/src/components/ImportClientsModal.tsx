@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
@@ -16,147 +16,23 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/Dialog'
 import { Button } from './ui/Button'
 import { clientsApi, type CsvImportResult } from '../api/clients.api'
+import { useCsvImport, FIELD_LABELS } from '../hooks/useCsvImport'
 
 interface ImportClientsModalProps {
   isOpen: boolean
   onClose: () => void
 }
 
-type ImportState = 'idle' | 'parsing' | 'preview' | 'uploading' | 'success' | 'error'
-
-interface CsvPreview {
-  headers: string[]
-  rows: string[][]
-  totalRows: number
-  mappedColumns: Map<string, string>
-}
-
-// Known column mappings (same as backend)
-const COLUMN_MAPPINGS: Record<string, string> = {
-  // English
-  firstname: 'firstName',
-  first_name: 'firstName',
-  'first name': 'firstName',
-  lastname: 'lastName',
-  last_name: 'lastName',
-  'last name': 'lastName',
-  email: 'email',
-  'e-mail': 'email',
-  phone: 'phone',
-  telephone: 'phone',
-  tel: 'phone',
-  notes: 'notes',
-  note: 'notes',
-  comments: 'notes',
-  addressline1: 'addressLine1',
-  address_line1: 'addressLine1',
-  'address line 1': 'addressLine1',
-  address: 'addressLine1',
-  addressline2: 'addressLine2',
-  address_line2: 'addressLine2',
-  'address line 2': 'addressLine2',
-  apt: 'addressLine2',
-  apartment: 'addressLine2',
-  suite: 'addressLine2',
-  city: 'city',
-  provincestate: 'provinceState',
-  province_state: 'provinceState',
-  province: 'provinceState',
-  state: 'provinceState',
-  postalcode: 'postalCode',
-  postal_code: 'postalCode',
-  'postal code': 'postalCode',
-  zip: 'postalCode',
-  zipcode: 'postalCode',
-  homephone: 'homePhone',
-  home_phone: 'homePhone',
-  'home phone': 'homePhone',
-  workphone: 'workPhone',
-  work_phone: 'workPhone',
-  'work phone': 'workPhone',
-  cellphone: 'cellPhone',
-  cell_phone: 'cellPhone',
-  'cell phone': 'cellPhone',
-  mobile: 'cellPhone',
-  // French
-  prénom: 'firstName',
-  prenom: 'firstName',
-  nom: 'lastName',
-  'nom de famille': 'lastName',
-  courriel: 'email',
-  téléphone: 'phone',
-  commentaires: 'notes',
-  adresse: 'addressLine1',
-  ville: 'city',
-  'code postal': 'postalCode',
-  cellulaire: 'cellPhone',
-  'tel maison': 'homePhone',
-  'tel travail': 'workPhone',
-  'tel cellulaire': 'cellPhone',
-}
-
-// Human-readable field names
-const FIELD_LABELS: Record<string, string> = {
-  firstName: 'First Name',
-  lastName: 'Last Name',
-  email: 'Email',
-  phone: 'Phone',
-  notes: 'Notes',
-  addressLine1: 'Address',
-  addressLine2: 'Address 2',
-  city: 'City',
-  provinceState: 'Province/State',
-  postalCode: 'Postal Code',
-  homePhone: 'Home Phone',
-  workPhone: 'Work Phone',
-  cellPhone: 'Cell Phone',
-}
-
-function mapColumnName(header: string): string | null {
-  const normalized = header.toLowerCase().trim()
-  return COLUMN_MAPPINGS[normalized] || null
-}
-
-function parseCSV(text: string): { headers: string[]; rows: string[][] } {
-  const lines = text.split(/\r?\n/).filter((line) => line.trim())
-  if (lines.length === 0) return { headers: [], rows: [] }
-
-  // Simple CSV parser - handles basic cases
-  const parseLine = (line: string): string[] => {
-    const result: string[] = []
-    let current = ''
-    let inQuotes = false
-
-    for (let i = 0; i < line.length; i++) {
-      const char = line[i]
-      if (char === '"') {
-        inQuotes = !inQuotes
-      } else if (char === ',' && !inQuotes) {
-        result.push(current.trim())
-        current = ''
-      } else {
-        current += char
-      }
-    }
-    result.push(current.trim())
-    return result
-  }
-
-  const headers = parseLine(lines[0])
-  const rows = lines.slice(1).map(parseLine)
-
-  return { headers, rows }
-}
+type UploadState = 'ready' | 'uploading' | 'success' | 'error'
 
 export default function ImportClientsModal({ isOpen, onClose }: ImportClientsModalProps) {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
 
+  const csv = useCsvImport()
   const [dragActive, setDragActive] = useState(false)
-  const [importState, setImportState] = useState<ImportState>('idle')
+  const [uploadState, setUploadState] = useState<UploadState>('ready')
   const [result, setResult] = useState<CsvImportResult | null>(null)
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [preview, setPreview] = useState<CsvPreview | null>(null)
 
   const importMutation = useMutation({
     mutationFn: (file: File) => clientsApi.importCsv(file),
@@ -169,11 +45,11 @@ export default function ImportClientsModal({ isOpen, onClose }: ImportClientsMod
         errors: data.errors ?? [],
       }
       setResult(importResult)
-      setImportState(importResult.imported > 0 ? 'success' : 'error')
+      setUploadState(importResult.imported > 0 ? 'success' : 'error')
       queryClient.invalidateQueries({ queryKey: ['clients'] })
     },
     onError: () => {
-      setImportState('error')
+      setUploadState('error')
       setResult({
         success: false,
         imported: 0,
@@ -182,49 +58,6 @@ export default function ImportClientsModal({ isOpen, onClose }: ImportClientsMod
       })
     },
   })
-
-  // Parse CSV when file is selected
-  useEffect(() => {
-    if (!selectedFile) {
-      setPreview(null)
-      return
-    }
-
-    setImportState('parsing')
-
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      const text = e.target?.result as string
-      const { headers, rows } = parseCSV(text)
-
-      // Map columns
-      const mappedColumns = new Map<string, string>()
-      headers.forEach((header) => {
-        const mapped = mapColumnName(header)
-        if (mapped) {
-          mappedColumns.set(header, mapped)
-        }
-      })
-
-      setPreview({
-        headers,
-        rows: rows.slice(0, 5), // First 5 rows for preview
-        totalRows: rows.length,
-        mappedColumns,
-      })
-      setImportState('preview')
-    }
-    reader.onerror = () => {
-      setImportState('error')
-      setResult({
-        success: false,
-        imported: 0,
-        skipped: 0,
-        errors: [{ row: 0, message: t('csvImport.uploadFailed') }],
-      })
-    }
-    reader.readAsText(selectedFile)
-  }, [selectedFile, t])
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault()
@@ -243,51 +76,47 @@ export default function ImportClientsModal({ isOpen, onClose }: ImportClientsMod
 
     const files = e.dataTransfer.files
     if (files?.[0]) {
-      handleFile(files[0])
+      csv.handleFile(files[0])
     }
-  }, [])
+  }, [csv])
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
     if (files?.[0]) {
-      handleFile(files[0])
+      csv.handleFile(files[0])
     }
-  }
-
-  const handleFile = (file: File) => {
-    if (!file.name.endsWith('.csv')) {
-      setImportState('error')
-      setResult({
-        success: false,
-        imported: 0,
-        skipped: 0,
-        errors: [{ row: 0, message: t('csvImport.invalidFormat') }],
-      })
-      return
-    }
-    setSelectedFile(file)
   }
 
   const handleUpload = () => {
-    if (!selectedFile) return
-    setImportState('uploading')
-    importMutation.mutate(selectedFile)
+    if (!csv.selectedFile) return
+    setUploadState('uploading')
+    importMutation.mutate(csv.selectedFile)
   }
 
   const handleClose = () => {
-    setImportState('idle')
+    csv.reset()
+    setUploadState('ready')
     setResult(null)
-    setSelectedFile(null)
-    setPreview(null)
     onClose()
   }
 
   const handleReset = () => {
-    setImportState('idle')
+    csv.reset()
+    setUploadState('ready')
     setResult(null)
-    setSelectedFile(null)
-    setPreview(null)
   }
+
+  // Derive combined state for rendering
+  const importState = csv.state === 'error' ? 'error' as const
+    : csv.state === 'idle' && uploadState === 'ready' ? 'idle' as const
+    : csv.state === 'parsing' ? 'parsing' as const
+    : csv.state === 'preview' && uploadState === 'ready' ? 'preview' as const
+    : uploadState === 'uploading' ? 'uploading' as const
+    : uploadState === 'success' ? 'success' as const
+    : uploadState === 'error' ? 'error' as const
+    : 'idle' as const
+
+  const { preview, selectedFile } = csv
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
@@ -567,7 +396,7 @@ export default function ImportClientsModal({ isOpen, onClose }: ImportClientsMod
         )}
 
         {/* Error State */}
-        {importState === 'error' && result && (
+        {importState === 'error' && (result || csv.error) && (
           <div className="space-y-4 animate-in fade-in duration-200">
             <div className="text-center py-6">
               <div className="w-16 h-16 mx-auto rounded-full bg-destructive/10 flex items-center justify-center mb-4">
@@ -579,7 +408,10 @@ export default function ImportClientsModal({ isOpen, onClose }: ImportClientsMod
             {/* Error details */}
             <div className="max-h-40 overflow-y-auto border border-destructive/20 rounded-lg p-3 bg-destructive/5">
               <ul className="text-sm space-y-1">
-                {result.errors.map((err, i) => (
+                {csv.error && (
+                  <li><span>{csv.error}</span></li>
+                )}
+                {result?.errors.map((err, i) => (
                   <li key={i} className="flex gap-2">
                     {err.row > 0 && <span className="text-destructive">{t('csvImport.row')} {err.row}:</span>}
                     <span>{err.message}</span>

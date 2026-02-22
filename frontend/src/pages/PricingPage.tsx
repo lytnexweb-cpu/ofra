@@ -1,13 +1,16 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { plansApi, type PublicPlan } from '../api/plans.api'
 import { subscriptionApi } from '../api/subscription.api'
 import { authApi } from '../api/auth.api'
 import SubscribeModal from '../components/SubscribeModal'
+import ChangePlanModal from '../components/ChangePlanModal'
 import { Button } from '../components/ui/Button'
-import { Check, Minus, Zap, Loader2, Star } from 'lucide-react'
+import { OfraLogo } from '../components/OfraLogo'
+import { BRAND } from '../config/brand'
+import { Check, Minus, Zap, Loader2, Star, ArrowLeft } from 'lucide-react'
 
 type BillingCycle = 'monthly' | 'annual'
 
@@ -125,6 +128,24 @@ export default function PricingPage() {
     mode: 'new' | 'change'
   }>({ open: false, planSlug: '', planName: '', price: 0, mode: 'new' })
 
+  const [changeModal, setChangeModal] = useState<{
+    open: boolean
+    newPlanSlug: string
+    newPlanName: string
+    newPrice: number
+    isDowngrade: boolean
+  }>({ open: false, newPlanSlug: '', newPlanName: '', newPrice: 0, isDowngrade: false })
+
+  const handleSubscribeSuccess = () => {
+    setModal((m) => ({ ...m, open: false }))
+    navigate('/')
+  }
+
+  const handleChangePlanSuccess = () => {
+    setChangeModal((m) => ({ ...m, open: false }))
+    navigate('/')
+  }
+
   // Check if user is authenticated
   const { data: authData, isLoading: authLoading } = useQuery({
     queryKey: ['auth', 'me'],
@@ -155,6 +176,9 @@ export default function PricingPage() {
   const isTrial = sub?.trial?.active ?? false
   const isActive = sub?.billing?.subscriptionStatus === 'active'
 
+  const currentPlan = plans.find((p) => p.slug === currentPlanSlug)
+  const currentPlanPrice = currentPlan ? calculatePrice(currentPlan, cycle, isFounder, discounts) : 0
+
   const handleSelectPlan = (plan: PublicPlan) => {
     if (plan.slug === 'agence') return // Agence = coming soon
 
@@ -168,12 +192,27 @@ export default function PricingPage() {
     const isCurrentPlan = plan.slug === currentPlanSlug
     if (isCurrentPlan && isActive) return
 
+    // Already subscribed → open change plan modal (no card re-entry)
+    if (isActive && currentPlan) {
+      const newRank = PLAN_RANK[plan.slug] ?? 0
+      const currentRank = PLAN_RANK[currentPlanSlug!] ?? 0
+      setChangeModal({
+        open: true,
+        newPlanSlug: plan.slug,
+        newPlanName: plan.name,
+        newPrice: price,
+        isDowngrade: newRank < currentRank,
+      })
+      return
+    }
+
+    // New subscription (trial or no subscription)
     setModal({
       open: true,
       planSlug: plan.slug,
       planName: plan.name,
       price,
-      mode: isActive ? 'change' : 'new',
+      mode: 'new',
     })
   }
 
@@ -186,7 +225,44 @@ export default function PricingPage() {
   }
 
   return (
-    <div data-testid="pricing-page" className="max-w-6xl mx-auto">
+    <div data-testid="pricing-page" className="min-h-screen bg-stone-50">
+      {/* Header */}
+      <header className="bg-white border-b border-stone-200">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <Link to={isAuthenticated ? '/' : '/login'} className="flex items-center gap-2.5">
+            <OfraLogo size={32} />
+            <span
+              className="text-lg font-bold text-primary"
+              style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}
+            >
+              {BRAND.name}
+            </span>
+          </Link>
+          {isAuthenticated ? (
+            <Link
+              to="/"
+              className="flex items-center gap-1.5 text-sm font-medium text-stone-600 hover:text-primary transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              {t('pricing.backToApp')}
+            </Link>
+          ) : (
+            <div className="flex items-center gap-3">
+              <Link
+                to="/login"
+                className="text-sm font-medium text-stone-600 hover:text-primary transition-colors"
+              >
+                {t('auth.login')}
+              </Link>
+              <Link to="/register">
+                <Button size="sm">{t('auth.register')}</Button>
+              </Link>
+            </div>
+          )}
+        </div>
+      </header>
+
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       {/* Founder banner */}
       {isFounder && (
         <div className="mb-8 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800">
@@ -370,17 +446,38 @@ export default function PricingPage() {
         {t('pricing.footer')}
       </p>
 
-      {/* Subscribe Modal */}
+      {/* Subscribe Modal — new subscriptions only */}
       <SubscribeModal
         open={modal.open}
-        onOpenChange={(open) => setModal((m) => ({ ...m, open }))}
+        onOpenChange={(open) => {
+          if (!open) setModal((m) => ({ ...m, open: false }))
+        }}
         planSlug={modal.planSlug}
         planName={modal.planName}
         billingCycle={cycle}
         price={modal.price}
         isFounder={isFounder}
         mode={modal.mode}
+        onSuccess={handleSubscribeSuccess}
       />
+
+      {/* Change Plan Modal — upgrade/downgrade for existing subscribers */}
+      <ChangePlanModal
+        open={changeModal.open}
+        onOpenChange={(open) => {
+          if (!open) setChangeModal((m) => ({ ...m, open: false }))
+        }}
+        currentPlanName={currentPlan?.name ?? ''}
+        currentPlanSlug={currentPlanSlug ?? ''}
+        currentPrice={currentPlanPrice}
+        newPlanName={changeModal.newPlanName}
+        newPlanSlug={changeModal.newPlanSlug}
+        newPrice={changeModal.newPrice}
+        billingCycle={cycle}
+        isDowngrade={changeModal.isDowngrade}
+        onSuccess={handleChangePlanSuccess}
+      />
+      </div>
     </div>
   )
 }

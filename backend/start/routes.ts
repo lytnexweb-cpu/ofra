@@ -107,6 +107,10 @@ router.group(() => {
   router.put('/me/onboarding', '#controllers/profile_controller.saveOnboarding')
   router.post('/me/onboarding/skip', '#controllers/profile_controller.skipOnboarding')
 
+  // Integrations — FollowUpBoss
+  router.post('/integrations/followupboss/connect', '#controllers/integrations_controller.connectFollowUpBoss')
+  router.post('/integrations/followupboss/import', '#controllers/integrations_controller.importFollowUpBoss')
+
   // K2: Subscription
   router.get('/me/subscription', '#controllers/profile_controller.subscription')
   router.post('/me/plan', '#controllers/profile_controller.changePlan')

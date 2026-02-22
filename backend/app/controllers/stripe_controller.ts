@@ -1,4 +1,5 @@
 import type { HttpContext } from '@adonisjs/core/http'
+import logger from '@adonisjs/core/services/logger'
 import Plan from '#models/plan'
 import Transaction from '#models/transaction'
 import StripeService from '#services/stripe_service'
@@ -26,6 +27,7 @@ export default class StripeController {
         },
       })
     } catch (error) {
+      logger.error({ err: error }, 'Stripe setupIntent failed')
       return response.internalServerError({
         success: false,
         error: { message: 'Failed to create setup intent', code: 'E_STRIPE_ERROR' },
@@ -100,6 +102,7 @@ export default class StripeController {
         },
       })
     } catch (error) {
+      logger.error({ err: error, planSlug: payload.planSlug, billingCycle }, 'Stripe subscribe failed')
       const message = error instanceof Error ? error.message : 'Subscription creation failed'
       return response.internalServerError({
         success: false,
@@ -186,6 +189,7 @@ export default class StripeController {
         },
       })
     } catch (error) {
+      logger.error({ err: error, planSlug: payload.planSlug }, 'Stripe changePlan failed')
       const message = error instanceof Error ? error.message : 'Plan change failed'
       return response.internalServerError({
         success: false,
@@ -223,6 +227,7 @@ export default class StripeController {
         },
       })
     } catch (error) {
+      logger.error({ err: error }, 'Stripe cancel failed')
       const message = error instanceof Error ? error.message : 'Cancellation failed'
       return response.internalServerError({
         success: false,
@@ -247,6 +252,7 @@ export default class StripeController {
         data: { message: 'Payment method updated' },
       })
     } catch (error) {
+      logger.error({ err: error }, 'Stripe updatePaymentMethod failed')
       const message = error instanceof Error ? error.message : 'Failed to update payment method'
       return response.internalServerError({
         success: false,
