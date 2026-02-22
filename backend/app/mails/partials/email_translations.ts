@@ -830,6 +830,86 @@ export const emailTranslations = {
       noLoss: 'Your data is safe. It will be fully restored as soon as you choose a plan.',
     },
   },
+
+  // ============================================
+  // SUBSCRIPTION CONFIRMATION EMAIL
+  // ============================================
+  subscriptionConfirmation: {
+    fr: {
+      subject: 'Merci pour votre abonnement Ofra!',
+      title: 'Abonnement confirmé 🎉',
+      intro: 'Votre abonnement a été activé avec succès. Merci de faire confiance à Ofra pour gérer vos transactions immobilières!',
+      planLabel: 'Forfait',
+      priceLabel: 'Prix',
+      cycleLabel: 'Facturation',
+      cycleMonthly: 'Mensuelle',
+      cycleAnnual: 'Annuelle',
+      founderNote: 'Votre remise fondateur est appliquée — prix garanti à vie.',
+      whatNext: 'Et maintenant?',
+      whatNextItems: [
+        'Créez vos transactions sans limite',
+        'Profitez de toutes les fonctionnalités de votre forfait',
+        'Gérez votre abonnement depuis votre compte',
+      ],
+      cta: 'Accéder à Ofra',
+      supportNote: 'Une question sur votre facturation? Contactez-nous à support@ofra.ca.',
+      closing: 'Merci de votre confiance!',
+    },
+    en: {
+      subject: 'Thank you for subscribing to Ofra!',
+      title: 'Subscription confirmed 🎉',
+      intro: 'Your subscription has been activated successfully. Thank you for trusting Ofra to manage your real estate transactions!',
+      planLabel: 'Plan',
+      priceLabel: 'Price',
+      cycleLabel: 'Billing',
+      cycleMonthly: 'Monthly',
+      cycleAnnual: 'Annual',
+      founderNote: 'Your founder discount is applied — price locked for life.',
+      whatNext: "What's next?",
+      whatNextItems: [
+        'Create transactions without limits',
+        'Enjoy all the features of your plan',
+        'Manage your subscription from your account',
+      ],
+      cta: 'Go to Ofra',
+      supportNote: 'Questions about your billing? Contact us at support@ofra.ca.',
+      closing: 'Thank you for your trust!',
+    },
+  },
+
+  // ============================================
+  // PLAN CHANGED EMAIL
+  // ============================================
+  planChanged: {
+    fr: {
+      subjectUpgrade: 'Votre forfait Ofra a été amélioré!',
+      subjectDowngrade: 'Votre forfait Ofra a été modifié',
+      titleUpgrade: 'Forfait amélioré! 🚀',
+      titleDowngrade: 'Forfait modifié',
+      introUpgrade: 'Votre changement de forfait a été effectué avec succès. Profitez de vos nouvelles fonctionnalités!',
+      introDowngrade: 'Votre changement de forfait a été effectué avec succès.',
+      previousPlan: 'Ancien forfait',
+      newPlan: 'Nouveau forfait',
+      newPrice: 'Nouveau prix',
+      prorateNote: 'Le prorata a été calculé automatiquement. Consultez votre facture Stripe pour les détails.',
+      cta: 'Voir mon compte',
+      supportNote: 'Une question? Contactez-nous à support@ofra.ca.',
+    },
+    en: {
+      subjectUpgrade: 'Your Ofra plan has been upgraded!',
+      subjectDowngrade: 'Your Ofra plan has been changed',
+      titleUpgrade: 'Plan upgraded! 🚀',
+      titleDowngrade: 'Plan changed',
+      introUpgrade: 'Your plan change was successful. Enjoy your new features!',
+      introDowngrade: 'Your plan change was successful.',
+      previousPlan: 'Previous plan',
+      newPlan: 'New plan',
+      newPrice: 'New price',
+      prorateNote: 'Proration was calculated automatically. Check your Stripe invoice for details.',
+      cta: 'View my account',
+      supportNote: 'Questions? Contact us at support@ofra.ca.',
+    },
+  },
 }
 
 /**

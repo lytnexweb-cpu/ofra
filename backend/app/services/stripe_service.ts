@@ -3,6 +3,10 @@ import env from '#start/env'
 import User from '#models/user'
 import Plan from '#models/plan'
 import { DateTime } from 'luxon'
+import mail from '@adonisjs/mail/services/main'
+import SubscriptionConfirmationMail from '#mails/subscription_confirmation_mail'
+import PlanChangedMail from '#mails/plan_changed_mail'
+import logger from '@adonisjs/core/services/logger'
 
 // Discount rates matching plans_controller.ts and PricingPage
 const DISCOUNT_FOUNDER = 0.20
@@ -168,6 +172,19 @@ export default class StripeService {
     user.gracePeriodStart = null
     await user.save()
 
+    // Send confirmation email (non-blocking)
+    mail
+      .send(new SubscriptionConfirmationMail({
+        to: user.email,
+        userName: user.fullName ?? user.email,
+        planName: plan.name,
+        price,
+        billingCycle,
+        isFounder: user.isFounder,
+        language: user.language,
+      }))
+      .catch((err) => logger.error({ err }, 'Failed to send subscription confirmation email'))
+
     return subscription
   }
 
@@ -182,6 +199,13 @@ export default class StripeService {
     if (!user.stripeSubscriptionId) {
       throw new Error('User has no active Stripe subscription')
     }
+
+    // Load previous plan name before changing
+    const previousPlan = user.planId
+      ? await Plan.find(user.planId)
+      : null
+    const previousPlanName = previousPlan?.name ?? '—'
+    const previousPlanOrder = previousPlan?.displayOrder ?? 0
 
     const stripe = this.getClient()
     const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId)
@@ -211,6 +235,20 @@ export default class StripeService {
     user.planLockedPrice = price
     user.gracePeriodStart = null
     await user.save()
+
+    // Send plan changed email (non-blocking)
+    mail
+      .send(new PlanChangedMail({
+        to: user.email,
+        userName: user.fullName ?? user.email,
+        previousPlanName,
+        newPlanName: plan.name,
+        newPrice: price,
+        billingCycle,
+        isUpgrade: plan.displayOrder > previousPlanOrder,
+        language: user.language,
+      }))
+      .catch((err) => logger.error({ err }, 'Failed to send plan changed email'))
 
     return updated
   }
